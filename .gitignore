@@ -1,0 +1,8 @@
+.bkit
+.claude
+.next
+.vscode
+/node_modules
+/raw-data
+.env
+.playwright-mcp

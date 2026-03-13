@@ -1,0 +1,285 @@
+'use client';
+
+import { TickSnapshot, HexCoord, axialToOffset, COST_COLORS } from '@/types';
+import { getChampionImage } from '@/data/imageMap';
+import { BOARD_COLS } from '@/lib/simulator/models/constants';
+
+interface ReplayBoardProps {
+  snapshot: TickSnapshot | null;
+  /** 전투 시작 시의 유닛 목록 — 챔피언 이름/아이콘/코스트 매핑용 */
+  unitMeta: Record<string, {
+    championName: string;
+    championApiName: string;
+    cost: number;
+    team: 'player' | 'enemy';
+    starLevel: number;
+    items: { apiName: string }[];
+    maxHp: number;
+    maxMana: number;
+  }>;
+  selectedUnitId: string | null;
+  onUnitClick?: (unitId: string) => void;
+}
+
+const HEX_R = 32;
+const HEX_W = HEX_R * Math.sqrt(3);
+const HEX_H = HEX_R * 2;
+const PAD = 4;
+const ROWS = 8; // player 4 + enemy 4
+
+function hexPoints(cx: number, cy: number, r: number): string {
+  const pts = [];
+  for (let i = 0; i < 6; i++) {
+    const angle = (Math.PI / 3) * i - Math.PI / 6;
+    pts.push(`${cx + r * Math.cos(angle)},${cy + r * Math.sin(angle)}`);
+  }
+  return pts.join(' ');
+}
+
+function hexCenter(row: number, col: number): { cx: number; cy: number } {
+  const offset = row % 2 === 1 ? HEX_W / 2 : 0;
+  const cx = col * (HEX_W + PAD) + HEX_W / 2 + 20 + offset;
+  const cy = row * (HEX_H * 0.75 + PAD) + HEX_R + 20;
+  return { cx, cy };
+}
+
+export default function ReplayBoard({
+  snapshot,
+  unitMeta,
+  selectedUnitId,
+  onUnitClick,
+}: ReplayBoardProps) {
+  const cols = BOARD_COLS;
+  const width = cols * (HEX_W + PAD) + HEX_W / 2 + 40;
+  const height = ROWS * (HEX_H * 0.75 + PAD) + HEX_R + 40;
+
+  // Build position → unitId map from snapshot (axial → offset for grid matching)
+  const posMap = new Map<string, string>();
+  if (snapshot) {
+    for (const [unitId, unitSnap] of Object.entries(snapshot.units)) {
+      if (unitSnap.isAlive) {
+        const off = axialToOffset(unitSnap.position as HexCoord);
+        posMap.set(`${off.row},${off.col}`, unitId);
+      }
+    }
+  }
+
+  // Extract attack/ability events for visual effects
+  const combatEvents: { sourceId: string; targetId: string; value: number; type: 'attack' | 'ability' }[] = [];
+  if (snapshot) {
+    for (const evt of snapshot.events) {
+      if ((evt.type === 'attack' || evt.type === 'ability') && evt.targetId && evt.value != null) {
+        combatEvents.push({
+          sourceId: evt.sourceId,
+          targetId: evt.targetId,
+          value: evt.value,
+          type: evt.type,
+        });
+      }
+    }
+  }
+
+  // Helper: get pixel center for a unit by id
+  function getUnitCenter(unitId: string): { cx: number; cy: number } | null {
+    if (!snapshot) return null;
+    const unitSnap = snapshot.units[unitId];
+    if (!unitSnap || !unitSnap.isAlive) return null;
+    const off = axialToOffset(unitSnap.position as HexCoord);
+    return hexCenter(off.row, off.col);
+  }
+
+  return (
+    <svg width={width} height={height} className="select-none">
+      <defs>
+        {Object.entries(unitMeta).map(([unitId, meta]) => (
+          <pattern key={unitId} id={`replay-${unitId}`} width="1" height="1" patternContentUnits="objectBoundingBox">
+            <image
+              href={getChampionImage(meta.championApiName)}
+              width="1" height="1"
+              preserveAspectRatio="xMidYMid slice"
+            />
+          </pattern>
+        ))}
+        {/* Arrow markers for attack lines */}
+        <marker id="arrow-physical" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
+          <path d="M0,0 L6,2 L0,4" fill="rgba(255,255,255,0.6)" />
+        </marker>
+        <marker id="arrow-magic" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
+          <path d="M0,0 L6,2 L0,4" fill="rgba(168,85,247,0.7)" />
+        </marker>
+      </defs>
+
+      {/* Dividing line between player/enemy */}
+      <line
+        x1={10}
+        y1={4 * (HEX_H * 0.75 + PAD) + 10}
+        x2={width - 10}
+        y2={4 * (HEX_H * 0.75 + PAD) + 10}
+        stroke="#374151"
+        strokeWidth={1}
+        strokeDasharray="4,4"
+      />
+      <text x={width - 16} y={4 * (HEX_H * 0.75 + PAD) + 6} textAnchor="end" fill="#4b5563" fontSize="8">
+        TEAM B
+      </text>
+      <text x={width - 16} y={4 * (HEX_H * 0.75 + PAD) + 18} textAnchor="end" fill="#4b5563" fontSize="8">
+        TEAM A
+      </text>
+
+      {Array.from({ length: ROWS }, (_, row) =>
+        Array.from({ length: cols }, (_, col) => {
+          const { cx, cy } = hexCenter(row, col);
+          const posKey = `${row},${col}`;
+          const unitId = posMap.get(posKey);
+          const meta = unitId ? unitMeta[unitId] : null;
+          const unitSnap = unitId && snapshot ? snapshot.units[unitId] : null;
+          const isSelected = unitId === selectedUnitId;
+
+          if (!unitId || !meta || !unitSnap) {
+            // Empty cell
+            return (
+              <polygon
+                key={posKey}
+                points={hexPoints(cx, cy, HEX_R)}
+                fill="#0d1117"
+                stroke="#1e2535"
+                strokeWidth={0.5}
+              />
+            );
+          }
+
+          const hpRatio = meta.maxHp > 0 ? Math.max(0, unitSnap.currentHp) / meta.maxHp : 0;
+          const manaRatio = meta.maxMana > 0 ? Math.min(1, unitSnap.currentMana / meta.maxMana) : 0;
+          const hpColor = hpRatio > 0.6 ? '#22c55e' : hpRatio > 0.3 ? '#f59e0b' : '#ef4444';
+          const teamColor = meta.team === 'player' ? '#3b82f6' : '#ef4444';
+          const costColor = COST_COLORS[meta.cost] ?? '#6b7280';
+          const barW = HEX_R * 1.2;
+          const barX = cx - barW / 2;
+
+          return (
+            <g
+              key={posKey}
+              onClick={() => onUnitClick?.(unitId)}
+              className="cursor-pointer"
+            >
+              {/* Hex background */}
+              <polygon
+                points={hexPoints(cx, cy, HEX_R)}
+                fill={`url(#replay-${unitId})`}
+                stroke={isSelected ? '#f59e0b' : costColor}
+                strokeWidth={isSelected ? 2.5 : 1.5}
+              />
+
+              {/* Team indicator ring */}
+              <polygon
+                points={hexPoints(cx, cy, HEX_R + 2)}
+                fill="none"
+                stroke={teamColor}
+                strokeWidth={1}
+                opacity={0.4}
+              />
+
+              {/* Star level */}
+              {meta.starLevel > 0 && (
+                <text x={cx} y={cy - HEX_R + 10} textAnchor="middle" fill="#f59e0b" fontSize="8" fontWeight="bold">
+                  {'★'.repeat(meta.starLevel)}
+                </text>
+              )}
+
+              {/* HP Bar */}
+              <rect x={barX} y={cy + HEX_R - 14} width={barW} height={4} rx={1} fill="#1f2937" />
+              <rect x={barX} y={cy + HEX_R - 14} width={barW * hpRatio} height={4} rx={1} fill={hpColor} />
+
+              {/* Mana Bar */}
+              <rect x={barX} y={cy + HEX_R - 9} width={barW} height={2.5} rx={1} fill="#1f2937" />
+              <rect x={barX} y={cy + HEX_R - 9} width={barW * manaRatio} height={2.5} rx={1} fill="#3b82f6" />
+
+              {/* Status effects */}
+              {unitSnap.statusEffects.length > 0 && (
+                <circle cx={cx + HEX_R - 6} cy={cy - HEX_R + 6} r={4} fill="#fbbf24" />
+              )}
+
+              {/* Item dots */}
+              {meta.items.length > 0 && (
+                <g>
+                  {meta.items.slice(0, 3).map((_, i) => (
+                    <circle
+                      key={i}
+                      cx={cx - 6 + i * 6}
+                      cy={cy + HEX_R - 4}
+                      r={2}
+                      fill="#f59e0b"
+                      stroke="#111"
+                      strokeWidth={0.5}
+                    />
+                  ))}
+                </g>
+              )}
+            </g>
+          );
+        })
+      )}
+      {/* === Attack Lines === */}
+      {combatEvents.map((evt, i) => {
+        const src = getUnitCenter(evt.sourceId);
+        const tgt = getUnitCenter(evt.targetId);
+        if (!src || !tgt) return null;
+
+        const isAbility = evt.type === 'ability';
+        const lineColor = isAbility ? 'rgba(168,85,247,0.5)' : 'rgba(255,255,255,0.35)';
+        const markerId = isAbility ? 'arrow-magic' : 'arrow-physical';
+
+        // Shorten line so it doesn't overlap the target hex
+        const dx = tgt.cx - src.cx;
+        const dy = tgt.cy - src.cy;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const shortenPx = HEX_R * 0.6;
+        const ratio = dist > 0 ? (dist - shortenPx) / dist : 0;
+        const endX = src.cx + dx * ratio;
+        const endY = src.cy + dy * ratio;
+
+        return (
+          <line
+            key={`line-${i}`}
+            x1={src.cx}
+            y1={src.cy}
+            x2={endX}
+            y2={endY}
+            stroke={lineColor}
+            strokeWidth={isAbility ? 2 : 1.5}
+            strokeDasharray={isAbility ? '4,2' : 'none'}
+            markerEnd={`url(#${markerId})`}
+          />
+        );
+      })}
+
+      {/* === Damage Numbers === */}
+      {combatEvents.map((evt, i) => {
+        const tgt = getUnitCenter(evt.targetId);
+        if (!tgt || evt.value <= 0) return null;
+
+        const isAbility = evt.type === 'ability';
+        const isCrit = evt.value > 200;
+        const offsetX = (i % 3 - 1) * 12;
+
+        return (
+          <text
+            key={`dmg-${i}`}
+            x={tgt.cx + offsetX}
+            y={tgt.cy - HEX_R - 2}
+            textAnchor="middle"
+            fontSize={isCrit ? 12 : 10}
+            fontWeight="bold"
+            fill={isAbility ? '#c084fc' : isCrit ? '#fbbf24' : '#ffffff'}
+            stroke="#000"
+            strokeWidth={0.5}
+            paintOrder="stroke"
+            opacity={0.9}
+          >
+            {Math.round(evt.value)}
+          </text>
+        );
+      })}
+    </svg>
+  );
+}
