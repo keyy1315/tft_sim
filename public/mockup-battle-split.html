@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>전투 UI 분할 뷰 목업</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0d1117; color: #e5e7eb; font-family: -apple-system, 'Segoe UI', sans-serif; }
+
+  .container { display: flex; height: 100vh; }
+
+  /* 왼쪽: 편집 패널 */
+  .edit-panel {
+    width: 220px;
+    background: #111827;
+    border-right: 1px solid #1f2937;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow-y: auto;
+  }
+  .panel-title { font-size: 11px; color: #6b7280; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .synergy-box {
+    background: #1a1f2e;
+    border: 1px solid #2d3548;
+    border-radius: 8px;
+    padding: 8px;
+  }
+  .synergy-row {
+    display: flex; align-items: center; gap: 6px; padding: 3px 0;
+    font-size: 11px;
+  }
+  .synergy-icon { width: 20px; height: 20px; border-radius: 4px; background: #374151; }
+  .synergy-count { color: #9ca3af; font-size: 10px; }
+  .synergy-active { border-left: 2px solid #f59e0b; padding-left: 4px; }
+
+  .unit-card {
+    display: flex; align-items: center; gap: 6px; padding: 6px;
+    background: #1a1f2e; border-radius: 6px; border: 1px solid #2d3548;
+    cursor: pointer;
+  }
+  .unit-card:hover { border-color: #4b5563; }
+  .unit-img { width: 36px; height: 36px; border-radius: 6px; background: #374151; border: 2px solid #6366f1; }
+  .unit-img.enemy { border-color: #ef4444; }
+  .unit-name { font-size: 12px; font-weight: 600; }
+  .unit-sub { font-size: 10px; color: #6b7280; }
+  .item-dots { display: flex; gap: 2px; margin-top: 2px; }
+  .item-dot { width: 12px; height: 12px; border-radius: 2px; background: #374151; border: 1px solid #4b5563; }
+
+  .btn-battle {
+    width: 100%; padding: 10px; border: none; border-radius: 8px;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #000; font-weight: 700; font-size: 13px;
+    cursor: pointer; letter-spacing: 0.5px;
+  }
+  .btn-battle:hover { filter: brightness(1.1); }
+
+  /* 오른쪽: 전투 뷰 */
+  .battle-view {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  /* 상단 컨트롤 바 */
+  .control-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 16px;
+    background: #111827;
+    border-bottom: 1px solid #1f2937;
+  }
+  .control-left { display: flex; align-items: center; gap: 12px; }
+  .time-display { font-size: 14px; font-weight: 700; color: #f59e0b; font-variant-numeric: tabular-nums; }
+  .control-btns { display: flex; gap: 4px; }
+  .ctrl-btn {
+    width: 32px; height: 28px; border: 1px solid #374151; background: #1f2937;
+    color: #9ca3af; border-radius: 4px; cursor: pointer; font-size: 12px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .ctrl-btn:hover { background: #374151; color: #fff; }
+  .ctrl-btn.active { background: #6366f1; border-color: #6366f1; color: #fff; }
+  .speed-btns { display: flex; gap: 2px; }
+  .speed-btn {
+    padding: 4px 8px; border: 1px solid #374151; background: #1f2937;
+    color: #9ca3af; border-radius: 4px; cursor: pointer; font-size: 11px;
+  }
+  .speed-btn.active { background: #6366f1; border-color: #6366f1; color: #fff; }
+
+  .battle-status {
+    font-size: 12px; color: #22c55e; font-weight: 600;
+    animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+  .result-banner {
+    font-size: 14px; font-weight: 800; color: #60a5fa;
+    text-shadow: 0 0 10px rgba(96,165,250,0.5);
+  }
+
+  /* HP 합계 바 */
+  .team-hp-bar {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 16px;
+    background: #0f1318;
+  }
+  .hp-label { font-size: 11px; font-weight: 700; width: 50px; }
+  .hp-label.blue { color: #60a5fa; }
+  .hp-label.red { color: #f87171; }
+  .hp-track { flex: 1; height: 14px; background: #1f2937; border-radius: 7px; overflow: hidden; position: relative; }
+  .hp-fill { height: 100%; border-radius: 7px; transition: width 0.3s; }
+  .hp-fill.blue { background: linear-gradient(90deg, #2563eb, #60a5fa); }
+  .hp-fill.red { background: linear-gradient(90deg, #dc2626, #f87171); }
+  .hp-value { font-size: 11px; font-weight: 600; width: 60px; text-align: right; font-variant-numeric: tabular-nums; }
+
+  /* 보드 영역 */
+  .board-area {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .board-svg { width: 100%; max-width: 700px; }
+
+  /* 킬 피드 오버레이 */
+  .kill-feed {
+    position: absolute; top: 10px; right: 10px;
+    display: flex; flex-direction: column; gap: 4px;
+    pointer-events: none;
+  }
+  .kill-entry {
+    background: rgba(0,0,0,0.7); padding: 4px 8px; border-radius: 4px;
+    font-size: 11px; color: #f87171; backdrop-filter: blur(4px);
+    animation: fadeIn 0.3s;
+  }
+  @keyframes fadeIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+
+  /* 시크바 */
+  .seekbar {
+    padding: 4px 16px 8px;
+    background: #111827;
+  }
+  .seek-track {
+    width: 100%; height: 6px; background: #1f2937; border-radius: 3px;
+    overflow: hidden; cursor: pointer;
+  }
+  .seek-fill { height: 100%; background: linear-gradient(90deg, #6366f1, #8b5cf6); border-radius: 3px; transition: width 0.1s; }
+
+  /* 하단 데미지 테이블 */
+  .damage-panel {
+    height: 140px;
+    background: #111827;
+    border-top: 1px solid #1f2937;
+    padding: 8px 16px;
+    overflow-y: auto;
+  }
+  .damage-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .damage-tabs { display: flex; gap: 4px; }
+  .dmg-tab {
+    padding: 3px 10px; border-radius: 4px; font-size: 10px;
+    background: #1f2937; color: #9ca3af; cursor: pointer; border: none;
+  }
+  .dmg-tab.active { background: #6366f1; color: #fff; }
+  .damage-row {
+    display: flex; align-items: center; gap: 8px; padding: 3px 0;
+    font-size: 11px;
+  }
+  .dmg-rank { width: 16px; color: #6b7280; font-weight: 700; }
+  .dmg-champ { width: 20px; height: 20px; border-radius: 4px; background: #374151; }
+  .dmg-name { width: 70px; font-weight: 600; font-size: 11px; }
+  .dmg-bar-track { flex: 1; height: 10px; background: #1f2937; border-radius: 5px; overflow: hidden; }
+  .dmg-bar-fill { height: 100%; border-radius: 5px; }
+  .dmg-value { width: 50px; text-align: right; font-size: 10px; color: #9ca3af; font-variant-numeric: tabular-nums; }
+
+  /* 헥스 보드 시뮬레이션 */
+  .hex { fill: #1a1f2e; stroke: #2d3548; stroke-width: 1; }
+  .hex-enemy { fill: #1c1520; }
+  .hex-player { fill: #151a22; }
+  .unit-hex { stroke-width: 2.5; cursor: pointer; }
+  .unit-hex:hover { filter: brightness(1.2); }
+  .divider-line { stroke: #374151; stroke-dasharray: 6 4; }
+  .team-label { fill: #4b5563; font-size: 11px; font-weight: 600; }
+
+  .atk-line { stroke: rgba(255,255,255,0.3); stroke-width: 1.5; }
+  .ability-line { stroke: rgba(168,85,247,0.5); stroke-width: 2; stroke-dasharray: 4 3; }
+
+  .dmg-text { font-size: 12px; font-weight: 700; fill: #fbbf24; }
+  .dmg-text.crit { font-size: 14px; fill: #f97316; }
+  .dmg-text.magic { fill: #a78bfa; }
+</style>
+</head>
+<body>
+<div class="container">
+  <!-- 왼쪽: 편집 패널 -->
+  <div class="edit-panel">
+    <div class="panel-title">TEAM A 시너지</div>
+    <div class="synergy-box">
+      <div class="synergy-row synergy-active">
+        <div class="synergy-icon" style="background:#f59e0b;"></div>
+        <span>자운</span>
+        <span class="synergy-count">3/3</span>
+      </div>
+      <div class="synergy-row synergy-active">
+        <div class="synergy-icon" style="background:#8b5cf6;"></div>
+        <span>총잡이</span>
+        <span class="synergy-count">2/2</span>
+      </div>
+      <div class="synergy-row">
+        <div class="synergy-icon" style="background:#374151;"></div>
+        <span>난동꾼</span>
+        <span class="synergy-count">1/2</span>
+      </div>
+    </div>
+
+    <div class="panel-title" style="margin-top:4px;">선택된 유닛</div>
+    <div class="unit-card">
+      <div class="unit-img"></div>
+      <div>
+        <div class="unit-name">징크스</div>
+        <div class="unit-sub">★★★ / 3코스트</div>
+        <div class="item-dots">
+          <div class="item-dot" style="background:#f59e0b;"></div>
+          <div class="item-dot" style="background:#8b5cf6;"></div>
+          <div class="item-dot"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-title" style="margin-top:4px;">TEAM B 시너지</div>
+    <div class="synergy-box">
+      <div class="synergy-row synergy-active">
+        <div class="synergy-icon" style="background:#ef4444;"></div>
+        <span>녹서스</span>
+        <span class="synergy-count">3/3</span>
+      </div>
+      <div class="synergy-row">
+        <div class="synergy-icon" style="background:#374151;"></div>
+        <span>학살자</span>
+        <span class="synergy-count">1/2</span>
+      </div>
+    </div>
+
+    <div style="flex:1;"></div>
+    <button class="btn-battle">전투 시작</button>
+  </div>
+
+  <!-- 오른쪽: 전투 뷰 -->
+  <div class="battle-view">
+    <!-- 컨트롤 바 -->
+    <div class="control-bar">
+      <div class="control-left">
+        <span class="time-display">12.4s / 28.7s</span>
+        <div class="control-btns">
+          <button class="ctrl-btn">⏮</button>
+          <button class="ctrl-btn active" style="font-size:14px;">⏸</button>
+          <button class="ctrl-btn">⏭</button>
+        </div>
+        <div class="speed-btns">
+          <button class="speed-btn">x1</button>
+          <button class="speed-btn active">x2</button>
+          <button class="speed-btn">x4</button>
+        </div>
+      </div>
+      <div class="battle-status">전투 진행 중...</div>
+    </div>
+
+    <!-- 팀 HP 바 -->
+    <div class="team-hp-bar">
+      <span class="hp-label blue">TEAM A</span>
+      <div class="hp-track">
+        <div class="hp-fill blue" style="width:72%;"></div>
+      </div>
+      <span class="hp-value" style="color:#60a5fa;">8,240</span>
+      <span style="color:#374151;margin:0 4px;">vs</span>
+      <span class="hp-value" style="color:#f87171;">5,120</span>
+      <div class="hp-track">
+        <div class="hp-fill red" style="width:45%;"></div>
+      </div>
+      <span class="hp-label red" style="text-align:right;">TEAM B</span>
+    </div>
+
+    <!-- 보드 -->
+    <div class="board-area">
+      <svg viewBox="0 0 580 460" class="board-svg">
+        <!-- 배경 그라데이션 -->
+        <defs>
+          <radialGradient id="bg-glow" cx="50%" cy="50%">
+            <stop offset="0%" stop-color="#1a1040" stop-opacity="0.3"/>
+            <stop offset="100%" stop-color="#0d1117" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+        <rect width="580" height="460" fill="url(#bg-glow)"/>
+
+        <!-- 구분선 -->
+        <line x1="20" y1="230" x2="560" y2="230" class="divider-line"/>
+        <text x="30" y="220" class="team-label">TEAM B</text>
+        <text x="30" y="248" class="team-label">TEAM A</text>
+
+        <!-- TEAM B (적) 유닛들 -->
+        <!-- 다리우스 -->
+        <polygon points="150,80 174,66 198,80 198,108 174,122 150,108" class="hex unit-hex" style="fill:#2d1520;stroke:#ef4444;"/>
+        <circle cx="174" cy="94" r="16" fill="#374151"/>
+        <text x="174" y="98" text-anchor="middle" fill="#fff" font-size="9" font-weight="700">다리</text>
+        <rect x="158" y="124" width="32" height="5" rx="2" fill="#1f2937"/>
+        <rect x="158" y="124" width="22" height="5" rx="2" fill="#22c55e"/>
+        <text x="174" y="69" text-anchor="middle" fill="#f59e0b" font-size="9">★★</text>
+
+        <!-- 드레이븐 -->
+        <polygon points="220,80 244,66 268,80 268,108 244,122 220,108" class="hex unit-hex" style="fill:#2d1520;stroke:#ef4444;"/>
+        <circle cx="244" cy="94" r="16" fill="#374151"/>
+        <text x="244" y="98" text-anchor="middle" fill="#fff" font-size="9" font-weight="700">드레</text>
+        <rect x="228" y="124" width="32" height="5" rx="2" fill="#1f2937"/>
+        <rect x="228" y="124" width="28" height="5" rx="2" fill="#22c55e"/>
+        <text x="244" y="69" text-anchor="middle" fill="#f59e0b" font-size="9">★★</text>
+
+        <!-- 세트 -->
+        <polygon points="290,80 314,66 338,80 338,108 314,122 290,108" class="hex unit-hex" style="fill:#2d1520;stroke:#ef4444;"/>
+        <circle cx="314" cy="94" r="16" fill="#374151"/>
+        <text x="314" y="98" text-anchor="middle" fill="#fff" font-size="9" font-weight="700">세트</text>
+        <rect x="298" y="124" width="32" height="5" rx="2" fill="#1f2937"/>
+        <rect x="298" y="124" width="10" height="5" rx="2" fill="#ef4444"/>
+        <text x="314" y="69" text-anchor="middle" fill="#f59e0b" font-size="9">★</text>
+
+        <!-- 사망 유닛 -->
+        <polygon points="360,80 384,66 408,80 408,108 384,122 360,108" class="hex" style="fill:#151515;stroke:#4b5563;opacity:0.4;"/>
+        <text x="384" y="100" text-anchor="middle" fill="#ef4444" font-size="20" font-weight="900" opacity="0.6">✕</text>
+
+        <!-- TEAM A (아군) 유닛들 -->
+        <!-- 징크스 -->
+        <polygon points="150,300 174,286 198,300 198,328 174,342 150,328" class="hex unit-hex" style="fill:#152030;stroke:#60a5fa;stroke-width:3;"/>
+        <circle cx="174" cy="314" r="16" fill="#374151"/>
+        <text x="174" y="318" text-anchor="middle" fill="#fff" font-size="9" font-weight="700">징크</text>
+        <rect x="158" y="344" width="32" height="5" rx="2" fill="#1f2937"/>
+        <rect x="158" y="344" width="30" height="5" rx="2" fill="#22c55e"/>
+        <rect x="158" y="351" width="32" height="3" rx="1" fill="#1f2937"/>
+        <rect x="158" y="351" width="20" height="3" rx="1" fill="#3b82f6"/>
+        <text x="174" y="289" text-anchor="middle" fill="#f59e0b" font-size="9">★★★</text>
+        <!-- 아이템 -->
+        <circle cx="166" cy="337" r="4" fill="#f59e0b" stroke="#000" stroke-width="0.5"/>
+        <circle cx="174" cy="337" r="4" fill="#8b5cf6" stroke="#000" stroke-width="0.5"/>
+
+        <!-- 에코 -->
+        <polygon points="220,300 244,286 268,300 268,328 244,342 220,328" class="hex unit-hex" style="fill:#152030;stroke:#60a5fa;"/>
+        <circle cx="244" cy="314" r="16" fill="#374151"/>
+        <text x="244" y="318" text-anchor="middle" fill="#fff" font-size="9" font-weight="700">에코</text>
+        <rect x="228" y="344" width="32" height="5" rx="2" fill="#1f2937"/>
+        <rect x="228" y="344" width="25" height="5" rx="2" fill="#f59e0b"/>
+        <text x="244" y="289" text-anchor="middle" fill="#f59e0b" font-size="9">★★</text>
+
+        <!-- 초가스 -->
+        <polygon points="290,300 314,286 338,300 338,328 314,342 290,328" class="hex unit-hex" style="fill:#152030;stroke:#60a5fa;"/>
+        <circle cx="314" cy="314" r="16" fill="#374151"/>
+        <text x="314" y="318" text-anchor="middle" fill="#fff" font-size="9" font-weight="700">초가</text>
+        <rect x="298" y="344" width="32" height="5" rx="2" fill="#1f2937"/>
+        <rect x="298" y="344" width="32" height="5" rx="2" fill="#22c55e"/>
+        <text x="314" y="289" text-anchor="middle" fill="#f59e0b" font-size="9">★★</text>
+
+        <!-- 공격 라인 -->
+        <line x1="174" y1="300" x2="174" y2="130" class="atk-line"/>
+        <line x1="244" y1="300" x2="244" y2="130" class="ability-line"/>
+
+        <!-- 데미지 숫자 -->
+        <text x="180" y="195" class="dmg-text">342</text>
+        <text x="250" y="180" class="dmg-text magic">528</text>
+        <text x="320" y="100" class="dmg-text crit">1,247!</text>
+      </svg>
+
+      <!-- 킬 피드 -->
+      <div class="kill-feed">
+        <div class="kill-entry">초가스 → 세트 처치!</div>
+        <div class="kill-entry" style="color:#a78bfa;">에코 스킬 → 드레이븐 (528)</div>
+      </div>
+    </div>
+
+    <!-- 시크바 -->
+    <div class="seekbar">
+      <div class="seek-track">
+        <div class="seek-fill" style="width:43%;"></div>
+      </div>
+    </div>
+
+    <!-- 데미지 테이블 -->
+    <div class="damage-panel">
+      <div class="damage-header">
+        <div class="damage-tabs">
+          <button class="dmg-tab active">데미지</button>
+          <button class="dmg-tab">받은 피해</button>
+          <button class="dmg-tab">이벤트 로그</button>
+        </div>
+        <span style="font-size:10px;color:#6b7280;">총 데미지: 12,450</span>
+      </div>
+
+      <div class="damage-row">
+        <span class="dmg-rank">1</span>
+        <div class="dmg-champ" style="background:#6366f1;"></div>
+        <span class="dmg-name" style="color:#60a5fa;">징크스 ★★★</span>
+        <div class="dmg-bar-track"><div class="dmg-bar-fill" style="width:100%;background:linear-gradient(90deg,#2563eb,#60a5fa);"></div></div>
+        <span class="dmg-value">5,230</span>
+      </div>
+      <div class="damage-row">
+        <span class="dmg-rank">2</span>
+        <div class="dmg-champ" style="background:#6366f1;"></div>
+        <span class="dmg-name" style="color:#60a5fa;">에코 ★★</span>
+        <div class="dmg-bar-track"><div class="dmg-bar-fill" style="width:65%;background:linear-gradient(90deg,#2563eb,#60a5fa);"></div></div>
+        <span class="dmg-value">3,420</span>
+      </div>
+      <div class="damage-row">
+        <span class="dmg-rank">3</span>
+        <div class="dmg-champ" style="background:#6366f1;"></div>
+        <span class="dmg-name" style="color:#60a5fa;">초가스 ★★</span>
+        <div class="dmg-bar-track"><div class="dmg-bar-fill" style="width:45%;background:linear-gradient(90deg,#2563eb,#60a5fa);"></div></div>
+        <span class="dmg-value">2,380</span>
+      </div>
+      <div class="damage-row">
+        <span class="dmg-rank">4</span>
+        <div class="dmg-champ" style="background:#dc2626;"></div>
+        <span class="dmg-name" style="color:#f87171;">드레이븐 ★★</span>
+        <div class="dmg-bar-track"><div class="dmg-bar-fill" style="width:80%;background:linear-gradient(90deg,#dc2626,#f87171);"></div></div>
+        <span class="dmg-value">4,180</span>
+      </div>
+      <div class="damage-row">
+        <span class="dmg-rank">5</span>
+        <div class="dmg-champ" style="background:#dc2626;"></div>
+        <span class="dmg-name" style="color:#f87171;">다리우스 ★★</span>
+        <div class="dmg-bar-track"><div class="dmg-bar-fill" style="width:35%;background:linear-gradient(90deg,#dc2626,#f87171);"></div></div>
+        <span class="dmg-value">1,840</span>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

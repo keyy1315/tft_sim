@@ -198,6 +198,123 @@ function spawnFreljordTurrets(
   return turrets;
 }
 
+/** 녹서스 아타칸 소환 — 적 팀 HP가 일정 비율 이하로 떨어지면 소환 */
+function trySpawnNoxusAtakhan(
+  activeTraits: ActiveTrait[],
+  team: 'player' | 'enemy',
+  teamUnits: CombatUnit[],
+  opposingUnits: CombatUnit[],
+  allUnits: CombatUnit[],
+  rng: SeededRNG,
+  tick: number,
+  time: number,
+  logs: CombatLog[],
+  tickLogs: CombatLog[],
+  spawnedFlag: { spawned: boolean },
+): CombatUnit | null {
+  if (spawnedFlag.spawned) return null;
+
+  const noxus = activeTraits.find(t => t.trait.apiName === 'TFT16_Noxus' && t.activeEffect);
+  if (!noxus || !noxus.activeEffect) return null;
+
+  const vars = noxus.activeEffect.variables;
+  const hpTrigger = (vars['HPLostTrigger'] ?? 0.15) as number;
+
+  // 적 팀 총 HP 비율 계산
+  const aliveOpposing = opposingUnits.filter(u => u.state !== 'dead');
+  const totalMaxHp = opposingUnits.reduce((sum, u) => sum + u.maxHp, 0);
+  const totalCurrentHp = aliveOpposing.reduce((sum, u) => sum + u.currentHp, 0);
+  if (totalMaxHp === 0) return null;
+
+  const hpLostRatio = 1 - (totalCurrentHp / totalMaxHp);
+  if (hpLostRatio < hpTrigger) return null;
+
+  // 소환 트리거!
+  spawnedFlag.spawned = true;
+
+  // 녹서스 챔피언 별레벨 합산 → 아타칸 위력
+  const noxusChamps = teamUnits.filter(u =>
+    u.champion.traits.includes('녹서스') && u.state !== 'dead'
+  );
+  const totalStarPower = noxusChamps.reduce((sum, u) => sum + u.starLevel, 0);
+  const baseDamage = 80 + totalStarPower * 30;
+  const baseHp = 1500 + totalStarPower * 200;
+
+  // 빈 위치 찾기
+  const occupiedPositions = new Set(
+    allUnits.filter(u => u.state !== 'dead').map(u => `${u.position.q},${u.position.r}`)
+  );
+  const startRow = team === 'player' ? 4 : 0;
+  const endRow = team === 'player' ? 6 : 2;
+  let spawnPos: { q: number; r: number } | null = null;
+  for (let r = startRow; r <= endRow && !spawnPos; r++) {
+    for (const col of [3, 2, 4, 1, 5, 0, 6]) {
+      const q = col - Math.floor(r / 2);
+      if (!occupiedPositions.has(`${q},${r}`)) {
+        spawnPos = { q, r };
+        break;
+      }
+    }
+  }
+  if (!spawnPos) return null;
+
+  const atakhanId = `${team}-atakhan`;
+  const atakhan: CombatUnit = {
+    id: atakhanId,
+    champion: {
+      name: '아타칸',
+      apiName: 'TFT16_NoxusAtakhan',
+      cost: 0,
+      traits: ['녹서스'],
+      role: null,
+      stats: { armor: 60, attackSpeed: 0.7, critChance: 0.25, critMultiplier: 1.4, damage: baseDamage, hp: baseHp, initialMana: 0, magicResist: 60, mana: 100, range: 1 },
+      ability: { name: '파멸의 일격', desc: '', icon: '', variables: [] },
+    },
+    team,
+    position: spawnPos,
+    starLevel: Math.min(3, Math.max(1, Math.floor(totalStarPower / 3))) as 1 | 2 | 3,
+    role: 'Fighter',
+    items: [],
+    currentHp: baseHp,
+    maxHp: baseHp,
+    currentMana: 0,
+    maxMana: 100,
+    state: 'idle',
+    target: null,
+    stats: {
+      hp: baseHp, armor: 60, magicResist: 60,
+      damage: baseDamage, attackSpeed: 0.7,
+      critChance: 0.25, critMultiplier: 1.4,
+      ap: 0, mana: 0, maxMana: 100, range: 1,
+      armorPen: 0, magicPen: 0,
+    },
+    attackCooldown: 0,
+    moveCooldown: 0,
+    totalDamageDealt: 0,
+    totalDamageTaken: 0,
+    statusEffects: [],
+    omnivamp: 0,
+    damageAmp: 0,
+    damageReduction: 0,
+    shield: 0,
+    augmentManaRegen: 0,
+    augmentGrievousWounds: 0,
+    augmentExecuteThreshold: 0,
+    augmentBurnPercent: 0,
+  };
+
+  const logEntry: CombatLog = {
+    tick, time,
+    type: 'ability',
+    sourceId: atakhanId,
+    message: `아타칸 소환! (녹서스 별레벨 합: ${totalStarPower}, 공격력: ${baseDamage}, 체력: ${baseHp})`,
+  };
+  logs.push(logEntry);
+  tickLogs.push(logEntry);
+
+  return atakhan;
+}
+
 /** Apply Piltover invention effects at specified tick */
 function applyPiltoverInvention(
   activeTraits: ActiveTrait[],
@@ -327,6 +444,10 @@ export function simulateCombat(
   const snapshots: TickSnapshot[] = [];
   const moveTicks = getMoveTicks();
 
+  // 녹서스 아타칸 소환 플래그
+  const playerAtakhanFlag = { spawned: false };
+  const enemyAtakhanFlag = { spawned: false };
+
   eventBus.emit('on_combat_start', { sourceId: '', tick: 0 });
 
   for (let tick = 0; tick < MAX_TICKS; tick++) {
@@ -336,6 +457,14 @@ export function simulateCombat(
     const aliveEnemies = enemies.filter(u => u.state !== 'dead');
 
     if (alivePlayers.length === 0 || aliveEnemies.length === 0) break;
+
+    // 녹서스 아타칸 소환 체크 (매초)
+    if (tick > 0 && tick % TICKS_PER_SECOND === 0) {
+      const playerAtakhan = trySpawnNoxusAtakhan(playerActiveTraits, 'player', playerUnits, enemies, allUnits, rng, tick, time, logs, tickLogs, playerAtakhanFlag);
+      if (playerAtakhan) { allUnits.push(playerAtakhan); playerUnits.push(playerAtakhan); }
+      const enemyAtakhan = trySpawnNoxusAtakhan(enemyActiveTraits, 'enemy', enemies, playerUnits, allUnits, rng, tick, time, logs, tickLogs, enemyAtakhanFlag);
+      if (enemyAtakhan) { allUnits.push(enemyAtakhan); enemies.push(enemyAtakhan); }
+    }
 
     // In-combat augment effects (apply every second = every 30 ticks)
     if (tick > 0 && tick % TICKS_PER_SECOND === 0) {

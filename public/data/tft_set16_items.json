@@ -3,7 +3,7 @@
     "set": 16,
     "source": "CommunityDragon TFT ko_kr.json",
     "extractedAt": "2026-03-12T05:54:41.169Z",
-    "totalItems": 210,
+    "totalItems": 236,
     "baseComponents": 10,
     "combinedItems": 49,
     "tft16Special": 55,
@@ -2880,6 +2880,401 @@
       },
       "desc": "기본 공격 및 스킬로 최대 체력의 @ExecutePercent@%보다 체력이 낮은 적을 처형. 처형 시 @GoldChance@% 확률로 1골드%i:goldCoins%를 떨어뜨림<br><br><TFTTrackerLabel>모은 골드:</TFTTrackerLabel> <TFTHighlight>@TFTUnitProperty.item:TFT_Tracker_Value1@골드</TFTHighlight><br><tftitemrules>[고유 - 중복 적용 불가]</tftitemrules>",
       "icon": "tft4_item_ornnthecollector.tft_set13.png"
+    },
+    {
+      "name": "찬란한 거인 학살자",
+      "apiName": "TFT_Item_Radiant_GiantSlayer",
+      "composition": [],
+      "effects": {
+        "AD": 0.15000000596046448,
+        "AP": 15,
+        "AS": 15,
+        "DamageAmp": 0.15000000596046448,
+        "{1543aa48}": 0.15000000596046448,
+        "{abb9f4ce}": 25
+      },
+      "desc": "탱커를 상대로 추가 피해 증폭 @DamageAmp*100@% 획득",
+      "icon": "tft5_item_giantslayerradiant.tft_set13.png"
+    },
+    {
+      "name": "찬란한 거인의 결의",
+      "apiName": "TFT_Item_Radiant_TitansResolve",
+      "composition": [],
+      "effects": {
+        "AS": 10,
+        "Armor": 20,
+        "StackCap": 25,
+        "StackedAmp": 0.10000000149011612,
+        "StackingAD": 0.019999999552965164,
+        "StackingSP": 2
+      },
+      "desc": "공격하거나 피해를 받으면 공격력 @StackingAD*100@%, 주문력 @StackingSP@% 증가 (최대 @StackCap@회 중첩)<br><br>최대 중첩 시 피해 증폭 @StackedAmp*100@% 획득 및 군중 제어 효과에 면역이 됨",
+      "icon": "tft5_item_leviathanradiant.tft_set13.png"
+    },
+    {
+      "name": "찬란한 공허의 지팡이",
+      "apiName": "TFT_Item_Radiant_VoidStaff",
+      "composition": [],
+      "effects": {
+        "AP": 35,
+        "AS": 15,
+        "MRShred": 30,
+        "MRShredDuration": 5,
+        "ManaRegen": 1
+      },
+      "desc": "기본 공격 및 스킬로 피해를 입힐 경우 @MRShredDuration@초 동안 대상에게 <TFTKeyword>파쇄</TFTKeyword>를 @MRShred@% 적용 (중첩 불가)<br><br><tftitemrules><tftbold>파쇄</tftbold>: 마법 저항력 감소</tftitemrules>",
+      "icon": "tft5_item_spectralgauntletradiant.tft_set13.png"
+    },
+    {
+      "name": "찬란한 굳건한 심장",
+      "apiName": "TFT_Item_Radiant_FrozenHeart",
+      "composition": [],
+      "effects": {
+        "Armor": 20,
+        "BaseDurability": 0.10000000149011612,
+        "CritChance": 20,
+        "EmpoweredDurability": 0.18000000715255737,
+        "Health": 250,
+        "ThresholdForEmpower": 0.5
+      },
+      "desc": "내구력 @BaseDurability*100@% 획득. 체력이 @ThresholdForEmpower*100@% 이상일 때 대신 내구력 @EmpoweredDurability*100@% 획득<br><br>@TFTUnitProperty.:TFT_Augment_WarmogsBuckle_TRAKey@",
+      "icon": "tft5_item_frozenheartradiant.tft_set13.png"
+    },
+    {
+      "name": "찬란한 내셔의 이빨",
+      "apiName": "TFT_Item_Radiant_NashorsBloodrazor",
+      "composition": [],
+      "effects": {
+        "AP": 18,
+        "AS": 10,
+        "BaseManaOnHit": 2,
+        "CritChance": 20,
+        "Health": 150,
+        "ManaOnCrit": 4
+      },
+      "desc": "기본 공격 시 추가 마나 @BaseManaOnHit@ 획득. 치명타 적중 시 @ManaOnCrit@ 획득",
+      "icon": "tft5_item_titansresolveradiant.tft_set13.png"
+    },
+    {
+      "name": "찬란한 대천사의 지팡이",
+      "apiName": "TFT_Item_Radiant_ArchangelsStaff",
+      "composition": [],
+      "effects": {
+        "AP": 30,
+        "APPerInterval": 20,
+        "IntervalSeconds": 5,
+        "ManaRegen": 1
+      },
+      "desc": "전투 시작: 전투 중 @IntervalSeconds@초마다 주문력 @APPerInterval@% 증가",
+      "icon": "tft5_item_archangelsstaffradiant.tft_set13.png"
+    },
+    {
+      "name": "찬란한 덤불 조끼",
+      "apiName": "TFT_Item_Radiant_BrambleVest",
+      "composition": [],
+      "effects": {
+        "1StarAoEDamage": 100,
+        "2StarAoEDamage": 100,
+        "3StarAoEDamage": 100,
+        "4StarAoEDamage": 100,
+        "Armor": 65,
+        "AutoDamageReduction": 0.05000000074505806,
+        "ICD": 2,
+        "PercentMaxHP": 0.09000000357627869,
+        "{6688a0d5}": 100
+      },
+      "desc": "@PercentMaxHP*100@%의 최대 체력 획득<br><br>기본 공격으로 받는 피해 @AutoDamageReduction*100@% 감소. 기본 공격에 맞을 경우 인접한 모든 적에게 <magicDamage>@1StarAoEDamage@의 마법 피해</magicDamage><br><br><tftitemrules>재사용 대기시간: @ICD@초</tftitemrules>",
+      "icon": "tft5_item_bramblevestradiant.tft_set13.png"
+    },
+    {
+      "name": "찬란한 도적의 장갑",
+      "apiName": "TFT_Item_Radiant_ThiefsGloves",
+      "composition": [],
+      "effects": {
+        "CritChance": 20,
+        "Health": 150
+      },
+      "desc": "매 라운드: 무작위 아이템 2개 장착<br><br><tftitemrules>[아이템 슬롯 3개 차지]</tftitemrules><br>@TFTUnitProperty.:TFT_BindOnEquipTRA@",
+      "icon": "tft5_item_thiefsglovesradiant.tft_set13.png"
+    },
+    {
+      "name": "찬란한 마법공학 총검",
+      "apiName": "TFT_Item_Radiant_HextechGunblade",
+      "composition": [],
+      "effects": {
+        "AD": 0.20000000298023224,
+        "AP": 20,
+        "AllyHealing": 0.20000000298023224,
+        "ManaRegen": 1,
+        "Omnivamp": 18,
+        "StatOmnivamp": 0.15000000596046448
+      },
+      "desc": "입힌 피해량의 @AllyHealing*100@%만큼 체력 비율이 가장 낮은 아군의 체력 회복<br><br><TFTTrackerLabel>아군 체력 회복량:</TFTTrackerLabel> <TFTHighlight>@TFTUnitProperty.item:TFT_Tracker_Value1@</TFTHighlight>",
+      "icon": "tft5_item_hextechgunbladeradiant.tft_set13.png"
+    },
+    {
+      "name": "찬란한 모렐로노미콘",
+      "apiName": "TFT_Item_Radiant_Morellonomicon",
+      "composition": [],
+      "effects": {
+        "AP": 20,
+        "BurnDuration": 10,
+        "BurnPercent": 1,
+        "GrievousWoundsPercent": 33,
+        "Health": 150,
+        "ManaRegen": 1,
+        "MonsterCap": 100,
+        "TicksPerSecond": 1
+      },
+      "desc": "기본 공격 및 스킬로 피해를 입힐 경우 @BurnDuration@초 동안 적에게 <TFTKeyword>불태우기</TFTKeyword>를 @BurnPercent@%, <TFTKeyword>상처</TFTKeyword>를 @GrievousWoundsPercent@% 적용<br><br><tftitemrules><tftbold>불태우기</tftbold>: 매초 대상 최대 체력의 일정 비율만큼 고정 피해<br><tftbold>상처</tftbold>: 체력 회복량 감소</tftitemrules>",
+      "icon": "tft5_item_morellonomiconradiant.tft_set13.png"
+    },
+    {
+      "name": "찬란한 밤의 끝자락",
+      "apiName": "TFT_Item_Radiant_NightHarvester",
+      "composition": [],
+      "effects": {
+        "AD": 0.10000000149011612,
+        "AP": 10,
+        "AS": 15,
+        "Armor": 20,
+        "DamageReduction": 100,
+        "HealthThreshold": 60,
+        "MissingHealthRestore": 0.30000001192092896,
+        "StealthDuration": 1
+      },
+      "desc": "체력이 @HealthThreshold@%일 때 잠시 대상으로 지정할 수 없게 되며 해로운 효과 제거 및 잃은 체력의 @MissingHealthRestore*100@% 회복",
+      "icon": "tft5_item_nightharvesterradiant.tft_set13.png"
+    },
+    {
+      "name": "찬란한 붉은 덩굴정령",
+      "apiName": "TFT_Item_Radiant_RedBuff",
+      "composition": [],
+      "effects": {
+        "AS": 45,
+        "BonusDamage": 0.05999999865889549,
+        "BurnPercent": 1,
+        "Duration": 5,
+        "HealingReductionPct": 33,
+        "HexRangeIncrease": 1,
+        "{1543aa48}": 0.029999999329447746,
+        "{9f5117db}": 100
+      },
+      "desc": "기본 공격과 스킬이 @Duration@초 동안 적에게 <TFTKeyword>불태우기</TFTKeyword>를 @BurnPercent@%, <TFTKeyword>상처</TFTKeyword>를 @HealingReductionPct@% 적용<br><br><tftitemrules><tftbold>불태우기</tftbold>: 매초 대상 최대 체력의 일정 비율만큼 고정 피해<br><tftbold>상처</tftbold>: 체력 회복량 감소</tftitemrules>",
+      "icon": "tft5_item_bramblevestradiant.tft_set13.png"
+    },
+    {
+      "name": "찬란한 수은",
+      "apiName": "TFT_Item_Radiant_Quicksilver",
+      "composition": [],
+      "effects": {
+        "AS": 15,
+        "CritChance": 20,
+        "MagicResist": 20,
+        "ProcAttackSpeed": 0.029999999329447746,
+        "SpellShieldDuration": 18
+      },
+      "desc": "전투 시작: @SpellShieldDuration@초 동안 군중 제어 효과에 면역<br><br>매초 공격 속도 @ProcAttackSpeed*100@% 획득 (중첩 가능)",
+      "icon": "tft5_item_quicksilverradiant.tft_set13.png"
+    },
+    {
+      "name": "찬란한 수호자의 맹세",
+      "apiName": "TFT_Item_Radiant_GuardianAngel",
+      "composition": [],
+      "effects": {
+        "Armor": 25,
+        "CombatStartMana": 20,
+        "HealthThreshold": 40,
+        "MagicResist": 25,
+        "ManaRegen": 1,
+        "ShieldDuration": 60,
+        "ShieldHealthPercent": 20,
+        "TriggerMana": 15
+      },
+      "desc": "전투 시작: 마나 @CombatStartMana@ 획득<br><br>체력이 @HealthThreshold@%일 때 마나 @TriggerMana@ 및 최대 체력의 @ShieldHealthPercent@%에 해당하는 보호막 획득",
+      "icon": "tft5_item_guardianangelradiant.tft_set13.png"
+    },
+    {
+      "name": "찬란한 스테락의 도전",
+      "apiName": "TFT_Item_Radiant_SteraksGage",
+      "composition": [],
+      "effects": {
+        "AD": 0.4000000059604645,
+        "Health": 300,
+        "HealthThreshold": 60,
+        "PercentHealthShield": 0.5,
+        "ShieldDuration": 4
+      },
+      "desc": "체력이 @HealthThreshold@%일 때, 장착 유닛 최대 체력의 @PercentHealthShield*100@%에 해당하는 보호막 획득. 보호막은 @ShieldDuration@초에 걸쳐 빠르게 사라짐",
+      "icon": "tft5_item_steraksgageradiant.tft_set13.png"
+    },
+    {
+      "name": "찬란한 용의 발톱",
+      "apiName": "TFT_Item_Radiant_DragonsClaw",
+      "composition": [],
+      "effects": {
+        "HealthRegenInterval": 2,
+        "ICD": 0.5,
+        "MagicResist": 75,
+        "PercentHealthDamage": 2.5,
+        "PercentMaxHP": 0.09000000357627869
+      },
+      "desc": "@PercentMaxHP*100@%의 최대 체력 획득<br><br>@HealthRegenInterval@초마다 최대 체력의 @PercentHealthDamage@% 회복",
+      "icon": "tft5_item_dragonsclawradiant.tft_set13.png"
+    },
+    {
+      "name": "찬란한 이온 충격기",
+      "apiName": "TFT_Item_Radiant_IonicSpark",
+      "composition": [],
+      "effects": {
+        "AP": 15,
+        "Damage": 250,
+        "Health": 250,
+        "HexRange": 2,
+        "MRShred": 30,
+        "MagicResist": 35,
+        "ManaRatio": 150
+      },
+      "desc": "@HexRange@칸 내 적에게 <TFTKeyword>파쇄</TFTKeyword> @MRShred@% 적용. 해당 적은 스킬 사용 시 사용한 마나의 @ManaRatio@%에 해당하는 마법 피해를 입음<br><br><tftitemrules><tftbold>파쇄</tftbold>: 마법 저항력 감소</tftitemrules>",
+      "icon": "tft5_item_ionicsparkradiant.tft_set13.png"
+    },
+    {
+      "name": "찬란한 저녁갑주",
+      "apiName": "TFT_Item_Radiant_Evenshroud",
+      "composition": [],
+      "effects": {
+        "ARReductionAmount": 30,
+        "BonusResistDuration": 15,
+        "BonusResists": 25,
+        "Health": 250,
+        "HexRange": 2,
+        "MagicResist": 20
+      },
+      "desc": "@HexRange@칸 내에 있는 적 @ARReductionAmount@% <TFTKeyword>파열</TFTKeyword> 전투 시작 후 @BonusResistDuration@초 동안 방어력과 마법 저항력 @BonusResists@ 증가<br><br><tftitemrules><tftbold>파열</tftbold>: 방어력 감소</tftitemrules>",
+      "icon": "tft5_item_frozenheartradiant.tft_set13.png"
+    },
+    {
+      "name": "찬란한 적응형 투구",
+      "apiName": "TFT_Item_Radiant_AdaptiveHelm",
+      "composition": [],
+      "effects": {
+        "BacklineADAP": 10,
+        "FrontlineResists": 45,
+        "MagicResist": 20,
+        "ManaPercIncrease": 0.15000000596046448,
+        "ManaRegen": 3
+      },
+      "desc": "모든 요소로부터 얻는 마나 @ManaPercIncrease*100@% 증가. 장착 시 역할군에 따라 추가 효과 획득<br><br>탱커, 전사: 방어력 및 마법 저항력 @FrontlineResists@ 획득<br><br>기타 역할군: 공격력 및 주문력 @BacklineADAP@% 획득 ",
+      "icon": "tft5_item_adaptivehelmradiant.tft_set13.png"
+    },
+    {
+      "name": "찬란한 최후의 속삭임",
+      "apiName": "TFT_Item_Radiant_LastWhisper",
+      "composition": [],
+      "effects": {
+        "AD": 0.15000000596046448,
+        "AS": 20,
+        "ArmorBreakDuration": 3,
+        "ArmorReductionPercent": 30,
+        "CritChance": 20
+      },
+      "desc": "기본 공격 및 스킬로 피해를 입힐 경우 @ArmorBreakDuration@초 동안 대상에게 <TFTKeyword>파열</TFTKeyword>을 @ArmorReductionPercent@% 적용 (중첩 불가)<br><br><tftitemrules><tftbold>파열</tftbold>: 방어력 감소</tftitemrules>",
+      "icon": "tft5_item_lastwhisperradiant.tft_set13.png"
+    },
+    {
+      "name": "찬란한 크라운가드",
+      "apiName": "TFT_Item_Radiant_Crownguard",
+      "composition": [],
+      "effects": {
+        "AP": 20,
+        "Armor": 20,
+        "Health": 100,
+        "ShieldBonusAP": 25,
+        "ShieldDuration": 8,
+        "ShieldSize": 25
+      },
+      "desc": "전투 시작: @ShieldDuration@초 동안 최대 체력의 @ShieldSize@%에 해당하는 보호막 획득<br><br>보호막이 사라지면 주문력 @ShieldBonusAP@% 증가<br>",
+      "icon": "tft5_item_crownguardradiant.tft_set13.png"
+    },
+    {
+      "name": "찬란한 크라켄의 분노",
+      "apiName": "TFT_Item_Radiant_KrakenSlayer",
+      "composition": [],
+      "effects": {
+        "AD": 0.10000000149011612,
+        "ADOnAttack": 0.03500000014901161,
+        "AS": 10,
+        "ASCapstone": 0.15000000596046448,
+        "MagicResist": 20,
+        "MaxStacks": 15
+      },
+      "desc": "기본 공격 시 공격력 @ADOnAttack*100@% (최대 @MaxStacks@회 중첩) 획득. 기본 공격 @MaxStacks@회 후 공격 속도 @ASCapstone*100@% 획득",
+      "icon": "tft5_item_rapidfirecannonradiant.tft_set13.png"
+    },
+    {
+      "name": "찬란한 타격대의 철퇴",
+      "apiName": "TFT_Item_Radiant_TrapClaw",
+      "composition": [],
+      "effects": {
+        "AS": 10,
+        "BuffDamageAmp": 0.05000000074505806,
+        "CritChance": 20,
+        "Duration": 5,
+        "Health": 150,
+        "MaxStacks": 4,
+        "{1543aa48}": 0.10000000149011612
+      },
+      "desc": "치명타 적중 시 @Duration@초 동안 피해 증폭 @BuffDamageAmp*100@% 획득 (최대 @MaxStacks@회 중첩)",
+      "icon": "tft5_item_trapclawradiant.tft_set13.png"
+    },
+    {
+      "name": "찬란한 태양불꽃 망토",
+      "apiName": "TFT_Item_Radiant_SunfireCape",
+      "composition": [],
+      "effects": {
+        "Armor": 20,
+        "BonusPercentHP": 0.07999999821186066,
+        "BurnDuration": 10,
+        "BurnPercent": 1,
+        "GrievousWoundsPercent": 33,
+        "Health": 150,
+        "HexRange": 2,
+        "ICD": 2,
+        "MonsterCap": 100
+      },
+      "desc": "최대 체력 @BonusPercentHP*100@% 획득<br><br>@ICD@초마다 @HexRange@칸 내에 있는 적 하나에게 @BurnDuration@초 동안 <TFTKeyword>불태우기</TFTKeyword>를 @BurnPercent@%, <TFTKeyword>상처</TFTKeyword>를 @GrievousWoundsPercent@% 적용<br><br><tftitemrules><tftbold>불태우기:</tftbold> 매초 대상 최대 체력의 일정 비율만큼 고정 피해<br><tftbold>상처</tftbold>: 체력 회복량 감소</tftitemrules>",
+      "icon": "tft5_item_sunfirecaperadiant.tft_set13.png"
+    },
+    {
+      "name": "찬란한 푸른 파수꾼",
+      "apiName": "TFT_Item_Radiant_BlueBuff",
+      "composition": [],
+      "effects": {
+        "AP": 10,
+        "Mana": 40,
+        "ManaOnTakedown": 10,
+        "ManaReduction": 10,
+        "TakedownTimer": 3
+      },
+      "desc": "스킬 사용 후 마나 @ManaRefund@ 획득 <br><br>장착 유닛이 처치 관여 시 @TakedownTimer@초 동안 피해량 @DamageAmp*100@% 증가<br><br><tftitemrules>[고유 - 중복 적용 불가]</tftitemrules>",
+      "icon": "tft5_item_bluebuffradiant.tft_set13.png"
+    },
+    {
+      "name": "찬란한 피바라기",
+      "apiName": "TFT_Item_Radiant_Bloodthirster",
+      "composition": [],
+      "effects": {
+        "AD": 0.15000000596046448,
+        "AP": 15,
+        "HealthThreshold": 40,
+        "LifeSteal": 20,
+        "MagicResist": 20,
+        "ShieldDuration": 5,
+        "ShieldHealthPercent": 25,
+        "StatOmnivamp": 0.20000000298023224
+      },
+      "desc": "전투당 한 번, 체력이 @HealthThreshold@%일 때 최대 체력의 @ShieldHealthPercent@%에 해당하는 보호막 획득 후 최대 @ShieldDuration@초까지 유지",
+      "icon": "tft5_item_bloodthirsterradiant.tft_set13.png"
     }
   ]
 }

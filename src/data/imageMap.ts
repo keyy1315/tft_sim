@@ -27,8 +27,8 @@ function resolveItemPath(apiName: string, iconFilename: string): string {
     return `/data/images/emblems/${iconFilename}`;
   }
 
-  // Radiant (Corrupted) items
-  if (apiName.includes('Corrupted')) {
+  // Radiant (Corrupted + Radiant_) items
+  if (apiName.includes('Corrupted') || apiName.includes('Radiant_')) {
     return `/data/images/radiant/${iconFilename}`;
   }
 

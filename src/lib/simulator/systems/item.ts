@@ -81,7 +81,7 @@ const FORCE_ARTIFACT = new Set([
 export function getItemCategory(item: RawItem): ItemCategory {
   if (isArtifact(item) || FORCE_ARTIFACT.has(item.apiName)) return 'artifact';
   if (item.apiName.includes('EmblemItem')) return 'emblem';
-  if (item.apiName.includes('Corrupted')) return 'radiant';
+  if (item.apiName.includes('Corrupted') || item.apiName.includes('Radiant_')) return 'radiant';
   if (item.apiName.includes('Consumable_Void')) return 'void';
   if (item.apiName.includes('TheDarkin')) return 'darkin';
   if (isBaseComponent(item)) return 'component';

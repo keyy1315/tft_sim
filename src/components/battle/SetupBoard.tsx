@@ -152,7 +152,7 @@ export default function SetupBoard({
                 strokeWidth={unitSel ? 2.5 : sel ? 2.5 : result ? 2 : 1}
               />
               {result && result.placed.starLevel > 0 && (
-                <text x={cx} y={cy - HEX_R + 10} textAnchor="middle" fill="#f59e0b" fontSize="10">
+                <text x={cx} y={cy - HEX_R + 14} textAnchor="middle" fill="#f59e0b" fontSize="14" fontWeight="bold">
                   {'★'.repeat(result.placed.starLevel)}
                 </text>
               )}

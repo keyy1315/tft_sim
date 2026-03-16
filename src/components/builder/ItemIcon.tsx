@@ -2,6 +2,7 @@
 
 import { RawItem } from '@/types';
 import { getItemImage } from '@/data/imageMap';
+import { STAT_NAME_KO } from '@/lib/simulator/models/constants';
 import Tooltip from '@/components/ui/Tooltip';
 import Image from 'next/image';
 
@@ -19,7 +20,7 @@ function stripHtml(html: string): string {
 
 export default function ItemIcon({ item, size = 32, onClick, onRemove, showTooltip = true }: ItemIconProps) {
   const isArtifact = item.apiName.includes('Artifact');
-  const isRadiant = item.apiName.includes('Corrupted');
+  const isRadiant = item.apiName.includes('Corrupted') || item.apiName.includes('Radiant_');
   const isEmblem = item.apiName.includes('EmblemItem');
   const isDarkin = item.apiName.includes('TheDarkin');
   const borderClass = isRadiant ? 'border-fuchsia-500' : isDarkin ? 'border-red-500' : isEmblem ? 'border-cyan-500' : isArtifact ? 'border-purple-500' : item.composition.length === 2 ? 'border-yellow-600' : 'border-gray-500';
@@ -60,7 +61,7 @@ export default function ItemIcon({ item, size = 32, onClick, onRemove, showToolt
           {Object.entries(item.effects).length > 0 && (
             <div className="mt-1 text-xs text-gray-400">
               {Object.entries(item.effects).map(([k, v]) => (
-                <div key={k}>{k}: {typeof v === 'number' ? (v < 1 && v > 0 ? `${(v * 100).toFixed(0)}%` : v) : v}</div>
+                <div key={k}>{STAT_NAME_KO[k] ?? k}: {typeof v === 'number' ? (v < 1 && v > 0 ? `${(v * 100).toFixed(0)}%` : v) : v}</div>
               ))}
             </div>
           )}

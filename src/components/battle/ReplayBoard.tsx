@@ -181,7 +181,7 @@ export default function ReplayBoard({
 
               {/* Star level */}
               {meta.starLevel > 0 && (
-                <text x={cx} y={cy - HEX_R + 10} textAnchor="middle" fill="#f59e0b" fontSize="8" fontWeight="bold">
+                <text x={cx} y={cy - HEX_R + 12} textAnchor="middle" fill="#f59e0b" fontSize="13" fontWeight="bold">
                   {'★'.repeat(meta.starLevel)}
                 </text>
               )}
