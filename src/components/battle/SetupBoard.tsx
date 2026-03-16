@@ -39,7 +39,12 @@ function getHexNeighbors(row: number, col: number): { r: number; c: number }[] {
   ];
 }
 
-/** 프렐요드 포탑 효과 범위 — 인접 6칸 + 위 3칸 + 아래 3칸, 같은 팀 진영만 */
+/** 프렐요드 포탑 효과 범위:
+ * 1) 포탑 인접 6칸
+ * 2) 인접 위쪽 2칸 바로 위 행의 가운데 3칸 (전방)
+ * 3) 인접 아래쪽 2칸 바로 아래 행의 가운데 3칸 (후방)
+ * 같은 팀 진영만 표시
+ */
 function getTurretEffectZones(
   playerChampions: PlacedChampion[],
   enemyChampions: PlacedChampion[],
@@ -58,41 +63,42 @@ function getTurretEffectZones(
     const tRow = turret.displayRow;
     const tCol = turret.displayCol;
     const isPlayerTurret = tRow >= 4;
-    // 같은 팀 진영 범위
     const teamMinRow = isPlayerTurret ? 4 : 0;
     const teamMaxRow = isPlayerTurret ? 7 : 3;
 
+    const addIfValid = (r: number, c: number, zone: 'front' | 'back') => {
+      if (r < teamMinRow || r > teamMaxRow || c < 0 || c >= BOARD_COLS) return;
+      (zone === 'front' ? front : back).add(`${r}-${c}`);
+    };
+
     // 1) 인접 6칸
-    const neighbors = getHexNeighbors(tRow, tCol);
-    for (const n of neighbors) {
-      if (n.r < teamMinRow || n.r > teamMaxRow || n.c < 0 || n.c >= BOARD_COLS) continue;
-      const key = `${n.r}-${n.c}`;
-      if (isPlayerTurret) {
-        if (n.r <= tRow) front.add(key); else back.add(key);
-      } else {
-        if (n.r >= tRow) front.add(key); else back.add(key);
+    const adj = getHexNeighbors(tRow, tCol);
+    const upperAdj = adj.filter(n => n.r < tRow); // 위쪽 2칸 (전방)
+    const lowerAdj = adj.filter(n => n.r > tRow); // 아래쪽 2칸 (후방)
+    const sameRow = adj.filter(n => n.r === tRow); // 같은 행 2칸
+
+    for (const n of upperAdj) addIfValid(n.r, n.c, 'front');
+    for (const n of lowerAdj) addIfValid(n.r, n.c, 'back');
+    for (const n of sameRow) addIfValid(n.r, n.c, 'front'); // 같은 행은 전방
+
+    // 2) 전방 확장: 위쪽 인접 칸들에서 한 행 더 위 → 3칸
+    if (upperAdj.length > 0) {
+      const extRow = upperAdj[0].r - 1; // 인접 위쪽에서 한 행 더 위
+      // 위쪽 인접 칸들의 col 범위에서 3칸 결정
+      const cols = upperAdj.map(n => n.c).sort((a, b) => a - b);
+      const minC = Math.max(0, cols[0] - (extRow % 2 !== upperAdj[0].r % 2 ? 1 : 0));
+      for (let i = 0; i < 3; i++) {
+        addIfValid(extRow, minC + i, 'front');
       }
     }
 
-    // 2) 인접 6칸 중 위쪽 행의 인접 → 위로 확장 3칸
-    const upperNeighbors = neighbors.filter(n => n.r < tRow);
-    for (const un of upperNeighbors) {
-      const ext = getHexNeighbors(un.r, un.c);
-      for (const e of ext) {
-        if (e.r >= tRow || e.r < teamMinRow || e.c < 0 || e.c >= BOARD_COLS) continue;
-        const key = `${e.r}-${e.c}`;
-        if (isPlayerTurret) front.add(key); else back.add(key);
-      }
-    }
-
-    // 3) 인접 6칸 중 아래쪽 행의 인접 → 아래로 확장 3칸
-    const lowerNeighbors = neighbors.filter(n => n.r > tRow);
-    for (const ln of lowerNeighbors) {
-      const ext = getHexNeighbors(ln.r, ln.c);
-      for (const e of ext) {
-        if (e.r <= tRow || e.r > teamMaxRow || e.c < 0 || e.c >= BOARD_COLS) continue;
-        const key = `${e.r}-${e.c}`;
-        if (isPlayerTurret) back.add(key); else front.add(key);
+    // 3) 후방 확장: 아래쪽 인접 칸들에서 한 행 더 아래 → 3칸
+    if (lowerAdj.length > 0) {
+      const extRow = lowerAdj[0].r + 1; // 인접 아래쪽에서 한 행 더 아래
+      const cols = lowerAdj.map(n => n.c).sort((a, b) => a - b);
+      const minC = Math.max(0, cols[0] - (extRow % 2 !== lowerAdj[0].r % 2 ? 1 : 0));
+      for (let i = 0; i < 3; i++) {
+        addIfValid(extRow, minC + i, 'back');
       }
     }
   }
