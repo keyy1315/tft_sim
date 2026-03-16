@@ -72,7 +72,7 @@ export default function UnitToken({
     >
       {/* Star level */}
       {starLevel > 0 && (
-        <div className="text-[13px] leading-none text-yellow-400 font-bold tracking-tight">
+        <div className="text-[13px] leading-none text-yellow-400 font-bold tracking-tight" style={{ WebkitTextStroke: '1px white' }}>
           {'★'.repeat(starLevel)}
         </div>
       )}

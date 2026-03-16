@@ -178,32 +178,13 @@ export default function SetupBoard({
       <rect x={0} y={0} width={width} height={4 * (HEX_H * 0.75 + PAD) + 10} fill="#ef444408" rx={8} />
       <rect x={0} y={4 * (HEX_H * 0.75 + PAD) + 10} width={width} height={height - (4 * (HEX_H * 0.75 + PAD) + 10)} fill="#3b82f608" rx={8} />
 
-      {/* Dividing line between enemy/player */}
-      <line
-        x1={10}
-        y1={4 * (HEX_H * 0.75 + PAD) + 10}
-        x2={width - 10}
-        y2={4 * (HEX_H * 0.75 + PAD) + 10}
-        stroke="#4b5563"
-        strokeWidth={2}
-        strokeDasharray="6,4"
-      />
-
-      {/* Team labels - right side */}
-      <text x={width - 12} y={4 * (HEX_H * 0.75 + PAD)} textAnchor="end" fill="#ef4444" fontSize="11" fontWeight="bold" opacity={0.7}>
-        TEAM B
-      </text>
-      <text x={width - 12} y={4 * (HEX_H * 0.75 + PAD) + 24} textAnchor="end" fill="#3b82f6" fontSize="11" fontWeight="bold" opacity={0.7}>
-        TEAM A
-      </text>
-
       {/* Team labels - left side vertical */}
-      <text x={8} y={2 * (HEX_H * 0.75 + PAD) + HEX_R} textAnchor="middle" fill="#ef4444" fontSize="10" fontWeight="bold" opacity={0.4}
-        transform={`rotate(-90, 8, ${2 * (HEX_H * 0.75 + PAD) + HEX_R})`}>
+      <text x={14} y={2 * (HEX_H * 0.75 + PAD) + HEX_R} textAnchor="middle" fill="#ef4444" fontSize="20" fontWeight="900" opacity={0.3}
+        transform={`rotate(-90, 14, ${2 * (HEX_H * 0.75 + PAD) + HEX_R})`}>
         B
       </text>
-      <text x={8} y={6 * (HEX_H * 0.75 + PAD) + HEX_R} textAnchor="middle" fill="#3b82f6" fontSize="10" fontWeight="bold" opacity={0.4}
-        transform={`rotate(-90, 8, ${6 * (HEX_H * 0.75 + PAD) + HEX_R})`}>
+      <text x={14} y={6 * (HEX_H * 0.75 + PAD) + HEX_R} textAnchor="middle" fill="#3b82f6" fontSize="20" fontWeight="900" opacity={0.3}
+        transform={`rotate(-90, 14, ${6 * (HEX_H * 0.75 + PAD) + HEX_R})`}>
         A
       </text>
 
@@ -258,7 +239,8 @@ export default function SetupBoard({
                 strokeWidth={unitSel ? 2.5 : sel ? 2.5 : result ? 2 : (isFrontZone || isBackZone) ? 1.5 : 1}
               />
               {result && result.placed.starLevel > 0 && (
-                <text x={cx} y={cy - HEX_R + 14} textAnchor="middle" fill="#f59e0b" fontSize="14" fontWeight="bold">
+                <text x={cx} y={cy - HEX_R + 14} textAnchor="middle" fill="#f59e0b" fontSize="14" fontWeight="bold"
+                  stroke="#fff" strokeWidth={2} paintOrder="stroke">
                   {'★'.repeat(result.placed.starLevel)}
                 </text>
               )}
