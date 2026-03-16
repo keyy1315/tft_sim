@@ -118,7 +118,7 @@ export default function UnitToken({
       {/* HP Bar */}
       <div
         className="rounded-sm overflow-hidden bg-gray-800"
-        style={{ width: imgSize, height: isMd ? 5 : 3 }}
+        style={{ width: imgSize, height: isMd ? 7 : 4 }}
       >
         <div
           className="h-full rounded-sm transition-all duration-150"
@@ -129,7 +129,7 @@ export default function UnitToken({
       {/* Mana Bar */}
       <div
         className="rounded-sm overflow-hidden bg-gray-800"
-        style={{ width: imgSize, height: isMd ? 3 : 2 }}
+        style={{ width: imgSize, height: isMd ? 5 : 3 }}
       >
         <div
           className="h-full rounded-sm transition-all duration-150 bg-blue-500"

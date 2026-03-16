@@ -1,17 +1,19 @@
 'use client';
 
-import { PlacedChampion, RawItem } from '@/types';
+import { PlacedChampion, RawItem, ActiveTrait } from '@/types';
 import ChampionCard from './ChampionCard';
 import StarSelector from './StarSelector';
 import ItemIcon from './ItemIcon';
 import ItemGrid from './ItemGrid';
 import Modal from '@/components/ui/Modal';
 import { useState } from 'react';
+import { getItemCategory } from '@/lib/simulator/systems/item';
 
 interface SelectedUnitPanelProps {
   placed: PlacedChampion;
   team: 'player' | 'enemy';
   allItems: RawItem[];
+  activeTraits: ActiveTrait[];
   onStarChange: (level: number) => void;
   onEquipItem: (item: RawItem) => void;
   onRemoveItem: (itemIdx: number) => void;
@@ -22,6 +24,7 @@ export default function SelectedUnitPanel({
   placed,
   team,
   allItems,
+  activeTraits,
   onStarChange,
   onEquipItem,
   onRemoveItem,
@@ -30,6 +33,8 @@ export default function SelectedUnitPanel({
   const [showItemPicker, setShowItemPicker] = useState(false);
   const teamColor = team === 'player' ? 'border-blue-600/30' : 'border-red-600/30';
   const teamLabel = team === 'player' ? 'A' : 'B';
+
+  const artifactCount = placed.items.filter(i => getItemCategory(i) === 'artifact').length;
 
   return (
     <div className={`bg-[#111827] rounded-xl border ${teamColor} p-3 space-y-3`}>
@@ -55,7 +60,10 @@ export default function SelectedUnitPanel({
       <StarSelector starLevel={placed.starLevel} onChange={onStarChange} />
 
       <div>
-        <div className="text-xs text-gray-400 mb-1.5">아이템 ({placed.items.length}/3)</div>
+        <div className="text-xs text-gray-400 mb-1.5">
+          아이템 ({placed.items.length}/3)
+          {artifactCount > 0 && <span className="ml-1 text-purple-400">유물 {artifactCount}/1</span>}
+        </div>
         <div className="flex gap-1.5 items-center">
           {placed.items.map((item, idx) => (
             <ItemIcon
@@ -83,6 +91,8 @@ export default function SelectedUnitPanel({
       <Modal isOpen={showItemPicker} onClose={() => setShowItemPicker(false)} title="아이템 선택">
         <ItemGrid
           items={allItems}
+          activeTraits={activeTraits}
+          champion={placed}
           onSelect={(item) => {
             onEquipItem(item);
             setShowItemPicker(false);

@@ -21,10 +21,10 @@ interface ReplayBoardProps {
   onUnitClick?: (unitId: string) => void;
 }
 
-const HEX_R = 32;
+const HEX_R = 40;
 const HEX_W = HEX_R * Math.sqrt(3);
 const HEX_H = HEX_R * 2;
-const PAD = 4;
+const PAD = 5;
 const ROWS = 8; // player 4 + enemy 4
 
 function hexPoints(cx: number, cy: number, r: number): string {
@@ -162,21 +162,21 @@ export default function ReplayBoard({
               onClick={() => onUnitClick?.(unitId)}
               className="cursor-pointer"
             >
+              {/* Team indicator ring */}
+              <polygon
+                points={hexPoints(cx, cy, HEX_R + 3)}
+                fill="none"
+                stroke={teamColor}
+                strokeWidth={2.5}
+                opacity={0.6}
+              />
+
               {/* Hex background */}
               <polygon
                 points={hexPoints(cx, cy, HEX_R)}
                 fill={`url(#replay-${unitId})`}
                 stroke={isSelected ? '#f59e0b' : costColor}
-                strokeWidth={isSelected ? 2.5 : 1.5}
-              />
-
-              {/* Team indicator ring */}
-              <polygon
-                points={hexPoints(cx, cy, HEX_R + 2)}
-                fill="none"
-                stroke={teamColor}
-                strokeWidth={1}
-                opacity={0.4}
+                strokeWidth={isSelected ? 3 : 2}
               />
 
               {/* Star level */}
@@ -187,12 +187,12 @@ export default function ReplayBoard({
               )}
 
               {/* HP Bar */}
-              <rect x={barX} y={cy + HEX_R - 14} width={barW} height={4} rx={1} fill="#1f2937" />
-              <rect x={barX} y={cy + HEX_R - 14} width={barW * hpRatio} height={4} rx={1} fill={hpColor} />
+              <rect x={barX} y={cy + HEX_R - 16} width={barW} height={6} rx={2} fill="#1f2937" />
+              <rect x={barX} y={cy + HEX_R - 16} width={barW * hpRatio} height={6} rx={2} fill={hpColor} />
 
               {/* Mana Bar */}
-              <rect x={barX} y={cy + HEX_R - 9} width={barW} height={2.5} rx={1} fill="#1f2937" />
-              <rect x={barX} y={cy + HEX_R - 9} width={barW * manaRatio} height={2.5} rx={1} fill="#3b82f6" />
+              <rect x={barX} y={cy + HEX_R - 9} width={barW} height={4} rx={1.5} fill="#1f2937" />
+              <rect x={barX} y={cy + HEX_R - 9} width={barW * manaRatio} height={4} rx={1.5} fill="#3b82f6" />
 
               {/* Status effects */}
               {unitSnap.statusEffects.length > 0 && (

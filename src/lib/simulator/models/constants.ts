@@ -35,4 +35,8 @@ export const ITEM_EFFECT_KEYS: Record<string, string> = {
   'Mana': 'mana',
   'MRShred': 'magicPen',
   'ARReductionAmount': 'armorPen',
+  // 빌지워터 스탯 아이템 키
+  'BonusAS': 'as',
+  'BonusAD': 'ad',
+  'BonusAP': 'ap',
 };

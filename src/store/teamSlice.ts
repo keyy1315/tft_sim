@@ -8,6 +8,7 @@ function coordMatch(a: HexCoord, b: HexCoord): boolean {
 interface TeamState {
   placedChampions: PlacedChampion[];
   selectedAugments: RawAugment[];
+  augmentStacks: Record<string, number>;
   activeTraits: ActiveTrait[];
   placeChampion: (champion: RawChampion, position: HexCoord) => void;
   removeChampion: (position: HexCoord) => void;
@@ -18,12 +19,14 @@ interface TeamState {
   setActiveTraits: (traits: ActiveTrait[]) => void;
   addAugment: (aug: RawAugment) => void;
   removeAugment: (index: number) => void;
+  setAugmentStacks: (apiName: string, count: number) => void;
   clearBoard: () => void;
 }
 
 export const useTeamStore = create<TeamState>((set) => ({
   placedChampions: [],
   selectedAugments: [],
+  augmentStacks: {},
   activeTraits: [],
   placeChampion: (champion, position) =>
     set((s) => {
@@ -75,8 +78,25 @@ export const useTeamStore = create<TeamState>((set) => ({
     })),
   setActiveTraits: (traits) => set({ activeTraits: traits }),
   addAugment: (aug) =>
-    set((s) => s.selectedAugments.length < 3 ? { selectedAugments: [...s.selectedAugments, aug] } : s),
+    set((s) => {
+      if (s.selectedAugments.length >= 3) return s;
+      const startingStacks = (aug.effects.StartingStacks as number) ?? 1;
+      return {
+        selectedAugments: [...s.selectedAugments, aug],
+        augmentStacks: { ...s.augmentStacks, [aug.apiName]: startingStacks },
+      };
+    }),
   removeAugment: (index) =>
-    set((s) => ({ selectedAugments: s.selectedAugments.filter((_, i) => i !== index) })),
-  clearBoard: () => set({ placedChampions: [], selectedAugments: [], activeTraits: [] }),
+    set((s) => {
+      const removed = s.selectedAugments[index];
+      const newStacks = { ...s.augmentStacks };
+      if (removed) delete newStacks[removed.apiName];
+      return {
+        selectedAugments: s.selectedAugments.filter((_, i) => i !== index),
+        augmentStacks: newStacks,
+      };
+    }),
+  setAugmentStacks: (apiName, count) =>
+    set((s) => ({ augmentStacks: { ...s.augmentStacks, [apiName]: count } })),
+  clearBoard: () => set({ placedChampions: [], selectedAugments: [], augmentStacks: {}, activeTraits: [] }),
 }));

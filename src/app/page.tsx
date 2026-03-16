@@ -10,14 +10,6 @@ const features = [
     borderColor: 'border-red-500/30',
   },
   {
-    title: '팀 빌더',
-    desc: '육각형 보드에 챔피언 배치, 시너지 자동 계산, 팀 분석',
-    href: '/builder/team-builder',
-    icon: '🛡️',
-    color: 'from-blue-600/20 to-purple-600/20',
-    borderColor: 'border-blue-500/30',
-  },
-  {
     title: '전투 시뮬레이션',
     desc: '아군 vs 적군 자동 전투, 이동/사거리 시스템, 턴별 로그',
     href: '/simulator',

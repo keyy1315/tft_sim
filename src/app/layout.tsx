@@ -3,7 +3,7 @@ import '@/styles/globals.css';
 
 export const metadata: Metadata = {
   title: 'TFT Set 16 시뮬레이터',
-  description: 'TFT Set 16 데미지 계산기, 팀 빌더, 전투 시뮬레이션',
+  description: 'TFT Set 16 데미지 계산기, 전투 시뮬레이션',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -20,9 +20,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <div className="flex gap-1">
               <a href="/builder/calculator" className="px-4 py-2 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-[#1f2937] transition-colors">
                 데미지 계산기
-              </a>
-              <a href="/builder/team-builder" className="px-4 py-2 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-[#1f2937] transition-colors">
-                팀 빌더
               </a>
               <a href="/simulator" className="px-4 py-2 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-[#1f2937] transition-colors">
                 전투 시뮬

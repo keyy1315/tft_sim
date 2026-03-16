@@ -3,7 +3,7 @@
     "set": 16,
     "source": "CommunityDragon TFT ko_kr.json",
     "extractedAt": "2026-03-12T05:54:41.169Z",
-    "totalItems": 168,
+    "totalItems": 210,
     "baseComponents": 10,
     "combinedItems": 49,
     "tft16Special": 55,
@@ -24,7 +24,7 @@
         "{1543aa48}": 0.15000000596046448
       },
       "desc": "<tftitemrules>평범해 보이지만 우주를 창조하거나 파괴할 수 있는 모자입니다.</tftitemrules><br><br>@TFTUnitProperty.:TFT_Augment_DeadlierCaps_TRAKey@",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_RabadonsDeathcap.TFT_Set13.png"
+      "icon": "tft_item_rabadonsdeathcap.tft_set13.png"
     },
     {
       "name": "공간 왜곡",
@@ -32,7 +32,7 @@
       "composition": [],
       "effects": {},
       "desc": "챔피언에게 사용하면 해당 챔피언의 특성 상징을 하나씩 획득합니다.<br><br><tftitemrules>[소모품 - 이 아이템은 사용하면 사라집니다.]</tftitemrules>",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/RealmWrap.TFT_Set16.png"
+      "icon": "realmwrap.tft_set16.png"
     },
     {
       "name": "전압 도관",
@@ -42,7 +42,7 @@
         "ManaReduction": 0.30000001192092896
       },
       "desc": "필트오버 유닛의 최대 마나 @ManaReduction*100@% 감소",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Piltover/TFT16_Item_Piltover_VoltageConduit.TFT_Set16.png"
+      "icon": "tft16_item_piltover_voltageconduit.tft_set16.png"
     },
     {
       "name": "초소형 로켓",
@@ -53,7 +53,7 @@
         "NumMissiles": 16
       },
       "desc": "연발 미사일을 발사해 이번 전투에서 필트오버 유닛이 입힌 피해량의 @DamageRepeat*100@%만큼 마법 피해를 입힘",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Piltover/TFT16_Item_Piltover_MicroRockets.TFT_Set16.png"
+      "icon": "tft16_item_piltover_microrockets.tft_set16.png"
     },
     {
       "name": "동적 방어막",
@@ -64,7 +64,7 @@
         "LowerResist": 30
       },
       "desc": "필트오버 유닛이 방어력 @HigherResist@, 마법 저항력 @LowerResist@ 획득. 받은 마법 피해량이 물리 피해량보다 클 경우 반대로 획득",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Piltover/TFT16_Item_Piltover_KineticBarrier.TFT_Set16.png"
+      "icon": "tft16_item_piltover_kineticbarrier.tft_set16.png"
     },
     {
       "name": "업그레이드!",
@@ -75,7 +75,7 @@
         "MaxHealth": 300
       },
       "desc": "가장 강한 아군 필트오버 유닛에게 장착된 무작위 아이템 1개가 찬란한 아이템으로 업그레이드됨. 또한 해당 유닛이 공격 속도 @AttackSpeed*100@%, 최대 체력 @MaxHealth@ 획득",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Piltover/TFT16_Item_Piltover_Upgrade.TFT_Set16.png"
+      "icon": "tft16_item_piltover_upgrade.tft_set16.png"
     },
     {
       "name": "자전관 코일",
@@ -86,7 +86,7 @@
         "DamageAmpPerCast": 0.009999999776482582
       },
       "desc": "필트오버 유닛이 피해 증폭 @BaseDamageAmp*100@% 획득. 이 전투에서 이 모듈이 발동되기 전에 필트오버 유닛이 스킬을 사용할 때마다 @DamageAmpPerCast*100@% 증가",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Piltover/TFT16_Item_Piltover_MagnetronCoil.TFT_Set16.png"
+      "icon": "tft16_item_piltover_magnetroncoil.tft_set16.png"
     },
     {
       "name": "거대화 광선",
@@ -97,7 +97,7 @@
         "SizeIncrease": 0.30000001192092896
       },
       "desc": "필트오버 유닛이 최대 체력 @MaxHealthGain*100@% 획득 및 크기가 커짐",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Piltover/TFT16_Item_Piltover_GigantificationRay.TFT_Set16.png"
+      "icon": "tft16_item_piltover_gigantificationray.tft_set16.png"
     },
     {
       "name": "탄력 구동",
@@ -107,7 +107,7 @@
         "Tenacity": 0.5
       },
       "desc": "모든 아군의 군중 제어 효과 정화. 아군이 강인함 @Tenacity*100@% 획득 ",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Piltover/TFT16_Item_Piltover_MomentumDrive.TFT_Set16.png"
+      "icon": "tft16_item_piltover_momentumdrive.tft_set16.png"
     },
     {
       "name": "폭발 보호막",
@@ -117,7 +117,7 @@
         "PercentHealthShield": 0.18000000715255737
       },
       "desc": "모든 아군이 최대 체력의 @PercentHealthShield*100@%에 해당하는 보호막 획득",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Piltover/TFT16_Item_Piltover_BlastShield.TFT_Set16.png"
+      "icon": "tft16_item_piltover_blastshield.tft_set16.png"
     },
     {
       "name": "90구경 투망",
@@ -128,7 +128,7 @@
         "NumEnemies": 3
       },
       "desc": "가장 많은 피해를 입힌 적 @NumEnemies@명을 @Duration@초 동안 기절시킴",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Piltover/TFT16_Item_Piltover_90CaliberNets.TFT_Set16.png"
+      "icon": "tft16_item_piltover_90calibernets.tft_set16.png"
     },
     {
       "name": "과열된 축전기",
@@ -138,7 +138,7 @@
         "AttackSpeed": 0.25
       },
       "desc": "아군이 공격 속도 @AttackSpeed*100@% 획득",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Piltover/TFT16_Item_Piltover_OverclockedCapacitors.TFT_Set16.png"
+      "icon": "tft16_item_piltover_overclockedcapacitors.tft_set16.png"
     },
     {
       "name": "연속체 톱니바퀴",
@@ -149,7 +149,7 @@
         "ManaGen": 2
       },
       "desc": "모든 아군이 마나 재생 @ManaGen@, 주문력 @AbilityPower@ 획득",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Piltover/TFT16_Item_Piltover_ContinuumCogs.TFT_Set16.png"
+      "icon": "tft16_item_piltover_continuumcogs.tft_set16.png"
     },
     {
       "name": "조정된 발진기",
@@ -159,7 +159,7 @@
         "HealingShielding": 0.2800000011920929
       },
       "desc": "아군 체력 회복량 및 보호막 흡수량 @HealingShielding*100@% 증가",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Piltover/TFT16_Item_Piltover_TunedOscillator.TFT_Set16.png"
+      "icon": "tft16_item_piltover_tunedoscillator.tft_set16.png"
     },
     {
       "name": "전자기 펄스",
@@ -169,7 +169,7 @@
         "ManaCostIncrease": 15
       },
       "desc": "모든 적의 다음 스킬 마나 소모량 @ManaCostIncrease@ 증가",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Piltover/TFT16_Item_Piltover_EMP.TFT_Set16.png"
+      "icon": "tft16_item_piltover_emp.tft_set16.png"
     },
     {
       "name": "전류 과부하",
@@ -180,7 +180,7 @@
         "MaxHealthRatio": 0.10000000149011612
       },
       "desc": "모든 적에게 @FlatDamage@+최대 체력의 @MaxHealthRatio*100@%만큼 고정 피해를 입힘",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Piltover/TFT16_Item_Piltover_ElectricalOverload.TFT_Set16.png"
+      "icon": "tft16_item_piltover_electricaloverload.tft_set16.png"
     },
     {
       "name": "불안정한 핵",
@@ -192,7 +192,7 @@
         "SuccessMaxHealthDamage": 0.30000001192092896
       },
       "desc": "필트오버 유닛이 이번 전투에서 스킬을 @CastBreakpoint@회 이상 사용하면 모든 적에게 최대 체력의 @SuccessMaxHealthDamage*100@%에 해당하는 고정 피해를 입힘. 그렇지 않을 경우 @FailureMaxHealthDamage*100@%의 피해를 입힘 ",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Piltover/TFT16_Item_Piltover_UnstableCore.TFT_Set16.png"
+      "icon": "tft16_item_piltover_unstablecore.tft_set16.png"
     },
     {
       "name": "방어구 무효화",
@@ -203,7 +203,7 @@
         "TankDamageAmp": 0.44999998807907104
       },
       "desc": "필트오버 유닛의 피해량 @BaseDamageAmp*100@% 증가. 탱커 상대로 @TankDamageAmp*100@% 증가",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Piltover/TFT16_Item_Piltover_ArmorNullifier.TFT_Set16.png"
+      "icon": "tft16_item_piltover_armornullifier.tft_set16.png"
     },
     {
       "name": "우월한 존재",
@@ -215,7 +215,7 @@
         "PercentHealthOfOriginal": 0.4000000059604645
       },
       "desc": "가장 강한 아군 필트오버 유닛 @NumUnitsToCopy@명의 로봇 복사본 소환. 복사본은 원본 체력의 @PercentHealthOfOriginal*100@%를 지니며 @DamageOutput*100@%의 피해를 입힘",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Piltover/TFT16_Item_Piltover_SuperiorLifeform.TFT_Set16.png"
+      "icon": "tft16_item_piltover_superiorlifeform.tft_set16.png"
     },
     {
       "name": "채굴 드릴",
@@ -229,7 +229,7 @@
         "{d8e7dc5e}": 1.25
       },
       "desc": "무작위로 @RollsPerCastBreakpoint@골드 또는 @RollsPerCastBreakpoint@ 장화 획득 <i>(필트오버가 스킬을 사용할 때마다 반복!)</i> ",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Piltover/TFT16_Item_Piltover_MiningDrill.TFT_Set16.png"
+      "icon": "tft16_item_piltover_miningdrill.tft_set16.png"
     },
     {
       "name": "메아리 엔진",
@@ -239,7 +239,7 @@
         "RepeatSeconds": 7
       },
       "desc": "전투가 끝날 때까지 @RepeatSeconds@초마다 다른 모듈 효과 반복",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Piltover/TFT16_Item_Piltover_UnstableCore.TFT_Set16.png"
+      "icon": "tft16_item_piltover_unstablecore.tft_set16.png"
     },
     {
       "name": "가속 관문",
@@ -250,7 +250,7 @@
         "RefillDuration": 2
       },
       "desc": "스킬을 사용하면 필트오버 유닛이 @RefillDuration@초 동안 최대 마나의 @ManaRefill*100@%만큼 마나 회복",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Piltover/TFT16_Item_Piltover_AccelerationGate.TFT_Set16.png"
+      "icon": "tft16_item_piltover_accelerationgate.tft_set16.png"
     },
     {
       "name": "망자의 단검",
@@ -264,7 +264,7 @@
         "ExecuteThreshold": 0.11999999731779099
       },
       "desc": "기본 공격 및 스킬이 체력이 @ExecuteThreshold*100@% 아래인 적 처형. 처치 시 공격력 @BonusADPerKill*100@%, 주문력 @BonusAPPerKill@% 획득<br><br><rules>추천 사용자: 그레이브즈</rules>",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TT16_Item_Bilgewater_DeadmansDagger.TFT_Set16.png"
+      "icon": "tt16_item_bilgewater_deadmansdagger.tft_set16.png"
     },
     {
       "name": "행운의 금화",
@@ -276,7 +276,7 @@
         "CritChance": 20
       },
       "desc": "처치 관여 시 추가 %i:scaleSerpents% @BonusSerpents@개 생성 (획득한 은화: @TFTUnitProperty.:TFT16_Item_Bilgewater_LuckyDoubloon_SerpentsEarned@)<br><br><rules>추천 사용자: 갱플랭크</rules>",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Item_LuckyDubloon.TFT_Set16.png"
+      "icon": "tft16_item_luckydubloon.tft_set16.png"
     },
     {
       "name": "불한당의 해적검",
@@ -291,7 +291,7 @@
         "StatOmnivamp": 0.15000000596046448
       },
       "desc": "적에게 피해를 입히면 4초 동안 출혈을 적용해 @BleedDamagePercent*100@%의 추가 피해를 입힘<br><br><rules>추천 사용자: 갱플랭크</rules><br>",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Item_Bilgewater_BilgeratCutlass.TFT_Set16.png"
+      "icon": "tft16_item_bilgewater_bilgeratcutlass.tft_set16.png"
     },
     {
       "name": "암시장 폭발물",
@@ -306,7 +306,7 @@
         "NumTargets": 2
       },
       "desc": "@Interval@초마다 현재 대상 및 주변 적 @NumTargets@명에게 @BaseDamage@+지난 @Interval@초 동안 입힌 피해량의 @DamageStored*100@%에 해당하는 마법 피해를 입힘<br><br><rules>추천 사용자: 피즈</rules>",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Item_Bilgewater_BlackmarketExplosives.TFT_Set16.png"
+      "icon": "tft16_item_bilgewater_blackmarketexplosives.tft_set16.png"
     },
     {
       "name": "방어력 및 마법 저항력 +@BonusArmorMR@",
@@ -316,7 +316,7 @@
         "BonusArmorMR": 8
       },
       "desc": "빌지워터 챔피언이 방어력을 @BonusArmorMR@, 마법 저항력을 @BonusArmorMR@ 얻습니다.",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Bilgewater/TFT16_Bilgewater_ArmorMR_Tier2.TFT_Set16.png"
+      "icon": "tft16_bilgewater_armormr_tier2.tft_set16.png"
     },
     {
       "name": "방어력 및 마법 저항력 +@BonusArmorMR@",
@@ -326,7 +326,7 @@
         "BonusArmorMR": 13
       },
       "desc": "빌지워터 챔피언이 방어력을 @BonusArmorMR@, 마법 저항력을 @BonusArmorMR@ 얻습니다.",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Bilgewater/TFT16_Bilgewater_ArmorMR_Tier3.TFT_Set16.png"
+      "icon": "tft16_bilgewater_armormr_tier3.tft_set16.png"
     },
     {
       "name": "방어력 및 마법 저항력 +@BonusArmorMR@",
@@ -336,7 +336,7 @@
         "BonusArmorMR": 5
       },
       "desc": "빌지워터 챔피언이 방어력을 @BonusArmorMR@, 마법 저항력을 @BonusArmorMR@ 얻습니다.",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Bilgewater/TFT16_Bilgewater_ArmorMR_Tier1.TFT_Set16.png"
+      "icon": "tft16_bilgewater_armormr_tier1.tft_set16.png"
     },
     {
       "name": "공격 속도 +@BonusAS*100@%",
@@ -346,7 +346,7 @@
         "BonusAS": 0.05999999865889549
       },
       "desc": "빌지워터 챔피언이 공격 속도를 @BonusAS*100@% 얻습니다.",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Bilgewater/TFT16_Bilgewater_AS_Tier2.TFT_Set16.png"
+      "icon": "tft16_bilgewater_as_tier2.tft_set16.png"
     },
     {
       "name": "공격 속도 +@BonusAS*100@%",
@@ -356,7 +356,7 @@
         "BonusAS": 0.07999999821186066
       },
       "desc": "빌지워터 챔피언이 공격 속도를 @BonusAS*100@% 얻습니다.",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Bilgewater/TFT16_Bilgewater_AS_Tier3.TFT_Set16.png"
+      "icon": "tft16_bilgewater_as_tier3.tft_set16.png"
     },
     {
       "name": "공격 속도 +@BonusAS*100@%",
@@ -366,7 +366,7 @@
         "BonusAS": 0.03999999910593033
       },
       "desc": "빌지워터 챔피언이 공격 속도를 @BonusAS*100@% 얻습니다.",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Bilgewater/TFT16_Bilgewater_AS_Tier1.TFT_Set16.png"
+      "icon": "tft16_bilgewater_as_tier1.tft_set16.png"
     },
     {
       "name": "공격력 및 주문력 +@BonusAD*100@%",
@@ -377,7 +377,7 @@
         "BonusAP": 5
       },
       "desc": "빌지워터 챔피언이 공격력을 @BonusAD*100@%, 주문력을 @BonusAP@% 얻습니다.",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Bilgewater/TFT16_Bilgewater_ADAP_Tier2.TFT_Set16.png"
+      "icon": "tft16_bilgewater_adap_tier2.tft_set16.png"
     },
     {
       "name": "공격력 및 주문력 +@BonusAD*100@%",
@@ -388,7 +388,7 @@
         "BonusAP": 7
       },
       "desc": "빌지워터 챔피언이 공격력을 @BonusAD*100@%, 주문력을 @BonusAP@% 얻습니다.",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Bilgewater/TFT16_Bilgewater_ADAP_Tier3.TFT_Set16.png"
+      "icon": "tft16_bilgewater_adap_tier3.tft_set16.png"
     },
     {
       "name": "공격력 및 주문력 +@BonusAD*100@%",
@@ -399,7 +399,7 @@
         "BonusAP": 3
       },
       "desc": "빌지워터 챔피언이 공격력을 @BonusAD*100@%, 주문력을 @BonusAP@% 얻습니다.",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Bilgewater/TFT16_Bilgewater_ADAP_Tier1.TFT_Set16.png"
+      "icon": "tft16_bilgewater_adap_tier1.tft_set16.png"
     },
     {
       "name": "주문력 +@BonusAP@",
@@ -409,7 +409,7 @@
         "BonusAP": 18
       },
       "desc": "빌지워터 챔피언이 주문력을 @BonusAP@ 얻습니다.",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Bilgewater/TFT16_Bilgewater_AP_Tier3.TFT_Set16.png"
+      "icon": "tft16_bilgewater_ap_tier3.tft_set16.png"
     },
     {
       "name": "주문력 +@BonusAP@",
@@ -419,7 +419,7 @@
         "BonusAP": 10
       },
       "desc": "빌지워터 챔피언이 주문력을 @BonusAP@ 얻습니다.",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Bilgewater/TFT16_Bilgewater_AP_Tier2.TFT_Set16.png"
+      "icon": "tft16_bilgewater_ap_tier2.tft_set16.png"
     },
     {
       "name": "주문력 +@BonusAP@",
@@ -429,7 +429,7 @@
         "BonusAP": 6
       },
       "desc": "빌지워터 챔피언이 주문력을 @BonusAP@ 얻습니다.",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Bilgewater/TFT16_Bilgewater_AP_Tier1.TFT_Set16.png"
+      "icon": "tft16_bilgewater_ap_tier1.tft_set16.png"
     },
     {
       "name": "최대 체력 +@BonusHealthPercent*100@%",
@@ -439,7 +439,7 @@
         "BonusHealthPercent": 0.03999999910593033
       },
       "desc": "빌지워터 챔피언이 최대 체력을 @BonusHealthPercent*100@% 얻습니다.",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Bilgewater/TFT16_Bilgewater_Health_Tier1.TFT_Set16.png"
+      "icon": "tft16_bilgewater_health_tier1.tft_set16.png"
     },
     {
       "name": "최대 체력 +@BonusHealthPercent*100@%",
@@ -449,7 +449,7 @@
         "BonusHealthPercent": 0.05999999865889549
       },
       "desc": "빌지워터 챔피언이 최대 체력을 @BonusHealthPercent*100@% 얻습니다.",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Bilgewater/TFT16_Bilgewater_Health_Tier2.TFT_Set16.png"
+      "icon": "tft16_bilgewater_health_tier2.tft_set16.png"
     },
     {
       "name": "최대 체력 +@BonusHealthPercent*100@%",
@@ -459,7 +459,7 @@
         "BonusHealthPercent": 0.07999999821186066
       },
       "desc": "빌지워터 챔피언이 최대 체력을 @BonusHealthPercent*100@% 얻습니다.",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Bilgewater/TFT16_Bilgewater_Health_Tier3.TFT_Set16.png"
+      "icon": "tft16_bilgewater_health_tier3.tft_set16.png"
     },
     {
       "name": "공격력 +@BonusAD*100@%",
@@ -469,7 +469,7 @@
         "BonusAD": 0.12999999523162842
       },
       "desc": "빌지워터 챔피언이 공격력 및 주문력을 @BonusAD*100@% 얻습니다.",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Bilgewater/TFT16_Bilgewater_AD_Tier3.TFT_Set16.png"
+      "icon": "tft16_bilgewater_ad_tier3.tft_set16.png"
     },
     {
       "name": "공격력 +@BonusAD*100@%",
@@ -479,7 +479,7 @@
         "BonusAD": 0.07999999821186066
       },
       "desc": "빌지워터 챔피언이 공격력 및 주문력을 @BonusAD*100@% 얻습니다.",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Bilgewater/TFT16_Bilgewater_AD_Tier2.TFT_Set16.png"
+      "icon": "tft16_bilgewater_ad_tier2.tft_set16.png"
     },
     {
       "name": "공격력 +@BonusAD*100@%",
@@ -489,7 +489,7 @@
         "BonusAD": 0.05000000074505806
       },
       "desc": "빌지워터 챔피언이 공격력 및 주문력을 @BonusAD*100@% 얻습니다.",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Bilgewater/TFT16_Bilgewater_AD_Tier1.TFT_Set16.png"
+      "icon": "tft16_bilgewater_ad_tier1.tft_set16.png"
     },
     {
       "name": "암시장 재입고",
@@ -497,7 +497,7 @@
       "composition": [],
       "effects": {},
       "desc": "암시장의 모든 아이템 교체!",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/Consumables/TFT_Item_Consumable_ShopReroll.png"
+      "icon": "tft_item_consumable_shopreroll.png"
     },
     {
       "name": "약탈자의 주사위",
@@ -505,7 +505,7 @@
       "composition": [],
       "effects": {},
       "desc": "상점을 즉시 새로고침해 빌지워터 챔피언으로 채움",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/Placeholders/TFT_Item_Unknown.png"
+      "icon": "tft_item_unknown.png"
     },
     {
       "name": "귤 더미",
@@ -519,7 +519,7 @@
         "SerpentTimer": 15
       },
       "desc": "@HealthRegenInterval@초마다 최대 체력의 @HealingPercent@% 회복 및 모든 해로운 효과 제거. @SerpentTimer@초 후 %i:scaleSerpents% @BonusSerpents@개 획득<br><br><rules>추천 사용자: 일라오이</rules>",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Item_PileOfCitrus.TFT_Set16.png"
+      "icon": "tft16_item_pileofcitrus.tft_set16.png"
     },
     {
       "name": "일등 항해사의 화승총",
@@ -533,7 +533,7 @@
         "Timer": 1
       },
       "desc": "전투 중 매초 공격력 @ADPerStack*100@%, 공격 속도 @ASPerStack*100@% 획득<br><br><rules>추천 사용자: 미스 포츈</rules>",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Item_Bilgewater_DreadwayCannon.TFT_Set16.png"
+      "icon": "tft16_item_bilgewater_dreadwaycannon.tft_set16.png"
     },
     {
       "name": "보물 태풍",
@@ -541,7 +541,7 @@
       "composition": [],
       "effects": {},
       "desc": "해일을 소환해 해저에서 귀중한 보물을 끌어 올립니다.",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Item_Bilgewater_Jollyroger.TFT_Set16.png"
+      "icon": "tft16_item_bilgewater_jollyroger.tft_set16.png"
     },
     {
       "name": "귀신 들린 망원경",
@@ -549,7 +549,7 @@
       "composition": [],
       "effects": {},
       "desc": "<danger>미구현 기능</danger><br>전투당 한 번 처치 관여 3회 후 드레드웨이의 유령을 소환해 반경 3칸에 <magicDamage>650%(%i:scaleAP%)의 마법 피해</magicDamage>를 입힘",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Item_Bilgewater_HauntedSpyglass.TFT_Set16.png"
+      "icon": "tft16_item_bilgewater_hauntedspyglass.tft_set16.png"
     },
     {
       "name": "선장의 모자",
@@ -557,7 +557,7 @@
       "composition": [],
       "effects": {},
       "desc": "<danger>미구현 기능</danger> 착용자가 선장이 됨! 착용자가 살아있는 동안 아군에게 (매우 멋진 효과) 부여",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Item_Bilgewater_Jollyroger.TFT_Set16.png"
+      "icon": "tft16_item_bilgewater_jollyroger.tft_set16.png"
     },
     {
       "name": "드레드웨이 대포",
@@ -567,7 +567,7 @@
         "BonusAD": 0.20000000298023224
       },
       "desc": "<danger>미구현 기능</danger><br>4초마다 착용자의 대상에게 포탄을 발사해 대상이 지난 4초 동안 입은 피해량의 50%만큼 피해를 입힘",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Item_Bilgewater_DreadwayCannon.TFT_Set16.png"
+      "icon": "tft16_item_bilgewater_dreadwaycannon.tft_set16.png"
     },
     {
       "name": "선장의 비법",
@@ -581,7 +581,7 @@
         "Health": 100
       },
       "desc": "기본 공격 및 스킬이 @DebuffDuration@초 동안 적에게 불태우기 및 냉각 적용<br><br><rules>추천 사용자: 트위스티드 페이트</rules>",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Item_Bilgewater_Jollyroger.TFT_Set16.png"
+      "icon": "tft16_item_bilgewater_jollyroger.tft_set16.png"
     },
     {
       "name": "보물 태풍",
@@ -589,7 +589,7 @@
       "composition": [],
       "effects": {},
       "desc": "해일을 소환해 해저에서 귀중한 보물을 끌어 올립니다.",
-      "icon": "ASSETS/Characters/TFT12_Nami/HUD/Icons2D/NamiR.TFT_Set12.png"
+      "icon": "namir.tft_set12.png"
     },
     {
       "name": "보물 태풍",
@@ -597,7 +597,7 @@
       "composition": [],
       "effects": {},
       "desc": "해일을 소환해 해저에서 귀중한 보물을 끌어 올립니다.",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT16/TFT16_Item_Bilgewater_Jollyroger.TFT_Set16.png"
+      "icon": "tft16_item_bilgewater_jollyroger.tft_set16.png"
     },
     {
       "name": "사이렌호 함포 공격",
@@ -605,7 +605,7 @@
       "composition": [],
       "effects": {},
       "desc": "전투 시작 시 포탄 세례를 호출해 모든 적에게 막대한 피해를 입힙니다.",
-      "icon": "ASSETS/Characters/TFT14_MissFortune/HUD/Icons2D/TFT14_MissFortuneSpell.TFT_Set14.png"
+      "icon": "tft14_missfortunespell.tft_set14.png"
     },
     {
       "name": "무한의 대검",
@@ -620,7 +620,7 @@
         "CritDamageToGive": 0.10000000149011612
       },
       "desc": "스킬에 치명타 적용 가능<br><br>기본 스킬에 치명타 적용이 가능한 경우, 대신에 치명타 피해량이 @CritDamageToGive*100@% 증가",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_InfinityEdge.TFT_Set13.png"
+      "icon": "tft_item_infinityedge.tft_set13.png"
     },
     {
       "name": "하급 거울의 환영",
@@ -636,7 +636,7 @@
         "StatSharePercent": 0.15000000596046448
       },
       "desc": "장착 유닛의 추가 공격력, 주문력, 공격 속도, 방어력, 마법 저항력, 체력의 @StatSharePercent*100@%를 다른 거울의 환영 장착 유닛과 공유<br><br><rules>재조합 불가</rules><br><rules>고유: 중복 적용 불가</rules>",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT16_Artifact_LesserMirroredPersona.TFT_Set16.png"
+      "icon": "tft16_artifact_lessermirroredpersona.tft_set16.png"
     },
     {
       "name": "활력증진의 펜던트",
@@ -650,7 +650,7 @@
         "PercentMana": 1
       },
       "desc": "공격을 당할 때마다 총 마나의 @PercentMana@%씩 획득합니다.<br><br>스킬을 사용할 때마다 @Duration@초 동안 최대 체력의 @PercentHealth@%씩 회복합니다.",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_Artifact_InnervatingLocket.TFT_Set13.png"
+      "icon": "tft_item_artifact_innervatinglocket.tft_set13.png"
     },
     {
       "name": "수호자의 맹세",
@@ -670,7 +670,7 @@
         "TriggerMana": 15
       },
       "desc": "전투 시작: 마나 @CombatStartMana@ 획득<br><br>체력이 @HealthThreshold@%일 때 마나 @TriggerMana@ 및 최대 체력의 @ShieldHealthPercent@%에 해당하는 보호막 획득",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_FrozenHeart.TFT_Set13.png"
+      "icon": "tft_item_frozenheart.tft_set13.png"
     },
     {
       "name": "불굴",
@@ -683,7 +683,7 @@
         "MagicResist": 20
       },
       "desc": "장착 시 이동 속도 대폭 감소<br><br>최대 체력 @HealthPercBonus*100@%와 기절 면역을 획득하고 현재 대상을 근접 공격 사거리로 끌어당김",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_Artifact_TheIndomitable.TFT_TFT14_5.png"
+      "icon": "tft_item_artifact_theindomitable.tft_tft14_5.png"
     },
     {
       "name": "침묵의 장막",
@@ -696,7 +696,7 @@
         "{4516a18d}": 60
       },
       "desc": "전투 시작: 적에게 @CostIncrease@%의 <TFTKeyword>마나를 강탈</TFTKeyword>하는 광선 발사<br><br>아군의 체력 @BonusAllyHealth@ 증가<br><br><tftitemrules>[지원 아이템] [고유 - 중복 적용 불가]<br><tftbold>마나 강탈</tftbold>: 스킬을 사용하기 전까지 최대 마나 증가</tftitemrules><br>@TFTUnitProperty.:TFT_BindOnEquipTRA@",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_Shroud.TFT_Set13.png"
+      "icon": "tft_item_shroud.tft_set13.png"
     },
     {
       "name": "정령의 형상",
@@ -714,7 +714,7 @@
         "{cd951938}": 0.10000000149011612
       },
       "desc": "매초 잃은 체력의 @MissingHealthHeal*100@%만큼 체력 회복",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_SpiritVisageRR.TFT_TFT14_5.png"
+      "icon": "tft_item_spiritvisagerr.tft_tft14_5.png"
     },
     {
       "name": "밴시의 장막",
@@ -727,7 +727,7 @@
         "HexRange": 1
       },
       "desc": "전투 시작: 장착 유닛과 가로로 @HexRange@칸 내에 있는 모든 아군이 @Duration@초 동안 군중 제어 효과에 면역 및 공격 속도 @BuffAttackSpeed*100@% 증가<br><br><tftitemrules>[지원 아이템] [고유 - 중복 적용 불가]</tftitemrules>",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_BansheesVeil.TFT_Set13.png"
+      "icon": "tft_item_bansheesveil.tft_set13.png"
     },
     {
       "name": "그림자 꼭두각시",
@@ -741,7 +741,7 @@
         "MagicResist": 10
       },
       "desc": "장착 유닛의 아이템을 복사하는 분신 1명 소환. 분신은 최대 체력의 @ClonePercentHealth*100@%에 해당하는 체력을 지니며 @ClonePercentDamage*100@%의 피해를 입힘<br><br><rules>[고유 - 중복 적용 불가]</rules>",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT16_Artifact_ShadowPuppet.TFT_Set16.png"
+      "icon": "tft16_artifact_shadowpuppet.tft_set16.png"
     },
     {
       "name": "서풍",
@@ -753,7 +753,7 @@
         "Health": 150
       },
       "desc": "전투 시작: 결투장 반대편에 회오리바람을 소환해 회오리바람과 가장 가까운 적을 @BanishDuration@초 동안 전투에서 제외 <br><br>아군의 공격 속도 @AllyBonusAS@% 증가<br><br><tftitemrules>​​[지원 아이템]<br>[군중 제어 면역을 무시합니다.]<br>[고유 - 중복 적용 불가]</tftitemrules><br>@TFTUnitProperty.:TFT_BindOnEquipTRA@",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_Zephyr.TFT_Set13.png"
+      "icon": "tft_item_zephyr.tft_set13.png"
     },
     {
       "name": "해진 유물",
@@ -765,7 +765,7 @@
         "MagicResist": 40
       },
       "desc": "전투 시작: 장착 유닛의 최대 체력이 @FlatMaxHealth@ 증가하지만 현재 체력은 그대로 유지됨",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_Artifact_WitheringRelic.TFT_Set16.png"
+      "icon": "tft_item_artifact_witheringrelic.tft_set16.png"
     },
     {
       "name": "전략가의 망토",
@@ -780,7 +780,7 @@
         "Timer": 10
       },
       "desc": "아군의 최대 팀 규모 +@MaxArmySizeIncrease@ 증가.<br><br>전투 시작 시 @Timer@초 후 1골드를 획득할 확률 @PercentGoldChance@%<br><br><tftitemrules>'...그리고 약간의 행운.'</tftitemrules>",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_TacticiansRing.TFT_Set13.png"
+      "icon": "tft_item_tacticiansring.tft_set13.png"
     },
     {
       "name": "영원한 서약",
@@ -797,7 +797,7 @@
         "ShieldDuration": 10
       },
       "desc": "전투 시작: 체력이 가장 많은 아군 챔피언과 서약을 맺음. 해당 아군 사망 시 마나 재생 @ManaRegenToGrant@, 주문력 @APToGrant@% 획득<br><br>해당 아군이 스킬 사용 시 마나 @ManaToGrant@ 획득. @ShieldCadence@초마다 해당 아군에게 장착 유닛 주문력의 @PercentAPShield*100@%에 해당하는 보호막 부여",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT16_Artifact_EternalPact.TFT_Set16.png"
+      "icon": "tft16_artifact_eternalpact.tft_set16.png"
     },
     {
       "name": "도적의 장갑",
@@ -811,7 +811,7 @@
         "Health": 150
       },
       "desc": "매 라운드: 무작위 아이템 2개 장착<br><br><tftitemrules>[아이템 슬롯 3개 차지]</tftitemrules><br>@TFTUnitProperty.:TFT_BindOnEquipTRA@",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_ThiefsGloves.TFT_Set13.png"
+      "icon": "tft_item_thiefsgloves.tft_set13.png"
     },
     {
       "name": "구인수의 격노검",
@@ -826,7 +826,7 @@
         "AttackSpeedPerStack": 7
       },
       "desc": "매초 공격 속도 @AttackSpeedPerStack@% 획득 (중첩 가능)",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_GuinsoosRageblade.TFT_Set13.png"
+      "icon": "tft_item_guinsoosrageblade.tft_set13.png"
     },
     {
       "name": "이온 충격기",
@@ -845,7 +845,7 @@
         "ManaRatio": 150
       },
       "desc": "@HexRange@칸 내 적에게 <TFTKeyword>파쇄</TFTKeyword> @MRShred@% 적용. 해당 적은 스킬 사용 시 사용한 마나의 @ManaRatio@%에 해당하는 마법 피해를 입음<br><br><tftitemrules><tftbold>파쇄</tftbold>: 마법 저항력 감소</tftitemrules>",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_IonicSpark.TFT_Set13.png"
+      "icon": "tft_item_ionicspark.tft_set13.png"
     },
     {
       "name": "지옥불 손도끼",
@@ -860,7 +860,7 @@
         "StatOmnivamp": 0.20000000298023224
       },
       "desc": "기본 공격 시 장착 유닛 최대 체력의 @MaxHealthPercentDamage*100@%만큼 추가 물리 피해를 입힘. 잃은 체력 @MissingHealthPercent*100@%당 공격 속도 @ASPerMissingHealthPercent*100@% 획득",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_Artifact_HellfireHatchet.TFT_Set16.png"
+      "icon": "tft_item_artifact_hellfirehatchet.tft_set16.png"
     },
     {
       "name": "스테락의 도전",
@@ -877,7 +877,7 @@
         "ShieldDuration": 4
       },
       "desc": "체력이 @HealthThreshold@%일 때, 장착 유닛 최대 체력의 @PercentHealthShield*100@%에 해당하는 보호막 획득. 보호막은 @ShieldDuration@초에 걸쳐 빠르게 사라짐",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_SteraksGage.TFT_Set13.png"
+      "icon": "tft_item_steraksgage.tft_set13.png"
     },
     {
       "name": "용의 발톱",
@@ -894,7 +894,7 @@
         "PercentMaxHP": 0.09000000357627869
       },
       "desc": "@PercentMaxHP*100@%의 최대 체력 획득<br><br>@HealthRegenInterval@초마다 최대 체력의 @PercentHealthDamage@% 회복",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_DragonsClaw.TFT_Set13.png"
+      "icon": "tft_item_dragonsclaw.tft_set13.png"
     },
     {
       "name": "리치베인",
@@ -913,7 +913,7 @@
         "{a46d51dd}": 240
       },
       "desc": "스킬을 사용한 후 첫 번째 기본 공격 시 @TFTUnitProperty.item:TFT_Item_Artifact_LichBane_Damage@의 추가 마법 피해를 입힘<br><br><tftitemrules>스테이지에 비례해 피해량 증가</tftitemrules>",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/Ornn_Items/TFT_Item_Artifact_LichBane.png"
+      "icon": "tft_item_artifact_lichbane.png"
     },
     {
       "name": "타격대의 철퇴",
@@ -932,7 +932,7 @@
         "{1543aa48}": 0.10000000149011612
       },
       "desc": "치명타 적중 시 @Duration@초 동안 피해 증폭 @BuffDamageAmp*100@% 획득 (최대 @MaxStacks@회 중첩)",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_PowerGauntlet.TFT_Set13.png"
+      "icon": "tft_item_powergauntlet.tft_set13.png"
     },
     {
       "name": "감시자 무리",
@@ -940,7 +940,7 @@
       "composition": [],
       "effects": {},
       "desc": "3초마다 완성 아이템, 유물 아이템, 찬란한 아이템을 장착한 강력한 감시자 1마리 소환",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_SentinelSwarm.TFT_Set13.png"
+      "icon": "tft_item_sentinelswarm.tft_set13.png"
     },
     {
       "name": "금지된 우상",
@@ -953,7 +953,7 @@
         "PercentShieldConversion": 50
       },
       "desc": "보호막 흡수량의 @PercentShieldConversion@%가 최대 체력으로 전환됩니다.",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_Artifact_ForbiddenIdol.TFT_Set13.png"
+      "icon": "tft_item_artifact_forbiddenidol.tft_set13.png"
     },
     {
       "name": "거울의 환영",
@@ -970,7 +970,7 @@
         "StatSharePercent": 0.15000000596046448
       },
       "desc": "플레이어 대상 전투 @NumCombats@회마다 거울의 환영 하급 복사본 획득 (@TFTUnitProperty.trait:TFT_Item_Artifact_MirroredPersona_Combats@/@NumCombats@) <br><br>장착 유닛의 추가 공격력, 주문력, 공격 속도, 방어력, 마법 저항력, 체력의 @StatSharePercent*100@%를 다른 거울의 환영 장착 유닛과 공유<br><br><rules>재조합 불가, 하급 복사본은 복사본을 생성하지 않음</rules><br><rules>고유: 중복 적용 불가</rules>",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT16_Artifact_MirroredPersona.TFT_Set16.png"
+      "icon": "tft16_artifact_mirroredpersona.tft_set16.png"
     },
     {
       "name": "생선대가리",
@@ -981,7 +981,7 @@
         "AS": 50
       },
       "desc": "기본 공격 시 무작위 적을 대상으로 지정",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_Artifact_Fishbones.TFT_Set13.png"
+      "icon": "tft_item_artifact_fishbones.tft_set13.png"
     },
     {
       "name": "가고일 돌갑옷",
@@ -1000,7 +1000,7 @@
         "{4dc0582f}": 20
       },
       "desc": "적의 공격 대상이 되면 방어력이 @ArmorPerEnemy@, 마법 저항력이 @MRPerEnemy@ 증가. 공격하는 적이 늘어나면 중첩되어 적용",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_GargoyleStoneplate.TFT_Set13.png"
+      "icon": "tft_item_gargoylestoneplate.tft_set13.png"
     },
     {
       "name": "거대한 히드라",
@@ -1014,7 +1014,7 @@
         "PercentMaxHealthSplash": 3
       },
       "desc": "기본 공격 시 대상 및 인접한 적에게 장착 유닛 최대 체력의 @PercentMaxHealthSplash@% +공격력의 @PercentAttackDamageSplash@%만큼 추가 물리 피해를 입힘",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_Artifact_TitanicHydra.TFT_TFT14_5.png"
+      "icon": "tft_item_artifact_titanichydra.tft_tft14_5.png"
     },
     {
       "name": "덤불 조끼",
@@ -1035,7 +1035,7 @@
         "{6688a0d5}": 100
       },
       "desc": "@PercentMaxHP*100@%의 최대 체력 획득<br><br>기본 공격으로 받는 피해 @AutoDamageReduction*100@% 감소. 기본 공격에 맞을 경우 인접한 모든 적에게 <magicDamage>@1StarAoEDamage@의 마법 피해</magicDamage><br><br><tftitemrules>재사용 대기시간: @ICD@초</tftitemrules>",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_BrambleVest.TFT_Set13.png"
+      "icon": "tft_item_bramblevest.tft_set13.png"
     },
     {
       "name": "쇠사슬 조끼",
@@ -1045,7 +1045,7 @@
         "Armor": 20
       },
       "desc": "방어력 %i:scaleArmor% +@Armor@",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_ChainVest.TFT_Set13.png"
+      "icon": "tft_item_chainvest.tft_set13.png"
     },
     {
       "name": "황혼의 방패",
@@ -1067,7 +1067,7 @@
         "{492c94fd}": 0.4000000059604645
       },
       "desc": "@TickRate@초마다 1칸 내 적의 마법 저항력을 @MRStealPerTick@ 훔치고 장착 유닛 마법 저항력의 @TFTUnitProperty.item:TFT_Item_Artifact_AegisDuskDawn_Damage@%만큼 마법 피해를 입힘<br><br>새벽의 방패도 장착하고 있을 경우 이 아이템의 효과가 대신 @TickRateWithAegisOfDawn@초마다 발동됨<br><br><tftitemrules>스테이지에 비례해 피해량 증가</tftitemrules>",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_Artifact_AegisOfDusk.TFT_Set16.png"
+      "icon": "tft_item_artifact_aegisofdusk.tft_set16.png"
     },
     {
       "name": "끝없는 절망",
@@ -1079,7 +1079,7 @@
         "PercentDamage": 150
       },
       "desc": "장착 유닛에게 적용된 보호막이 깨질 때마다 해당 보호막 최초 피해 흡수량의 @PercentDamage@%에 해당하는 마법 피해를 가장 가까운 적에게 입힙니다.",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_Artifact_UnendingDespair.TFT_Set13.png"
+      "icon": "tft_item_artifact_unendingdespair.tft_set13.png"
     },
     {
       "name": "곡궁",
@@ -1089,7 +1089,7 @@
         "AS": 10
       },
       "desc": "공격 속도 %i:scaleAS% +@AS@%",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_RecurveBow.TFT_Set13.png"
+      "icon": "tft_item_recurvebow.tft_set13.png"
     },
     {
       "name": "거인 학살자",
@@ -1107,7 +1107,7 @@
         "{abb9f4ce}": 25
       },
       "desc": "탱커를 상대로 추가 피해 증폭 @DamageAmp*100@% 획득",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_MadredsBloodrazor.TFT_Set13.png"
+      "icon": "tft_item_madredsbloodrazor.tft_set13.png"
     },
     {
       "name": "회복의 메아리",
@@ -1120,7 +1120,7 @@
         "ManaRegen": 2
       },
       "desc": "장착 유닛의 체력 회복량 @IncreasedHealing*100@% 증가. 장착 유닛이 체력 회복을 주거나 받을 때 체력이 가장 낮은 아군 또한 체력 회복량의 @HealPercentToGrant*100@%만큼 체력 회복",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT16_Artifact_MendingEchoes.TFT_Set16.png"
+      "icon": "tft16_artifact_mendingechoes.tft_set16.png"
     },
     {
       "name": "태양불꽃 망토",
@@ -1141,7 +1141,7 @@
         "MonsterCap": 100
       },
       "desc": "최대 체력 @BonusPercentHP*100@% 획득<br><br>@ICD@초마다 @HexRange@칸 내에 있는 적 하나에게 @BurnDuration@초 동안 <TFTKeyword>불태우기</TFTKeyword>를 @BurnPercent@%, <TFTKeyword>상처</TFTKeyword>를 @GrievousWoundsPercent@% 적용<br><br><tftitemrules><tftbold>불태우기:</tftbold> 매초 대상 최대 체력의 일정 비율만큼 고정 피해<br><tftbold>상처</tftbold>: 체력 회복량 감소</tftitemrules>",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_RedBuff.TFT_Set13.png"
+      "icon": "tft_item_redbuff.tft_set13.png"
     },
     {
       "name": "순교자의 미덕",
@@ -1158,7 +1158,7 @@
         "{484836f3}": 200
       },
       "desc": "@HealTickRate@초마다 아군이 각자 최대 체력의 @MaxHealthHeal@%만큼 회복. 장착 유닛이 처치되면 회복량이 최대 체력의 @TOOLTIPEmpoweredHeal@%로 증가하고 이 효과는 @NumBonusHeals@회 추가로 적용<br><br><TFTTrackerLabel>회복량:</TFTTrackerLabel> <TFTHighlight>@TFTUnitProperty.item:TFT_Tracker_Value1@</TFTHighlight><br><br>​​<tftitemrules>[지원 아이템]</tftitemrules>",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_RadiantVirtue.TFT_Set13.png"
+      "icon": "tft_item_radiantvirtue.tft_set13.png"
     },
     {
       "name": "정의의 손길",
@@ -1177,7 +1177,7 @@
         "{f23e83fc}": 2
       },
       "desc": "2가지 효과 획득:<li>공격력 @AD_NotStatBar*100@%, 주문력 @AP_NotStatBar@%<li>모든 피해 흡혈 @StatOmnivamp_NotStatBar*100@%<br><br>체력이 @HealthThreshold*100@%를 넘을 때 공격력 및 주문력 두 배로 증가. 체력이 @HealthThreshold*100@% 아래일 때 모든 피해 흡혈 두 배로 증가",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_UnstableConcoction.TFT_Set13.png"
+      "icon": "tft_item_unstableconcoction.tft_set13.png"
     },
     {
       "name": "밤의 끝자락",
@@ -1197,7 +1197,7 @@
         "StealthDuration": 1
       },
       "desc": "체력이 @HealthThreshold@%일 때 잠시 대상으로 지정할 수 없게 되며 해로운 효과 제거 및 잃은 체력의 @MissingHealthRestore*100@% 회복",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_GuardianAngel.TFT_Set13.png"
+      "icon": "tft_item_guardianangel.tft_set13.png"
     },
     {
       "name": "푸른 파수꾼",
@@ -1211,7 +1211,7 @@
         "TakedownTimer": 3
       },
       "desc": "스킬 사용 후 마나 @ManaRefund@ 획득 <br><br>장착 유닛이 처치 관여 시 @TakedownTimer@초 동안 피해량 @DamageAmp*100@% 증가<br><br><tftitemrules>[고유 - 중복 적용 불가]</tftitemrules>",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/Standard/Blue_Buff.png"
+      "icon": "blue_buff.png"
     },
     {
       "name": "잉걸불 문장",
@@ -1226,7 +1226,7 @@
         "{ff22d532}": 2
       },
       "desc": "전투 시작: 장착 유닛 및 해당 유닛과 같은 가로 열에서 @HexRange@칸 내에 있는 아군이 잉걸불 문장 획득<br><br>잉걸불 문장을 획득한 챔피언은 기본 공격이 강화되어 대상에게 불태우기를 적용해 최대 체력의 @BurnAmount*100@%에 해당하는 고정 피해를 입히고 33%의 <TFTKeyword>상처</TFTKeyword> 적용<br><br><tftitemrules>​​[고유 - 중복 적용 불가]</tftitemrules>",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/TFT9_SupportItems/Crest_Of_Cinders.png"
+      "icon": "crest_of_cinders.png"
     },
     {
       "name": "여신의 눈물",
@@ -1236,7 +1236,7 @@
         "ManaRegen": 1
       },
       "desc": "%i:TFTManaRegen% 마나 재생 +@ManaRegen@",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_TearOfTheGoddess.TFT_Set13.png"
+      "icon": "tft_item_tearofthegoddess.tft_set13.png"
     },
     {
       "name": "저주받은 칼날",
@@ -1249,7 +1249,7 @@
         "MaxHealthPercent": 3
       },
       "desc": "기본 공격 시 대상의 최대 체력이 @MaxHealthPercent@% 감소합니다. 같은 대상에게 @HitCount@회 기본 공격 시 대상의 별 레벨이 1성 감소합니다.",
-      "icon": "ASSETS/Maps/Particles/TFT/Item_Icons/Ornn_Items/TFT_Item_Artifact_CursedBlade.png"
+      "icon": "tft_item_artifact_cursedblade.png"
     },
     {
       "name": "음전자 망토",
@@ -1259,7 +1259,7 @@
         "MagicResist": 20
       },
       "desc": "마법 저항력 %i:scaleMR% +@MagicResist@",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_NegatronCloak.TFT_Set13.png"
+      "icon": "tft_item_negatroncloak.tft_set13.png"
     },
     {
       "name": "거인의 결의",
@@ -1277,7 +1277,7 @@
         "StackingSP": 2
       },
       "desc": "공격하거나 피해를 받으면 공격력 @StackingAD*100@%, 주문력 @StackingSP@% 증가 (최대 @StackCap@회 중첩)<br><br>최대 중첩 시 피해 증폭 @StackedAmp*100@% 획득 및 군중 제어 효과에 면역이 됨",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_TitansResolve.TFT_Set13.png"
+      "icon": "tft_item_titansresolve.tft_set13.png"
     },
     {
       "name": "기사의 맹세",
@@ -1291,7 +1291,7 @@
         "Resists": null
       },
       "desc": "전투 시작: 장착 유닛과 1칸 내에 있는 같은 열의 아군이 @AllyHealth@의 체력과 @Omnivamp*100@%의 모든 피해 흡혈 획득<br><br>​​<tftitemrules>[지원 아이템]</tftitemrules>",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_SupportKnightsVow.TFT_Set13.png"
+      "icon": "tft_item_supportknightsvow.tft_set13.png"
     },
     {
       "name": "배불뚝이의 성배",
@@ -1303,7 +1303,7 @@
         "Timer": 10
       },
       "desc": "아군의 최대 팀 규모 +@MaxArmySizeIncrease@ 증가<br><br>전투 승리 시 @PercentGoldChance@% 확률로 1골드 획득<br><br><tftitemrules>\"최고의 음료만이 배불뚝이의 성배에 담깁니다.\"</tftitemrules>",
-      "icon": "ASSETS/Maps/TFT/Icons/TFT_CT/CT_Items_Chalice.png"
+      "icon": "ct_items_chalice.png"
     },
     {
       "name": "루덴의 폭풍",
@@ -1316,7 +1316,7 @@
         "PercentOfOverkill": 100
       },
       "desc": "대상 처치 후 남는 피해량의 @PercentOfOverkill@%+@BaseDamage@에 해당하는 마법 피해를 대상과 가장 가까운 적 세 명에게 입힙니다.",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_Artifact_LudensTempest.TFT_Set13.png"
+      "icon": "tft_item_artifact_ludenstempest.tft_set13.png"
     },
     {
       "name": "망령 해적검",
@@ -1329,7 +1329,7 @@
         "Health": 300
       },
       "desc": "전투 시작: 장착 유닛이 적 전장의 정반대 칸으로 순간이동. @Duration@초 후 원래 위치로 복귀",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_Artifact_SpectralCutlass.TFT_Set13.png"
+      "icon": "tft_item_artifact_spectralcutlass.tft_set13.png"
     },
     {
       "name": "크라켄의 분노",
@@ -1347,7 +1347,7 @@
         "MaxStacks": 15
       },
       "desc": "기본 공격 시 공격력 @ADOnAttack*100@% (최대 @MaxStacks@회 중첩) 획득. 기본 공격 @MaxStacks@회 후 공격 속도 @ASCapstone*100@% 획득",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_KrakenSlayer.TFT_TFT14_5.png"
+      "icon": "tft_item_krakenslayer.tft_tft14_5.png"
     },
     {
       "name": "연습용 장갑",
@@ -1357,7 +1357,7 @@
         "CritChance": 20
       },
       "desc": "치명타 확률 +@CritChance@",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_SparringGloves.TFT_Set13.png"
+      "icon": "tft_item_sparringgloves.tft_set13.png"
     },
     {
       "name": "고속 연사포",
@@ -1368,7 +1368,7 @@
         "{1543aa48}": 0.05000000074505806
       },
       "desc": "공격 사거리가 +1 증가하며 적을 처치할 때마다 1씩 증가합니다.",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_Artifact_RapidFirecannon.TFT_Set13.png"
+      "icon": "tft_item_artifact_rapidfirecannon.tft_set13.png"
     },
     {
       "name": "피바라기",
@@ -1388,7 +1388,7 @@
         "StatOmnivamp": 0.20000000298023224
       },
       "desc": "전투당 한 번, 체력이 @HealthThreshold@%일 때 최대 체력의 @ShieldHealthPercent@%에 해당하는 보호막 획득 후 최대 @ShieldDuration@초까지 유지",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_Bloodthirster.TFT_Set13.png"
+      "icon": "tft_item_bloodthirster.tft_set13.png"
     },
     {
       "name": "스태틱의 단검",
@@ -1402,7 +1402,7 @@
         "NumTargets": 4
       },
       "desc": "기본 공격 3회마다 4명의 적에게 @Damage@+장착 유닛 주문력의 @APScalar*100@%만큼 추가 마법 피해를 입힘",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_Artifact_StattikShiv.TFT_TFT14_5.png"
+      "icon": "tft_item_artifact_stattikshiv.tft_tft14_5.png"
     },
     {
       "name": "대천사의 지팡이",
@@ -1418,7 +1418,7 @@
         "ManaRegen": 1
       },
       "desc": "전투 시작: 전투 중 @IntervalSeconds@초마다 주문력 @APPerInterval@% 증가",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_ArchangelsStaff.TFT_Set13.png"
+      "icon": "tft_item_archangelsstaff.tft_set13.png"
     },
     {
       "name": "새벽의 방패",
@@ -1440,7 +1440,7 @@
         "{492c94fd}": 0.4000000059604645
       },
       "desc": "@TickRate@초마다 1칸 내 적의 방어력을 @ArmorStealPerTick@ 훔치고 장착 유닛 방어력의 @TFTUnitProperty.item:TFT_Item_Artifact_AegisDuskDawn_Damage@%만큼 체력 회복<br><br>황혼의 방패도 장착하고 있을 경우 이 아이템의 효과가 대신 @TickRateWithAegisOfDusk@초마다 발동됨<br><br><tftitemrules>스테이지에 비례해 체력 회복량 증가</tftitemrules>",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_Artifact_AegisOfDawn.TFT_Set16.png"
+      "icon": "tft_item_artifact_aegisofdawn.tft_set16.png"
     },
     {
       "name": "기사의 맹세",
@@ -1448,7 +1448,7 @@
       "composition": [],
       "effects": {},
       "desc": "추가 %i:scaleArmor% +@Armor@<br>장착 시 기사 특성 획득<br><br><tftitemrules>[고유 - 중복 적용 불가]</tftitemrules>",
-      "icon": "ASSETS/Maps/Particles/TFT/TFT_Item_KnightsVow.png"
+      "icon": "tft_item_knightsvow.png"
     },
     {
       "name": "새벽심장",
@@ -1462,7 +1462,7 @@
         "ReductionPerCast": 0.10000000149011612
       },
       "desc": "장착 시 최대 마나 @FlatManaReduction@ 감소. 이후 스킬 사용 시 최대 마나 @ReductionPerCast*100@% 감소 (최소 @MinimumTotalMana@)",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_Artifact_Dawncore.TFT_Set15.png"
+      "icon": "tft_item_artifact_dawncore.tft_set15.png"
     },
     {
       "name": "영원한 불꽃",
@@ -1476,7 +1476,7 @@
         "WoundDuration": 5
       },
       "desc": "장착 유닛이 살아 있는 동안 모든 아군이 피해 증폭을 @DamageAmp*100@% 얻고 모든 적에게 <TFTKeyword>상처</TFTKeyword> @TOOLTIPWoundAmount@% 적용. 이 효과는 @WoundDuration@초마다 초기화<br><br><tftitemrules>​​[지원 아이템]<br><tftbold>상처</tftbold>: 체력 회복량 감소</tftitemrules>",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_EternalFlame.TFT_Set13.png"
+      "icon": "tft_item_eternalflame.tft_set13.png"
     },
     {
       "name": "라이트실드 문장",
@@ -1490,7 +1490,7 @@
         "TriggerRate": 3
       },
       "desc": "@TriggerRate@초마다 체력 비율이 가장 낮은 아군에게 @ShieldDuration@초 동안 방어력과 마법 저항력을 합한 수치의 @PercentOfResists@%만큼 피해를 흡수하는 보호막을 씌움<br><br>사망 시 모든 아군에게 이 보호막 부여",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_Artifact_LightshieldCrest.TFT_Set13.png"
+      "icon": "tft_item_artifact_lightshieldcrest.tft_set13.png"
     },
     {
       "name": "쇼진의 창",
@@ -1506,7 +1506,7 @@
         "ManaRegen": 1
       },
       "desc": "기본 공격 시 추가 마나 @FlatManaRestore@ 획득",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_SpearOfShojin.TFT_Set13.png"
+      "icon": "tft_item_spearofshojin.tft_set13.png"
     },
     {
       "name": "저녁갑주",
@@ -1524,7 +1524,7 @@
         "MagicResist": 20
       },
       "desc": "@HexRange@칸 내에 있는 적 @ARReductionAmount@% <TFTKeyword>파열</TFTKeyword> 전투 시작 후 @BonusResistDuration@초 동안 방어력과 마법 저항력 @BonusResists@ 증가<br><br><tftitemrules><tftbold>파열</tftbold>: 방어력 감소</tftitemrules>",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_SpectralGauntlet.TFT_Set13.png"
+      "icon": "tft_item_spectralgauntlet.tft_set13.png"
     },
     {
       "name": "뒤집개",
@@ -1534,7 +1534,7 @@
         "{fe9818ef}": 5
       },
       "desc": "<tftitemrules>무슨 쓸모가 있을 텐데...</tftitemrules>",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_Spatula.TFT_Set13.png"
+      "icon": "tft_item_spatula.tft_set13.png"
     },
     {
       "name": "역병의 보석",
@@ -1548,7 +1548,7 @@
         "ManaRegen": 2
       },
       "desc": "마법 피해를 입히면 대상의 마법 저항력 @MRReduction@ 감소. 대상의 마법 저항력이 0이면 대신 장착 유닛이 마나 @ManaGain@ 획득<br><br><rules>스킬 피해는 적 하나당 @ICD@초마다 발동됩니다.</rules>",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_Artifact_BlightingJewel.TFT_Set13.png"
+      "icon": "tft_item_artifact_blightingjewel.tft_set13.png"
     },
     {
       "name": "승천의 부적",
@@ -1564,7 +1564,7 @@
         "Seconds": 22
       },
       "desc": "@Seconds@초 후 전투가 끝날 때까지 최대 체력의 @MaxHealthPercent@%와 피해 증폭 @DamageAmp*100@% 획득",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_Artifact_TalismanOfAscension.TFT_Set13.png"
+      "icon": "tft_item_artifact_talismanofascension.tft_set13.png"
     },
     {
       "name": "강철의 솔라리 펜던트",
@@ -1578,7 +1578,7 @@
         "ShieldValue": 250
       },
       "desc": "전투 시작: 장착한 유닛과 가로로 @HexRange@칸 내에 있는 모든 아군이 @ShieldDuration@초 동안 @ShieldValue@의 피해를 흡수하는 보호막, 방어력 @BonusResists@, 마법 저항력 @BonusResists@ 획득<br><br>​​<tftitemrules>[지원 아이템]</tftitemrules>",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_LocketOfTheIronSolari.TFT_Set13.png"
+      "icon": "tft_item_locketoftheironsolari.tft_set13.png"
     },
     {
       "name": "내셔의 이빨",
@@ -1596,7 +1596,7 @@
         "ManaOnCrit": 4
       },
       "desc": "기본 공격 시 추가 마나 @BaseManaOnHit@ 획득. 치명타 적중 시 @ManaOnCrit@ 획득",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_Leviathan.TFT_Set13.png"
+      "icon": "tft_item_leviathan.tft_set13.png"
     },
     {
       "name": "수상한 외투",
@@ -1609,7 +1609,7 @@
         "PercentHealthTrigger": 60
       },
       "desc": "전투당 1회 체력이 @PercentHealthTrigger@%일 때 각각 최대 체력의 @PercentHealthOfCopies@%를 보유한 3명으로 나뉨<br><br><tftitemrules>[고유 - 중복 적용 불가]</tftitemrules>",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_Artifact_SuspiciousTrenchCoat.TFT_Set13.png"
+      "icon": "tft_item_artifact_suspicioustrenchcoat.tft_set13.png"
     },
     {
       "name": "모렐로노미콘",
@@ -1629,7 +1629,7 @@
         "TicksPerSecond": 1
       },
       "desc": "기본 공격 및 스킬로 피해를 입힐 경우 @BurnDuration@초 동안 적에게 <TFTKeyword>불태우기</TFTKeyword>를 @BurnPercent@%, <TFTKeyword>상처</TFTKeyword>를 @GrievousWoundsPercent@% 적용<br><br><tftitemrules><tftbold>불태우기</tftbold>: 매초 대상 최대 체력의 일정 비율만큼 고정 피해<br><tftbold>상처</tftbold>: 체력 회복량 감소</tftitemrules>",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_Morellonomicon.TFT_Set13.png"
+      "icon": "tft_item_morellonomicon.tft_set13.png"
     },
     {
       "name": "붉은 덩굴정령",
@@ -1649,7 +1649,7 @@
         "{9f5117db}": 100
       },
       "desc": "기본 공격과 스킬이 @Duration@초 동안 적에게 <TFTKeyword>불태우기</TFTKeyword>를 @BurnPercent@%, <TFTKeyword>상처</TFTKeyword>를 @HealingReductionPct@% 적용<br><br><tftitemrules><tftbold>불태우기</tftbold>: 매초 대상 최대 체력의 일정 비율만큼 고정 피해<br><tftbold>상처</tftbold>: 체력 회복량 감소</tftitemrules>",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_RapidFireCannon.TFT_Set13.png"
+      "icon": "tft_item_rapidfirecannon.tft_set13.png"
     },
     {
       "name": "크라운가드",
@@ -1667,7 +1667,7 @@
         "ShieldSize": 25
       },
       "desc": "전투 시작: @ShieldDuration@초 동안 최대 체력의 @ShieldSize@%에 해당하는 보호막 획득<br><br>보호막이 사라지면 주문력 @ShieldBonusAP@% 증가<br>",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_Crownguard.TFT_Set13.png"
+      "icon": "tft_item_crownguard.tft_set13.png"
     },
     {
       "name": "B.F. 대검",
@@ -1677,7 +1677,7 @@
         "AD": 0.10000000149011612
       },
       "desc": "공격력 %i:scaleAD% +@AD*100@%",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_BFSword.TFT_Set13.png"
+      "icon": "tft_item_bfsword.tft_set13.png"
     },
     {
       "name": "방한 장갑",
@@ -1689,7 +1689,7 @@
         "{1543aa48}": 0.15000000596046448
       },
       "desc": "착용자의 몸집이 줄고 이동 속도가 증가하며 <TFTKeyword>냉각</TFTKeyword>, <TFTKeyword>불태우기</TFTKeyword>, <TFTKeyword>상처</TFTKeyword> 효과에 면역이 됨<br><br><tftitemrules><tftbold>냉각</tftbold>: 공격 속도 감소</tftitemrules><br><tftitemrules><tftbold>불태우기</tftbold>: 매초 대상 최대 체력의 일정 비율만큼 고정 피해<br><tftbold>상처</tftbold>: 체력 회복량 감소</tftitemrules>",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_Artifact_Mittens.TFT_Set13.png"
+      "icon": "tft_item_artifact_mittens.tft_set13.png"
     },
     {
       "name": "적응형 투구",
@@ -1706,7 +1706,7 @@
         "ManaRegen": 3
       },
       "desc": "모든 요소로부터 얻는 마나 @ManaPercIncrease*100@% 증가. 장착 시 역할군에 따라 추가 효과 획득<br><br>탱커, 전사: 방어력 및 마법 저항력 @FrontlineResists@ 획득<br><br>기타 역할군: 공격력 및 주문력 @BacklineADAP@% 획득 ",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_AdaptiveHelm.TFT_Set13.png"
+      "icon": "tft_item_adaptivehelm.tft_set13.png"
     },
     {
       "name": "명멸검",
@@ -1721,7 +1721,7 @@
         "StacksPerBonus": 5
       },
       "desc": "기본 공격 시 중첩되는 공격 속도 @ASPerStack*100@% 획득. 또한 기본 공격 @StacksPerBonus@회마다 공격력 @ADPerBonus*100@%, 주문력 @APPerBonus@% 획득",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_Artifact_NavoriFlickerplade.TFT_TFT14_5.png"
+      "icon": "tft_item_artifact_navoriflickerplade.tft_tft14_5.png"
     },
     {
       "name": "앙심",
@@ -1734,7 +1734,7 @@
         "Health": 150
       },
       "desc": "전투 시작: 장착 유닛과 모든 인접 아군이 공격력 @ADIncrease*100@%, 주문력 @APIncrease@ 획득<br><br>장착 유닛이 처치되면 2칸 내 모든 적이 @Duration@초 동안 기절<br><br><tftitemrules>[지원 아이템]</tftitemrules>",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_Spite.TFT_Set13.png"
+      "icon": "tft_item_spite.tft_set13.png"
     },
     {
       "name": "푸른 파수꾼",
@@ -1750,7 +1750,7 @@
         "ModifiedADAP": 0.10000000149011612
       },
       "desc": "모든 요소로부터 얻는 공격력 및 주문력 @ModifiedADAP*100@% 증가",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_BlueBuff.TFT_Set13.png"
+      "icon": "tft_item_bluebuff.tft_set13.png"
     },
     {
       "name": "타락한 흡혈의 낫",
@@ -1761,7 +1761,7 @@
         "PercentDamage": 60
       },
       "desc": "기본 공격 시 공격력%i:scaleAD%의 @PercentDamage@%만큼 추가 물리 피해를 입히고 입힌 피해량만큼 장착 유닛의 체력 회복<br><br><TFTShadowItemBonus>장착 시 스킬 사용 또는 마나 획득 불가</TFTShadowItemBonus><br>",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_Artifact_CursedVampiricScepter.TFT_Set13.png"
+      "icon": "tft_item_artifact_cursedvampiricscepter.tft_set13.png"
     },
     {
       "name": "최후의 속삭임",
@@ -1778,7 +1778,7 @@
         "CritChance": 20
       },
       "desc": "기본 공격 및 스킬로 피해를 입힐 경우 @ArmorBreakDuration@초 동안 대상에게 <TFTKeyword>파열</TFTKeyword>을 @ArmorReductionPercent@% 적용 (중첩 불가)<br><br><tftitemrules><tftbold>파열</tftbold>: 방어력 감소</tftitemrules>",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_LastWhisper.TFT_Set13.png"
+      "icon": "tft_item_lastwhisper.tft_set13.png"
     },
     {
       "name": "보석 건틀릿",
@@ -1793,7 +1793,7 @@
         "CritDamageToGive": 0.10000000149011612
       },
       "desc": "스킬에 치명타 적용 가능<br><br>기본 스킬에 치명타 적용이 가능한 경우, 대신에 치명타 피해량이 @CritDamageToGive*100@% 증가",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_JeweledGauntlet.TFT_Set13.png"
+      "icon": "tft_item_jeweledgauntlet.tft_set13.png"
     },
     {
       "name": "거인의 허리띠",
@@ -1803,7 +1803,7 @@
         "Health": 150
       },
       "desc": "체력 %i:scaleHealth% +@Health@",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_GiantsBelt.TFT_Set13.png"
+      "icon": "tft_item_giantsbelt.tft_set13.png"
     },
     {
       "name": "마법사의 최후",
@@ -1825,7 +1825,7 @@
         "{61f91cd7}": 100
       },
       "desc": "기본 공격 시 @TFTUnitProperty.item:TFT_Item_Artifact_WitsEnd_Damage@의 추가 마법 피해를 입힘<br><br>입히는 모든 마법 피해량의 @PercentHealing@%만큼 장착 유닛이 체력 회복<br><br><tftitemrules>스테이지에 비례해 피해량 증가</tftitemrules>",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_Artifact_WitsEnd.TFT_Set13.png"
+      "icon": "tft_item_artifact_witsend.tft_set13.png"
     },
     {
       "name": "쓸데없이 큰 지팡이",
@@ -1835,7 +1835,7 @@
         "AP": 10
       },
       "desc": "주문력 %i:scaleAP% +@AP@",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_NeedlesslyLargeRod.TFT_Set13.png"
+      "icon": "tft_item_needlesslylargerod.tft_set13.png"
     },
     {
       "name": "지평선의 초점",
@@ -1849,7 +1849,7 @@
         "PercentHealthDamage": 30
       },
       "desc": "적을 기절시키면 벼락을 떨어뜨려 대상 최대 체력의 @PercentHealthDamage@%에 해당하는 마법 피해를 입힙니다.<br>",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_Artifact_HorizonFocus.TFT_Set13.png"
+      "icon": "tft_item_artifact_horizonfocus.tft_set13.png"
     },
     {
       "name": "굳건한 심장",
@@ -1867,7 +1867,7 @@
         "ThresholdForEmpower": 0.5
       },
       "desc": "내구력 @BaseDurability*100@% 획득. 체력이 @ThresholdForEmpower*100@% 이상일 때 대신 내구력 @EmpoweredDurability*100@% 획득<br><br>@TFTUnitProperty.:TFT_Augment_WarmogsBuckle_TRAKey@",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_NightHarvester.TFT_Set13.png"
+      "icon": "tft_item_nightharvester.tft_set13.png"
     },
     {
       "name": "자객의 발톱",
@@ -1881,7 +1881,7 @@
         "HexRange": 4
       },
       "desc": "대상 처치 후 해로운 효과를 제거하고 @HexRange@칸 내 가장 멀리 있는 대상에게 돌진. 다음 치명타 공격 2회가 @CritDamageBonusPercent@%의 추가 치명타 피해를 입힘",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_Artifact_ProwlersClaw.TFT_Set13.png"
+      "icon": "tft_item_artifact_prowlersclaw.tft_set13.png"
     },
     {
       "name": "월석 재생기",
@@ -1897,7 +1897,7 @@
         "{f4f7ff53}": 45
       },
       "desc": "@ShieldRate@초마다 체력 비율이 가장 낮은 아군 @ShieldTargets@명에게 @ShieldDuration@초 동안 @BaseShieldAmount@~@MaxShield@(스테이지에 비례)의 피해를 흡수하는 보호막 부여<br><br>​​<tftitemrules>[지원 아이템]</tftitemrules>",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_Moonstone.TFT_Set13.png"
+      "icon": "tft_item_moonstone.tft_set13.png"
     },
     {
       "name": "프라이팬",
@@ -1905,7 +1905,7 @@
       "composition": [],
       "effects": {},
       "desc": "<tftitemrules>... 이게 여기에 있는 이유가 달리 있을까요?</tftitemrules>",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_FryingPan.TFT_Set13.png"
+      "icon": "tft_item_fryingpan.tft_set13.png"
     },
     {
       "name": "전략가의 왕관",
@@ -1919,7 +1919,7 @@
         "PercentGoldChance": 10
       },
       "desc": "아군의 최대 팀 규모 +@MaxArmySizeIncrease@ 증가.<br><br>전투 승리 시 1골드를 획득할 확률 @PercentGoldChance@%<br><br><tftitemrules>'...영웅의 심장...'</tftitemrules>",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_ForceOfNature.TFT_Set13.png"
+      "icon": "tft_item_forceofnature.tft_set13.png"
     },
     {
       "name": "군단의 방패",
@@ -1932,7 +1932,7 @@
         "Health": 150
       },
       "desc": "전투 시작: 장착 유닛, 가로로 같은 칸에 있는 인접 아군, 그 뒤 모든 아군이 @BuffDuration@초 동안 공격 속도 @ASBuff@%, 방어력과 마법 저항력 @BonusResists@ 증가<br><br>​​<tftitemrules>[지원 아이템]</tftitemrules>",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_AegisOfTheLegion.TFT_Set13.png"
+      "icon": "tft_item_aegisofthelegion.tft_set13.png"
     },
     {
       "name": "수은",
@@ -1949,7 +1949,7 @@
         "SpellShieldDuration": 18
       },
       "desc": "전투 시작: @SpellShieldDuration@초 동안 군중 제어 효과에 면역<br><br>매초 공격 속도 @ProcAttackSpeed*100@% 획득 (중첩 가능)",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_Quicksilver.TFT_Set13.png"
+      "icon": "tft_item_quicksilver.tft_set13.png"
     },
     {
       "name": "죽음의 검",
@@ -1964,7 +1964,7 @@
         "{1543aa48}": 0.10000000149011612
       },
       "desc": "<tftitemrules>이 검의 주인은 더없는 평화와 안정을 찾게 됩니다. 주인의 적들도 마찬가지고요.</tftitemrules><br><br>@TFTUnitProperty.:TFT_Augment_TragicalBlade_TRAKey@",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_Deathblade.TFT_Set13.png"
+      "icon": "tft_item_deathblade.tft_set13.png"
     },
     {
       "name": "배불뚝이의 왕관",
@@ -1976,7 +1976,7 @@
         "Timer": 10
       },
       "desc": "아군의 최대 팀 규모 +@MaxArmySizeIncrease@ 증가<br><br>전투 승리 시 @PercentGoldChance@% 확률로 1골드 획득<br><br><tftitemrules>\"배불뚝이의 왕관은 근사한 저녁 식사에 안성맞춤입니다.\"</tftitemrules>",
-      "icon": "ASSETS/Maps/TFT/Icons/TFT_CT/CT_Items_Crown.png"
+      "icon": "ct_items_crown.png"
     },
     {
       "name": "힘의 성배",
@@ -1990,7 +1990,7 @@
         "{9fd37c1c}": 60
       },
       "desc": "전투 시작: 장착 유닛과 2칸 내에 있는 같은 열의 아군이 @ChaliceAP@의 주문력과 @BonusInitialMana@의 마나 획득<br><br>​​<tftitemrules>​​[지원 아이템]</tftitemrules>",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_Chalice.TFT_Set13.png"
+      "icon": "tft_item_chalice.tft_set13.png"
     },
     {
       "name": "공허 건틀릿",
@@ -2004,7 +2004,7 @@
         "{cd951938}": 0.10000000149011612
       },
       "desc": "전투 시작: 최대 체력의 @InitialPercentHealthStore*100@% 저장 및 매초 @PercentHealthStore*100@% 추가 저장. 사망 시 @HexRadius@칸 내 적에게 저장한 체력만큼의 마법 피해를 나누어 입힘<br><br><rules>[고유 - 중복 적용 불가]</rules>",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT16_Artifact_VoidGauntlet.TFT_Set16.png"
+      "icon": "tft16_artifact_voidgauntlet.tft_set16.png"
     },
     {
       "name": "은빛 여명",
@@ -2019,7 +2019,7 @@
         "StunDuration": 0.800000011920929
       },
       "desc": "기절에 면역이 되며 기본 공격 시 대상을 @StunDuration@초 동안 기절시킴<br><br><TFTShadowItemBonus>장착 유닛의 공격 속도는 @AttackSpeedCap@에서 고정</TFTShadowItemBonus>",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_Artifact_SilvermereDawn.TFT_Set13.png"
+      "icon": "tft_item_artifact_silvermeredawn.tft_set13.png"
     },
     {
       "name": "전략가의 방패",
@@ -2033,7 +2033,7 @@
         "PercentGoldChance": 10
       },
       "desc": "아군의 최대 팀 규모 +@MaxArmySizeIncrease@ 증가.<br><br>장착 유닛 사망 시 1골드를 획득할 확률 @PercentGoldChance@%<br><br><tftitemrules>'철학자의 지혜가 깃들어 있습니다.'</tftitemrules>",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_TacticiansScepter.TFT_Set13.png"
+      "icon": "tft_item_tacticiansscepter.tft_set13.png"
     },
     {
       "name": "워모그의 갑옷",
@@ -2047,7 +2047,7 @@
         "Health": 500
       },
       "desc": "최대 체력 @BonusPercentHP*100@% 획득<br>",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_WarmogsArmor.TFT_Set13.png"
+      "icon": "tft_item_warmogsarmor.tft_set13.png"
     },
     {
       "name": "추적자의 팔목 보호대",
@@ -2061,7 +2061,7 @@
         "StatsPerTakedown": 20
       },
       "desc": "처치 관여 시 장착 유닛의 방어력, 마법 저항력, 주문력 @StatsPerTakedown@ 증가",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_Artifact_SeekersArmguard.TFT_Set13.png"
+      "icon": "tft_item_artifact_seekersarmguard.tft_set13.png"
     },
     {
       "name": "공허의 지팡이",
@@ -2078,7 +2078,7 @@
         "ManaRegen": 1
       },
       "desc": "기본 공격 및 스킬로 피해를 입힐 경우 @MRShredDuration@초 동안 대상에게 <TFTKeyword>파쇄</TFTKeyword>를 @MRShred@% 적용 (중첩 불가)<br><br><tftitemrules><tftbold>파쇄</tftbold>: 마법 저항력 감소</tftitemrules>",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_VoidStaff.TFT_TFT14_5.png"
+      "icon": "tft_item_voidstaff.tft_tft14_5.png"
     },
     {
       "name": "카파 주스",
@@ -2092,7 +2092,7 @@
         "PercentHatLoss": 0.20000000298023224
       },
       "desc": "장착 유닛이 처치에 관여할 때마다 모자 착용. 장착 유닛이 모자 하나당 공격력 및 주문력 @ADAPPerTakedown@% 획득. 사망 시 모든 모자의 @PercentHatLoss*100@% 상실 (모자 수: @TFTUnitProperty.trait:TFT_Item_Artifact_CappaJuice_NumHats@)",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT16_Artifact_KappaJuice.TFT_Set16.png"
+      "icon": "tft16_artifact_kappajuice.tft_set16.png"
     },
     {
       "name": "마법공학 총검",
@@ -2110,7 +2110,7 @@
         "StatOmnivamp": 0.15000000596046448
       },
       "desc": "입힌 피해량의 @AllyHealing*100@%만큼 체력 비율이 가장 낮은 아군의 체력 회복<br><br><TFTTrackerLabel>아군 체력 회복량:</TFTTrackerLabel> <TFTHighlight>@TFTUnitProperty.item:TFT_Tracker_Value1@</TFTHighlight>",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_HextechGunblade.TFT_Set13.png"
+      "icon": "tft_item_hextechgunblade.tft_set13.png"
     },
     {
       "name": "배불뚝이의 포크숟가락",
@@ -2123,10 +2123,10 @@
         "ManaRegen": 4
       },
       "desc": "장착 시 고유 특성이 아닌 나열된 모든 특성에 +1 추가<br><br><tftitemrules>\"배불뚝이의 포크숟가락이야말로 최고의 요리 도구죠.\"</tftitemrules>",
-      "icon": "ASSETS/Maps/TFT/Icons/TFT_CT/CT_Items_Septer.png"
+      "icon": "ct_items_septer.png"
     },
     {
-      "name": "보석 건틀릿",
+      "name": "찬란한 보석 건틀릿",
       "apiName": "TFT_Item_CorruptedJeweledGauntlet",
       "composition": [
         "TFT_Item_NeedlesslyLargeRod",
@@ -2138,10 +2138,10 @@
         "CritDamageToGive": 0.10000000149011612
       },
       "desc": "스킬에 치명타 적용 가능<br><br>기본 스킬에 치명타 적용이 가능한 경우, 대신에 치명타 피해량이 @CritDamageToGive*100@% 증가",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_JeweledGauntlet.TFT_Set13.png"
+      "icon": "tft5_item_jeweledgauntletradiant.tft_set13.png"
     },
     {
-      "name": "무한의 대검",
+      "name": "찬란한 무한의 대검",
       "apiName": "TFT_Item_CorruptedInfinityEdge",
       "composition": [
         "TFT_Item_BFSword",
@@ -2153,10 +2153,10 @@
         "CritDamageToGive": 0.10000000149011612
       },
       "desc": "스킬에 치명타 적용 가능<br><br>기본 스킬에 치명타 적용이 가능한 경우, 대신에 치명타 피해량이 @CritDamageToGive*100@% 증가",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_InfinityEdge.TFT_Set13.png"
+      "icon": "tft5_item_infinityedgeradiant.tft_set13.png"
     },
     {
-      "name": "쇼진의 창",
+      "name": "찬란한 쇼진의 창",
       "apiName": "TFT_Item_CorruptedSpearOfShojin",
       "composition": [
         "TFT_Item_BFSword",
@@ -2169,10 +2169,10 @@
         "ManaRegen": 1
       },
       "desc": "기본 공격 시 추가 마나 @FlatManaRestore@ 획득",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_SpearOfShojin.TFT_Set13.png"
+      "icon": "tft5_item_spearofshojinradiant.tft_set13.png"
     },
     {
-      "name": "라바돈의 죽음모자",
+      "name": "찬란한 라바돈의 죽음모자",
       "apiName": "TFT_Item_CorruptedRabadonsDeathcap",
       "composition": [
         "TFT_Item_NeedlesslyLargeRod",
@@ -2184,10 +2184,10 @@
         "{1543aa48}": 0.15000000596046448
       },
       "desc": "<tftitemrules>평범해 보이지만 우주를 창조하거나 파괴할 수 있는 모자입니다.</tftitemrules><br><br>@TFTUnitProperty.:TFT_Augment_DeadlierCaps_TRAKey@",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_RabadonsDeathcap.TFT_Set13.png"
+      "icon": "tft5_item_rabadonsdeathcapradiant.tft_set13.png"
     },
     {
-      "name": "정의의 손길",
+      "name": "찬란한 정의의 손길",
       "apiName": "TFT_Item_CorruptedHandOfJustice",
       "composition": [
         "TFT_Item_TearOfTheGoddess",
@@ -2203,10 +2203,10 @@
         "{f23e83fc}": 2
       },
       "desc": "2가지 효과 획득:<li>공격력 @AD_NotStatBar*100@%, 주문력 @AP_NotStatBar@%<li>모든 피해 흡혈 @StatOmnivamp_NotStatBar*100@%<br><br>체력이 @HealthThreshold*100@%를 넘을 때 공격력 및 주문력 두 배로 증가. 체력이 @HealthThreshold*100@% 아래일 때 모든 피해 흡혈 두 배로 증가",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_UnstableConcoction.TFT_Set13.png"
+      "icon": "tft5_item_handofjusticeradiant.tft_set13.png"
     },
     {
-      "name": "정령의 형상",
+      "name": "찬란한 정령의 형상",
       "apiName": "TFT_Item_CorruptedRedemption",
       "composition": [
         "TFT_Item_TearOfTheGoddess",
@@ -2221,10 +2221,10 @@
         "{cd951938}": 0.10000000149011612
       },
       "desc": "매초 잃은 체력의 @MissingHealthHeal*100@%만큼 체력 회복",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_SpiritVisageRR.TFT_TFT14_5.png"
+      "icon": "tft5_item_guardianangelradiant.tft_set13.png"
     },
     {
-      "name": "워모그의 갑옷",
+      "name": "찬란한 워모그의 갑옷",
       "apiName": "TFT_Item_CorruptedWarmogsArmor",
       "composition": [
         "TFT_Item_GiantsBelt",
@@ -2235,10 +2235,10 @@
         "Health": 500
       },
       "desc": "최대 체력 @BonusPercentHP*100@% 획득<br>",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_WarmogsArmor.TFT_Set13.png"
+      "icon": "tft5_item_warmogsarmorradiant.tft_set13.png"
     },
     {
-      "name": "구인수의 격노검",
+      "name": "찬란한 구인수의 격노검",
       "apiName": "TFT_Item_CorruptedGuinsoosRageblade",
       "composition": [
         "TFT_Item_RecurveBow",
@@ -2250,10 +2250,10 @@
         "AttackSpeedPerStack": 7
       },
       "desc": "매초 공격 속도 @AttackSpeedPerStack@% 획득 (중첩 가능)",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_GuinsoosRageblade.TFT_Set13.png"
+      "icon": "tft5_item_guinsoosragebladeradiant.tft_set13.png"
     },
     {
-      "name": "죽음의 검",
+      "name": "찬란한 죽음의 검",
       "apiName": "TFT_Item_CorruptedDeathblade",
       "composition": [
         "TFT_Item_BFSword",
@@ -2265,10 +2265,10 @@
         "{1543aa48}": 0.10000000149011612
       },
       "desc": "<tftitemrules>이 검의 주인은 더없는 평화와 안정을 찾게 됩니다. 주인의 적들도 마찬가지고요.</tftitemrules><br><br>@TFTUnitProperty.:TFT_Augment_TragicalBlade_TRAKey@",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_Deathblade.TFT_Set13.png"
+      "icon": "tft5_item_deathbladeradiant.tft_set13.png"
     },
     {
-      "name": "가고일 돌갑옷",
+      "name": "찬란한 가고일 돌갑옷",
       "apiName": "TFT_Item_CorruptedGargoyleStoneplate",
       "composition": [
         "TFT_Item_ChainVest",
@@ -2284,7 +2284,602 @@
         "{4dc0582f}": 20
       },
       "desc": "적의 공격 대상이 되면 방어력이 @ArmorPerEnemy@, 마법 저항력이 @MRPerEnemy@ 증가. 공격하는 적이 늘어나면 중첩되어 적용",
-      "icon": "ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_GargoyleStoneplate.TFT_Set13.png"
+      "icon": "tft5_item_gargoylestoneplateradiant.tft_set13.png"
+    },
+    {
+      "name": "포식자의 본능",
+      "apiName": "TFT16_Consumable_Void_PredatorInstincts",
+      "composition": [],
+      "effects": {
+        "ADAP": 0.20000000298023224,
+        "ShedRefresh": 9,
+        "UntargetableDuration": 1
+      },
+      "desc": "공격력 및 주문력 <scaleLevel>@TFTUnitProperty.item:TFT16_Void_PredatorADAP@%</scaleLevel> 획득. @ShedRefresh@초마다 군중 제어 효과를 정화하고 <scaleLevel>@TFTUnitProperty.item:TFT16_Void_PredatorUntargetableDuration@</scaleLevel>초 동안 대상으로 지정할 수 없는 상태가 됨<br><br><rules>추천 사용자: 렉사이, 벨베스</rules>",
+      "icon": "tft16_voidmutation_predatorinstincts.tft_set16.png"
+    },
+    {
+      "name": "아드레날린 모듈",
+      "apiName": "TFT16_Consumable_Void_AdrenalineModules",
+      "composition": [],
+      "effects": {
+        "AttackNumBreakpoint": 3,
+        "BaseDamageAmp": 0.18000000715255737,
+        "{c91f9b58}": 0.009999999776482582
+      },
+      "desc": "피해 증폭 <scaleLevel>@TFTUnitProperty.item:TFT16_Void_AdrenalineModulesDamageAmp@%</scaleLevel> 획득, 기본 공격 @AttackNumBreakpoint@회마다 <scaleLevel>@TFTUnitProperty.item:TFT16_Void_AdrenalineModulesDamageAmpPerTick@%</scaleLevel> 증가<br><br><rules>추천 사용자: 벨베스, 카이사</rules>",
+      "icon": "tft16_voidmutation_adrenalinemodules.tft_set16.png"
+    },
+    {
+      "name": "강철 껍질",
+      "apiName": "TFT16_Consumable_Void_IronCarapace",
+      "composition": [],
+      "effects": {
+        "MaxHealth": 200,
+        "{efe25fc3}": 0.006000000052154064
+      },
+      "desc": "최대 체력 <scaleLevel>@TFTUnitProperty.item:TFT16_Void_IronCarapaceHealth@</scaleLevel> 획득. 최대 체력의 <scaleLevel>@TFTUnitProperty.item:TFT16_Void_IronCarapaceArmorMR@%</scaleLevel>에 해당하는 방어력 및 마법 저항력 획득<br><br><rules>추천 사용자: 초가스, 협곡의 전령</rules><br><br>",
+      "icon": "tft16_voidmutation_ironcarapace.tft_set16.png"
+    },
+    {
+      "name": "가시 발사",
+      "apiName": "TFT16_Consumable_Void_SpitterSpines",
+      "composition": [],
+      "effects": {
+        "DamageRequirement": 1000,
+        "NumTargets": 2,
+        "{f3c924e3}": 100
+      },
+      "desc": "@DamageRequirement@의 피해를 입힌 후 가장 가까운 적 @NumTargets@명에게 가시를 발사해 <scaleLevel>@TFTUnitProperty.item:TFT16_Void_SpitterSpinesDamage@</scaleLevel>의 물리 피해를 입힘<br><br><rules>추천 사용자: 렉사이, 말자하, 카이사</rules>",
+      "icon": "tft16_voidmutation_spitterspines.tft_set16.png"
+    },
+    {
+      "name": "거대 껍질",
+      "apiName": "TFT16_Consumable_Void_RoyalHusk",
+      "composition": [],
+      "effects": {
+        "BonusPercentHP": 0.10000000149011612,
+        "FirstHealthThreshold": 0.5,
+        "MaxHP": 200,
+        "{07c4cb4a}": 0.30000001192092896,
+        "{64bdae41}": 40
+      },
+      "desc": "체력 <scaleLevel>@TFTUnitProperty.item:TFT16_Void_RoyalHuskHealth@+@TFTUnitProperty.item:TFT16_Void_RoyalHuskPercentHealth*100@%</scaleLevel> 획득. 체력이 최대 체력의 @FirstHealthThreshold*100@% 아래로 떨어지면 이 유닛 최대 체력의 <scaleLevel>@TFTUnitProperty.item:TFT16_Void_RoyalHuskSummonMaxHealth@</scaleLevel>%에 해당하는 체력을 지닌 공허충 1마리 소환<br><br><rules>추천 사용자: 초가스, 협곡의 전령</rules>",
+      "icon": "tft16_voidmutation_royalhusk.tft_set16.png"
+    },
+    {
+      "name": "흡수 세포핵",
+      "apiName": "TFT16_Consumable_Void_LeechingNucleus",
+      "composition": [],
+      "effects": {
+        "HealPercent": 0.15000000596046448,
+        "MaxADAPSteal": 10,
+        "{d1463442}": 0.019999999552965164
+      },
+      "desc": "입힌 피해량의 <scaleLevel>@TFTUnitProperty.item:TFT16_Void_LeechingHealPercent@%</scaleLevel>만큼 체력이 가장 낮은 아군의 체력 회복. 적에게 피해를 입히면 대상의 공격력 및 주문력 <scaleLevel>@TFTUnitProperty.item:TFT16_Void_LeechingADAP@%</scaleLevel> 흡수. 모든 요소로부터 최대 @MaxADAPSteal@회 중첩<br><br><rules>추천 사용자: 코그모, 말자하, 카이사</rules>",
+      "icon": "tft16_voidmutation_leechingnucleus.tft_set16.png"
+    },
+    {
+      "name": "다르킨의 방패",
+      "apiName": "TFT16_TheDarkinAegis",
+      "composition": [],
+      "effects": {
+        "Armor": 25,
+        "HealPercent": 0.019999999552965164,
+        "Health": 200,
+        "HexRadius": 2,
+        "MagicResist": 25,
+        "PercentHealthDamage": 1
+      },
+      "desc": "장착 시 다르킨 특성 획득<br><br>@HexRadius@칸 내 적에게 매초 장착 유닛 최대 체력의 @PercentHealthDamage@%에 해당하는 마법 피해를 입힘. 범위 내 유닛 사망 시 최대 체력의 @HealPercent*100@%만큼 체력 회복",
+      "icon": "tft16_thedarkinaegis.tft_set16.png"
+    },
+    {
+      "name": "다르킨의 활",
+      "apiName": "TFT16_TheDarkinBow",
+      "composition": [],
+      "effects": {
+        "AD": 0.10000000149011612,
+        "AS": 25,
+        "ArrowBaseADDamage": 5,
+        "ArrowPercentFalloff": 0.33000001311302185,
+        "NumAttacks": 10
+      },
+      "desc": "장착 시 다르킨 특성 획득<br><br>기본 공격 @NumAttacks@회마다 현재 대상을 관통하는 화살을 발사해 기본 공격 피해량의 @ArrowBaseADDamage*100@%에 해당하는 물리 피해를 입힘. 적중한 적 하나당 피해량 @ArrowPercentFalloff*100@% 감소",
+      "icon": "tft16_thedarkinbow.tft_set16.png"
+    },
+    {
+      "name": "다르킨의 지팡이",
+      "apiName": "TFT16_TheDarkinStaff",
+      "composition": [],
+      "effects": {
+        "AP": 35,
+        "ManaRegen": 3,
+        "ManaSpent": 20,
+        "{1feb18d6}": 300,
+        "{25eb2248}": 100,
+        "{26eb23db}": 150,
+        "{28eb2701}": 100,
+        "{29eb2894}": 300,
+        "{2aeb2a27}": 300,
+        "{2beb2bba}": 200,
+        "{2ceb2d4d}": 250
+      },
+      "desc": "장착 시 다르킨 특성 획득<br><br>마나를 @ManaSpent@ 사용할 때마다 현재 대상 주변 적에게 덩굴을 날려 @TFTUnitProperty.trait:TFT_Item_Artifact_DarkinStaff_Damage@의 마법 피해를 입힘<br><br><rules>스테이지에 비례해 피해량 증가</rules>",
+      "icon": "tft16_thedarkinstaff.tft_set16.png"
+    },
+    {
+      "name": "다르킨의 낫",
+      "apiName": "TFT16_TheDarkinScythe",
+      "composition": [],
+      "effects": {
+        "AD": 0.30000001192092896,
+        "DashCooldown": 1.5,
+        "Health": 250,
+        "SlashADPercent": 1.5,
+        "TickRate": 4
+      },
+      "desc": "장착 시 다르킨 특성 획득<br><br>@TickRate@초마다 인접한 적을 베어 기본 공격 피해량의 @SlashADPercent*100@%에 해당하는 물리 피해를 입힘. 처치 관여 또는 장착 유닛 돌진 시 다시 발동<br><br><rules>돌진 재사용 대기시간: @DashCooldown@초</rules>",
+      "icon": "tft16_thedarkinscythe.tft_set16.png"
+    },
+    {
+      "name": "난동꾼 상징",
+      "apiName": "TFT16_Item_BrawlerEmblemItem",
+      "composition": [
+        "TFT_Item_FryingPan",
+        "TFT_Item_GiantsBelt"
+      ],
+      "effects": {
+        "Health": 150,
+        "HealthRatio": 0.019999999552965164,
+        "HexRadius": 1,
+        "{90e3195f}": 0.6000000238418579,
+        "{9e637bfc}": 1
+      },
+      "desc": "장착 시 난동꾼 특성 획득. 매초 반경 @HexRadius@칸에 장착 유닛 최대 체력의 @HealthRatio*100@%에 해당하는 마법 피해를 입힘",
+      "icon": "tft16_emblem_bruiser.tft_set16.png"
+    },
+    {
+      "name": "기원자 상징",
+      "apiName": "TFT16_Item_InvokerEmblemItem",
+      "composition": [
+        "TFT_Item_FryingPan",
+        "TFT_Item_TearOfTheGoddess"
+      ],
+      "effects": {
+        "APPercent": 0.10000000149011612,
+        "ManaRegen": 3
+      },
+      "desc": "장착 시 기원자 특성 획득. 스킬 사용 시 사용한 마나의 @APPercent*100@%만큼 주문력 획득",
+      "icon": "tft16_emblem_invoker.tft_set16.png"
+    },
+    {
+      "name": "학살자 상징",
+      "apiName": "TFT16_Item_SlayerEmblemItem",
+      "composition": [
+        "TFT_Item_FryingPan",
+        "TFT_Item_BFSword"
+      ],
+      "effects": {
+        "AD": 0.20000000298023224,
+        "HealthThreshold": 0.25,
+        "ManaGain": 20,
+        "ShieldPercent": 0.30000001192092896
+      },
+      "desc": "장착 시 학살자 특성 획득. 체력이 최대 체력의 @HealthThreshold*100@% 아래로 떨어지면 마나 @ManaGain@ 및 최대 체력의 @ShieldPercent*100@%에 해당하는 보호막 획득",
+      "icon": "tft16_emblem_slayer.tft_set16.png"
+    },
+    {
+      "name": "토벌자 상징",
+      "apiName": "TFT16_Item_VanquisherEmblemItem",
+      "composition": [
+        "TFT_Item_FryingPan",
+        "TFT_Item_SparringGloves"
+      ],
+      "effects": {
+        "AD": 0.15000000596046448,
+        "AP": 15,
+        "ChanceForGold": 3,
+        "CritChance": 20,
+        "GoldAmount": 1,
+        "ICD": 0.75,
+        "{91a7fc34}": 5
+      },
+      "desc": "장착 시 토벌자 특성 획득 및 치명타 적중 시 @ChanceForGold@% 확률로 @GoldAmount@골드를 떨어뜨림<br><br><tftitemrules>재사용 대기시간: @ICD@초</tftitemrules><br><tftitemrules>이번 게임에서 획득한 골드: @TFTUnitProperty.item:TFT_Item_GoldGenerated@</tftitemrules>",
+      "icon": "tft16_emblem_vanquisher.tft_set16.png"
+    },
+    {
+      "name": "원거리 사격 상징",
+      "apiName": "TFT16_Item_LongshotEmblemItem",
+      "composition": [],
+      "effects": {
+        "AS": 20,
+        "Health": 150,
+        "RangeIncrease": 1
+      },
+      "desc": "장착 시 원거리 사격 특성 획득 및 공격 사거리 +@RangeIncrease@ 증가 ",
+      "icon": "tft16_emblem_longshot.tft_set16.png"
+    },
+    {
+      "name": "기동타격대 상징",
+      "apiName": "TFT16_Item_RapidfireEmblemItem",
+      "composition": [
+        "TFT_Item_FryingPan",
+        "TFT_Item_RecurveBow"
+      ],
+      "effects": {
+        "AS": 25,
+        "HealPercent": 0.10000000149011612
+      },
+      "desc": "장착 시 기동타격대 특성 획득. 처치 관여 시 가장 가까운 대상에게 돌진하고 최대 체력의 @HealPercent*100@%만큼 체력 회복",
+      "icon": "tft16_emblem_quickstriker.tft_set16.png"
+    },
+    {
+      "name": "방해꾼 상징",
+      "apiName": "TFT16_Item_MagusEmblemItem",
+      "composition": [],
+      "effects": {
+        "AS": 20,
+        "DOTPercent": 0.20000000298023224,
+        "Duration": 3,
+        "Health": 150
+      },
+      "desc": "장착 시 방해꾼 특성 획득. 스킬이 @Duration@초 동안 @DOTPercent*100@%의 추가 마법 피해를 입힘",
+      "icon": "tft16_emblem_disruptor.tft_set16.png"
+    },
+    {
+      "name": "요들 상징",
+      "apiName": "TFT16_Item_YordleEmblemItem",
+      "composition": [
+        "TFT_Item_Spatula",
+        "TFT_Item_NegatronCloak"
+      ],
+      "effects": {
+        "AD": 0.20000000298023224,
+        "AP": 20,
+        "Armor": 30,
+        "MagicResist": 30
+      },
+      "desc": "장착 시 요들 특성 획득",
+      "icon": "tft16_emblem_yordle.tft_set16.png"
+    },
+    {
+      "name": "총잡이 상징",
+      "apiName": "TFT16_Item_GunslingerEmblemItem",
+      "composition": [],
+      "effects": {
+        "AD": 0.20000000298023224,
+        "ArmorPerDamage": 2,
+        "Health": 150
+      },
+      "desc": "장착 시 총잡이 특성 획득<br>적에게 물리 피해를 입힐 경우 대상 방어력 @ArmorPerDamage@ 감소",
+      "icon": "tft16_emblem_gunslinger.tft_set16.png"
+    },
+    {
+      "name": "공허 상징",
+      "apiName": "TFT16_Item_VoidEmblemItem",
+      "composition": [
+        "TFT_Item_Spatula",
+        "TFT_Item_RecurveBow"
+      ],
+      "effects": {
+        "AD": 0.10000000149011612,
+        "AP": 10,
+        "AS": 20
+      },
+      "desc": "장착 시 공허 특성 획득",
+      "icon": "tft16_emblem_void.tft_set16.png"
+    },
+    {
+      "name": "필트오버 상징",
+      "apiName": "TFT16_Item_PiltoverEmblemItem",
+      "composition": [],
+      "effects": {
+        "Health": 150
+      },
+      "desc": "장착 시 필트오버 특성 획득",
+      "icon": "tft16_emblem_piltover.tft_set16.png"
+    },
+    {
+      "name": "전쟁기계 상징",
+      "apiName": "TFT16_Item_JuggernautEmblemItem",
+      "composition": [
+        "TFT_Item_FryingPan",
+        "TFT_Item_NegatronCloak"
+      ],
+      "effects": {
+        "Armor": 25,
+        "MagicResist": 25,
+        "PercentHealth": 0.10000000149011612,
+        "{bfabf167}": 0.11999999731779099
+      },
+      "desc": "장착 시 전쟁기계 특성 획득 및 다른 전쟁기계 사망 시 해당 유닛 최대 체력의 @PercentHealth*100@% 획득",
+      "icon": "tft16_emblem_juggernaut.tft_set16.png"
+    },
+    {
+      "name": "빌지워터 상징",
+      "apiName": "TFT16_Item_BilgewaterEmblemItem",
+      "composition": [
+        "TFT_Item_Spatula",
+        "TFT_Item_TearOfTheGoddess"
+      ],
+      "effects": {
+        "AD": 0.10000000149011612,
+        "AP": 10,
+        "ManaRegen": 2
+      },
+      "desc": "장착 시 빌지워터 특성 획득",
+      "icon": "tft16_emblem_bilgewater.tft_set16.png"
+    },
+    {
+      "name": "프렐요드 상징",
+      "apiName": "TFT16_Item_FreljordEmblemItem",
+      "composition": [
+        "TFT_Item_Spatula",
+        "TFT_Item_GiantsBelt"
+      ],
+      "effects": {
+        "Health": 400
+      },
+      "desc": "장착 시 프렐요드 특성 획득",
+      "icon": "tft16_emblem_freljord.tft_set16.png"
+    },
+    {
+      "name": "파수꾼 상징",
+      "apiName": "TFT16_Item_WardenEmblemItem",
+      "composition": [],
+      "effects": {
+        "HealPercent": 0.30000001192092896,
+        "Health": 250
+      },
+      "desc": "장착 시 파수꾼 특성 획득. 장착 유닛의 보호막 파괴 시 최초 보호막 수치의 @HealPercent*100@%만큼 장착 유닛의 체력 회복",
+      "icon": "tft16_emblem_warden.tft_set16.png"
+    },
+    {
+      "name": "비전 마법사 상징",
+      "apiName": "TFT16_Item_SorcererEmblemItem",
+      "composition": [
+        "TFT_Item_FryingPan",
+        "TFT_Item_NeedlesslyLargeRod"
+      ],
+      "effects": {
+        "AP": 25,
+        "ManaRefundRatio": 0.20000000298023224
+      },
+      "desc": "장착 시 비전 마법사 특성 획득. 처치 시 장착 유닛 최대 마나의 @ManaRefundRatio*100@%만큼 마나 회복",
+      "icon": "tft16_emblem_arcanist.tft_set16.png"
+    },
+    {
+      "name": "녹서스 상징",
+      "apiName": "TFT16_Item_NoxusEmblemItem",
+      "composition": [
+        "TFT_Item_Spatula",
+        "TFT_Item_BFSword"
+      ],
+      "effects": {
+        "AD": 0.25,
+        "AP": 25
+      },
+      "desc": "장착 시 녹서스 특성 획득",
+      "icon": "tft16_emblem_noxus.tft_set16.png"
+    },
+    {
+      "name": "자운 상징",
+      "apiName": "TFT16_Item_ZaunEmblemItem",
+      "composition": [
+        "TFT_Item_Spatula",
+        "TFT_Item_SparringGloves"
+      ],
+      "effects": {
+        "CritChance": 20,
+        "Health": 350
+      },
+      "desc": "장착 시 자운 특성 획득",
+      "icon": "tft16_emblem_zaun.tft_set16.png"
+    },
+    {
+      "name": "이쉬탈 상징",
+      "apiName": "TFT16_Item_IxtalEmblemItem",
+      "composition": [],
+      "effects": {
+        "Health": 250
+      },
+      "desc": "장착 시 이쉬탈 특성 획득",
+      "icon": "tft16_emblem_ixtal.tft_set16.png"
+    },
+    {
+      "name": "아이오니아 상징",
+      "apiName": "TFT16_Item_IoniaEmblemItem",
+      "composition": [
+        "TFT_Item_Spatula",
+        "TFT_Item_NeedlesslyLargeRod"
+      ],
+      "effects": {
+        "AD": 0.25,
+        "AP": 25
+      },
+      "desc": "장착 시 아이오니아 특성 획득",
+      "icon": "tft16_emblem_ionia.tft_set16.png"
+    },
+    {
+      "name": "데마시아 상징",
+      "apiName": "TFT16_Item_DemaciaEmblemItem",
+      "composition": [
+        "TFT_Item_Spatula",
+        "TFT_Item_ChainVest"
+      ],
+      "effects": {
+        "Armor": 15,
+        "MagicResist": 15,
+        "ManaRegen": 3
+      },
+      "desc": "장착 시 데마시아 특성 획득",
+      "icon": "tft16_emblem_demacia.tft_set16.png"
+    },
+    {
+      "name": "엄호대 상징",
+      "apiName": "TFT16_Item_DefenderEmblemItem",
+      "composition": [
+        "TFT_Item_FryingPan",
+        "TFT_Item_ChainVest"
+      ],
+      "effects": {
+        "Armor": 30,
+        "MagicResist": 30,
+        "ResistGain": 0.3499999940395355
+      },
+      "desc": "장착 시 엄호대 특성 획득 <br>전투 시작: 모든 요소로부터 방어력 또는 마법 저항력 중 더 높은 능력치 @ResistGain*100@% 추가 획득",
+      "icon": "tft16_emblem_defender.tft_set16.png"
+    },
+    {
+      "name": "거물의 갑옷",
+      "apiName": "TFT7_Item_ShimmerscaleMogulsMail_Revival",
+      "composition": [],
+      "effects": {
+        "BaseHealthPerStack": 10,
+        "BaseResistsPerStack": 1,
+        "GoldAtFullStacks": 2,
+        "GoldInterval": 8,
+        "Health": 350,
+        "StackCap": 35
+      },
+      "desc": "피해를 입으면 방어력 @BaseResistsPerStack@, 마법 저항력 @BaseResistsPerStack@, 체력 @BaseHealthPerStack@ 획득 (최대 @StackCap@회 중첩)<br><br>최대 중첩 시 @GoldAtFullStacks@골드%i:goldCoins% 획득<br><br><tftitemrules>이번 게임에서 획득한 골드: @TFTUnitProperty.item:TFT_Item_GoldGenerated@</tftitemrules>",
+      "icon": "tft7_item_shimmerscalemogulsmail.tft_set13.png"
+    },
+    {
+      "name": "도박꾼의 칼날",
+      "apiName": "TFT7_Item_ShimmerscaleGamblersBlade_Revival",
+      "composition": [],
+      "effects": {
+        "AP": 15,
+        "AS": 15,
+        "AttackSpeedGoldLimit": 60,
+        "AttackSpeedPerGold": 0.014999999664723873,
+        "ChanceToProc": 0.07000000029802322,
+        "GoldPerProc": 1,
+        "{46736b3f}": 4,
+        "{b38e1643}": 20
+      },
+      "desc": "보유한 골드%i:goldCoins%마다 추가 공격 속도%i:scaleAS% @AttackSpeedPerGold*100@% 획득 (최대 @AttackSpeedGoldLimit@골드%i:goldCoins%)<br><br>기본 공격할 때마다 @ChanceToProc*100@% 확률로 @GoldPerProc@골드%i:goldCoins% 획득<br><br><tftitemrules>이번 게임에서 획득한 골드: @TFTUnitProperty.item:TFT_Item_GoldGenerated@</tftitemrules>",
+      "icon": "tft7_item_shimmerscalegamblersblade.tft_set13.png"
+    },
+    {
+      "name": "데마시아의 왕관",
+      "apiName": "TFT9_Item_CrownOfDemacia",
+      "composition": [],
+      "effects": {
+        "ADandAPPerTick": 10,
+        "AS": 30,
+        "HealTickRate": 2,
+        "HealingPercentPerTickPerStage": 3,
+        "Health": 300
+      },
+      "desc": "장착 유닛이 탱커일 경우 @HealTickRate@초마다 최대 체력의 @HealingPercentPerTickPerStage@~@HealingPercentPerTickPerStage*7@%(스테이지 비례)를 회복합니다. 탱커가 아니라면 대신 @HealTickRate@초마다 공격력%i:scaleAD% 및 주문력%i:scaleAP%을 @ADandAPPerTick@% 얻습니다. <br><br>장착 유닛이 사망하면 즉시 전투에서 패배합니다.<br><br><tftitemrules>장착 유닛을 대기석에 놓으면 아이템을 제거할 수 있습니다.</tftitemrules><br><br>",
+      "icon": "crownofdemacia.png"
+    },
+    {
+      "name": "무한한 삼위일체",
+      "apiName": "TFT4_Item_OrnnInfinityForce",
+      "composition": [],
+      "effects": {
+        "AD": 0.30000001192092896,
+        "AP": 30,
+        "AS": 30,
+        "Armor": 30,
+        "Health": 300,
+        "MagicResist": 30
+      },
+      "desc": "<tftitemrules>없는 게 없습니다!</tftitemrules>",
+      "icon": "tft4_item_ornninfinityforce.tft_set13.png"
+    },
+    {
+      "name": "선체분쇄자",
+      "apiName": "TFT9_Item_OrnnHullbreaker",
+      "composition": [],
+      "effects": {
+        "Armor": 60,
+        "ExtraADandAP": 10,
+        "ExtraHealth": 400,
+        "MagicResist": 60
+      },
+      "desc": "전투 시작: 인접한 아군이 없다면 체력 @ExtraHealth@, 공격력@ExtraADandAP@%, 주문력 @ExtraADandAP@% 획득",
+      "icon": "tft9_ornnitem_hullbreaker.png"
+    },
+    {
+      "name": "저격수의 집중",
+      "apiName": "TFT9_Item_OrnnHorizonFocus",
+      "composition": [],
+      "effects": {
+        "AD": 0.20000000298023224,
+        "AP": 20,
+        "AS": 20,
+        "DamageAmpPerHex": 0.4000000059604645,
+        "HexRangeIncrease": null,
+        "HexRequirement": 4,
+        "ManaRegen": 3
+      },
+      "desc": "@HexRequirement@칸 이상 떨어진 대상을 상대로 피해 증폭 @DamageAmpPerHex*100@% 획득",
+      "icon": "tft9_item_ornnhorizonfocus.tft_set13.png"
+    },
+    {
+      "name": "죽음의 저항",
+      "apiName": "TFT4_Item_OrnnDeathsDefiance",
+      "composition": [],
+      "effects": {
+        "AD": 0.25,
+        "AS": 15,
+        "Armor": 40,
+        "BaseHeal": 25,
+        "BleedDuration": 4,
+        "IgnorePainPercent": 50,
+        "StatOmnivamp": 0.25
+      },
+      "desc": "받는 피해량의 @IgnorePainPercent@%를 @BleedDuration@초 동안 치명적이지 않은 피해로 받음<br><br><tftitemrules>[고유 - 중복 적용 불가]</tftitemrules>",
+      "icon": "tft4_item_ornndeathsdefiance.tft_set13.png"
+    },
+    {
+      "name": "존야의 역설",
+      "apiName": "TFT4_Item_OrnnZhonyasParadox",
+      "composition": [],
+      "effects": {
+        "AP": 25,
+        "Armor": 25,
+        "InvulnDuration": 3,
+        "MagicResist": 25,
+        "PercentHealthThreshold": 40
+      },
+      "desc": "전투당 한 번, 체력이 @PercentHealthThreshold@%일 때 @InvulnDuration@초 동안 대상으로 지정할 수 없는 무적 상태 진입<br><br><tftitemrules>[고유 - 중복 적용 불가]</tftitemrules>",
+      "icon": "tft4_item_ornnzhonyasparadox.tft_set13.png"
+    },
+    {
+      "name": "따개비 장갑",
+      "apiName": "TFT16_Item_Bilgewater_FreebootersFrock",
+      "composition": [],
+      "effects": {
+        "Armor": 35,
+        "Health": 300,
+        "HealthThreshold": 0.5,
+        "MagicResist": 35,
+        "NumEnemies": 2,
+        "ResistPercent": 0.5,
+        "Timer": 4,
+        "{a72ef028}": 2
+      },
+      "desc": "체력이 @HealthThreshold*100@% 이상일 때, 이 아이템의 방어력 및 마법 저항력 추가 효과 두 배로 증가<br><br>@Timer@초마다 가장 가까운 적 @NumEnemies@명에게 현재 방어력 및 마법 저항력 총합의 @ResistPercent*100@%에 해당하는 마법 피해를 입힘<br><br><rules>추천 사용자: 노틸러스</rules>",
+      "icon": "tft16_item_bilgewater_freebootersfrock.tft_set16.png"
+    },
+    {
+      "name": "황금 징수의 총",
+      "apiName": "TFT4_Item_OrnnTheCollector",
+      "composition": [],
+      "effects": {
+        "AD": 0.4000000059604645,
+        "CritChance": 20,
+        "ExecutePercent": 12,
+        "GoldChance": 33
+      },
+      "desc": "기본 공격 및 스킬로 최대 체력의 @ExecutePercent@%보다 체력이 낮은 적을 처형. 처형 시 @GoldChance@% 확률로 1골드%i:goldCoins%를 떨어뜨림<br><br><TFTTrackerLabel>모은 골드:</TFTTrackerLabel> <TFTHighlight>@TFTUnitProperty.item:TFT_Tracker_Value1@골드</TFTHighlight><br><tftitemrules>[고유 - 중복 적용 불가]</tftitemrules>",
+      "icon": "tft4_item_ornnthecollector.tft_set13.png"
     }
   ]
 }

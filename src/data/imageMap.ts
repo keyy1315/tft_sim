@@ -22,6 +22,16 @@ export function registerItemImages(items: { apiName: string; icon: string }[]): 
 }
 
 function resolveItemPath(apiName: string, iconFilename: string): string {
+  // Emblem items
+  if (apiName.includes('EmblemItem')) {
+    return `/data/images/emblems/${iconFilename}`;
+  }
+
+  // Radiant (Corrupted) items
+  if (apiName.includes('Corrupted')) {
+    return `/data/images/radiant/${iconFilename}`;
+  }
+
   // Piltover items
   if (apiName.includes('TFT16_Item_Piltover_')) {
     return `/data/images/tft_set16_piltover/${iconFilename}`;
@@ -88,6 +98,28 @@ export function getTraitImage(apiName: string): string {
   // Traits use the icon path from JSON, but we can provide a fallback
   return `/data/images/traits/${apiName}.png`;
 }
+
+// === Augment image helpers ===
+import type { AugmentTier } from '@/types';
+
+export function getAugmentImage(icon: string): string {
+  // Convert ASSETS/Maps/TFT/Icons/Augments/Hexcore/Xxx.TFT_Set16.tex
+  // → https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/xxx.tft_set16.png
+  const lower = icon.toLowerCase().replace('.tex', '.png');
+  return `https://raw.communitydragon.org/latest/game/${lower}`;
+}
+
+export const TIER_BORDER_COLORS: Record<AugmentTier, string> = {
+  silver: 'border-gray-400',
+  gold: 'border-yellow-500',
+  prismatic: 'border-fuchsia-400',
+};
+
+export const TIER_BG_COLORS: Record<AugmentTier, string> = {
+  silver: 'from-gray-600 to-gray-500',
+  gold: 'from-yellow-700 to-yellow-500',
+  prismatic: 'from-fuchsia-700 to-fuchsia-400',
+};
 
 export const COST_BORDER_COLORS: Record<number, string> = {
   1: 'border-gray-500',

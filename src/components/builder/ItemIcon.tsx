@@ -19,7 +19,10 @@ function stripHtml(html: string): string {
 
 export default function ItemIcon({ item, size = 32, onClick, onRemove, showTooltip = true }: ItemIconProps) {
   const isArtifact = item.apiName.includes('Artifact');
-  const borderClass = isArtifact ? 'border-purple-500' : item.composition.length === 2 ? 'border-yellow-600' : 'border-gray-500';
+  const isRadiant = item.apiName.includes('Corrupted');
+  const isEmblem = item.apiName.includes('EmblemItem');
+  const isDarkin = item.apiName.includes('TheDarkin');
+  const borderClass = isRadiant ? 'border-fuchsia-500' : isDarkin ? 'border-red-500' : isEmblem ? 'border-cyan-500' : isArtifact ? 'border-purple-500' : item.composition.length === 2 ? 'border-yellow-600' : 'border-gray-500';
 
   const icon = (
     <div

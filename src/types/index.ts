@@ -88,6 +88,23 @@ export interface RawItem {
   icon: string;
 }
 
+export type ItemCategory =
+  | 'component'    // 조합재료
+  | 'combined'     // 완성템
+  | 'artifact'     // 유물
+  | 'emblem'       // 상징
+  | 'radiant'      // 찬란
+  | 'piltover'     // 필트오버 모듈
+  | 'bilgewater'   // 빌지워터 아이템
+  | 'void'         // 공허 돌연변이
+  | 'darkin'       // 다르킨
+  | 'special';     // 특수 (비전투)
+
+export interface EquipValidation {
+  canEquip: boolean;
+  reason?: string;
+}
+
 export interface RawItemsData {
   meta: {
     set: number;
@@ -306,7 +323,13 @@ export interface CombatUnit {
   totalDamageTaken: number;
   statusEffects: StatusEffect[];
   omnivamp: number;
+  damageAmp: number;
+  damageReduction: number;
   shield: number;
+  augmentManaRegen: number;
+  augmentGrievousWounds: number;
+  augmentExecuteThreshold: number;
+  augmentBurnPercent: number;
 }
 
 export interface CombatLog {
@@ -340,6 +363,15 @@ export interface TickSnapshot {
   }>;
   events: CombatLog[];
 }
+
+// === Augment Tier Types ===
+export type AugmentTier = 'silver' | 'gold' | 'prismatic';
+
+export const AUGMENT_TIER_TAGS: Record<string, AugmentTier> = {
+  '{d11fd6d5}': 'silver',
+  '{ce1fd21c}': 'gold',
+  '{cf1fd3af}': 'prismatic',
+};
 
 export const COST_COLORS: Record<number, string> = {
   1: '#9ca3af', // gray

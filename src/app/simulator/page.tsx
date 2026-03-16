@@ -4,7 +4,7 @@ import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { DndContext, DragOverlay, DragEndEvent, DragStartEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { useGameData } from '@/hooks/useGameData';
 import { simulateCombat } from '@/lib/simulator/engine/combatLoop';
-import { PlacedChampion, HexCoord, axialToOffset, offsetToAxial, RawChampion, RawItem, CombatResult, CombatLog, TickSnapshot, DragData } from '@/types';
+import { PlacedChampion, HexCoord, axialToOffset, offsetToAxial, RawChampion, RawItem, RawAugment, CombatResult, CombatLog, TickSnapshot, DragData } from '@/types';
 import { TICKS_PER_SECOND, BOARD_COLS } from '@/lib/simulator/models/constants';
 import { resolveTraits } from '@/lib/simulator/systems/trait';
 import ChampionGrid from '@/components/builder/ChampionGrid';
@@ -22,6 +22,14 @@ import ChampionCard from '@/components/builder/ChampionCard';
 import ItemIcon from '@/components/builder/ItemIcon';
 import SearchBar from '@/components/ui/SearchBar';
 import TeamCodePanel from '@/components/builder/TeamCodePanel';
+import AugmentSlots from '@/components/builder/AugmentSlots';
+import AugmentSelector from '@/components/builder/AugmentSelector';
+import AugmentDetailPopup from '@/components/builder/AugmentDetailPopup';
+import { isStackable, getMaxStacks, getDefaultStacks } from '@/lib/simulator/systems/augment';
+import { canEquipItem, canAddPiltoverModule, getItemCategory, isDisabledItem } from '@/lib/simulator/systems/item';
+
+type ItemFilterTab = 'all' | 'component' | 'combined' | 'artifact' | 'emblem' | 'radiant';
+import PiltoverModulePanel from '@/components/builder/PiltoverModulePanel';
 
 type ViewMode = 'setup' | 'replay';
 
@@ -92,7 +100,7 @@ function syncTibbersInTeam(team: PlacedChampion[]): PlacedChampion[] {
 }
 
 export default function SimulatorPage() {
-  const { champions, items, traits, teamPlannerMapping, loading } = useGameData();
+  const { champions, items, traits, augments, teamPlannerMapping, loading } = useGameData();
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
   );
@@ -105,6 +113,18 @@ export default function SimulatorPage() {
   const updateEnemyTeam = (action: PlacedChampion[] | ((prev: PlacedChampion[]) => PlacedChampion[])) => {
     setEnemyTeamRaw(prev => syncTibbersInTeam(typeof action === 'function' ? action(prev) : action));
   };
+  // Augment state
+  const [playerAugments, setPlayerAugments] = useState<RawAugment[]>([]);
+  const [playerAugmentStacks, setPlayerAugmentStacks] = useState<Record<string, number>>({});
+  const [enemyAugments, setEnemyAugments] = useState<RawAugment[]>([]);
+  const [enemyAugmentStacks, setEnemyAugmentStacks] = useState<Record<string, number>>({});
+  const [showAugmentPicker, setShowAugmentPicker] = useState<'player' | 'enemy' | null>(null);
+  const [augmentDetailTarget, setAugmentDetailTarget] = useState<{ aug: RawAugment; team: 'player' | 'enemy' } | null>(null);
+
+  // Piltover module state (per team)
+  const [playerPiltoverModules, setPlayerPiltoverModules] = useState<RawItem[]>([]);
+  const [enemyPiltoverModules, setEnemyPiltoverModules] = useState<RawItem[]>([]);
+
   const [selectedCell, setSelectedCell] = useState<HexCoord | null>(null);
   const [selectedCellTeam, setSelectedCellTeam] = useState<'player' | 'enemy'>('player');
   const [showPicker, setShowPicker] = useState(false);
@@ -118,6 +138,8 @@ export default function SimulatorPage() {
   const [champSearch, setChampSearch] = useState('');
   const [champCostFilter, setChampCostFilter] = useState<number | null>(null);
   const [activePoolTab, setActivePoolTab] = useState<'champions' | 'items'>('champions');
+  const [itemSearch, setItemSearch] = useState('');
+  const [itemCategoryFilter, setItemCategoryFilter] = useState<ItemFilterTab>('all');
   const [showTeamCode, setShowTeamCode] = useState(false);
 
   // Replay state
@@ -260,10 +282,17 @@ export default function SimulatorPage() {
   };
 
   const handleEquipItem = (team: 'player' | 'enemy', index: number, item: RawItem) => {
+    const teamArr = team === 'player' ? playerTeam : enemyTeam;
+    const placed = teamArr[index];
+    if (!placed) return;
+
+    const traits = team === 'player' ? playerTraits : enemyTraits;
+    const validation = canEquipItem(item, placed, traits);
+    if (!validation.canEquip) return;
+
     const setTeam = team === 'player' ? updatePlayerTeam : updateEnemyTeam;
     setTeam(prev => prev.map((p, i) => {
       if (i !== index) return p;
-      if (p.items.length >= 3) return p;
       return { ...p, items: [...p.items, item] };
     }));
   };
@@ -274,6 +303,21 @@ export default function SimulatorPage() {
       if (i !== index) return p;
       return { ...p, items: p.items.filter((_item: RawItem, ii: number) => ii !== itemIdx) };
     }));
+  };
+
+  const handleAddPiltoverModule = (team: 'player' | 'enemy', item: RawItem) => {
+    const modules = team === 'player' ? playerPiltoverModules : enemyPiltoverModules;
+    const traits = team === 'player' ? playerTraits : enemyTraits;
+    const validation = canAddPiltoverModule(item, modules, traits);
+    if (!validation.canEquip) return;
+
+    const setModules = team === 'player' ? setPlayerPiltoverModules : setEnemyPiltoverModules;
+    setModules(prev => [...prev, item]);
+  };
+
+  const handleRemovePiltoverModule = (team: 'player' | 'enemy', index: number) => {
+    const setModules = team === 'player' ? setPlayerPiltoverModules : setEnemyPiltoverModules;
+    setModules(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleStarChange = (team: 'player' | 'enemy', index: number, level: number) => {
@@ -292,6 +336,38 @@ export default function SimulatorPage() {
     const setTeam = team === 'player' ? updatePlayerTeam : updateEnemyTeam;
     setTeam(prev => prev.filter((_, i) => i !== index));
     setSelectedUnit(null);
+  };
+
+  const handleAddAugment = (team: 'player' | 'enemy', aug: RawAugment) => {
+    const setAugs = team === 'player' ? setPlayerAugments : setEnemyAugments;
+    const setStacks = team === 'player' ? setPlayerAugmentStacks : setEnemyAugmentStacks;
+    setAugs(prev => {
+      if (prev.length >= 3) return prev;
+      return [...prev, aug];
+    });
+    const startStacks = getDefaultStacks(aug);
+    setStacks(prev => ({ ...prev, [aug.apiName]: startStacks }));
+    setShowAugmentPicker(null);
+  };
+
+  const handleRemoveAugment = (team: 'player' | 'enemy', index: number) => {
+    const augs = team === 'player' ? playerAugments : enemyAugments;
+    const removed = augs[index];
+    const setAugs = team === 'player' ? setPlayerAugments : setEnemyAugments;
+    const setStacks = team === 'player' ? setPlayerAugmentStacks : setEnemyAugmentStacks;
+    setAugs(prev => prev.filter((_, i) => i !== index));
+    if (removed) {
+      setStacks(prev => {
+        const next = { ...prev };
+        delete next[removed.apiName];
+        return next;
+      });
+    }
+  };
+
+  const handleAugmentStacksChange = (team: 'player' | 'enemy', apiName: string, count: number) => {
+    const setStacks = team === 'player' ? setPlayerAugmentStacks : setEnemyAugmentStacks;
+    setStacks(prev => ({ ...prev, [apiName]: count }));
   };
 
   const handleCycleStars = (team: 'player' | 'enemy', index: number) => {
@@ -386,12 +462,18 @@ export default function SimulatorPage() {
 
     setTimeout(() => {
       const mappedPlayer = toEightRowCoords(playerTeam, 4);
-      const result = simulateCombat(mappedPlayer, enemyTeam, { seed: 42, allTraits: traits, skipMirror: true });
+      const result = simulateCombat(mappedPlayer, enemyTeam, {
+        seed: 42, allTraits: traits, skipMirror: true,
+        playerAugments, playerAugmentStacks,
+        enemyAugments, enemyAugmentStacks,
+      });
       setCombatResult(result);
       setIsRunning(false);
       setViewMode('replay');
+      setReplayTick(0);
+      setIsPlaying(true);
     }, 100);
-  }, [playerTeam, enemyTeam, traits, toEightRowCoords]);
+  }, [playerTeam, enemyTeam, traits, playerAugments, playerAugmentStacks, enemyAugments, enemyAugmentStacks, toEightRowCoords]);
 
   const runMultiple = useCallback(() => {
     if (playerTeam.length === 0 || enemyTeam.length === 0) return;
@@ -404,7 +486,11 @@ export default function SimulatorPage() {
       const N = 100;
       let lastResult: CombatResult | null = null;
       for (let i = 0; i < N; i++) {
-        const r = simulateCombat(mappedPlayer, enemyTeam, { seed: i + 1, allTraits: traits, skipMirror: true });
+        const r = simulateCombat(mappedPlayer, enemyTeam, {
+          seed: i + 1, allTraits: traits, skipMirror: true,
+          playerAugments, playerAugmentStacks,
+          enemyAugments, enemyAugmentStacks,
+        });
         if (r.winner === 'player') playerWins++;
         else if (r.winner === 'enemy') enemyWins++;
         else draws++;
@@ -420,7 +506,7 @@ export default function SimulatorPage() {
       setViewMode('replay');
       setReplayTick(lastResult ? lastResult.snapshots.length - 1 : 0);
     }, 100);
-  }, [playerTeam, enemyTeam, traits, toEightRowCoords]);
+  }, [playerTeam, enemyTeam, traits, playerAugments, playerAugmentStacks, enemyAugments, enemyAugmentStacks, toEightRowCoords]);
 
   const filteredLogs = useMemo(() => {
     if (!combatResult) return [];
@@ -464,7 +550,7 @@ export default function SimulatorPage() {
           </div>
           <div className="flex gap-2">
             <button
-              onClick={() => { updatePlayerTeam([]); updateEnemyTeam([]); setSelectedUnit(null); }}
+              onClick={() => { updatePlayerTeam([]); updateEnemyTeam([]); setSelectedUnit(null); setPlayerAugments([]); setPlayerAugmentStacks({}); setEnemyAugments([]); setEnemyAugmentStacks({}); }}
               className="px-3 py-2 bg-[#1f2937] text-gray-500 hover:text-red-400 rounded-lg text-xs"
             >
               전체 초기화
@@ -517,12 +603,27 @@ export default function SimulatorPage() {
               {/* Left: Both Synergy panels + Selected unit */}
               <div className="w-52 shrink-0 space-y-3">
                 <SynergyPanel activeTraits={playerTraits} team="player" items={items} />
+                <PiltoverModulePanel
+                  modules={playerPiltoverModules}
+                  allItems={items}
+                  activeTraits={playerTraits}
+                  onAddModule={(item) => handleAddPiltoverModule('player', item)}
+                  onRemoveModule={(idx) => handleRemovePiltoverModule('player', idx)}
+                />
                 <SynergyPanel activeTraits={enemyTraits} team="enemy" items={items} />
+                <PiltoverModulePanel
+                  modules={enemyPiltoverModules}
+                  allItems={items}
+                  activeTraits={enemyTraits}
+                  onAddModule={(item) => handleAddPiltoverModule('enemy', item)}
+                  onRemoveModule={(idx) => handleRemovePiltoverModule('enemy', idx)}
+                />
                 {selectedUnit && selectedPlaced && (
                   <SelectedUnitPanel
                     placed={selectedPlaced}
                     team={selectedUnit.team}
                     allItems={items}
+                    activeTraits={selectedUnit.team === 'player' ? playerTraits : enemyTraits}
                     onStarChange={(level) => handleStarChange(selectedUnit.team, selectedUnit.index, level)}
                     onEquipItem={(item) => handleEquipItem(selectedUnit.team, selectedUnit.index, item)}
                     onRemoveItem={(itemIdx) => handleRemoveItem(selectedUnit.team, selectedUnit.index, itemIdx)}
@@ -595,11 +696,34 @@ export default function SimulatorPage() {
                     </div>
                   </div>
                 </div>
+                {/* Augment slots under the board */}
+                <div className="mt-2 flex justify-between px-2">
+                  <div>
+                    <div className="text-[9px] text-red-400 font-bold mb-1">TEAM B 증강</div>
+                    <AugmentSlots
+                      augments={enemyAugments}
+                      augmentStacks={enemyAugmentStacks}
+                      onOpenSelector={() => setShowAugmentPicker('enemy')}
+                      onOpenDetail={(aug) => setAugmentDetailTarget({ aug, team: 'enemy' })}
+                      onRemove={(i) => handleRemoveAugment('enemy', i)}
+                    />
+                  </div>
+                  <div>
+                    <div className="text-[9px] text-blue-400 font-bold mb-1">TEAM A 증강</div>
+                    <AugmentSlots
+                      augments={playerAugments}
+                      augmentStacks={playerAugmentStacks}
+                      onOpenSelector={() => setShowAugmentPicker('player')}
+                      onOpenDetail={(aug) => setAugmentDetailTarget({ aug, team: 'player' })}
+                      onRemove={(i) => handleRemoveAugment('player', i)}
+                    />
+                  </div>
+                </div>
               </div>
 
               {/* Right: Champion/Item pool */}
-              <div className="w-64 shrink-0 bg-[#111827] rounded-xl border border-gray-800 p-3">
-                <div className="flex gap-2 mb-3">
+              <div className="w-64 shrink-0 bg-[#111827] rounded-xl border border-gray-800 p-3 flex flex-col self-start" style={{ maxHeight: 'calc(100vh - 120px)' }}>
+                <div className="flex gap-2 mb-3 shrink-0">
                   <button
                     onClick={() => setActivePoolTab('champions')}
                     className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
@@ -619,9 +743,11 @@ export default function SimulatorPage() {
                 </div>
 
                 {activePoolTab === 'champions' && (
-                  <div className="space-y-2">
-                    <SearchBar value={champSearch} onChange={setChampSearch} placeholder="챔피언/특성 검색..." />
-                    <div className="flex gap-1">
+                  <div className="flex flex-col min-h-0 flex-1 gap-2">
+                    <div className="shrink-0">
+                      <SearchBar value={champSearch} onChange={setChampSearch} placeholder="챔피언/특성 검색..." />
+                    </div>
+                    <div className="flex gap-1 shrink-0">
                       <button
                         className={`px-2 py-0.5 rounded text-[10px] font-medium ${champCostFilter === null ? 'bg-[#8b5cf6] text-white' : 'bg-[#1f2937] text-gray-400'}`}
                         onClick={() => setChampCostFilter(null)}
@@ -638,7 +764,7 @@ export default function SimulatorPage() {
                         </button>
                       ))}
                     </div>
-                    <div className="grid grid-cols-5 gap-1.5 max-h-[400px] overflow-y-auto p-1">
+                    <div className="grid grid-cols-5 gap-1.5 overflow-y-auto min-h-0 p-1">
                       {filteredChampions.map(c => (
                         <DraggableChampionCard key={c.apiName} champion={c} size={44} />
                       ))}
@@ -647,10 +773,55 @@ export default function SimulatorPage() {
                 )}
 
                 {activePoolTab === 'items' && (
-                  <div className="grid grid-cols-6 gap-1.5 max-h-[400px] overflow-y-auto p-1">
-                    {items.map(item => (
-                      <DraggableItemIcon key={item.apiName} item={item} size={32} />
-                    ))}
+                  <div className="flex flex-col min-h-0 flex-1 gap-2">
+                    <div className="shrink-0">
+                      <SearchBar value={itemSearch} onChange={setItemSearch} placeholder="아이템 검색..." />
+                    </div>
+                    <div className="flex gap-1 shrink-0">
+                      {([
+                        { key: 'all' as ItemFilterTab, label: '전체' },
+                        { key: 'combined' as ItemFilterTab, label: '완성' },
+                        { key: 'artifact' as ItemFilterTab, label: '유물' },
+                        { key: 'radiant' as ItemFilterTab, label: '찬란' },
+                        { key: 'emblem' as ItemFilterTab, label: '상징' },
+                      ]).map(({ key, label }) => (
+                        <button
+                          key={key}
+                          className={`px-2 py-0.5 rounded text-[10px] font-medium ${itemCategoryFilter === key ? 'bg-[#8b5cf6] text-white' : 'bg-[#1f2937] text-gray-400'}`}
+                          onClick={() => setItemCategoryFilter(key)}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="grid grid-cols-6 gap-1.5 overflow-y-auto min-h-0 p-1">
+                      {items.filter(item => {
+                        if (isDisabledItem(item)) return false;
+                        const cat = getItemCategory(item);
+                        if (cat === 'piltover' || cat === 'special') return false;
+                        if (cat === 'bilgewater') {
+                          const bgTrait = playerTraits.find(t => t.trait.apiName === 'TFT16_Bilgewater')
+                            ?? enemyTraits.find(t => t.trait.apiName === 'TFT16_Bilgewater');
+                          if (!bgTrait || !bgTrait.activeEffect) return false;
+                          if (Object.keys(item.effects).length === 0) return false;
+                        }
+                        if (cat === 'void') {
+                          const voidTrait = playerTraits.find(t => t.trait.apiName === 'TFT16_Void')
+                            ?? enemyTraits.find(t => t.trait.apiName === 'TFT16_Void');
+                          if (!voidTrait || !voidTrait.activeEffect) return false;
+                        }
+                        if (itemSearch && !item.name.toLowerCase().includes(itemSearch.toLowerCase())) return false;
+                        if (itemCategoryFilter !== 'all') {
+                          if (cat === 'bilgewater' || cat === 'void' || cat === 'darkin') {
+                            if (itemCategoryFilter !== 'combined') return false;
+                          } else if (cat !== itemCategoryFilter) return false;
+                        }
+                        // 상징/찬란은 always show when filter is 'all'
+                        return true;
+                      }).map(item => (
+                        <DraggableItemIcon key={item.apiName} item={item} size={32} />
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
@@ -911,6 +1082,29 @@ export default function SimulatorPage() {
         <Modal isOpen={showPicker} onClose={() => setShowPicker(false)} title="챔피언 선택">
           <ChampionGrid champions={champions} onSelect={handleChampionSelect} />
         </Modal>
+
+        {/* Augment picker modal */}
+        <Modal isOpen={showAugmentPicker !== null} onClose={() => setShowAugmentPicker(null)} title="증강 선택">
+          {showAugmentPicker && (
+            <AugmentSelector
+              augments={augments}
+              onSelect={(aug) => handleAddAugment(showAugmentPicker, aug)}
+              selectedApiNames={[...playerAugments, ...enemyAugments].map(a => a.apiName)}
+            />
+          )}
+        </Modal>
+
+        {/* Augment detail popup */}
+        <AugmentDetailPopup
+          augment={augmentDetailTarget?.aug ?? null}
+          stacks={augmentDetailTarget ? (augmentDetailTarget.team === 'player' ? playerAugmentStacks : enemyAugmentStacks)[augmentDetailTarget.aug.apiName] ?? 1 : 1}
+          onStacksChange={(count) => {
+            if (augmentDetailTarget) {
+              handleAugmentStacksChange(augmentDetailTarget.team, augmentDetailTarget.aug.apiName, count);
+            }
+          }}
+          onClose={() => setAugmentDetailTarget(null)}
+        />
 
         {/* DragOverlay */}
         <DragOverlay>

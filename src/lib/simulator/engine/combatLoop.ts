@@ -6,7 +6,7 @@ import {
 import { calculateStats } from '@/lib/simulator/systems/stat';
 import { getAbilityDamage } from '@/lib/simulator/systems/ability';
 import { canAttack, getMoveTicks, findBestMoveToward, coordKey } from '@/lib/simulator/systems/movement';
-import { TICK_DURATION, MAX_TICKS } from '@/lib/simulator/models/constants';
+import { TICK_DURATION, MAX_TICKS, TICKS_PER_SECOND } from '@/lib/simulator/models/constants';
 import { createRNG, SeededRNG } from '@/lib/simulator/engine/rng';
 import { captureSnapshot } from '@/lib/simulator/engine/replayEngine';
 import { findTarget } from '@/lib/simulator/systems/targeting';
@@ -14,13 +14,15 @@ import { gainManaOnAttack, gainManaPerTick, gainManaOnDamageTaken } from '@/lib/
 import { EventBus } from '@/lib/simulator/events/eventBus';
 import { ROLE_OMNIVAMP } from '@/lib/simulator/models/unit';
 import { resolveTraits } from '@/lib/simulator/systems/trait';
-import { resolveAugmentEffects } from '@/lib/simulator/systems/augment';
+import { resolveAugmentEffects, resolveInCombatAugmentEffects, resolvePerUnitMods, applyPerUnitMods, AugmentWithStacks } from '@/lib/simulator/systems/augment';
 
 export interface SimulateOptions {
   seed?: number;
   allTraits?: RawTrait[];
   playerAugments?: RawAugment[];
   enemyAugments?: RawAugment[];
+  playerAugmentStacks?: Record<string, number>;
+  enemyAugmentStacks?: Record<string, number>;
   /** When true, enemy positions are used as-is (no mirror). Use when positions are already in 8-row space. */
   skipMirror?: boolean;
 }
@@ -55,7 +57,13 @@ function createCombatUnit(
     totalDamageTaken: 0,
     statusEffects: [],
     omnivamp: ROLE_OMNIVAMP[role],
+    damageAmp: 0,
+    damageReduction: 0,
     shield: 0,
+    augmentManaRegen: 0,
+    augmentGrievousWounds: 0,
+    augmentExecuteThreshold: 0,
+    augmentBurnPercent: 0,
   };
 }
 
@@ -167,7 +175,13 @@ function spawnFreljordTurrets(
             totalDamageTaken: 0,
             statusEffects: [],
             omnivamp: 0,
+            damageAmp: 0,
+            damageReduction: 0,
             shield: 0,
+            augmentManaRegen: 0,
+            augmentGrievousWounds: 0,
+            augmentExecuteThreshold: 0,
+            augmentBurnPercent: 0,
           };
           // Store stun duration for prismatic tier
           if (stunDuration > 0) {
@@ -248,8 +262,21 @@ export function simulateCombat(
     : seedOrOptions;
   const seed = options.seed ?? 42;
   const allTraits = options.allTraits ?? [];
-  const playerAugmentEffects = resolveAugmentEffects(options.playerAugments ?? []);
-  const enemyAugmentEffects = resolveAugmentEffects(options.enemyAugments ?? []);
+
+  const playerAugsWithStacks: AugmentWithStacks[] = (options.playerAugments ?? []).map(aug => ({
+    augment: aug,
+    stackCount: options.playerAugmentStacks?.[aug.apiName] ?? 1,
+  }));
+  const enemyAugsWithStacks: AugmentWithStacks[] = (options.enemyAugments ?? []).map(aug => ({
+    augment: aug,
+    stackCount: options.enemyAugmentStacks?.[aug.apiName] ?? 1,
+  }));
+
+  const playerAugmentEffects = resolveAugmentEffects(playerAugsWithStacks);
+  const enemyAugmentEffects = resolveAugmentEffects(enemyAugsWithStacks);
+
+  const playerInCombatEffects = resolveInCombatAugmentEffects(playerAugsWithStacks);
+  const enemyInCombatEffects = resolveInCombatAugmentEffects(enemyAugsWithStacks);
 
   const playerActiveTraits = resolveTraits(allyTeam, allTraits);
   const enemyActiveTraits = resolveTraits(enemyTeam, allTraits);
@@ -257,10 +284,18 @@ export function simulateCombat(
   const rng: SeededRNG = createRNG(seed);
   const eventBus = new EventBus();
 
-  const playerUnits = allyTeam.map((p, i) => createCombatUnit(p, 'player', i, playerActiveTraits, playerAugmentEffects));
+  const playerUnits = allyTeam.map((p, i) => {
+    const unit = createCombatUnit(p, 'player', i, playerActiveTraits, playerAugmentEffects);
+    const mod = resolvePerUnitMods(playerAugsWithStacks, p.champion);
+    applyPerUnitMods(unit, mod);
+    return unit;
+  });
   const enemies = enemyTeam.map((p, i) => {
     const positioned = options.skipMirror ? p : { ...p, position: mirrorPosition(p.position) };
-    return createCombatUnit(positioned, 'enemy', i, enemyActiveTraits, enemyAugmentEffects);
+    const unit = createCombatUnit(positioned, 'enemy', i, enemyActiveTraits, enemyAugmentEffects);
+    const mod = resolvePerUnitMods(enemyAugsWithStacks, p.champion);
+    applyPerUnitMods(unit, mod);
+    return unit;
   });
 
   // Apply trait omnivamp bonuses
@@ -302,6 +337,29 @@ export function simulateCombat(
 
     if (alivePlayers.length === 0 || aliveEnemies.length === 0) break;
 
+    // In-combat augment effects (apply every second = every 30 ticks)
+    if (tick > 0 && tick % TICKS_PER_SECOND === 0) {
+      const combatSecond = tick / TICKS_PER_SECOND;
+      for (const effect of playerInCombatEffects) {
+        if (combatSecond <= effect.maxDuration) {
+          const pctBonus = effect.statsPerSecond / 100;
+          for (const u of alivePlayers) {
+            u.stats.damage = u.stats.damage * (1 + pctBonus);
+            u.stats.ap = u.stats.ap + effect.statsPerSecond;
+          }
+        }
+      }
+      for (const effect of enemyInCombatEffects) {
+        if (combatSecond <= effect.maxDuration) {
+          const pctBonus = effect.statsPerSecond / 100;
+          for (const u of aliveEnemies) {
+            u.stats.damage = u.stats.damage * (1 + pctBonus);
+            u.stats.ap = u.stats.ap + effect.statsPerSecond;
+          }
+        }
+      }
+    }
+
     // Piltover invention trigger
     applyPiltoverInvention(playerActiveTraits, playerUnits, tick, logs, tickLogs, time);
     applyPiltoverInvention(enemyActiveTraits, enemies, tick, logs, tickLogs, time);
@@ -315,6 +373,11 @@ export function simulateCombat(
 
       tickStatusEffects(unit);
       gainManaPerTick(unit, TICK_DURATION);
+
+      // Augment mana regen (per second, applied per tick)
+      if (unit.augmentManaRegen > 0) {
+        unit.currentMana = Math.min(unit.maxMana, unit.currentMana + unit.augmentManaRegen * TICK_DURATION);
+      }
 
       if (unit.attackCooldown > 0) unit.attackCooldown--;
       if (unit.moveCooldown > 0) {
@@ -338,8 +401,13 @@ export function simulateCombat(
 
           const isCrit = rng.next() < unit.stats.critChance;
           const critMult = isCrit ? unit.stats.critMultiplier : 1;
-          const rawDamage = unit.stats.damage * critMult;
+          const rawDamage = unit.stats.damage * critMult * (1 + unit.damageAmp);
           let finalDamage = applyResistance(rawDamage, target.stats.armor, unit.stats.armorPen);
+
+          // Apply target's damage reduction from augments
+          if (target.damageReduction > 0) {
+            finalDamage *= (1 - target.damageReduction);
+          }
 
           finalDamage = applyShield(target, finalDamage, eventBus, tick);
 
@@ -352,9 +420,21 @@ export function simulateCombat(
           unit.totalDamageDealt += finalDamage;
 
           if (unit.omnivamp > 0 && finalDamage > 0) {
-            const heal = finalDamage * unit.omnivamp;
+            const grievousReduction = target.augmentGrievousWounds > 0 ? (1 - target.augmentGrievousWounds) : 1;
+            const heal = finalDamage * unit.omnivamp * grievousReduction;
             unit.currentHp = Math.min(unit.maxHp, unit.currentHp + heal);
             eventBus.emit('on_heal', { sourceId: unit.id, value: heal, tick });
+          }
+
+          // Augment burn: apply burn DoT on auto-attack
+          if (unit.augmentBurnPercent > 0) {
+            const burnDmg = target.maxHp * unit.augmentBurnPercent;
+            const burnPerTick = burnDmg / (TICKS_PER_SECOND * 3); // 3초간 도트
+            target.statusEffects.push({
+              type: 'burn', sourceId: unit.id,
+              remainingTicks: TICKS_PER_SECOND * 3,
+              value: burnPerTick,
+            });
           }
 
           gainManaOnAttack(unit);
@@ -384,7 +464,11 @@ export function simulateCombat(
               : dmgType === 'physical' ? target.stats.armor : 0;
             const pen = dmgType === 'magic' ? unit.stats.magicPen
               : dmgType === 'physical' ? unit.stats.armorPen : 0;
-            let effectiveAbilityDmg = applyResistance(abilityDmg, resistance, pen);
+            let effectiveAbilityDmg = applyResistance(abilityDmg * (1 + unit.damageAmp), resistance, pen);
+
+            if (target.damageReduction > 0) {
+              effectiveAbilityDmg *= (1 - target.damageReduction);
+            }
 
             effectiveAbilityDmg = applyShield(target, effectiveAbilityDmg, eventBus, tick);
 
@@ -397,7 +481,8 @@ export function simulateCombat(
             unit.totalDamageDealt += effectiveAbilityDmg;
 
             if (unit.omnivamp > 0 && effectiveAbilityDmg > 0) {
-              const heal = effectiveAbilityDmg * unit.omnivamp;
+              const grievousReduction = target.augmentGrievousWounds > 0 ? (1 - target.augmentGrievousWounds) : 1;
+              const heal = effectiveAbilityDmg * unit.omnivamp * grievousReduction;
               unit.currentHp = Math.min(unit.maxHp, unit.currentHp + heal);
             }
 
@@ -414,7 +499,12 @@ export function simulateCombat(
             tickLogs.push(abilityLog);
           }
 
-          if (target.currentHp <= 0) {
+          // Execute threshold: kill if below HP %
+          const shouldExecute = unit.augmentExecuteThreshold > 0
+            && target.currentHp > 0
+            && target.currentHp / target.maxHp < unit.augmentExecuteThreshold;
+
+          if (target.currentHp <= 0 || shouldExecute) {
             target.state = 'dead';
             target.currentHp = 0;
             eventBus.emit('on_kill', { sourceId: unit.id, targetId: target.id, tick });
@@ -422,7 +512,9 @@ export function simulateCombat(
             const deathLog: CombatLog = {
               tick, time, type: 'death',
               sourceId: target.id,
-              message: `${target.champion.name} 사망!`,
+              message: shouldExecute && target.currentHp > 0
+                ? `${target.champion.name} 처형됨! (HP ${Math.round(unit.augmentExecuteThreshold * 100)}% 이하)`
+                : `${target.champion.name} 사망!`,
             };
             logs.push(deathLog);
             tickLogs.push(deathLog);
