@@ -22,7 +22,7 @@ function getTeamFromRow(row: number): 'player' | 'enemy' {
   return row < 4 ? 'enemy' : 'player';
 }
 
-/** 프렐요드 포탑 효과 범위 계산 — 전방(체력)/후방(피해증폭) */
+/** 프렐요드 포탑 효과 범위 계산 — 포탑 행 기준 전방(체력)/후방(피해증폭) 전체 행 */
 function getTurretEffectZones(
   playerChampions: PlacedChampion[],
   enemyChampions: PlacedChampion[],
@@ -39,20 +39,19 @@ function getTurretEffectZones(
 
   for (const turret of turrets) {
     const tRow = turret.displayRow;
-    const tCol = axialToOffset(turret.position).col;
     const isPlayerTurret = tRow >= 4;
 
-    // 같은 열 +-1 범위에서 전방/후방 구분
+    // 포탑 행 기준 전방/후방 — 전체 열에 적용
     for (let r = 0; r < ROWS; r++) {
-      for (let c = Math.max(0, tCol - 1); c <= Math.min(6, tCol + 1); c++) {
-        if (r === tRow) continue; // 포탑 자체 위치 제외
+      if (r === tRow) continue;
+      for (let c = 0; c < BOARD_COLS; c++) {
         const key = `${r}-${c}`;
         if (isPlayerTurret) {
-          // player 포탑: 전방 = row < tRow (적 방향), 후방 = row > tRow
+          // player 포탑: 전방 = row < tRow (적 방향), 후방 = row > tRow (아군 뒤)
           if (r < tRow) front.add(key);
           else back.add(key);
         } else {
-          // enemy 포탑: 전방 = row > tRow (player 방향), 후방 = row < tRow
+          // enemy 포탑: 전방 = row > tRow, 후방 = row < tRow
           if (r > tRow) front.add(key);
           else back.add(key);
         }
