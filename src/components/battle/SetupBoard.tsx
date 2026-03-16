@@ -174,21 +174,37 @@ export default function SetupBoard({
         })}
       </defs>
 
+      {/* Team background tint */}
+      <rect x={0} y={0} width={width} height={4 * (HEX_H * 0.75 + PAD) + 10} fill="#ef444408" rx={8} />
+      <rect x={0} y={4 * (HEX_H * 0.75 + PAD) + 10} width={width} height={height - (4 * (HEX_H * 0.75 + PAD) + 10)} fill="#3b82f608" rx={8} />
+
       {/* Dividing line between enemy/player */}
       <line
         x1={10}
         y1={4 * (HEX_H * 0.75 + PAD) + 10}
         x2={width - 10}
         y2={4 * (HEX_H * 0.75 + PAD) + 10}
-        stroke="#374151"
-        strokeWidth={1}
-        strokeDasharray="4,4"
+        stroke="#4b5563"
+        strokeWidth={2}
+        strokeDasharray="6,4"
       />
-      <text x={width - 16} y={4 * (HEX_H * 0.75 + PAD) + 6} textAnchor="end" fill="#ef4444" fontSize="8" opacity={0.6}>
+
+      {/* Team labels - right side */}
+      <text x={width - 12} y={4 * (HEX_H * 0.75 + PAD)} textAnchor="end" fill="#ef4444" fontSize="11" fontWeight="bold" opacity={0.7}>
         TEAM B
       </text>
-      <text x={width - 16} y={4 * (HEX_H * 0.75 + PAD) + 18} textAnchor="end" fill="#3b82f6" fontSize="8" opacity={0.6}>
+      <text x={width - 12} y={4 * (HEX_H * 0.75 + PAD) + 24} textAnchor="end" fill="#3b82f6" fontSize="11" fontWeight="bold" opacity={0.7}>
         TEAM A
+      </text>
+
+      {/* Team labels - left side vertical */}
+      <text x={8} y={2 * (HEX_H * 0.75 + PAD) + HEX_R} textAnchor="middle" fill="#ef4444" fontSize="10" fontWeight="bold" opacity={0.4}
+        transform={`rotate(-90, 8, ${2 * (HEX_H * 0.75 + PAD) + HEX_R})`}>
+        B
+      </text>
+      <text x={8} y={6 * (HEX_H * 0.75 + PAD) + HEX_R} textAnchor="middle" fill="#3b82f6" fontSize="10" fontWeight="bold" opacity={0.4}
+        transform={`rotate(-90, 8, ${6 * (HEX_H * 0.75 + PAD) + HEX_R})`}>
+        A
       </text>
 
       {Array.from({ length: ROWS }, (_, row) =>
@@ -201,7 +217,7 @@ export default function SetupBoard({
           const zoneKey = `${row}-${col}`;
           const isFrontZone = turretZones.front.has(zoneKey);
           const isBackZone = turretZones.back.has(zoneKey);
-          const bgTint = isFrontZone ? '#152515' : isBackZone ? '#251a15' : team === 'enemy' ? '#1a1520' : '#151a20';
+          const bgTint = isFrontZone ? '#152515' : isBackZone ? '#251a15' : team === 'enemy' ? '#1c1018' : '#101820';
           const costColor = result ? COST_COLORS[result.placed.champion.cost] : undefined;
           const teamHighlight = team === 'player' ? '#3b82f6' : '#ef4444';
 
