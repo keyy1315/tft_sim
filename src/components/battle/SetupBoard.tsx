@@ -22,6 +22,47 @@ function getTeamFromRow(row: number): 'player' | 'enemy' {
   return row < 4 ? 'enemy' : 'player';
 }
 
+/** 프렐요드 포탑 효과 범위 계산 — 전방(체력)/후방(피해증폭) */
+function getTurretEffectZones(
+  playerChampions: PlacedChampion[],
+  enemyChampions: PlacedChampion[],
+): { front: Set<string>; back: Set<string> } {
+  const front = new Set<string>();
+  const back = new Set<string>();
+
+  const allChamps = [
+    ...playerChampions.map(p => ({ ...p, displayRow: axialToOffset(p.position).row + 4 })),
+    ...enemyChampions.map(p => ({ ...p, displayRow: axialToOffset(p.position).row })),
+  ];
+
+  const turrets = allChamps.filter(p => p.champion.apiName === 'TFT16_FreljordTurret');
+
+  for (const turret of turrets) {
+    const tRow = turret.displayRow;
+    const tCol = axialToOffset(turret.position).col;
+    const isPlayerTurret = tRow >= 4;
+
+    // 같은 열 +-1 범위에서 전방/후방 구분
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = Math.max(0, tCol - 1); c <= Math.min(6, tCol + 1); c++) {
+        if (r === tRow) continue; // 포탑 자체 위치 제외
+        const key = `${r}-${c}`;
+        if (isPlayerTurret) {
+          // player 포탑: 전방 = row < tRow (적 방향), 후방 = row > tRow
+          if (r < tRow) front.add(key);
+          else back.add(key);
+        } else {
+          // enemy 포탑: 전방 = row > tRow (player 방향), 후방 = row < tRow
+          if (r > tRow) front.add(key);
+          else back.add(key);
+        }
+      }
+    }
+  }
+
+  return { front, back };
+}
+
 export default function SetupBoard({
   playerChampions,
   enemyChampions,
@@ -35,6 +76,9 @@ export default function SetupBoard({
   const cols = BOARD_COLS;
   const width = cols * (HEX_W + PAD) + HEX_W / 2 + 40;
   const height = ROWS * (HEX_H * 0.75 + PAD) + HEX_R + 40;
+
+  // 프렐요드 포탑 효과 범위
+  const turretZones = getTurretEffectZones(playerChampions, enemyChampions);
 
   const selectedOffset = selectedCell ? axialToOffset(selectedCell) : null;
 
@@ -111,7 +155,10 @@ export default function SetupBoard({
           const team = getTeamFromRow(row);
           const sel = isSelected(row, col);
           const unitSel = result ? isUnitSelected(result.team, result.index) : false;
-          const bgTint = team === 'enemy' ? '#1a1520' : '#151a20';
+          const zoneKey = `${row}-${col}`;
+          const isFrontZone = turretZones.front.has(zoneKey);
+          const isBackZone = turretZones.back.has(zoneKey);
+          const bgTint = isFrontZone ? '#152515' : isBackZone ? '#251a15' : team === 'enemy' ? '#1a1520' : '#151a20';
           const costColor = result ? COST_COLORS[result.placed.champion.cost] : undefined;
           const teamHighlight = team === 'player' ? '#3b82f6' : '#ef4444';
 
@@ -148,8 +195,8 @@ export default function SetupBoard({
               <polygon
                 points={hexPoints(cx, cy, HEX_R)}
                 fill={result ? `url(#setup-img-${row}-${col})` : bgTint}
-                stroke={unitSel ? '#f59e0b' : sel ? teamHighlight : result ? costColor : '#2d3548'}
-                strokeWidth={unitSel ? 2.5 : sel ? 2.5 : result ? 2 : 1}
+                stroke={unitSel ? '#f59e0b' : sel ? teamHighlight : result ? costColor : isFrontZone ? '#22c55e40' : isBackZone ? '#f59e0b40' : '#2d3548'}
+                strokeWidth={unitSel ? 2.5 : sel ? 2.5 : result ? 2 : (isFrontZone || isBackZone) ? 1.5 : 1}
               />
               {result && result.placed.starLevel > 0 && (
                 <text x={cx} y={cy - HEX_R + 14} textAnchor="middle" fill="#f59e0b" fontSize="14" fontWeight="bold">

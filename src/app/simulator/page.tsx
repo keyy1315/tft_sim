@@ -44,6 +44,59 @@ function parseCellId(id: string): { row: number; col: number } | null {
   return { row: parseInt(match[1]), col: parseInt(match[2]) };
 }
 
+const FRELJORD_TURRET: RawChampion = {
+  name: '얼어붙은 포탑',
+  apiName: 'TFT16_FreljordTurret',
+  cost: 0,
+  traits: ['프렐요드'],
+  role: null,
+  stats: { armor: 40, attackSpeed: 1.0, critChance: 0, critMultiplier: 1.5, damage: 50, hp: 800, initialMana: 0, magicResist: 40, mana: 0, range: 3 },
+  ability: { name: '냉기 사격', desc: '전방: 체력 버프, 후방: 피해 증폭', icon: '', variables: [] },
+};
+
+/** 프렐요드 챔피언 수에 따른 포탑 수 계산 (traits 없이 팀 배열만으로) */
+function getFreljordTurretCount(team: PlacedChampion[]): number {
+  const freljordCount = team.filter(p =>
+    p.champion.traits.includes('프렐요드') && p.champion.apiName !== 'TFT16_FreljordTurret'
+  ).length;
+  if (freljordCount >= 7) return 2;
+  if (freljordCount >= 5) return 2;
+  if (freljordCount >= 3) return 1;
+  return 0;
+}
+
+/** 프렐요드 포탑 동기화 — 시너지에 맞게 포탑 추가/제거 */
+function syncFreljordTurretsInTeam(team: PlacedChampion[]): PlacedChampion[] {
+  const turretCount = getFreljordTurretCount(team);
+  const currentTurrets = team.filter(p => p.champion.apiName === 'TFT16_FreljordTurret');
+  const nonTurrets = team.filter(p => p.champion.apiName !== 'TFT16_FreljordTurret');
+
+  if (turretCount === 0) {
+    return currentTurrets.length > 0 ? nonTurrets : team;
+  }
+
+  // 포탑 수가 맞으면 그대로
+  if (currentTurrets.length === turretCount) return team;
+
+  // 포탑이 너무 많으면 제거
+  if (currentTurrets.length > turretCount) {
+    return [...nonTurrets, ...currentTurrets.slice(0, turretCount)];
+  }
+
+  // 포탑이 부족하면 추가
+  const result = [...nonTurrets, ...currentTurrets];
+  const occupied = new Set(result.map(p => `${p.position.q},${p.position.r}`));
+  for (let i = currentTurrets.length; i < turretCount; i++) {
+    // 중앙에서부터 빈 칸 찾기
+    const pos = findEmptyAdjacentHex({ q: 1, r: 1 }, occupied, 3);
+    if (pos) {
+      result.push({ champion: FRELJORD_TURRET, position: pos, starLevel: 1, items: [] });
+      occupied.add(`${pos.q},${pos.r}`);
+    }
+  }
+  return result;
+}
+
 const TIBBERS_CHAMPION: RawChampion = {
   name: '티버',
   apiName: 'TFT16_AnnieTibbers',
@@ -108,10 +161,16 @@ export default function SimulatorPage() {
   const [enemyTeam, setEnemyTeamRaw] = useState<PlacedChampion[]>([]);
 
   const updatePlayerTeam = (action: PlacedChampion[] | ((prev: PlacedChampion[]) => PlacedChampion[])) => {
-    setPlayerTeamRaw(prev => syncTibbersInTeam(typeof action === 'function' ? action(prev) : action));
+    setPlayerTeamRaw(prev => {
+      const updated = typeof action === 'function' ? action(prev) : action;
+      return syncFreljordTurretsInTeam(syncTibbersInTeam(updated));
+    });
   };
   const updateEnemyTeam = (action: PlacedChampion[] | ((prev: PlacedChampion[]) => PlacedChampion[])) => {
-    setEnemyTeamRaw(prev => syncTibbersInTeam(typeof action === 'function' ? action(prev) : action));
+    setEnemyTeamRaw(prev => {
+      const updated = typeof action === 'function' ? action(prev) : action;
+      return syncFreljordTurretsInTeam(syncTibbersInTeam(updated));
+    });
   };
   // Augment state
   const [playerAugments, setPlayerAugments] = useState<RawAugment[]>([]);
@@ -320,9 +379,11 @@ export default function SimulatorPage() {
     setModules(prev => prev.filter((_, i) => i !== index));
   };
 
+  const isAutoUnit = (apiName: string) => apiName === 'TFT16_AnnieTibbers' || apiName === 'TFT16_FreljordTurret';
+
   const handleStarChange = (team: 'player' | 'enemy', index: number, level: number) => {
     const teamArr = team === 'player' ? playerTeam : enemyTeam;
-    if (teamArr[index]?.champion.apiName === 'TFT16_AnnieTibbers') return;
+    if (teamArr[index] && isAutoUnit(teamArr[index].champion.apiName)) return;
     const setTeam = team === 'player' ? updatePlayerTeam : updateEnemyTeam;
     setTeam(prev => prev.map((p, i) => {
       if (i !== index) return p;
@@ -332,7 +393,7 @@ export default function SimulatorPage() {
 
   const handleRemoveUnit = (team: 'player' | 'enemy', index: number) => {
     const teamArr = team === 'player' ? playerTeam : enemyTeam;
-    if (teamArr[index]?.champion.apiName === 'TFT16_AnnieTibbers') return;
+    if (teamArr[index] && isAutoUnit(teamArr[index].champion.apiName)) return;
     const setTeam = team === 'player' ? updatePlayerTeam : updateEnemyTeam;
     setTeam(prev => prev.filter((_, i) => i !== index));
     setSelectedUnit(null);
@@ -372,7 +433,7 @@ export default function SimulatorPage() {
 
   const handleCycleStars = (team: 'player' | 'enemy', index: number) => {
     const teamArr = team === 'player' ? playerTeam : enemyTeam;
-    if (teamArr[index]?.champion.apiName === 'TFT16_AnnieTibbers') return;
+    if (teamArr[index] && isAutoUnit(teamArr[index].champion.apiName)) return;
     const setTeam = team === 'player' ? updatePlayerTeam : updateEnemyTeam;
     setTeam(prev => prev.map((p, i) => {
       if (i !== index) return p;
