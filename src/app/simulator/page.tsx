@@ -48,7 +48,7 @@ const FRELJORD_TURRET: RawChampion = {
   name: '얼어붙은 포탑',
   apiName: 'TFT16_FreljordTurret',
   cost: 0,
-  traits: ['프렐요드'],
+  traits: [],  // 포탑은 시너지 카운트에 포함되지 않음
   role: null,
   stats: { armor: 40, attackSpeed: 1.0, critChance: 0, critMultiplier: 1.5, damage: 50, hp: 800, initialMana: 0, magicResist: 40, mana: 0, range: 3 },
   ability: { name: '냉기 사격', desc: '전방: 체력 버프, 후방: 피해 증폭', icon: '', variables: [] },

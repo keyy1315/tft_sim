@@ -22,15 +22,24 @@ function getTeamFromRow(row: number): 'player' | 'enemy' {
   return row < 4 ? 'enemy' : 'player';
 }
 
-/** offset 좌표 기반 헥스 거리 (display row, col) */
-function hexDistOffset(r1: number, c1: number, r2: number, c2: number): number {
-  // offset → axial 변환 후 거리 계산
-  const q1 = c1 - Math.floor(r1 / 2), ax1r = r1;
-  const q2 = c2 - Math.floor(r2 / 2), ax2r = r2;
-  return (Math.abs(q1 - q2) + Math.abs(q1 + ax1r - q2 - ax2r) + Math.abs(ax1r - ax2r)) / 2;
+/** 헥스 인접 6칸 (offset 좌표 기준) */
+function getHexNeighbors(row: number, col: number): { r: number; c: number }[] {
+  const isOdd = row % 2 === 1;
+  if (isOdd) {
+    return [
+      { r: row - 1, c: col }, { r: row - 1, c: col + 1 },
+      { r: row, c: col - 1 }, { r: row, c: col + 1 },
+      { r: row + 1, c: col }, { r: row + 1, c: col + 1 },
+    ];
+  }
+  return [
+    { r: row - 1, c: col - 1 }, { r: row - 1, c: col },
+    { r: row, c: col - 1 }, { r: row, c: col + 1 },
+    { r: row + 1, c: col - 1 }, { r: row + 1, c: col },
+  ];
 }
 
-/** 프렐요드 포탑 효과 범위 — 포탑 중심 3칸(거리 2) 이내, 전방/후방 구분 */
+/** 프렐요드 포탑 효과 범위 — 인접 6칸 + 위 3칸 + 아래 3칸, 같은 팀 진영만 */
 function getTurretEffectZones(
   playerChampions: PlacedChampion[],
   enemyChampions: PlacedChampion[],
@@ -49,24 +58,41 @@ function getTurretEffectZones(
     const tRow = turret.displayRow;
     const tCol = turret.displayCol;
     const isPlayerTurret = tRow >= 4;
+    // 같은 팀 진영 범위
+    const teamMinRow = isPlayerTurret ? 4 : 0;
+    const teamMaxRow = isPlayerTurret ? 7 : 3;
 
-    // 포탑 중심 거리 2 이내의 모든 헥스
-    for (let r = 0; r < ROWS; r++) {
-      for (let c = 0; c < BOARD_COLS; c++) {
-        if (r === tRow && c === tCol) continue; // 포탑 자체 제외
-        const dist = hexDistOffset(tRow, tCol, r, c);
-        if (dist > 2) continue; // 3칸(거리 2) 범위 밖
+    // 1) 인접 6칸
+    const neighbors = getHexNeighbors(tRow, tCol);
+    for (const n of neighbors) {
+      if (n.r < teamMinRow || n.r > teamMaxRow || n.c < 0 || n.c >= BOARD_COLS) continue;
+      const key = `${n.r}-${n.c}`;
+      if (isPlayerTurret) {
+        if (n.r <= tRow) front.add(key); else back.add(key);
+      } else {
+        if (n.r >= tRow) front.add(key); else back.add(key);
+      }
+    }
 
-        const key = `${r}-${c}`;
-        if (isPlayerTurret) {
-          // player 포탑: 전방 = row <= tRow (적 방향 또는 같은 행), 후방 = row > tRow
-          if (r <= tRow) front.add(key);
-          else back.add(key);
-        } else {
-          // enemy 포탑: 전방 = row >= tRow, 후방 = row < tRow
-          if (r >= tRow) front.add(key);
-          else back.add(key);
-        }
+    // 2) 인접 6칸 중 위쪽 행의 인접 → 위로 확장 3칸
+    const upperNeighbors = neighbors.filter(n => n.r < tRow);
+    for (const un of upperNeighbors) {
+      const ext = getHexNeighbors(un.r, un.c);
+      for (const e of ext) {
+        if (e.r >= tRow || e.r < teamMinRow || e.c < 0 || e.c >= BOARD_COLS) continue;
+        const key = `${e.r}-${e.c}`;
+        if (isPlayerTurret) front.add(key); else back.add(key);
+      }
+    }
+
+    // 3) 인접 6칸 중 아래쪽 행의 인접 → 아래로 확장 3칸
+    const lowerNeighbors = neighbors.filter(n => n.r > tRow);
+    for (const ln of lowerNeighbors) {
+      const ext = getHexNeighbors(ln.r, ln.c);
+      for (const e of ext) {
+        if (e.r <= tRow || e.r > teamMaxRow || e.c < 0 || e.c >= BOARD_COLS) continue;
+        const key = `${e.r}-${e.c}`;
+        if (isPlayerTurret) back.add(key); else front.add(key);
       }
     }
   }
