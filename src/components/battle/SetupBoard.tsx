@@ -22,7 +22,15 @@ function getTeamFromRow(row: number): 'player' | 'enemy' {
   return row < 4 ? 'enemy' : 'player';
 }
 
-/** 프렐요드 포탑 효과 범위 계산 — 포탑 행 기준 전방(체력)/후방(피해증폭) 전체 행 */
+/** offset 좌표 기반 헥스 거리 (display row, col) */
+function hexDistOffset(r1: number, c1: number, r2: number, c2: number): number {
+  // offset → axial 변환 후 거리 계산
+  const q1 = c1 - Math.floor(r1 / 2), ax1r = r1;
+  const q2 = c2 - Math.floor(r2 / 2), ax2r = r2;
+  return (Math.abs(q1 - q2) + Math.abs(q1 + ax1r - q2 - ax2r) + Math.abs(ax1r - ax2r)) / 2;
+}
+
+/** 프렐요드 포탑 효과 범위 — 포탑 중심 3칸(거리 2) 이내, 전방/후방 구분 */
 function getTurretEffectZones(
   playerChampions: PlacedChampion[],
   enemyChampions: PlacedChampion[],
@@ -31,28 +39,32 @@ function getTurretEffectZones(
   const back = new Set<string>();
 
   const allChamps = [
-    ...playerChampions.map(p => ({ ...p, displayRow: axialToOffset(p.position).row + 4 })),
-    ...enemyChampions.map(p => ({ ...p, displayRow: axialToOffset(p.position).row })),
+    ...playerChampions.map(p => ({ ...p, displayRow: axialToOffset(p.position).row + 4, displayCol: axialToOffset(p.position).col })),
+    ...enemyChampions.map(p => ({ ...p, displayRow: axialToOffset(p.position).row, displayCol: axialToOffset(p.position).col })),
   ];
 
   const turrets = allChamps.filter(p => p.champion.apiName === 'TFT16_FreljordTurret');
 
   for (const turret of turrets) {
     const tRow = turret.displayRow;
+    const tCol = turret.displayCol;
     const isPlayerTurret = tRow >= 4;
 
-    // 포탑 행 기준 전방/후방 — 전체 열에 적용
+    // 포탑 중심 거리 2 이내의 모든 헥스
     for (let r = 0; r < ROWS; r++) {
-      if (r === tRow) continue;
       for (let c = 0; c < BOARD_COLS; c++) {
+        if (r === tRow && c === tCol) continue; // 포탑 자체 제외
+        const dist = hexDistOffset(tRow, tCol, r, c);
+        if (dist > 2) continue; // 3칸(거리 2) 범위 밖
+
         const key = `${r}-${c}`;
         if (isPlayerTurret) {
-          // player 포탑: 전방 = row < tRow (적 방향), 후방 = row > tRow (아군 뒤)
-          if (r < tRow) front.add(key);
+          // player 포탑: 전방 = row <= tRow (적 방향 또는 같은 행), 후방 = row > tRow
+          if (r <= tRow) front.add(key);
           else back.add(key);
         } else {
-          // enemy 포탑: 전방 = row > tRow, 후방 = row < tRow
-          if (r > tRow) front.add(key);
+          // enemy 포탑: 전방 = row >= tRow, 후방 = row < tRow
+          if (r >= tRow) front.add(key);
           else back.add(key);
         }
       }
