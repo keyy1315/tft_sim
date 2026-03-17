@@ -519,7 +519,7 @@ export default function SimulatorPage() {
 
     if (dragData.type === 'champion') {
       if (existingIdx >= 0) return; // occupied
-      setTeam(prev => [...prev, { champion: dragData.champion, position: pos, starLevel: 1, items: [] }]);
+      setTeam(prev => [...prev, { champion: dragData.champion, position: pos, starLevel: 2, items: [] }]);
     } else if (dragData.type === 'placed-unit') {
       // Move/swap within same team only
       if (dragData.team !== team) return;
