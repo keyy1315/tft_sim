@@ -390,6 +390,7 @@ export default function SimulatorPage() {
     const teamArr = team === 'player' ? playerTeam : enemyTeam;
     const placed = teamArr[index];
     if (!placed) return;
+    if (isAutoUnit(placed.champion.apiName)) return;
 
     const traits = team === 'player' ? playerTraits : enemyTraits;
     const validation = canEquipItem(item, placed, traits);
