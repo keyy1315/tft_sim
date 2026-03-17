@@ -76,7 +76,7 @@ export default function ItemGrid({ items, onSelect, activeTraits, champion }: It
           </button>
         ))}
       </div>
-      <div className="grid grid-cols-8 gap-1.5 max-h-[300px] overflow-y-auto p-1">
+      <div className="grid grid-cols-5 sm:grid-cols-6 lg:grid-cols-8 gap-1.5 max-h-[300px] overflow-y-auto p-1">
         {filtered.map((item) => {
           const validation = activeTraits && champion
             ? canEquipItem(item, champion, activeTraits)

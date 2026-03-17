@@ -28,6 +28,8 @@ export default function PiltoverModulePanel({
   const limit = getPiltoverModuleLimit(activeTraits);
   const piltoverItems = allItems.filter(i => getItemCategory(i) === 'piltover');
 
+  const [collapsed, setCollapsed] = useState(false);
+
   if (limit === 0) return null;
 
   const filteredPiltover = piltoverItems.filter(item => {
@@ -38,13 +40,21 @@ export default function PiltoverModulePanel({
   return (
     <div className="bg-[#111827] rounded-lg border border-cyan-700/30 p-2.5 space-y-2">
       <div className="flex items-center justify-between">
-        <div className="text-xs font-medium text-cyan-400">
-          필트오버 모듈 ({modules.length}/{limit})
+        <div className="flex items-center gap-2">
+          <div className="text-xs font-medium text-cyan-400">
+            필트오버 모듈 ({modules.length}/{limit})
+          </div>
+          <button
+            onClick={() => setCollapsed(c => !c)}
+            className="lg:hidden text-gray-500 text-xs p-1"
+          >
+            {collapsed ? '▼' : '▲'}
+          </button>
         </div>
         <div className="text-[10px] text-gray-500">8초 후 발동</div>
       </div>
 
-      <div className="flex gap-1.5 items-center">
+      <div className={`flex gap-1.5 items-center ${collapsed ? 'hidden lg:flex' : 'flex'}`}>
         {modules.map((mod, idx) => (
           <ItemIcon
             key={`${mod.apiName}-${idx}`}

@@ -54,7 +54,7 @@ export default function BattleControls({
       {/* Controls row */}
       <div className="flex items-center justify-between">
         {/* Time display */}
-        <div className="text-xs text-gray-500 font-mono min-w-[100px]">
+        <div className="text-xs text-gray-500 font-mono min-w-[70px] lg:min-w-[100px]">
           {timeSeconds}s / {totalSeconds}s
         </div>
 
@@ -91,7 +91,7 @@ export default function BattleControls({
         </div>
 
         {/* Speed selector */}
-        <div className="flex items-center gap-1 min-w-[100px] justify-end">
+        <div className="flex items-center gap-1 min-w-[70px] lg:min-w-[100px] justify-end">
           {([1, 2, 4] as const).map((s) => (
             <button
               key={s}

@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { COST_COLORS } from '@/types';
 import { getChampionImage } from '@/data/imageMap';
 
@@ -88,11 +89,14 @@ export default function UnitToken({
           borderColor,
         }}
       >
-        <img
+        <Image
           src={getChampionImage(championApiName)}
           alt={championName}
           className="w-full h-full object-cover"
           draggable={false}
+          width={imgSize}
+          height={imgSize}
+          unoptimized
         />
         {/* Status effect overlay icons */}
         {statusEffects.length > 0 && (

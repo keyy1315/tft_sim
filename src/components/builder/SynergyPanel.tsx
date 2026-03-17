@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { ActiveTrait, TRAIT_STYLE_COLORS, RawItem } from '@/types';
 import TraitEffectDetail from './TraitEffectDetail';
 
@@ -10,22 +11,41 @@ interface SynergyPanelProps {
 }
 
 export default function SynergyPanel({ activeTraits, team, items }: SynergyPanelProps) {
+  const [collapsed, setCollapsed] = useState(false);
   const teamLabel = team === 'player' ? 'TEAM A' : 'TEAM B';
   const teamColor = team === 'player' ? 'text-blue-400' : 'text-red-400';
 
   if (activeTraits.length === 0) {
     return (
       <div className="bg-[#111827] rounded-xl border border-gray-800 p-3">
-        <div className={`text-xs font-bold ${teamColor} mb-2`}>{teamLabel} 시너지</div>
-        <div className="text-xs text-gray-500">챔피언을 배치하면 시너지가 표시됩니다.</div>
+        <div className="flex items-center justify-between">
+          <div className={`text-xs font-bold ${teamColor}`}>{teamLabel} 시너지</div>
+          <button
+            onClick={() => setCollapsed(c => !c)}
+            className="lg:hidden text-gray-500 text-xs p-1"
+          >
+            {collapsed ? '▼' : '▲'}
+          </button>
+        </div>
+        <div className={`text-xs text-gray-500 mt-2 ${collapsed ? 'hidden lg:block' : 'block'}`}>
+          챔피언을 배치하면 시너지가 표시됩니다.
+        </div>
       </div>
     );
   }
 
   return (
     <div className="bg-[#111827] rounded-xl border border-gray-800 p-3">
-      <div className={`text-xs font-bold ${teamColor} mb-2`}>{teamLabel} 시너지</div>
-      <div className="space-y-1">
+      <div className="flex items-center justify-between">
+        <div className={`text-xs font-bold ${teamColor}`}>{teamLabel} 시너지</div>
+        <button
+          onClick={() => setCollapsed(c => !c)}
+          className="lg:hidden text-gray-500 text-xs p-1"
+        >
+          {collapsed ? '▼' : '▲'}
+        </button>
+      </div>
+      <div className={`space-y-1 mt-2 ${collapsed ? 'hidden lg:block' : 'block'}`}>
         {activeTraits.map((at) => {
           const color = TRAIT_STYLE_COLORS[at.style] || TRAIT_STYLE_COLORS[0];
           const isActive = at.style > 0;
