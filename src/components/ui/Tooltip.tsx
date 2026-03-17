@@ -19,29 +19,6 @@ interface TooltipProps {
   children: ReactNode;
 }
 
-function clampToViewport(tooltipEl: HTMLDivElement, anchorRect: DOMRect): React.CSSProperties {
-  const tt = tooltipEl.getBoundingClientRect();
-  const gap = 8;
-  const margin = 8;
-
-  // Vertical: prefer above, flip below if not enough space
-  let top: number;
-  if (anchorRect.top - tt.height - gap < 0) {
-    top = anchorRect.bottom + window.scrollY + gap;
-  } else {
-    top = anchorRect.top + window.scrollY - tt.height - gap;
-  }
-
-  // Horizontal: center on anchor, clamp to viewport
-  let left = anchorRect.left + anchorRect.width / 2 + window.scrollX - tt.width / 2;
-  if (left < margin) left = margin;
-  if (left + tt.width > window.innerWidth - margin) {
-    left = window.innerWidth - margin - tt.width;
-  }
-
-  return { position: 'absolute', top, left, zIndex: 9999 };
-}
-
 export default function Tooltip({ content, children }: TooltipProps) {
   const hasHover = useSyncExternalStore(subscribeHover, getHasHover, () => true);
   const [show, setShow] = useState(false);
@@ -59,16 +36,43 @@ export default function Tooltip({ content, children }: TooltipProps) {
     setShow(false);
   }, []);
 
-  // Use ref callback to position tooltip after mount (no setState in effect)
+  // position: fixed 기반 — 먼저 visibility:hidden으로 마운트하여 크기 측정 후 위치 보정
   const positionRef = useCallback((el: HTMLDivElement | null) => {
     if (!el || !anchor) return;
-    const style = clampToViewport(el, anchor);
-    Object.assign(el.style, {
-      position: style.position,
-      top: `${style.top}px`,
-      left: `${style.left}px`,
-      zIndex: String(style.zIndex),
-    });
+
+    // 1단계: hidden 상태에서 크기 측정
+    el.style.position = 'fixed';
+    el.style.visibility = 'hidden';
+    el.style.top = '0';
+    el.style.left = '0';
+    el.style.zIndex = '9999';
+
+    const tt = el.getBoundingClientRect();
+    const gap = 8;
+    const margin = 8;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    // Vertical: prefer above, flip below if not enough space
+    let top: number;
+    if (anchor.top - tt.height - gap < 0) {
+      top = anchor.bottom + gap;
+    } else {
+      top = anchor.top - tt.height - gap;
+    }
+    // Clamp vertical
+    if (top + tt.height > vh - margin) top = vh - margin - tt.height;
+    if (top < margin) top = margin;
+
+    // Horizontal: center on anchor, clamp to viewport
+    let left = anchor.left + anchor.width / 2 - tt.width / 2;
+    if (left < margin) left = margin;
+    if (left + tt.width > vw - margin) left = vw - margin - tt.width;
+
+    // 2단계: 실제 위치 적용 + 보이기
+    el.style.top = `${top}px`;
+    el.style.left = `${left}px`;
+    el.style.visibility = 'visible';
   }, [anchor]);
 
   if (!hasHover) {
