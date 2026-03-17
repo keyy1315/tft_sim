@@ -22,6 +22,9 @@ export { BOARD_ROWS, BOARD_COLS, HEX_SIZE, HEX_WIDTH, HEX_HEIGHT } from '@/lib/s
 // === Unit (unit.ts에서 re-export) ===
 export { MAX_TEAM_SIZE } from '@/lib/simulator/models/unit';
 
+// === Builder ===
+export const DEFAULT_STAR_LEVEL = 2;
+
 // === Item effect key mapping ===
 export const ITEM_EFFECT_KEYS: Record<string, string> = {
   'AD': 'ad',

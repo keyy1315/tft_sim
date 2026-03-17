@@ -4,6 +4,7 @@ import { RawItem } from '@/types';
 import { getItemImage } from '@/data/imageMap';
 import { STAT_NAME_KO } from '@/lib/simulator/models/constants';
 import Tooltip from '@/components/ui/Tooltip';
+import { stripHtml } from '@/lib/utils/text';
 import Image from 'next/image';
 
 interface ItemIconProps {
@@ -12,10 +13,6 @@ interface ItemIconProps {
   onClick?: () => void;
   onRemove?: () => void;
   showTooltip?: boolean;
-}
-
-function stripHtml(html: string): string {
-  return html.replace(/<[^>]+>/g, '').replace(/@\w+@/g, '').replace(/%i:\w+%/g, '');
 }
 
 export default function ItemIcon({ item, size = 32, onClick, onRemove, showTooltip = true }: ItemIconProps) {

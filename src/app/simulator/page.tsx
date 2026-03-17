@@ -5,7 +5,7 @@ import { DndContext, DragOverlay, DragEndEvent, DragStartEvent, PointerSensor, u
 import { useGameData } from '@/hooks/useGameData';
 import { simulateCombat } from '@/lib/simulator/engine/combatLoop';
 import { PlacedChampion, HexCoord, axialToOffset, offsetToAxial, RawChampion, RawItem, RawAugment, CombatResult, CombatLog, TickSnapshot, DragData } from '@/types';
-import { TICKS_PER_SECOND, BOARD_COLS } from '@/lib/simulator/models/constants';
+import { TICKS_PER_SECOND, BOARD_COLS, DEFAULT_STAR_LEVEL } from '@/lib/simulator/models/constants';
 import { resolveTraits } from '@/lib/simulator/systems/trait';
 import ChampionGrid from '@/components/builder/ChampionGrid';
 import SetupBoard from '@/components/battle/SetupBoard';
@@ -380,7 +380,7 @@ export default function SimulatorPage() {
     setTeam(prev => [...prev, {
       champion,
       position: selectedCell,
-      starLevel: 2,
+      starLevel: DEFAULT_STAR_LEVEL,
       items: [],
     }]);
     setShowPicker(false);
@@ -519,7 +519,7 @@ export default function SimulatorPage() {
 
     if (dragData.type === 'champion') {
       if (existingIdx >= 0) return; // occupied
-      setTeam(prev => [...prev, { champion: dragData.champion, position: pos, starLevel: 2, items: [] }]);
+      setTeam(prev => [...prev, { champion: dragData.champion, position: pos, starLevel: DEFAULT_STAR_LEVEL, items: [] }]);
     } else if (dragData.type === 'placed-unit') {
       // Move/swap within same team only
       if (dragData.team !== team) return;

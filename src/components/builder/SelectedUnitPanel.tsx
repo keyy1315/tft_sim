@@ -8,6 +8,7 @@ import ItemGrid from './ItemGrid';
 import Modal from '@/components/ui/Modal';
 import { useState } from 'react';
 import { getItemCategory } from '@/lib/simulator/systems/item';
+import { stripHtml } from '@/lib/utils/text';
 
 interface SelectedUnitPanelProps {
   placed: PlacedChampion;
@@ -93,7 +94,7 @@ export default function SelectedUnitPanel({
           <div className="text-xs text-cyan-400 font-bold">{placed.champion.ability.name}</div>
           {placed.champion.ability.desc && (
             <div className="text-[10px] text-gray-400 mt-0.5 leading-relaxed">
-              {placed.champion.ability.desc.replace(/<[^>]+>/g, '').replace(/@\w+@/g, '').replace(/%i:\w+%/g, '')}
+              {stripHtml(placed.champion.ability.desc)}
             </div>
           )}
         </div>

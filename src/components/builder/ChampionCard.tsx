@@ -3,11 +3,8 @@
 import { RawChampion, COST_COLORS } from '@/types';
 import { getChampionImage } from '@/data/imageMap';
 import Tooltip from '@/components/ui/Tooltip';
+import { stripHtml } from '@/lib/utils/text';
 import Image from 'next/image';
-
-function stripHtml(html: string): string {
-  return html.replace(/<[^>]+>/g, '').replace(/@\w+@/g, '').replace(/%i:\w+%/g, '');
-}
 
 interface ChampionCardProps {
   champion: RawChampion;
