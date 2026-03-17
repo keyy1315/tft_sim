@@ -152,6 +152,52 @@ function syncTibbersInTeam(team: PlacedChampion[]): PlacedChampion[] {
   return [...team, { champion: TIBBERS_CHAMPION, position: pos, starLevel: annie.starLevel, items: [] }];
 }
 
+const AZIR_SOLDIER_CHAMPION: RawChampion = {
+  name: '모래 병사',
+  apiName: 'TFT16_AzirSoldier',
+  cost: 11,
+  traits: [],
+  role: null,
+  stats: { armor: 50, attackSpeed: 0.8, critChance: 0.25, critMultiplier: 1.4, damage: 0, hp: 750, initialMana: 0, magicResist: 50, mana: 100, range: 1 },
+  ability: { name: '보초병', desc: '이동/기본공격 불가. 황제 사망 시 함께 사망.', icon: '', variables: [] },
+};
+
+const AZIR_MAX_SOLDIERS = 2;
+
+/** Ensure Azir Sand Soldiers are present when Azir is, removed when Azir isn't, star synced */
+function syncAzirSoldiersInTeam(team: PlacedChampion[]): PlacedChampion[] {
+  const azir = team.find(p => p.champion.apiName === 'TFT16_Azir');
+  const soldiers = team.filter(p => p.champion.apiName === 'TFT16_AzirSoldier');
+
+  if (!azir) {
+    return soldiers.length > 0 ? team.filter(p => p.champion.apiName !== 'TFT16_AzirSoldier') : team;
+  }
+
+  // Sync star levels
+  let result = team.map(p =>
+    p.champion.apiName === 'TFT16_AzirSoldier' && p.starLevel !== azir.starLevel
+      ? { ...p, starLevel: azir.starLevel } : p
+  );
+
+  // Spawn missing soldiers (up to AZIR_MAX_SOLDIERS)
+  const currentCount = soldiers.length;
+  if (currentCount < AZIR_MAX_SOLDIERS) {
+    const occupied = new Set(result.map(p => `${p.position.q},${p.position.r}`));
+    for (let i = currentCount; i < AZIR_MAX_SOLDIERS; i++) {
+      const pos = findEmptyAdjacentHex(azir.position, occupied);
+      if (!pos) break;
+      occupied.add(`${pos.q},${pos.r}`);
+      result = [...result, {
+        champion: AZIR_SOLDIER_CHAMPION,
+        position: pos,
+        starLevel: azir.starLevel,
+        items: [],
+      }];
+    }
+  }
+  return result;
+}
+
 export default function SimulatorPage() {
   const { champions, items, traits, augments, teamPlannerMapping, loading } = useGameData();
   const sensors = useSensors(
@@ -163,13 +209,13 @@ export default function SimulatorPage() {
   const updatePlayerTeam = (action: PlacedChampion[] | ((prev: PlacedChampion[]) => PlacedChampion[])) => {
     setPlayerTeamRaw(prev => {
       const updated = typeof action === 'function' ? action(prev) : action;
-      return syncFreljordTurretsInTeam(syncTibbersInTeam(updated));
+      return syncFreljordTurretsInTeam(syncAzirSoldiersInTeam(syncTibbersInTeam(updated)));
     });
   };
   const updateEnemyTeam = (action: PlacedChampion[] | ((prev: PlacedChampion[]) => PlacedChampion[])) => {
     setEnemyTeamRaw(prev => {
       const updated = typeof action === 'function' ? action(prev) : action;
-      return syncFreljordTurretsInTeam(syncTibbersInTeam(updated));
+      return syncFreljordTurretsInTeam(syncAzirSoldiersInTeam(syncTibbersInTeam(updated)));
     });
   };
   // Augment state
@@ -334,7 +380,7 @@ export default function SimulatorPage() {
     setTeam(prev => [...prev, {
       champion,
       position: selectedCell,
-      starLevel: 1,
+      starLevel: 2,
       items: [],
     }]);
     setShowPicker(false);
@@ -379,7 +425,7 @@ export default function SimulatorPage() {
     setModules(prev => prev.filter((_, i) => i !== index));
   };
 
-  const isAutoUnit = (apiName: string) => apiName === 'TFT16_AnnieTibbers' || apiName === 'TFT16_FreljordTurret';
+  const isAutoUnit = (apiName: string) => apiName === 'TFT16_AnnieTibbers' || apiName === 'TFT16_FreljordTurret' || apiName === 'TFT16_AzirSoldier';
 
   const handleStarChange = (team: 'player' | 'enemy', index: number, level: number) => {
     const teamArr = team === 'player' ? playerTeam : enemyTeam;
@@ -664,8 +710,8 @@ export default function SimulatorPage() {
               {/* Board (mobile: first, desktop: center) */}
               <div className="order-1 lg:order-2 lg:flex-1 lg:min-w-0">
                 <div className="bg-[#0d1117] rounded-xl border border-gray-800 p-2 lg:p-3 flex justify-center">
-                  <div className="h-[310px] sm:h-[420px] lg:h-auto overflow-hidden">
-                    <div className="transform scale-[0.48] sm:scale-[0.65] lg:scale-100 origin-top" style={{ position: 'relative', display: 'inline-block' }}>
+                  <div className="h-[320px] sm:h-[420px] lg:h-auto overflow-hidden flex justify-center">
+                    <div className="transform scale-[0.5] sm:scale-[0.65] lg:scale-100 origin-top" style={{ position: 'relative', display: 'inline-block' }}>
                     <SetupBoard
                       playerChampions={playerTeam}
                       enemyChampions={enemyTeam}
@@ -691,15 +737,10 @@ export default function SimulatorPage() {
 
                           const cellClick = () => {
                             if (placed && placedIdx >= 0) {
-                              handleCycleStars(team, placedIdx);
+                              handleUnitClick(team, placedIdx);
                             } else {
                               const pos = offsetToAxial({ row: dataRow, col });
                               handleCellClick(pos, team);
-                            }
-                          };
-                          const cellDblClick = () => {
-                            if (placed && placedIdx >= 0) {
-                              handleUnitClick(team, placedIdx);
                             }
                           };
                           const cellContextMenu = (e: React.MouseEvent) => {
@@ -717,7 +758,6 @@ export default function SimulatorPage() {
                               col={col}
                               placedUnit={placed ? { team, position: placed.position } : null}
                               onClick={cellClick}
-                              onDoubleClick={cellDblClick}
                               onContextMenu={cellContextMenu}
                             />
                           );
@@ -803,7 +843,7 @@ export default function SimulatorPage() {
               </div>
 
               {/* Right: Champion/Item pool */}
-              <div className="order-4 lg:order-3 lg:w-64 lg:shrink-0 bg-[#111827] rounded-xl border border-gray-800 p-3 flex flex-col self-start max-h-[40vh] lg:max-h-[calc(100vh-120px)]">
+              <div className="order-4 lg:order-3 w-full lg:w-64 lg:shrink-0 bg-[#111827] rounded-xl border border-gray-800 p-3 flex flex-col lg:self-start max-h-[50vh] lg:max-h-[calc(100vh-120px)]">
                 <div className="flex gap-2 mb-3 shrink-0">
                   <button
                     onClick={() => setActivePoolTab('champions')}

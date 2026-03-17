@@ -1,7 +1,18 @@
 'use client';
 
-import { useState, useRef, useCallback, ReactNode } from 'react';
+import { useState, useRef, useCallback, useSyncExternalStore, ReactNode } from 'react';
 import { createPortal } from 'react-dom';
+
+function getHasHover() {
+  if (typeof window === 'undefined') return true;
+  return window.matchMedia('(hover: hover)').matches;
+}
+
+function subscribeHover(cb: () => void) {
+  const mql = window.matchMedia('(hover: hover)');
+  mql.addEventListener('change', cb);
+  return () => mql.removeEventListener('change', cb);
+}
 
 interface TooltipProps {
   content: ReactNode;
@@ -9,6 +20,7 @@ interface TooltipProps {
 }
 
 export default function Tooltip({ content, children }: TooltipProps) {
+  const hasHover = useSyncExternalStore(subscribeHover, getHasHover, () => true);
   const [show, setShow] = useState(false);
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
   const ref = useRef<HTMLDivElement>(null);
@@ -27,6 +39,10 @@ export default function Tooltip({ content, children }: TooltipProps) {
   const handleLeave = useCallback(() => {
     setShow(false);
   }, []);
+
+  if (!hasHover) {
+    return <>{children}</>;
+  }
 
   return (
     <div
