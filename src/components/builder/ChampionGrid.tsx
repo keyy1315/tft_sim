@@ -46,7 +46,7 @@ export default function ChampionGrid({ champions, selectedChampion, onSelect, fi
           </button>
         ))}
       </div>
-      <div className="grid grid-cols-8 gap-2 max-h-[400px] overflow-y-auto p-1">
+      <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-2 max-h-[400px] overflow-y-auto p-1">
         {sorted.map((c) => (
           <ChampionCard
             key={c.apiName}

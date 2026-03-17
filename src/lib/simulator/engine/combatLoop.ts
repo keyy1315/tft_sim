@@ -125,7 +125,7 @@ function spawnFreljordTurrets(
   team: 'player' | 'enemy',
   teamUnits: CombatUnit[],
   allUnits: CombatUnit[],
-  rng: SeededRNG,
+  _rng: SeededRNG,
 ): CombatUnit[] {
   const freljord = activeTraits.find(t => t.trait.apiName === 'TFT16_Freljord' && t.activeEffect);
   if (!freljord || !freljord.activeEffect) return [];
@@ -574,7 +574,6 @@ export function simulateCombat(
           eventBus.emit('on_hit', { sourceId: unit.id, targetId: target.id, value: finalDamage, damageType: 'physical', tick });
           eventBus.emit('on_damage', { sourceId: target.id, targetId: unit.id, value: finalDamage, damageType: 'physical', tick });
 
-          const { r, q } = unit.position;
           const log: CombatLog = {
             tick, time, type: 'attack',
             sourceId: unit.id, targetId: target.id,

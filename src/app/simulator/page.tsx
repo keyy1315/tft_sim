@@ -25,7 +25,7 @@ import TeamCodePanel from '@/components/builder/TeamCodePanel';
 import AugmentSlots from '@/components/builder/AugmentSlots';
 import AugmentSelector from '@/components/builder/AugmentSelector';
 import AugmentDetailPopup from '@/components/builder/AugmentDetailPopup';
-import { isStackable, getMaxStacks, getDefaultStacks } from '@/lib/simulator/systems/augment';
+import { getDefaultStacks } from '@/lib/simulator/systems/augment';
 import { canEquipItem, canAddPiltoverModule, getItemCategory, isDisabledItem } from '@/lib/simulator/systems/item';
 
 type ItemFilterTab = 'all' | 'component' | 'combined' | 'artifact' | 'emblem' | 'radiant';
@@ -585,14 +585,14 @@ export default function SimulatorPage() {
     <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <div className="space-y-4">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-3">
-            <h2 className="text-lg font-bold text-gray-200">전투 시뮬레이션</h2>
+            <h2 className="text-base lg:text-lg font-bold text-gray-200">전투 시뮬레이션</h2>
             {combatResult && (
               <div className="flex gap-1">
                 <button
                   onClick={() => setViewMode('setup')}
-                  className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                  className={`px-2 py-1 lg:px-3 lg:py-1 rounded text-[10px] lg:text-xs font-medium transition-colors ${
                     viewMode === 'setup' ? 'bg-blue-600 text-white' : 'bg-[#1f2937] text-gray-400'
                   }`}
                 >
@@ -600,7 +600,7 @@ export default function SimulatorPage() {
                 </button>
                 <button
                   onClick={() => setViewMode('replay')}
-                  className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                  className={`px-2 py-1 lg:px-3 lg:py-1 rounded text-[10px] lg:text-xs font-medium transition-colors ${
                     viewMode === 'replay' ? 'bg-purple-600 text-white' : 'bg-[#1f2937] text-gray-400'
                   }`}
                 >
@@ -609,16 +609,16 @@ export default function SimulatorPage() {
               </div>
             )}
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-1.5 lg:gap-2 flex-wrap">
             <button
               onClick={() => { updatePlayerTeam([]); updateEnemyTeam([]); setSelectedUnit(null); setPlayerAugments([]); setPlayerAugmentStacks({}); setEnemyAugments([]); setEnemyAugmentStacks({}); }}
-              className="px-3 py-2 bg-[#1f2937] text-gray-500 hover:text-red-400 rounded-lg text-xs"
+              className="px-2 py-1.5 lg:px-3 lg:py-2 bg-[#1f2937] text-gray-500 hover:text-red-400 rounded-lg text-[10px] lg:text-xs"
             >
-              전체 초기화
+              초기화
             </button>
             <button
               onClick={() => setShowTeamCode(prev => !prev)}
-              className={`px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+              className={`px-2 py-1.5 lg:px-3 lg:py-2 rounded-lg text-[10px] lg:text-xs font-medium transition-colors ${
                 showTeamCode ? 'bg-teal-600 text-white' : 'bg-[#1f2937] text-gray-400 hover:text-teal-300'
               }`}
             >
@@ -627,16 +627,16 @@ export default function SimulatorPage() {
             <button
               onClick={runSimulation}
               disabled={isRunning || playerTeam.length === 0 || enemyTeam.length === 0}
-              className="px-4 py-2 bg-yellow-600 hover:bg-yellow-500 disabled:opacity-40 rounded-lg text-sm font-bold text-black transition-colors"
+              className="px-3 py-1.5 lg:px-4 lg:py-2 bg-yellow-600 hover:bg-yellow-500 disabled:opacity-40 rounded-lg text-xs lg:text-sm font-bold text-black transition-colors"
             >
               {isRunning ? '전투 중...' : '전투 시작'}
             </button>
             <button
               onClick={runMultiple}
               disabled={isRunning || playerTeam.length === 0 || enemyTeam.length === 0}
-              className="px-4 py-2 bg-purple-600 hover:bg-purple-500 disabled:opacity-40 rounded-lg text-sm font-bold text-white transition-colors"
+              className="px-3 py-1.5 lg:px-4 lg:py-2 bg-purple-600 hover:bg-purple-500 disabled:opacity-40 rounded-lg text-xs lg:text-sm font-bold text-white transition-colors"
             >
-              100회 시뮬
+              100회
             </button>
           </div>
         </div>
@@ -660,43 +660,12 @@ export default function SimulatorPage() {
         {viewMode === 'setup' && (
           <>
             {/* 3-column: Synergy panels (left) | Board (center) | Champion/Item pool (right) */}
-            <div className="flex gap-3">
-              {/* Left: Both Synergy panels + Selected unit */}
-              <div className="w-52 shrink-0 space-y-3">
-                <SynergyPanel activeTraits={playerTraits} team="player" items={items} />
-                <PiltoverModulePanel
-                  modules={playerPiltoverModules}
-                  allItems={items}
-                  activeTraits={playerTraits}
-                  onAddModule={(item) => handleAddPiltoverModule('player', item)}
-                  onRemoveModule={(idx) => handleRemovePiltoverModule('player', idx)}
-                />
-                <SynergyPanel activeTraits={enemyTraits} team="enemy" items={items} />
-                <PiltoverModulePanel
-                  modules={enemyPiltoverModules}
-                  allItems={items}
-                  activeTraits={enemyTraits}
-                  onAddModule={(item) => handleAddPiltoverModule('enemy', item)}
-                  onRemoveModule={(idx) => handleRemovePiltoverModule('enemy', idx)}
-                />
-                {selectedUnit && selectedPlaced && (
-                  <SelectedUnitPanel
-                    placed={selectedPlaced}
-                    team={selectedUnit.team}
-                    allItems={items}
-                    activeTraits={selectedUnit.team === 'player' ? playerTraits : enemyTraits}
-                    onStarChange={(level) => handleStarChange(selectedUnit.team, selectedUnit.index, level)}
-                    onEquipItem={(item) => handleEquipItem(selectedUnit.team, selectedUnit.index, item)}
-                    onRemoveItem={(itemIdx) => handleRemoveItem(selectedUnit.team, selectedUnit.index, itemIdx)}
-                    onRemoveUnit={() => handleRemoveUnit(selectedUnit.team, selectedUnit.index)}
-                  />
-                )}
-              </div>
-
-              {/* Center: 8-row board with droppable overlay */}
-              <div className="flex-1 min-w-0">
-                <div className="bg-[#0d1117] rounded-xl border border-gray-800 p-3 flex justify-center">
-                  <div style={{ position: 'relative', display: 'inline-block' }}>
+            <div className="flex flex-col lg:flex-row gap-3">
+              {/* Board (mobile: first, desktop: center) */}
+              <div className="order-1 lg:order-2 lg:flex-1 lg:min-w-0">
+                <div className="bg-[#0d1117] rounded-xl border border-gray-800 p-2 lg:p-3 flex justify-center">
+                  <div className="h-[310px] sm:h-[420px] lg:h-auto overflow-hidden">
+                    <div className="transform scale-[0.48] sm:scale-[0.65] lg:scale-100 origin-top" style={{ position: 'relative', display: 'inline-block' }}>
                     <SetupBoard
                       playerChampions={playerTeam}
                       enemyChampions={enemyTeam}
@@ -754,6 +723,7 @@ export default function SimulatorPage() {
                           );
                         })
                       )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -782,8 +752,58 @@ export default function SimulatorPage() {
                 </div>
               </div>
 
+              {/* Selected Unit Panel (mobile: below board, desktop: hidden here - shown in left column) */}
+              {selectedUnit && selectedPlaced && (
+                <div className="order-2 lg:hidden">
+                  <SelectedUnitPanel
+                    placed={selectedPlaced}
+                    team={selectedUnit.team}
+                    allItems={items}
+                    activeTraits={selectedUnit.team === 'player' ? playerTraits : enemyTraits}
+                    onStarChange={(level) => handleStarChange(selectedUnit.team, selectedUnit.index, level)}
+                    onEquipItem={(item) => handleEquipItem(selectedUnit.team, selectedUnit.index, item)}
+                    onRemoveItem={(itemIdx) => handleRemoveItem(selectedUnit.team, selectedUnit.index, itemIdx)}
+                    onRemoveUnit={() => handleRemoveUnit(selectedUnit.team, selectedUnit.index)}
+                  />
+                </div>
+              )}
+
+              {/* Left: Both Synergy panels + Selected unit (desktop) */}
+              <div className="order-3 lg:order-1 lg:w-52 lg:shrink-0 space-y-3">
+                <SynergyPanel activeTraits={playerTraits} team="player" items={items} />
+                <PiltoverModulePanel
+                  modules={playerPiltoverModules}
+                  allItems={items}
+                  activeTraits={playerTraits}
+                  onAddModule={(item) => handleAddPiltoverModule('player', item)}
+                  onRemoveModule={(idx) => handleRemovePiltoverModule('player', idx)}
+                />
+                <SynergyPanel activeTraits={enemyTraits} team="enemy" items={items} />
+                <PiltoverModulePanel
+                  modules={enemyPiltoverModules}
+                  allItems={items}
+                  activeTraits={enemyTraits}
+                  onAddModule={(item) => handleAddPiltoverModule('enemy', item)}
+                  onRemoveModule={(idx) => handleRemovePiltoverModule('enemy', idx)}
+                />
+                {selectedUnit && selectedPlaced && (
+                  <div className="hidden lg:block">
+                    <SelectedUnitPanel
+                      placed={selectedPlaced}
+                      team={selectedUnit.team}
+                      allItems={items}
+                      activeTraits={selectedUnit.team === 'player' ? playerTraits : enemyTraits}
+                      onStarChange={(level) => handleStarChange(selectedUnit.team, selectedUnit.index, level)}
+                      onEquipItem={(item) => handleEquipItem(selectedUnit.team, selectedUnit.index, item)}
+                      onRemoveItem={(itemIdx) => handleRemoveItem(selectedUnit.team, selectedUnit.index, itemIdx)}
+                      onRemoveUnit={() => handleRemoveUnit(selectedUnit.team, selectedUnit.index)}
+                    />
+                  </div>
+                )}
+              </div>
+
               {/* Right: Champion/Item pool */}
-              <div className="w-64 shrink-0 bg-[#111827] rounded-xl border border-gray-800 p-3 flex flex-col self-start" style={{ maxHeight: 'calc(100vh - 120px)' }}>
+              <div className="order-4 lg:order-3 lg:w-64 lg:shrink-0 bg-[#111827] rounded-xl border border-gray-800 p-3 flex flex-col self-start max-h-[40vh] lg:max-h-[calc(100vh-120px)]">
                 <div className="flex gap-2 mb-3 shrink-0">
                   <button
                     onClick={() => setActivePoolTab('champions')}
@@ -931,19 +951,23 @@ export default function SimulatorPage() {
             />
 
             {/* Replay Board + Unit Detail side panel */}
-            <div className="flex gap-4">
+            <div className="flex flex-col lg:flex-row gap-3 lg:gap-4">
               {/* Board */}
-              <div className="bg-[#0d1117] rounded-xl border border-gray-800 p-3 flex justify-center flex-1 min-w-0">
-                <ReplayBoard
-                  snapshot={currentSnapshot}
-                  unitMeta={unitMeta}
-                  selectedUnitId={selectedUnitId}
-                  onUnitClick={setSelectedUnitId}
-                />
+              <div className="bg-[#0d1117] rounded-xl border border-gray-800 p-2 lg:p-3 flex justify-center flex-1 min-w-0">
+                <div className="h-[310px] sm:h-[420px] lg:h-auto overflow-hidden">
+                  <div className="transform scale-[0.48] sm:scale-[0.65] lg:scale-100 origin-top">
+                    <ReplayBoard
+                      snapshot={currentSnapshot}
+                      unitMeta={unitMeta}
+                      selectedUnitId={selectedUnitId}
+                      onUnitClick={setSelectedUnitId}
+                    />
+                  </div>
+                </div>
               </div>
 
               {/* Unit detail panel */}
-              <div className="w-56 shrink-0 space-y-3">
+              <div className="w-full lg:w-56 lg:shrink-0 space-y-3">
                 {selectedUnitId && selectedUnitSnap && unitMeta[selectedUnitId] && (
                   <div className="bg-[#111827] rounded-xl border border-gray-800 p-3 space-y-2">
                     <UnitToken
@@ -1115,7 +1139,7 @@ export default function SimulatorPage() {
 
         {/* ====== SETUP MODE: show last result summary ====== */}
         {viewMode === 'setup' && combatResult && (
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="p-3 bg-[#111827] rounded-lg border border-gray-800">
               <h4 className="text-xs font-bold text-blue-400 mb-2">TEAM A 유닛</h4>
               {combatResult.playerUnits.map((u) => (

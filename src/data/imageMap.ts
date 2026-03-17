@@ -88,7 +88,6 @@ function deriveItemPath(apiName: string): string {
   }
 
   // Standard items & artifacts: try artifacts/ with lowercased apiName
-  const lower = apiName.toLowerCase().replace(/_/g, '');
   // TFT_Item_X → tft_item_x
   const normalized = apiName.toLowerCase();
   return `/data/images/artifacts/${normalized}.tft_set13.png`;
