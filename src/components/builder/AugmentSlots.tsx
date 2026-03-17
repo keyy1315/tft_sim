@@ -61,9 +61,10 @@ export default function AugmentSlots({ augments, augmentStacks, onOpenSelector, 
                 </div>
               )}
             </button>
+            {/* 터치 디바이스: 삭제 버튼 항상 표시 / hover 가능 기기: hover 시에만 표시 */}
             <button
               onClick={(e) => { e.stopPropagation(); onRemove(i); }}
-              className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-600 text-white text-[10px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+              className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-600 text-white text-[10px] flex items-center justify-center opacity-100 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 transition-opacity"
             >
               X
             </button>

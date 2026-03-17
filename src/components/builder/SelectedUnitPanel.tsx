@@ -8,6 +8,7 @@ import ItemGrid from './ItemGrid';
 import Modal from '@/components/ui/Modal';
 import { useState } from 'react';
 import { getItemCategory } from '@/lib/simulator/systems/item';
+import { stripHtml } from '@/lib/utils/text';
 
 interface SelectedUnitPanelProps {
   placed: PlacedChampion;
@@ -87,6 +88,17 @@ export default function SelectedUnitPanel({
       <div className="text-[10px] text-gray-500 space-y-0.5">
         <div>특성: {placed.champion.traits.join(', ')}</div>
       </div>
+
+      {placed.champion.ability.name && (
+        <div className="border-t border-gray-700 pt-2">
+          <div className="text-xs text-cyan-400 font-bold">{placed.champion.ability.name}</div>
+          {placed.champion.ability.desc && (
+            <div className="text-[10px] text-gray-400 mt-0.5 leading-relaxed">
+              {stripHtml(placed.champion.ability.desc)}
+            </div>
+          )}
+        </div>
+      )}
 
       <Modal isOpen={showItemPicker} onClose={() => setShowItemPicker(false)} title="아이템 선택">
         <ItemGrid

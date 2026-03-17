@@ -2,6 +2,8 @@
 
 import { RawChampion, COST_COLORS } from '@/types';
 import { getChampionImage } from '@/data/imageMap';
+import Tooltip from '@/components/ui/Tooltip';
+import { stripHtml } from '@/lib/utils/text';
 import Image from 'next/image';
 
 interface ChampionCardProps {
@@ -19,7 +21,7 @@ export default function ChampionCard({
   const costColor = COST_COLORS[champion.cost] || COST_COLORS[1];
   const stars = starLevel ? '★'.repeat(starLevel) : '';
 
-  return (
+  const card = (
     <div
       className={`relative cursor-pointer transition-all hover:scale-105 ${selected ? 'ring-2 ring-yellow-400' : ''}`}
       onClick={onClick}
@@ -49,5 +51,26 @@ export default function ChampionCard({
         </div>
       )}
     </div>
+  );
+
+  return (
+    <Tooltip
+      content={
+        <div className="max-w-[220px]">
+          <div className="font-bold text-yellow-400">{champion.name}</div>
+          <div className="text-xs text-gray-400">{champion.cost}코스트 · {champion.traits.join(' · ')}</div>
+          {champion.ability.name && (
+            <>
+              <div className="text-xs text-cyan-400 mt-1 font-bold">{champion.ability.name}</div>
+              {champion.ability.desc && (
+                <div className="text-xs text-gray-300 mt-0.5 leading-relaxed">{stripHtml(champion.ability.desc)}</div>
+              )}
+            </>
+          )}
+        </div>
+      }
+    >
+      {card}
+    </Tooltip>
   );
 }
