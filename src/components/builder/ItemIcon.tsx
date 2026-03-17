@@ -4,7 +4,7 @@ import { RawItem } from '@/types';
 import { getItemImage } from '@/data/imageMap';
 import { STAT_NAME_KO } from '@/lib/simulator/models/constants';
 import Tooltip from '@/components/ui/Tooltip';
-import { stripHtml } from '@/lib/utils/text';
+import { resolveDescription } from '@/lib/utils/text';
 import Image from 'next/image';
 
 interface ItemIconProps {
@@ -13,9 +13,10 @@ interface ItemIconProps {
   onClick?: () => void;
   onRemove?: () => void;
   showTooltip?: boolean;
+  tooltipDisabled?: boolean;
 }
 
-export default function ItemIcon({ item, size = 32, onClick, onRemove, showTooltip = true }: ItemIconProps) {
+export default function ItemIcon({ item, size = 32, onClick, onRemove, showTooltip = true, tooltipDisabled }: ItemIconProps) {
   const isArtifact = item.apiName.includes('Artifact');
   const isRadiant = item.apiName.includes('Corrupted') || item.apiName.includes('Radiant_');
   const isEmblem = item.apiName.includes('EmblemItem');
@@ -51,10 +52,11 @@ export default function ItemIcon({ item, size = 32, onClick, onRemove, showToolt
 
   return (
     <Tooltip
+      disabled={tooltipDisabled}
       content={
         <div className="max-w-[200px]">
           <div className="font-bold text-yellow-400">{item.name}</div>
-          <div className="text-xs text-gray-300 mt-1">{stripHtml(item.desc)}</div>
+          <div className="text-xs text-gray-300 mt-1 whitespace-pre-line">{resolveDescription(item.desc, item.effects)}</div>
           {Object.entries(item.effects).length > 0 && (
             <div className="mt-1 text-xs text-gray-400">
               {Object.entries(item.effects).map(([k, v]) => (

@@ -1,12 +1,17 @@
 'use client';
 
-import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import { DndContext, DragOverlay, DragEndEvent, DragStartEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { useState, useMemo, useCallback } from 'react';
+import { DndContext, DragOverlay, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { useGameData } from '@/hooks/useGameData';
 import { simulateCombat } from '@/lib/simulator/engine/combatLoop';
-import { PlacedChampion, HexCoord, axialToOffset, offsetToAxial, RawChampion, RawItem, RawAugment, CombatResult, CombatLog, TickSnapshot, DragData } from '@/types';
-import { TICKS_PER_SECOND, BOARD_COLS, DEFAULT_STAR_LEVEL } from '@/lib/simulator/models/constants';
-import { resolveTraits } from '@/lib/simulator/systems/trait';
+import { PlacedChampion, axialToOffset, offsetToAxial, CombatResult, CombatLog } from '@/types';
+import { TICKS_PER_SECOND, BOARD_COLS } from '@/lib/simulator/models/constants';
+import { useTeamManagement } from '@/hooks/useTeamManagement';
+import { useReplayControls } from '@/hooks/useReplayControls';
+import { useDndHandlers } from '@/hooks/useDndHandlers';
+import { getItemCategory, isDisabledItem } from '@/lib/simulator/systems/item';
+import { isBilgewaterStatItem } from '@/data/traitModules';
+import { resolveBilgewaterStatEffects } from '@/lib/simulator/systems/stat';
 import ChampionGrid from '@/components/builder/ChampionGrid';
 import SetupBoard from '@/components/battle/SetupBoard';
 import DroppableHexCell from '@/components/battle/DroppableHexCell';
@@ -25,316 +30,35 @@ import TeamCodePanel from '@/components/builder/TeamCodePanel';
 import AugmentSlots from '@/components/builder/AugmentSlots';
 import AugmentSelector from '@/components/builder/AugmentSelector';
 import AugmentDetailPopup from '@/components/builder/AugmentDetailPopup';
-import { getDefaultStacks } from '@/lib/simulator/systems/augment';
-import { canEquipItem, canAddPiltoverModule, getItemCategory, isDisabledItem } from '@/lib/simulator/systems/item';
-
-type ItemFilterTab = 'all' | 'component' | 'combined' | 'artifact' | 'emblem' | 'radiant';
 import PiltoverModulePanel from '@/components/builder/PiltoverModulePanel';
 
-type ViewMode = 'setup' | 'replay';
-
-function getTeamFromRow(row: number): 'player' | 'enemy' {
-  return row < 4 ? 'enemy' : 'player';
-}
-
-/** Parse droppable cell id → row, col */
-function parseCellId(id: string): { row: number; col: number } | null {
-  const match = id.match(/^cell-(\d+)-(\d+)$/);
-  if (!match) return null;
-  return { row: parseInt(match[1]), col: parseInt(match[2]) };
-}
-
-const FRELJORD_TURRET: RawChampion = {
-  name: '얼어붙은 포탑',
-  apiName: 'TFT16_FreljordTurret',
-  cost: 0,
-  traits: [],  // 포탑은 시너지 카운트에 포함되지 않음
-  role: null,
-  stats: { armor: 40, attackSpeed: 1.0, critChance: 0, critMultiplier: 1.5, damage: 50, hp: 800, initialMana: 0, magicResist: 40, mana: 0, range: 3 },
-  ability: { name: '냉기 사격', desc: '전방: 체력 버프, 후방: 피해 증폭', icon: '', variables: [] },
-};
-
-/** 프렐요드 챔피언 수에 따른 포탑 수 계산 (traits 없이 팀 배열만으로) */
-function getFreljordTurretCount(team: PlacedChampion[]): number {
-  const freljordCount = team.filter(p =>
-    p.champion.traits.includes('프렐요드') && p.champion.apiName !== 'TFT16_FreljordTurret'
-  ).length;
-  if (freljordCount >= 7) return 2;
-  if (freljordCount >= 5) return 2;
-  if (freljordCount >= 3) return 1;
-  return 0;
-}
-
-/** 프렐요드 포탑 동기화 — 시너지에 맞게 포탑 추가/제거 */
-function syncFreljordTurretsInTeam(team: PlacedChampion[]): PlacedChampion[] {
-  const turretCount = getFreljordTurretCount(team);
-  const currentTurrets = team.filter(p => p.champion.apiName === 'TFT16_FreljordTurret');
-  const nonTurrets = team.filter(p => p.champion.apiName !== 'TFT16_FreljordTurret');
-
-  if (turretCount === 0) {
-    return currentTurrets.length > 0 ? nonTurrets : team;
-  }
-
-  // 포탑 수가 맞으면 그대로
-  if (currentTurrets.length === turretCount) return team;
-
-  // 포탑이 너무 많으면 제거
-  if (currentTurrets.length > turretCount) {
-    return [...nonTurrets, ...currentTurrets.slice(0, turretCount)];
-  }
-
-  // 포탑이 부족하면 추가
-  const result = [...nonTurrets, ...currentTurrets];
-  const occupied = new Set(result.map(p => `${p.position.q},${p.position.r}`));
-  for (let i = currentTurrets.length; i < turretCount; i++) {
-    // 중앙에서부터 빈 칸 찾기
-    const pos = findEmptyAdjacentHex({ q: 1, r: 1 }, occupied, 3);
-    if (pos) {
-      result.push({ champion: FRELJORD_TURRET, position: pos, starLevel: 1, items: [] });
-      occupied.add(`${pos.q},${pos.r}`);
-    }
-  }
-  return result;
-}
-
-const TIBBERS_CHAMPION: RawChampion = {
-  name: '티버',
-  apiName: 'TFT16_AnnieTibbers',
-  cost: 11,
-  traits: ['비전 마법사'],
-  role: null,
-  stats: { armor: 80, attackSpeed: 0.75, critChance: 0.25, critMultiplier: 1.4, damage: 90, hp: 1500, initialMana: 40, magicResist: 80, mana: 100, range: 1 },
-  ability: { name: '잉걸불의 분노', desc: '', icon: '', variables: [] },
-};
-
-function findEmptyAdjacentHex(pos: HexCoord, occupied: Set<string>, maxRow: number = 3): HexCoord | null {
-  const offsets: HexCoord[] = [
-    { q: 0, r: -1 }, { q: 1, r: -1 },
-    { q: 1, r: 0 }, { q: -1, r: 0 },
-    { q: 0, r: 1 }, { q: -1, r: 1 },
-  ];
-  for (const off of offsets) {
-    const c = { q: pos.q + off.q, r: pos.r + off.r };
-    const col = c.q + Math.floor(c.r / 2);
-    if (c.r >= 0 && c.r <= maxRow && col >= 0 && col < BOARD_COLS) {
-      if (!occupied.has(`${c.q},${c.r}`)) return c;
-    }
-  }
-  for (let r = 0; r <= maxRow; r++) {
-    for (let col = 0; col < BOARD_COLS; col++) {
-      const q = col - Math.floor(r / 2);
-      if (!occupied.has(`${q},${r}`)) return { q, r };
-    }
-  }
-  return null;
-}
-
-/** Ensure Tibbers is present when Annie is, removed when Annie isn't, star synced */
-function syncTibbersInTeam(team: PlacedChampion[]): PlacedChampion[] {
-  const annie = team.find(p => p.champion.apiName === 'TFT16_Annie');
-  const tibbersIdx = team.findIndex(p => p.champion.apiName === 'TFT16_AnnieTibbers');
-
-  if (!annie) {
-    return tibbersIdx >= 0 ? team.filter((_, i) => i !== tibbersIdx) : team;
-  }
-
-  if (tibbersIdx >= 0) {
-    if (team[tibbersIdx].starLevel !== annie.starLevel) {
-      return team.map((p, i) => i === tibbersIdx ? { ...p, starLevel: annie.starLevel } : p);
-    }
-    return team;
-  }
-
-  const occupied = new Set(team.map(p => `${p.position.q},${p.position.r}`));
-  const pos = findEmptyAdjacentHex(annie.position, occupied);
-  if (!pos) return team;
-
-  return [...team, { champion: TIBBERS_CHAMPION, position: pos, starLevel: annie.starLevel, items: [] }];
-}
-
-const AZIR_SOLDIER_CHAMPION: RawChampion = {
-  name: '모래 병사',
-  apiName: 'TFT16_AzirSoldier',
-  cost: 11,
-  traits: [],
-  role: null,
-  stats: { armor: 50, attackSpeed: 0.8, critChance: 0.25, critMultiplier: 1.4, damage: 0, hp: 750, initialMana: 0, magicResist: 50, mana: 100, range: 1 },
-  ability: { name: '보초병', desc: '이동/기본공격 불가. 황제 사망 시 함께 사망.', icon: '', variables: [] },
-};
-
-const AZIR_MAX_SOLDIERS = 2;
-
-/** Ensure Azir Sand Soldiers are present when Azir is, removed when Azir isn't, star synced */
-function syncAzirSoldiersInTeam(team: PlacedChampion[]): PlacedChampion[] {
-  const azir = team.find(p => p.champion.apiName === 'TFT16_Azir');
-  const soldiers = team.filter(p => p.champion.apiName === 'TFT16_AzirSoldier');
-
-  if (!azir) {
-    return soldiers.length > 0 ? team.filter(p => p.champion.apiName !== 'TFT16_AzirSoldier') : team;
-  }
-
-  // Sync star levels
-  let result = team.map(p =>
-    p.champion.apiName === 'TFT16_AzirSoldier' && p.starLevel !== azir.starLevel
-      ? { ...p, starLevel: azir.starLevel } : p
-  );
-
-  // Spawn missing soldiers (up to AZIR_MAX_SOLDIERS)
-  const currentCount = soldiers.length;
-  if (currentCount < AZIR_MAX_SOLDIERS) {
-    const occupied = new Set(result.map(p => `${p.position.q},${p.position.r}`));
-    for (let i = currentCount; i < AZIR_MAX_SOLDIERS; i++) {
-      const pos = findEmptyAdjacentHex(azir.position, occupied);
-      if (!pos) break;
-      occupied.add(`${pos.q},${pos.r}`);
-      result = [...result, {
-        champion: AZIR_SOLDIER_CHAMPION,
-        position: pos,
-        starLevel: azir.starLevel,
-        items: [],
-      }];
-    }
-  }
-  return result;
-}
+type ItemFilterTab = 'all' | 'component' | 'combined' | 'artifact' | 'emblem' | 'radiant';
 
 export default function SimulatorPage() {
   const { champions, items, traits, augments, teamPlannerMapping, loading } = useGameData();
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
   );
-  const [playerTeam, setPlayerTeamRaw] = useState<PlacedChampion[]>([]);
-  const [enemyTeam, setEnemyTeamRaw] = useState<PlacedChampion[]>([]);
 
-  const updatePlayerTeam = (action: PlacedChampion[] | ((prev: PlacedChampion[]) => PlacedChampion[])) => {
-    setPlayerTeamRaw(prev => {
-      const updated = typeof action === 'function' ? action(prev) : action;
-      return syncFreljordTurretsInTeam(syncAzirSoldiersInTeam(syncTibbersInTeam(updated)));
-    });
-  };
-  const updateEnemyTeam = (action: PlacedChampion[] | ((prev: PlacedChampion[]) => PlacedChampion[])) => {
-    setEnemyTeamRaw(prev => {
-      const updated = typeof action === 'function' ? action(prev) : action;
-      return syncFreljordTurretsInTeam(syncAzirSoldiersInTeam(syncTibbersInTeam(updated)));
-    });
-  };
-  // Augment state
-  const [playerAugments, setPlayerAugments] = useState<RawAugment[]>([]);
-  const [playerAugmentStacks, setPlayerAugmentStacks] = useState<Record<string, number>>({});
-  const [enemyAugments, setEnemyAugments] = useState<RawAugment[]>([]);
-  const [enemyAugmentStacks, setEnemyAugmentStacks] = useState<Record<string, number>>({});
-  const [showAugmentPicker, setShowAugmentPicker] = useState<'player' | 'enemy' | null>(null);
-  const [augmentDetailTarget, setAugmentDetailTarget] = useState<{ aug: RawAugment; team: 'player' | 'enemy' } | null>(null);
-
-  // Piltover module state (per team)
-  const [playerPiltoverModules, setPlayerPiltoverModules] = useState<RawItem[]>([]);
-  const [enemyPiltoverModules, setEnemyPiltoverModules] = useState<RawItem[]>([]);
-
-  const [selectedCell, setSelectedCell] = useState<HexCoord | null>(null);
-  const [selectedCellTeam, setSelectedCellTeam] = useState<'player' | 'enemy'>('player');
-  const [showPicker, setShowPicker] = useState(false);
-  const [combatResult, setCombatResult] = useState<CombatResult | null>(null);
-  const [isRunning, setIsRunning] = useState(false);
-  const [logFilter, setLogFilter] = useState<CombatLog['type'] | 'all'>('all');
-  const [selectedUnit, setSelectedUnit] = useState<{ team: 'player' | 'enemy'; index: number } | null>(null);
-  const [activeDragData, setActiveDragData] = useState<DragData | null>(null);
+  const tm = useTeamManagement({ traits });
+  const replay = useReplayControls();
+  const dnd = useDndHandlers({
+    playerTeam: tm.playerTeam,
+    enemyTeam: tm.enemyTeam,
+    updatePlayerTeam: tm.updatePlayerTeam,
+    updateEnemyTeam: tm.updateEnemyTeam,
+    handleEquipItem: tm.handleEquipItem,
+  });
 
   // Champion/Item pool state
   const [champSearch, setChampSearch] = useState('');
   const [champCostFilter, setChampCostFilter] = useState<number | null>(null);
-  const [activePoolTab, setActivePoolTab] = useState<'champions' | 'items'>('champions');
+  const [activePoolTab, setActivePoolTab] = useState<'champions' | 'items' | 'bilgewater'>('champions');
   const [itemSearch, setItemSearch] = useState('');
   const [itemCategoryFilter, setItemCategoryFilter] = useState<ItemFilterTab>('all');
   const [showTeamCode, setShowTeamCode] = useState(false);
-
-  // Replay state
-  const [viewMode, setViewMode] = useState<ViewMode>('setup');
-  const [replayTick, setReplayTick] = useState(0);
-  const [playbackSpeed, setPlaybackSpeed] = useState<1 | 2 | 4>(1);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
-  const playIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  // Synergy calculation
-  const playerTraits = useMemo(() => resolveTraits(playerTeam, traits), [playerTeam, traits]);
-  const enemyTraits = useMemo(() => resolveTraits(enemyTeam, traits), [enemyTeam, traits]);
-
-  // Selected placed unit
-  const selectedPlaced = useMemo(() => {
-    if (!selectedUnit) return null;
-    const team = selectedUnit.team === 'player' ? playerTeam : enemyTeam;
-    return team[selectedUnit.index] ?? null;
-  }, [selectedUnit, playerTeam, enemyTeam]);
-
-  // Build unit metadata from combat result for ReplayBoard
-  const unitMeta = useMemo(() => {
-    if (!combatResult) return {};
-    const meta: Record<string, {
-      championName: string;
-      championApiName: string;
-      cost: number;
-      team: 'player' | 'enemy';
-      starLevel: number;
-      items: { apiName: string }[];
-      maxHp: number;
-      maxMana: number;
-    }> = {};
-    for (const u of [...combatResult.playerUnits, ...combatResult.enemyUnits]) {
-      meta[u.id] = {
-        championName: u.champion.name,
-        championApiName: u.champion.apiName,
-        cost: u.champion.cost,
-        team: u.team,
-        starLevel: u.starLevel,
-        items: u.items.map(it => ({ apiName: it.apiName })),
-        maxHp: u.maxHp,
-        maxMana: u.maxMana,
-      };
-    }
-    return meta;
-  }, [combatResult]);
-
-  // Current snapshot
-  const currentSnapshot: TickSnapshot | null = useMemo(() => {
-    if (!combatResult || combatResult.snapshots.length === 0) return null;
-    const idx = Math.min(replayTick, combatResult.snapshots.length - 1);
-    return combatResult.snapshots[idx] ?? null;
-  }, [combatResult, replayTick]);
-
-  // Replay auto-play
-  useEffect(() => {
-    if (isPlaying && combatResult) {
-      const intervalMs = Math.round(1000 / (TICKS_PER_SECOND * playbackSpeed));
-      playIntervalRef.current = setInterval(() => {
-        setReplayTick(prev => {
-          const next = prev + 1;
-          if (next >= combatResult.snapshots.length) {
-            setIsPlaying(false);
-            return combatResult.snapshots.length - 1;
-          }
-          return next;
-        });
-      }, intervalMs);
-    }
-    return () => {
-      if (playIntervalRef.current) {
-        clearInterval(playIntervalRef.current);
-        playIntervalRef.current = null;
-      }
-    };
-  }, [isPlaying, playbackSpeed, combatResult]);
-
-  // Events at current tick
-  const tickEvents = useMemo(() => {
-    if (!currentSnapshot) return [];
-    return currentSnapshot.events;
-  }, [currentSnapshot]);
-
-  // Selected unit info from snapshot
-  const selectedUnitSnap = useMemo(() => {
-    if (!selectedUnitId || !currentSnapshot) return null;
-    return currentSnapshot.units[selectedUnitId] ?? null;
-  }, [selectedUnitId, currentSnapshot]);
+  const [logFilter, setLogFilter] = useState<CombatLog['type'] | 'all'>('all');
+  const [isRunning, setIsRunning] = useState(false);
 
   // Filtered champions for pool
   const filteredChampions = useMemo(() => {
@@ -352,205 +76,6 @@ export default function SimulatorPage() {
     return [...filtered].sort((a, b) => a.cost - b.cost || a.name.localeCompare(b.name));
   }, [champions, champSearch, champCostFilter]);
 
-  const handleCellClick = (pos: HexCoord, team: 'player' | 'enemy') => {
-    const teamArr = team === 'player' ? playerTeam : enemyTeam;
-    const existing = teamArr.find(p => p.position.q === pos.q && p.position.r === pos.r);
-    if (existing) {
-      // Click on occupied cell → select unit
-      const idx = teamArr.indexOf(existing);
-      setSelectedUnit({ team, index: idx });
-    } else {
-      setSelectedCell(pos);
-      setSelectedCellTeam(team);
-      setShowPicker(true);
-    }
-  };
-
-  const handleUnitClick = (team: 'player' | 'enemy', index: number) => {
-    setSelectedUnit(prev => {
-      if (prev?.team === team && prev?.index === index) return null;
-      return { team, index };
-    });
-  };
-
-  const handleChampionSelect = (champion: RawChampion) => {
-    if (!selectedCell) return;
-    const team = selectedCellTeam;
-    const setTeam = team === 'player' ? updatePlayerTeam : updateEnemyTeam;
-    setTeam(prev => [...prev, {
-      champion,
-      position: selectedCell,
-      starLevel: DEFAULT_STAR_LEVEL,
-      items: [],
-    }]);
-    setShowPicker(false);
-  };
-
-  const handleEquipItem = (team: 'player' | 'enemy', index: number, item: RawItem) => {
-    const teamArr = team === 'player' ? playerTeam : enemyTeam;
-    const placed = teamArr[index];
-    if (!placed) return;
-    if (isAutoUnit(placed.champion.apiName)) return;
-
-    const traits = team === 'player' ? playerTraits : enemyTraits;
-    const validation = canEquipItem(item, placed, traits);
-    if (!validation.canEquip) return;
-
-    const setTeam = team === 'player' ? updatePlayerTeam : updateEnemyTeam;
-    setTeam(prev => prev.map((p, i) => {
-      if (i !== index) return p;
-      return { ...p, items: [...p.items, item] };
-    }));
-  };
-
-  const handleRemoveItem = (team: 'player' | 'enemy', index: number, itemIdx: number) => {
-    const setTeam = team === 'player' ? updatePlayerTeam : updateEnemyTeam;
-    setTeam(prev => prev.map((p, i) => {
-      if (i !== index) return p;
-      return { ...p, items: p.items.filter((_item: RawItem, ii: number) => ii !== itemIdx) };
-    }));
-  };
-
-  const handleAddPiltoverModule = (team: 'player' | 'enemy', item: RawItem) => {
-    const modules = team === 'player' ? playerPiltoverModules : enemyPiltoverModules;
-    const traits = team === 'player' ? playerTraits : enemyTraits;
-    const validation = canAddPiltoverModule(item, modules, traits);
-    if (!validation.canEquip) return;
-
-    const setModules = team === 'player' ? setPlayerPiltoverModules : setEnemyPiltoverModules;
-    setModules(prev => [...prev, item]);
-  };
-
-  const handleRemovePiltoverModule = (team: 'player' | 'enemy', index: number) => {
-    const setModules = team === 'player' ? setPlayerPiltoverModules : setEnemyPiltoverModules;
-    setModules(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const isAutoUnit = (apiName: string) => apiName === 'TFT16_AnnieTibbers' || apiName === 'TFT16_FreljordTurret' || apiName === 'TFT16_AzirSoldier';
-
-  const handleStarChange = (team: 'player' | 'enemy', index: number, level: number) => {
-    const teamArr = team === 'player' ? playerTeam : enemyTeam;
-    if (teamArr[index] && isAutoUnit(teamArr[index].champion.apiName)) return;
-    const setTeam = team === 'player' ? updatePlayerTeam : updateEnemyTeam;
-    setTeam(prev => prev.map((p, i) => {
-      if (i !== index) return p;
-      return { ...p, starLevel: level };
-    }));
-  };
-
-  const handleRemoveUnit = (team: 'player' | 'enemy', index: number) => {
-    const teamArr = team === 'player' ? playerTeam : enemyTeam;
-    if (teamArr[index] && isAutoUnit(teamArr[index].champion.apiName)) return;
-    const setTeam = team === 'player' ? updatePlayerTeam : updateEnemyTeam;
-    setTeam(prev => prev.filter((_, i) => i !== index));
-    setSelectedUnit(null);
-  };
-
-  const handleAddAugment = (team: 'player' | 'enemy', aug: RawAugment) => {
-    const setAugs = team === 'player' ? setPlayerAugments : setEnemyAugments;
-    const setStacks = team === 'player' ? setPlayerAugmentStacks : setEnemyAugmentStacks;
-    setAugs(prev => {
-      if (prev.length >= 3) return prev;
-      return [...prev, aug];
-    });
-    const startStacks = getDefaultStacks(aug);
-    setStacks(prev => ({ ...prev, [aug.apiName]: startStacks }));
-    setShowAugmentPicker(null);
-  };
-
-  const handleRemoveAugment = (team: 'player' | 'enemy', index: number) => {
-    const augs = team === 'player' ? playerAugments : enemyAugments;
-    const removed = augs[index];
-    const setAugs = team === 'player' ? setPlayerAugments : setEnemyAugments;
-    const setStacks = team === 'player' ? setPlayerAugmentStacks : setEnemyAugmentStacks;
-    setAugs(prev => prev.filter((_, i) => i !== index));
-    if (removed) {
-      setStacks(prev => {
-        const next = { ...prev };
-        delete next[removed.apiName];
-        return next;
-      });
-    }
-  };
-
-  const handleAugmentStacksChange = (team: 'player' | 'enemy', apiName: string, count: number) => {
-    const setStacks = team === 'player' ? setPlayerAugmentStacks : setEnemyAugmentStacks;
-    setStacks(prev => ({ ...prev, [apiName]: count }));
-  };
-
-  const handleCycleStars = (team: 'player' | 'enemy', index: number) => {
-    const teamArr = team === 'player' ? playerTeam : enemyTeam;
-    if (teamArr[index] && isAutoUnit(teamArr[index].champion.apiName)) return;
-    const setTeam = team === 'player' ? updatePlayerTeam : updateEnemyTeam;
-    setTeam(prev => prev.map((p, i) => {
-      if (i !== index) return p;
-      const next = p.starLevel >= 3 ? 1 : p.starLevel + 1;
-      return { ...p, starLevel: next };
-    }));
-  };
-
-  // DnD handlers
-  const handleDragStart = (event: DragStartEvent) => {
-    const data = event.active.data.current as DragData | undefined;
-    if (data) setActiveDragData(data);
-  };
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    setActiveDragData(null);
-    const { active, over } = event;
-    if (!over) return;
-
-    const dragData = active.data.current as DragData | undefined;
-    if (!dragData) return;
-
-    const cellInfo = parseCellId(over.id as string);
-    if (!cellInfo) return;
-
-    const { row, col } = cellInfo;
-    const team = getTeamFromRow(row);
-    const dataRow = team === 'player' ? row - 4 : row;
-    const pos: HexCoord = { q: col - Math.floor(dataRow / 2), r: dataRow };
-    const teamArr = team === 'player' ? playerTeam : enemyTeam;
-    const setTeam = team === 'player' ? updatePlayerTeam : updateEnemyTeam;
-
-    const existingIdx = teamArr.findIndex(p => {
-      const off = axialToOffset(p.position);
-      return off.row === dataRow && off.col === col;
-    });
-
-    if (dragData.type === 'champion') {
-      if (existingIdx >= 0) return; // occupied
-      setTeam(prev => [...prev, { champion: dragData.champion, position: pos, starLevel: DEFAULT_STAR_LEVEL, items: [] }]);
-    } else if (dragData.type === 'placed-unit') {
-      // Move/swap within same team only
-      if (dragData.team !== team) return;
-      const srcIdx = teamArr.findIndex(p => {
-        const off = axialToOffset(p.position);
-        const srcOff = axialToOffset(dragData.position);
-        return off.row === srcOff.row && off.col === srcOff.col;
-      });
-      if (srcIdx < 0) return;
-
-      if (existingIdx >= 0 && existingIdx !== srcIdx) {
-        // Swap
-        setTeam(prev => prev.map((p, i) => {
-          if (i === srcIdx) return { ...p, position: prev[existingIdx].position };
-          if (i === existingIdx) return { ...p, position: prev[srcIdx].position };
-          return p;
-        }));
-      } else if (existingIdx < 0) {
-        // Move
-        setTeam(prev => prev.map((p, i) => {
-          if (i === srcIdx) return { ...p, position: pos };
-          return p;
-        }));
-      }
-    } else if (dragData.type === 'item') {
-      if (existingIdx < 0) return; // no unit to equip
-      handleEquipItem(team, existingIdx, dragData.item);
-    }
-  };
-
   /** Map player data-row 0-3 → display-row 4-7 for 8-row combat board */
   const toEightRowCoords = useCallback((team: PlacedChampion[], rowOffset: number): PlacedChampion[] => {
     if (rowOffset === 0) return team;
@@ -562,42 +87,46 @@ export default function SimulatorPage() {
   }, []);
 
   const runSimulation = useCallback(() => {
-    if (playerTeam.length === 0 || enemyTeam.length === 0) return;
+    if (tm.playerTeam.length === 0 || tm.enemyTeam.length === 0) return;
     setIsRunning(true);
-    setCombatResult(null);
-    setIsPlaying(false);
-    setReplayTick(0);
+    replay.setCombatResult(null);
+    replay.setIsPlaying(false);
+    replay.setReplayTick(0);
 
     setTimeout(() => {
-      const mappedPlayer = toEightRowCoords(playerTeam, 4);
-      const result = simulateCombat(mappedPlayer, enemyTeam, {
+      const mappedPlayer = toEightRowCoords(tm.playerTeam, 4);
+      const result = simulateCombat(mappedPlayer, tm.enemyTeam, {
         seed: 42, allTraits: traits, skipMirror: true,
-        playerAugments, playerAugmentStacks,
-        enemyAugments, enemyAugmentStacks,
+        playerAugments: tm.playerAugments, playerAugmentStacks: tm.playerAugmentStacks,
+        enemyAugments: tm.enemyAugments, enemyAugmentStacks: tm.enemyAugmentStacks,
+        playerBilgewaterEffects: resolveBilgewaterStatEffects(tm.playerBilgewaterStats, items),
+        enemyBilgewaterEffects: resolveBilgewaterStatEffects(tm.enemyBilgewaterStats, items),
       });
-      setCombatResult(result);
+      replay.setCombatResult(result);
       setIsRunning(false);
-      setViewMode('replay');
-      setReplayTick(0);
-      setIsPlaying(true);
+      replay.setViewMode('replay');
+      replay.setReplayTick(0);
+      replay.setIsPlaying(true);
     }, 100);
-  }, [playerTeam, enemyTeam, traits, playerAugments, playerAugmentStacks, enemyAugments, enemyAugmentStacks, toEightRowCoords]);
+  }, [tm.playerTeam, tm.enemyTeam, traits, tm.playerAugments, tm.playerAugmentStacks, tm.enemyAugments, tm.enemyAugmentStacks, tm.playerBilgewaterStats, tm.enemyBilgewaterStats, items, toEightRowCoords, replay]);
 
   const runMultiple = useCallback(() => {
-    if (playerTeam.length === 0 || enemyTeam.length === 0) return;
+    if (tm.playerTeam.length === 0 || tm.enemyTeam.length === 0) return;
     setIsRunning(true);
     setTimeout(() => {
-      const mappedPlayer = toEightRowCoords(playerTeam, 4);
+      const mappedPlayer = toEightRowCoords(tm.playerTeam, 4);
       let playerWins = 0;
       let enemyWins = 0;
       let draws = 0;
       const N = 100;
       let lastResult: CombatResult | null = null;
       for (let i = 0; i < N; i++) {
-        const r = simulateCombat(mappedPlayer, enemyTeam, {
+        const r = simulateCombat(mappedPlayer, tm.enemyTeam, {
           seed: i + 1, allTraits: traits, skipMirror: true,
-          playerAugments, playerAugmentStacks,
-          enemyAugments, enemyAugmentStacks,
+          playerAugments: tm.playerAugments, playerAugmentStacks: tm.playerAugmentStacks,
+          enemyAugments: tm.enemyAugments, enemyAugmentStacks: tm.enemyAugmentStacks,
+          playerBilgewaterEffects: resolveBilgewaterStatEffects(tm.playerBilgewaterStats, items),
+        enemyBilgewaterEffects: resolveBilgewaterStatEffects(tm.enemyBilgewaterStats, items),
         });
         if (r.winner === 'player') playerWins++;
         else if (r.winner === 'enemy') enemyWins++;
@@ -605,50 +134,48 @@ export default function SimulatorPage() {
         lastResult = r;
       }
       if (lastResult) {
-        (lastResult as CombatResult & { multiSim?: { playerWins: number; enemyWins: number; draws: number; total: number } }).multiSim = {
-          playerWins, enemyWins, draws, total: N,
-        };
+        lastResult.multiSim = { playerWins, enemyWins, draws, total: N };
       }
-      setCombatResult(lastResult);
+      replay.setCombatResult(lastResult);
       setIsRunning(false);
-      setViewMode('replay');
-      setReplayTick(lastResult ? lastResult.snapshots.length - 1 : 0);
+      replay.setViewMode('replay');
+      replay.setReplayTick(lastResult ? lastResult.snapshots.length - 1 : 0);
     }, 100);
-  }, [playerTeam, enemyTeam, traits, playerAugments, playerAugmentStacks, enemyAugments, enemyAugmentStacks, toEightRowCoords]);
+  }, [tm.playerTeam, tm.enemyTeam, traits, tm.playerAugments, tm.playerAugmentStacks, tm.enemyAugments, tm.enemyAugmentStacks, tm.playerBilgewaterStats, tm.enemyBilgewaterStats, items, toEightRowCoords, replay]);
 
   const filteredLogs = useMemo(() => {
-    if (!combatResult) return [];
-    if (logFilter === 'all') return combatResult.logs.slice(-200);
-    return combatResult.logs.filter(l => l.type === logFilter).slice(-200);
-  }, [combatResult, logFilter]);
+    if (!replay.combatResult) return [];
+    if (logFilter === 'all') return replay.combatResult.logs.slice(-200);
+    return replay.combatResult.logs.filter(l => l.type === logFilter).slice(-200);
+  }, [replay.combatResult, logFilter]);
 
-  const multiSim = combatResult && (combatResult as CombatResult & { multiSim?: { playerWins: number; enemyWins: number; draws: number; total: number } }).multiSim;
+  const multiSim = replay.combatResult?.multiSim;
 
   if (loading) {
     return <div className="flex items-center justify-center h-[60vh] text-gray-500">데이터 로딩 중...</div>;
   }
 
   return (
-    <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+    <DndContext sensors={sensors} onDragStart={dnd.handleDragStart} onDragEnd={dnd.handleDragEnd}>
       <div className="space-y-4">
         {/* Header */}
         <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-3">
             <h2 className="text-base lg:text-lg font-bold text-gray-200">전투 시뮬레이션</h2>
-            {combatResult && (
+            {replay.combatResult && (
               <div className="flex gap-1">
                 <button
-                  onClick={() => setViewMode('setup')}
+                  onClick={() => replay.setViewMode('setup')}
                   className={`px-2 py-1 lg:px-3 lg:py-1 rounded text-[10px] lg:text-xs font-medium transition-colors ${
-                    viewMode === 'setup' ? 'bg-blue-600 text-white' : 'bg-[#1f2937] text-gray-400'
+                    replay.viewMode === 'setup' ? 'bg-blue-600 text-white' : 'bg-[#1f2937] text-gray-400'
                   }`}
                 >
                   편집
                 </button>
                 <button
-                  onClick={() => setViewMode('replay')}
+                  onClick={() => replay.setViewMode('replay')}
                   className={`px-2 py-1 lg:px-3 lg:py-1 rounded text-[10px] lg:text-xs font-medium transition-colors ${
-                    viewMode === 'replay' ? 'bg-purple-600 text-white' : 'bg-[#1f2937] text-gray-400'
+                    replay.viewMode === 'replay' ? 'bg-purple-600 text-white' : 'bg-[#1f2937] text-gray-400'
                   }`}
                 >
                   리플레이
@@ -658,7 +185,7 @@ export default function SimulatorPage() {
           </div>
           <div className="flex gap-1.5 lg:gap-2 flex-wrap">
             <button
-              onClick={() => { updatePlayerTeam([]); updateEnemyTeam([]); setSelectedUnit(null); setPlayerAugments([]); setPlayerAugmentStacks({}); setEnemyAugments([]); setEnemyAugmentStacks({}); }}
+              onClick={tm.resetAll}
               className="px-2 py-1.5 lg:px-3 lg:py-2 bg-[#1f2937] text-gray-500 hover:text-red-400 rounded-lg text-[10px] lg:text-xs"
             >
               초기화
@@ -673,14 +200,14 @@ export default function SimulatorPage() {
             </button>
             <button
               onClick={runSimulation}
-              disabled={isRunning || playerTeam.length === 0 || enemyTeam.length === 0}
+              disabled={isRunning || tm.playerTeam.length === 0 || tm.enemyTeam.length === 0}
               className="px-3 py-1.5 lg:px-4 lg:py-2 bg-yellow-600 hover:bg-yellow-500 disabled:opacity-40 rounded-lg text-xs lg:text-sm font-bold text-black transition-colors"
             >
               {isRunning ? '전투 중...' : '전투 시작'}
             </button>
             <button
               onClick={runMultiple}
-              disabled={isRunning || playerTeam.length === 0 || enemyTeam.length === 0}
+              disabled={isRunning || tm.playerTeam.length === 0 || tm.enemyTeam.length === 0}
               className="px-3 py-1.5 lg:px-4 lg:py-2 bg-purple-600 hover:bg-purple-500 disabled:opacity-40 rounded-lg text-xs lg:text-sm font-bold text-white transition-colors"
             >
               100회
@@ -691,20 +218,20 @@ export default function SimulatorPage() {
         {/* Team Code Panel */}
         {showTeamCode && (
           <TeamCodePanel
-            playerTeam={playerTeam}
-            enemyTeam={enemyTeam}
+            playerTeam={tm.playerTeam}
+            enemyTeam={tm.enemyTeam}
             champions={champions}
             teamPlannerMapping={teamPlannerMapping}
             onImport={(team, imported) => {
-              if (team === 'player') updatePlayerTeam(imported);
-              else updateEnemyTeam(imported);
-              setSelectedUnit(null);
+              if (team === 'player') tm.updatePlayerTeam(imported);
+              else tm.updateEnemyTeam(imported);
+              tm.setSelectedUnit(null);
             }}
           />
         )}
 
         {/* ====== SETUP MODE ====== */}
-        {viewMode === 'setup' && (
+        {replay.viewMode === 'setup' && (
           <>
             {/* 3-column: Synergy panels (left) | Board (center) | Champion/Item pool (right) */}
             <div className="flex flex-col lg:flex-row gap-3">
@@ -714,21 +241,21 @@ export default function SimulatorPage() {
                   <div className="h-[320px] sm:h-[420px] lg:h-auto overflow-hidden flex justify-center">
                     <div className="transform scale-[0.5] sm:scale-[0.65] lg:scale-100 origin-top" style={{ position: 'relative', display: 'inline-block' }}>
                     <SetupBoard
-                      playerChampions={playerTeam}
-                      enemyChampions={enemyTeam}
-                      onCellClick={handleCellClick}
-                      onUnitClick={handleUnitClick}
-                      onUnitRightClick={handleRemoveUnit}
-                      onUnitCycleStars={handleCycleStars}
-                      selectedCell={selectedCell}
-                      selectedUnit={selectedUnit}
+                      playerChampions={tm.playerTeam}
+                      enemyChampions={tm.enemyTeam}
+                      onCellClick={tm.handleCellClick}
+                      onUnitClick={tm.handleUnitClick}
+                      onUnitRightClick={tm.handleRemoveUnit}
+                      onUnitCycleStars={tm.handleCycleStars}
+                      selectedCell={tm.selectedCell}
+                      selectedUnit={tm.selectedUnit}
                     />
                     {/* Droppable overlay */}
                     <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
                       {Array.from({ length: 8 }, (_, row) =>
                         Array.from({ length: BOARD_COLS }, (_, col) => {
                           const team = row < 4 ? 'enemy' : 'player';
-                          const teamArr = team === 'player' ? playerTeam : enemyTeam;
+                          const teamArr = team === 'player' ? tm.playerTeam : tm.enemyTeam;
                           const dataRow = team === 'player' ? row - 4 : row;
                           const placedIdx = teamArr.findIndex(p => {
                             const off = axialToOffset(p.position);
@@ -738,16 +265,16 @@ export default function SimulatorPage() {
 
                           const cellClick = () => {
                             if (placed && placedIdx >= 0) {
-                              handleUnitClick(team, placedIdx);
+                              tm.handleUnitClick(team, placedIdx);
                             } else {
                               const pos = offsetToAxial({ row: dataRow, col });
-                              handleCellClick(pos, team);
+                              tm.handleCellClick(pos, team);
                             }
                           };
                           const cellContextMenu = (e: React.MouseEvent) => {
                             e.preventDefault();
                             if (placed && placedIdx >= 0) {
-                              handleRemoveUnit(team, placedIdx);
+                              tm.handleRemoveUnit(team, placedIdx);
                             }
                           };
 
@@ -773,71 +300,71 @@ export default function SimulatorPage() {
                   <div>
                     <div className="text-[9px] text-red-400 font-bold mb-1">TEAM B 증강</div>
                     <AugmentSlots
-                      augments={enemyAugments}
-                      augmentStacks={enemyAugmentStacks}
-                      onOpenSelector={() => setShowAugmentPicker('enemy')}
-                      onOpenDetail={(aug) => setAugmentDetailTarget({ aug, team: 'enemy' })}
-                      onRemove={(i) => handleRemoveAugment('enemy', i)}
+                      augments={tm.enemyAugments}
+                      augmentStacks={tm.enemyAugmentStacks}
+                      onOpenSelector={() => tm.setShowAugmentPicker('enemy')}
+                      onOpenDetail={(aug) => tm.setAugmentDetailTarget({ aug, team: 'enemy' })}
+                      onRemove={(i) => tm.handleRemoveAugment('enemy', i)}
                     />
                   </div>
                   <div>
                     <div className="text-[9px] text-blue-400 font-bold mb-1">TEAM A 증강</div>
                     <AugmentSlots
-                      augments={playerAugments}
-                      augmentStacks={playerAugmentStacks}
-                      onOpenSelector={() => setShowAugmentPicker('player')}
-                      onOpenDetail={(aug) => setAugmentDetailTarget({ aug, team: 'player' })}
-                      onRemove={(i) => handleRemoveAugment('player', i)}
+                      augments={tm.playerAugments}
+                      augmentStacks={tm.playerAugmentStacks}
+                      onOpenSelector={() => tm.setShowAugmentPicker('player')}
+                      onOpenDetail={(aug) => tm.setAugmentDetailTarget({ aug, team: 'player' })}
+                      onRemove={(i) => tm.handleRemoveAugment('player', i)}
                     />
                   </div>
                 </div>
               </div>
 
               {/* Selected Unit Panel (mobile: below board, desktop: hidden here - shown in left column) */}
-              {selectedUnit && selectedPlaced && (
+              {tm.selectedUnit && tm.selectedPlaced && (
                 <div className="order-2 lg:hidden">
                   <SelectedUnitPanel
-                    placed={selectedPlaced}
-                    team={selectedUnit.team}
+                    placed={tm.selectedPlaced}
+                    team={tm.selectedUnit.team}
                     allItems={items}
-                    activeTraits={selectedUnit.team === 'player' ? playerTraits : enemyTraits}
-                    onStarChange={(level) => handleStarChange(selectedUnit.team, selectedUnit.index, level)}
-                    onEquipItem={(item) => handleEquipItem(selectedUnit.team, selectedUnit.index, item)}
-                    onRemoveItem={(itemIdx) => handleRemoveItem(selectedUnit.team, selectedUnit.index, itemIdx)}
-                    onRemoveUnit={() => handleRemoveUnit(selectedUnit.team, selectedUnit.index)}
+                    activeTraits={tm.selectedUnit.team === 'player' ? tm.playerTraits : tm.enemyTraits}
+                    onStarChange={(level) => tm.handleStarChange(tm.selectedUnit!.team, tm.selectedUnit!.index, level)}
+                    onEquipItem={(item) => tm.handleEquipItem(tm.selectedUnit!.team, tm.selectedUnit!.index, item)}
+                    onRemoveItem={(itemIdx) => tm.handleRemoveItem(tm.selectedUnit!.team, tm.selectedUnit!.index, itemIdx)}
+                    onRemoveUnit={() => tm.handleRemoveUnit(tm.selectedUnit!.team, tm.selectedUnit!.index)}
                   />
                 </div>
               )}
 
               {/* Left: Both Synergy panels + Selected unit (desktop) */}
               <div className="order-3 lg:order-1 lg:w-52 lg:shrink-0 space-y-3">
-                <SynergyPanel activeTraits={playerTraits} team="player" items={items} />
+                <SynergyPanel activeTraits={tm.playerTraits} team="player" items={items} piltoverModules={tm.playerPiltoverModules} bilgewaterStats={tm.playerBilgewaterStats} />
                 <PiltoverModulePanel
-                  modules={playerPiltoverModules}
+                  modules={tm.playerPiltoverModules}
                   allItems={items}
-                  activeTraits={playerTraits}
-                  onAddModule={(item) => handleAddPiltoverModule('player', item)}
-                  onRemoveModule={(idx) => handleRemovePiltoverModule('player', idx)}
+                  activeTraits={tm.playerTraits}
+                  onAddModule={(item) => tm.handleAddPiltoverModule('player', item)}
+                  onRemoveModule={(idx) => tm.handleRemovePiltoverModule('player', idx)}
                 />
-                <SynergyPanel activeTraits={enemyTraits} team="enemy" items={items} />
+                <SynergyPanel activeTraits={tm.enemyTraits} team="enemy" items={items} piltoverModules={tm.enemyPiltoverModules} bilgewaterStats={tm.enemyBilgewaterStats} />
                 <PiltoverModulePanel
-                  modules={enemyPiltoverModules}
+                  modules={tm.enemyPiltoverModules}
                   allItems={items}
-                  activeTraits={enemyTraits}
-                  onAddModule={(item) => handleAddPiltoverModule('enemy', item)}
-                  onRemoveModule={(idx) => handleRemovePiltoverModule('enemy', idx)}
+                  activeTraits={tm.enemyTraits}
+                  onAddModule={(item) => tm.handleAddPiltoverModule('enemy', item)}
+                  onRemoveModule={(idx) => tm.handleRemovePiltoverModule('enemy', idx)}
                 />
-                {selectedUnit && selectedPlaced && (
+                {tm.selectedUnit && tm.selectedPlaced && (
                   <div className="hidden lg:block">
                     <SelectedUnitPanel
-                      placed={selectedPlaced}
-                      team={selectedUnit.team}
+                      placed={tm.selectedPlaced}
+                      team={tm.selectedUnit.team}
                       allItems={items}
-                      activeTraits={selectedUnit.team === 'player' ? playerTraits : enemyTraits}
-                      onStarChange={(level) => handleStarChange(selectedUnit.team, selectedUnit.index, level)}
-                      onEquipItem={(item) => handleEquipItem(selectedUnit.team, selectedUnit.index, item)}
-                      onRemoveItem={(itemIdx) => handleRemoveItem(selectedUnit.team, selectedUnit.index, itemIdx)}
-                      onRemoveUnit={() => handleRemoveUnit(selectedUnit.team, selectedUnit.index)}
+                      activeTraits={tm.selectedUnit.team === 'player' ? tm.playerTraits : tm.enemyTraits}
+                      onStarChange={(level) => tm.handleStarChange(tm.selectedUnit!.team, tm.selectedUnit!.index, level)}
+                      onEquipItem={(item) => tm.handleEquipItem(tm.selectedUnit!.team, tm.selectedUnit!.index, item)}
+                      onRemoveItem={(itemIdx) => tm.handleRemoveItem(tm.selectedUnit!.team, tm.selectedUnit!.index, itemIdx)}
+                      onRemoveUnit={() => tm.handleRemoveUnit(tm.selectedUnit!.team, tm.selectedUnit!.index)}
                     />
                   </div>
                 )}
@@ -845,7 +372,7 @@ export default function SimulatorPage() {
 
               {/* Right: Champion/Item pool */}
               <div className="order-4 lg:order-3 w-full lg:w-64 lg:shrink-0 bg-[#111827] rounded-xl border border-gray-800 p-3 flex flex-col lg:self-start max-h-[50vh] lg:max-h-[calc(100vh-120px)]">
-                <div className="flex gap-2 mb-3 shrink-0">
+                <div className="flex gap-2 mb-3 shrink-0 flex-wrap">
                   <button
                     onClick={() => setActivePoolTab('champions')}
                     className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
@@ -862,6 +389,17 @@ export default function SimulatorPage() {
                   >
                     아이템
                   </button>
+                  {(tm.playerTraits.some(t => t.trait.apiName === 'TFT16_Bilgewater' && t.style > 0) ||
+                    tm.enemyTraits.some(t => t.trait.apiName === 'TFT16_Bilgewater' && t.style > 0)) && (
+                    <button
+                      onClick={() => setActivePoolTab('bilgewater')}
+                      className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                        activePoolTab === 'bilgewater' ? 'bg-teal-600 text-white' : 'bg-[#1f2937] text-gray-400'
+                      }`}
+                    >
+                      빌지워터
+                    </button>
+                  )}
                 </div>
 
                 {activePoolTab === 'champions' && (
@@ -920,25 +458,71 @@ export default function SimulatorPage() {
                       {items.filter(item => {
                         if (isDisabledItem(item)) return false;
                         const cat = getItemCategory(item);
-                        if (cat === 'piltover' || cat === 'special') return false;
-                        if (cat === 'bilgewater') {
-                          const bgTrait = playerTraits.find(t => t.trait.apiName === 'TFT16_Bilgewater')
-                            ?? enemyTraits.find(t => t.trait.apiName === 'TFT16_Bilgewater');
-                          if (!bgTrait || !bgTrait.activeEffect) return false;
-                          if (Object.keys(item.effects).length === 0) return false;
-                        }
+                        if (cat === 'piltover' || cat === 'special' || cat === 'bilgewater') return false;
                         if (cat === 'void') {
-                          const voidTrait = playerTraits.find(t => t.trait.apiName === 'TFT16_Void')
-                            ?? enemyTraits.find(t => t.trait.apiName === 'TFT16_Void');
+                          const voidTrait = tm.playerTraits.find(t => t.trait.apiName === 'TFT16_Void')
+                            ?? tm.enemyTraits.find(t => t.trait.apiName === 'TFT16_Void');
                           if (!voidTrait || !voidTrait.activeEffect) return false;
                         }
                         if (itemSearch && !item.name.toLowerCase().includes(itemSearch.toLowerCase())) return false;
                         if (itemCategoryFilter !== 'all') {
-                          if (cat === 'bilgewater' || cat === 'void' || cat === 'darkin') {
+                          if (cat === 'void' || cat === 'darkin') {
                             if (itemCategoryFilter !== 'combined') return false;
                           } else if (cat !== itemCategoryFilter) return false;
                         }
-                        // 상징/찬란은 always show when filter is 'all'
+                        return true;
+                      }).map(item => (
+                        <DraggableItemIcon key={item.apiName} item={item} size={32} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {activePoolTab === 'bilgewater' && (
+                  <div className="flex flex-col min-h-0 flex-1 gap-2">
+                    <div className="text-[10px] font-bold text-teal-400 shrink-0">능력치 (클릭으로 구매 — 빌지워터 챔피언 전체 적용)</div>
+                    <div className="grid grid-cols-6 gap-1.5 overflow-y-auto min-h-0 p-1">
+                      {items.filter(item => isBilgewaterStatItem(item.apiName)).map(item => {
+                        const playerCount = tm.playerBilgewaterStats[item.apiName] ?? 0;
+                        const enemyCount = tm.enemyBilgewaterStats[item.apiName] ?? 0;
+                        const totalCount = playerCount + enemyCount;
+                        return (
+                          <div
+                            key={item.apiName}
+                            className="relative"
+                            onContextMenu={(e) => {
+                              e.preventDefault();
+                              const hasBWPlayer = tm.playerTraits.some(t => t.trait.apiName === 'TFT16_Bilgewater' && t.style > 0);
+                              const hasBWEnemy = tm.enemyTraits.some(t => t.trait.apiName === 'TFT16_Bilgewater' && t.style > 0);
+                              if (hasBWPlayer && playerCount > 0) tm.handleRemoveBilgewaterStat('player', item.apiName);
+                              else if (hasBWEnemy && enemyCount > 0) tm.handleRemoveBilgewaterStat('enemy', item.apiName);
+                            }}
+                          >
+                            <ItemIcon
+                              item={item}
+                              size={32}
+                              onClick={() => {
+                                const hasBWPlayer = tm.playerTraits.some(t => t.trait.apiName === 'TFT16_Bilgewater' && t.style > 0);
+                                const hasBWEnemy = tm.enemyTraits.some(t => t.trait.apiName === 'TFT16_Bilgewater' && t.style > 0);
+                                if (hasBWPlayer) tm.handleBuyBilgewaterStat('player', item);
+                                else if (hasBWEnemy) tm.handleBuyBilgewaterStat('enemy', item);
+                              }}
+                            />
+                            {totalCount > 0 && (
+                              <div className="absolute -top-1 -right-1 w-4 h-4 bg-teal-600 rounded-full text-[8px] text-white flex items-center justify-center font-bold pointer-events-none">
+                                {totalCount}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="text-[10px] font-bold text-teal-400 shrink-0 mt-2">장비 아이템 (드래그로 장착)</div>
+                    <div className="grid grid-cols-6 gap-1.5 overflow-y-auto min-h-0 p-1">
+                      {items.filter(item => {
+                        if (!item.apiName.includes('TFT16_Item_Bilgewater_')) return false;
+                        if (isBilgewaterStatItem(item.apiName)) return false;
+                        if (Object.keys(item.effects).length === 0) return false;
                         return true;
                       }).map(item => (
                         <DraggableItemIcon key={item.apiName} item={item} size={32} />
@@ -952,20 +536,20 @@ export default function SimulatorPage() {
         )}
 
         {/* ====== REPLAY MODE ====== */}
-        {viewMode === 'replay' && combatResult && (
+        {replay.viewMode === 'replay' && replay.combatResult && (
           <>
             {/* Winner banner */}
             <div className={`text-center p-4 rounded-xl border ${
-              combatResult.winner === 'player' ? 'bg-blue-600/10 border-blue-600/30' :
-              combatResult.winner === 'enemy' ? 'bg-red-600/10 border-red-600/30' :
+              replay.combatResult.winner === 'player' ? 'bg-blue-600/10 border-blue-600/30' :
+              replay.combatResult.winner === 'enemy' ? 'bg-red-600/10 border-red-600/30' :
               'bg-gray-600/10 border-gray-600/30'
             }`}>
               <div className="text-2xl font-black">
-                {combatResult.winner === 'player' ? 'TEAM A 승리!' :
-                 combatResult.winner === 'enemy' ? 'TEAM B 승리!' : '무승부'}
+                {replay.combatResult.winner === 'player' ? 'TEAM A 승리!' :
+                 replay.combatResult.winner === 'enemy' ? 'TEAM B 승리!' : '무승부'}
               </div>
               <div className="text-xs text-gray-400 mt-1">
-                전투 시간: {combatResult.duration.toFixed(1)}초
+                전투 시간: {replay.combatResult.duration.toFixed(1)}초
               </div>
               {multiSim && (
                 <div className="mt-2 flex gap-4 justify-center text-xs">
@@ -978,16 +562,16 @@ export default function SimulatorPage() {
 
             {/* Battle Controls */}
             <BattleControls
-              currentTick={replayTick}
-              totalTicks={combatResult.snapshots.length}
-              playbackSpeed={playbackSpeed}
-              isPlaying={isPlaying}
-              onPlay={() => setIsPlaying(true)}
-              onPause={() => setIsPlaying(false)}
-              onStepForward={() => setReplayTick(prev => Math.min(prev + 1, combatResult.snapshots.length - 1))}
-              onStepBack={() => setReplayTick(prev => Math.max(prev - 1, 0))}
-              onSeek={setReplayTick}
-              onSpeedChange={setPlaybackSpeed}
+              currentTick={replay.replayTick}
+              totalTicks={replay.combatResult.snapshots.length}
+              playbackSpeed={replay.playbackSpeed}
+              isPlaying={replay.isPlaying}
+              onPlay={() => replay.setIsPlaying(true)}
+              onPause={() => replay.setIsPlaying(false)}
+              onStepForward={() => replay.setReplayTick(prev => Math.min(prev + 1, replay.combatResult!.snapshots.length - 1))}
+              onStepBack={() => replay.setReplayTick(prev => Math.max(prev - 1, 0))}
+              onSeek={replay.setReplayTick}
+              onSpeedChange={replay.setPlaybackSpeed}
               ticksPerSecond={TICKS_PER_SECOND}
             />
 
@@ -998,10 +582,10 @@ export default function SimulatorPage() {
                 <div className="h-[310px] sm:h-[420px] lg:h-auto overflow-hidden">
                   <div className="transform scale-[0.48] sm:scale-[0.65] lg:scale-100 origin-top">
                     <ReplayBoard
-                      snapshot={currentSnapshot}
-                      unitMeta={unitMeta}
-                      selectedUnitId={selectedUnitId}
-                      onUnitClick={setSelectedUnitId}
+                      snapshot={replay.currentSnapshot}
+                      unitMeta={replay.unitMeta}
+                      selectedUnitId={replay.selectedUnitId}
+                      onUnitClick={replay.setSelectedUnitId}
                     />
                   </div>
                 </div>
@@ -1009,43 +593,50 @@ export default function SimulatorPage() {
 
               {/* Unit detail panel */}
               <div className="w-full lg:w-56 lg:shrink-0 space-y-3">
-                {selectedUnitId && selectedUnitSnap && unitMeta[selectedUnitId] && (
+                {replay.selectedUnitId && replay.selectedUnitSnap && replay.unitMeta[replay.selectedUnitId] && (
                   <div className="bg-[#111827] rounded-xl border border-gray-800 p-3 space-y-2">
                     <UnitToken
-                      championName={unitMeta[selectedUnitId].championName}
-                      championApiName={unitMeta[selectedUnitId].championApiName}
-                      cost={unitMeta[selectedUnitId].cost}
-                      currentHp={selectedUnitSnap.currentHp}
-                      maxHp={unitMeta[selectedUnitId].maxHp}
-                      currentMana={selectedUnitSnap.currentMana}
-                      maxMana={unitMeta[selectedUnitId].maxMana}
-                      starLevel={unitMeta[selectedUnitId].starLevel}
-                      items={unitMeta[selectedUnitId].items}
-                      statusEffects={selectedUnitSnap.statusEffects}
-                      isAlive={selectedUnitSnap.isAlive}
-                      team={unitMeta[selectedUnitId].team}
+                      championName={replay.unitMeta[replay.selectedUnitId].championName}
+                      championApiName={replay.unitMeta[replay.selectedUnitId].championApiName}
+                      cost={replay.unitMeta[replay.selectedUnitId].cost}
+                      currentHp={replay.selectedUnitSnap.currentHp}
+                      maxHp={replay.unitMeta[replay.selectedUnitId].maxHp}
+                      currentMana={replay.selectedUnitSnap.currentMana}
+                      maxMana={replay.unitMeta[replay.selectedUnitId].maxMana}
+                      starLevel={replay.unitMeta[replay.selectedUnitId].starLevel}
+                      items={replay.unitMeta[replay.selectedUnitId].items}
+                      statusEffects={replay.selectedUnitSnap.statusEffects}
+                      isAlive={replay.selectedUnitSnap.isAlive}
+                      team={replay.unitMeta[replay.selectedUnitId].team}
+                      shield={replay.selectedUnitSnap.shield}
                       isSelected
                       size="md"
                     />
                     <div className="text-[10px] text-gray-400 space-y-0.5">
                       <div className="flex justify-between">
                         <span>HP</span>
-                        <span className="text-green-400">{Math.round(selectedUnitSnap.currentHp)} / {Math.round(unitMeta[selectedUnitId].maxHp)}</span>
+                        <span className="text-green-400">{Math.round(replay.selectedUnitSnap.currentHp)} / {Math.round(replay.unitMeta[replay.selectedUnitId].maxHp)}</span>
                       </div>
+                      {replay.selectedUnitSnap.shield > 0 && (
+                        <div className="flex justify-between">
+                          <span>보호막</span>
+                          <span className="text-gray-200">{Math.round(replay.selectedUnitSnap.shield)}</span>
+                        </div>
+                      )}
                       <div className="flex justify-between">
                         <span>Mana</span>
-                        <span className="text-blue-400">{Math.round(selectedUnitSnap.currentMana)} / {unitMeta[selectedUnitId].maxMana}</span>
+                        <span className="text-blue-400">{Math.round(replay.selectedUnitSnap.currentMana)} / {replay.unitMeta[replay.selectedUnitId].maxMana}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>위치</span>
                         <span className="text-gray-300">
-                          ({(() => { const off = axialToOffset(selectedUnitSnap.position as HexCoord); return `${off.row}, ${off.col}`; })()})
+                          ({(() => { const off = axialToOffset(replay.selectedUnitSnap.position as { q: number; r: number }); return `${off.row}, ${off.col}`; })()})
                         </span>
                       </div>
-                      {selectedUnitSnap.statusEffects.length > 0 && (
+                      {replay.selectedUnitSnap.statusEffects.length > 0 && (
                         <div className="pt-1 border-t border-gray-700">
                           <span className="text-yellow-400">상태이상:</span>
-                          {selectedUnitSnap.statusEffects.map((e, i) => (
+                          {replay.selectedUnitSnap.statusEffects.map((e, i) => (
                             <div key={i} className="text-yellow-300 pl-2">
                               {e.type} ({e.remainingTicks}t)
                             </div>
@@ -1059,15 +650,15 @@ export default function SimulatorPage() {
                 {/* All units list */}
                 <div className="bg-[#111827] rounded-xl border border-gray-800 p-2 space-y-1 max-h-[400px] overflow-y-auto">
                   <div className="text-[9px] font-bold text-blue-400 px-1">TEAM A</div>
-                  {combatResult.playerUnits.map((u) => {
-                    const snap = currentSnapshot?.units[u.id];
+                  {replay.combatResult.playerUnits.map((u) => {
+                    const snap = replay.currentSnapshot?.units[u.id];
                     if (!snap) return null;
                     return (
                       <div
                         key={u.id}
-                        onClick={() => setSelectedUnitId(u.id)}
+                        onClick={() => replay.setSelectedUnitId(u.id)}
                         className={`flex items-center gap-1.5 px-1 py-0.5 rounded cursor-pointer transition-colors ${
-                          selectedUnitId === u.id ? 'bg-blue-900/30' : 'hover:bg-[#1f2937]'
+                          replay.selectedUnitId === u.id ? 'bg-blue-900/30' : 'hover:bg-[#1f2937]'
                         } ${!snap.isAlive ? 'opacity-30' : ''}`}
                       >
                         <UnitToken
@@ -1083,21 +674,22 @@ export default function SimulatorPage() {
                           statusEffects={snap.statusEffects}
                           isAlive={snap.isAlive}
                           team="player"
+                          shield={snap.shield}
                           size="sm"
                         />
                       </div>
                     );
                   })}
                   <div className="text-[9px] font-bold text-red-400 px-1 pt-1">TEAM B</div>
-                  {combatResult.enemyUnits.map((u) => {
-                    const snap = currentSnapshot?.units[u.id];
+                  {replay.combatResult.enemyUnits.map((u) => {
+                    const snap = replay.currentSnapshot?.units[u.id];
                     if (!snap) return null;
                     return (
                       <div
                         key={u.id}
-                        onClick={() => setSelectedUnitId(u.id)}
+                        onClick={() => replay.setSelectedUnitId(u.id)}
                         className={`flex items-center gap-1.5 px-1 py-0.5 rounded cursor-pointer transition-colors ${
-                          selectedUnitId === u.id ? 'bg-red-900/30' : 'hover:bg-[#1f2937]'
+                          replay.selectedUnitId === u.id ? 'bg-red-900/30' : 'hover:bg-[#1f2937]'
                         } ${!snap.isAlive ? 'opacity-30' : ''}`}
                       >
                         <UnitToken
@@ -1113,6 +705,7 @@ export default function SimulatorPage() {
                           statusEffects={snap.statusEffects}
                           isAlive={snap.isAlive}
                           team="enemy"
+                          shield={snap.shield}
                           size="sm"
                         />
                       </div>
@@ -1123,11 +716,11 @@ export default function SimulatorPage() {
             </div>
 
             {/* Tick events */}
-            {tickEvents.length > 0 && (
+            {replay.tickEvents.length > 0 && (
               <div className="bg-[#111827] rounded-lg border border-gray-800 p-2">
                 <div className="text-[10px] font-bold text-gray-500 mb-1">현재 틱 이벤트</div>
                 <div className="space-y-0.5 font-mono text-[10px] max-h-[80px] overflow-y-auto">
-                  {tickEvents.map((e, i) => (
+                  {replay.tickEvents.map((e, i) => (
                     <div key={i} className={
                       e.type === 'death' ? 'text-red-400' :
                       e.type === 'ability' ? 'text-purple-400' :
@@ -1179,11 +772,11 @@ export default function SimulatorPage() {
         )}
 
         {/* ====== SETUP MODE: show last result summary ====== */}
-        {viewMode === 'setup' && combatResult && (
+        {replay.viewMode === 'setup' && replay.combatResult && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="p-3 bg-[#111827] rounded-lg border border-gray-800">
               <h4 className="text-xs font-bold text-blue-400 mb-2">TEAM A 유닛</h4>
-              {combatResult.playerUnits.map((u) => (
+              {replay.combatResult.playerUnits.map((u) => (
                 <div key={u.id} className={`flex items-center gap-2 py-1 ${u.state === 'dead' ? 'opacity-40' : ''}`}>
                   <span className="text-xs text-gray-300 flex-1">{u.champion.name}</span>
                   <span className="text-xs text-green-400">{Math.round(u.currentHp)}/{Math.round(u.maxHp)}</span>
@@ -1193,7 +786,7 @@ export default function SimulatorPage() {
             </div>
             <div className="p-3 bg-[#111827] rounded-lg border border-gray-800">
               <h4 className="text-xs font-bold text-red-400 mb-2">TEAM B 유닛</h4>
-              {combatResult.enemyUnits.map((u) => (
+              {replay.combatResult.enemyUnits.map((u) => (
                 <div key={u.id} className={`flex items-center gap-2 py-1 ${u.state === 'dead' ? 'opacity-40' : ''}`}>
                   <span className="text-xs text-gray-300 flex-1">{u.champion.name}</span>
                   <span className="text-xs text-green-400">{Math.round(u.currentHp)}/{Math.round(u.maxHp)}</span>
@@ -1205,43 +798,44 @@ export default function SimulatorPage() {
         )}
 
         {/* Champion picker modal (for cell click) */}
-        <Modal isOpen={showPicker} onClose={() => setShowPicker(false)} title="챔피언 선택">
-          <ChampionGrid champions={champions} onSelect={handleChampionSelect} />
+        <Modal isOpen={tm.showPicker} onClose={() => tm.setShowPicker(false)} title="챔피언 선택">
+          <ChampionGrid champions={champions} onSelect={tm.handleChampionSelect} />
         </Modal>
 
         {/* Augment picker modal */}
-        <Modal isOpen={showAugmentPicker !== null} onClose={() => setShowAugmentPicker(null)} title="증강 선택">
-          {showAugmentPicker && (
+        <Modal isOpen={tm.showAugmentPicker !== null} onClose={() => tm.setShowAugmentPicker(null)} title="증강 선택">
+          {tm.showAugmentPicker && (
             <AugmentSelector
               augments={augments}
-              onSelect={(aug) => handleAddAugment(showAugmentPicker, aug)}
-              selectedApiNames={[...playerAugments, ...enemyAugments].map(a => a.apiName)}
+              onSelect={(aug) => tm.handleAddAugment(tm.showAugmentPicker!, aug)}
+              selectedApiNames={[...tm.playerAugments, ...tm.enemyAugments].map(a => a.apiName)}
             />
           )}
         </Modal>
 
         {/* Augment detail popup */}
         <AugmentDetailPopup
-          augment={augmentDetailTarget?.aug ?? null}
-          stacks={augmentDetailTarget ? (augmentDetailTarget.team === 'player' ? playerAugmentStacks : enemyAugmentStacks)[augmentDetailTarget.aug.apiName] ?? 1 : 1}
+          augment={tm.augmentDetailTarget?.aug ?? null}
+          stacks={tm.augmentDetailTarget ? (tm.augmentDetailTarget.team === 'player' ? tm.playerAugmentStacks : tm.enemyAugmentStacks)[tm.augmentDetailTarget.aug.apiName] ?? 1 : 1}
           onStacksChange={(count) => {
-            if (augmentDetailTarget) {
-              handleAugmentStacksChange(augmentDetailTarget.team, augmentDetailTarget.aug.apiName, count);
+            if (tm.augmentDetailTarget) {
+              tm.handleAugmentStacksChange(tm.augmentDetailTarget.team, tm.augmentDetailTarget.aug.apiName, count);
             }
           }}
-          onClose={() => setAugmentDetailTarget(null)}
+          onClose={() => tm.setAugmentDetailTarget(null)}
         />
 
         {/* DragOverlay */}
         <DragOverlay>
-          {activeDragData?.type === 'champion' && (
+          {dnd.activeDragData?.type === 'champion' && (
             <div style={{ opacity: 0.7 }}>
-              <ChampionCard champion={activeDragData.champion} size={48} showName={false} />
+              <ChampionCard champion={dnd.activeDragData.champion} size={48} showName={false} />
             </div>
           )}
-          {activeDragData?.type === 'placed-unit' && (() => {
-            const teamArr = activeDragData.team === 'player' ? playerTeam : enemyTeam;
-            const placed = teamArr.find(p => p.position.q === activeDragData.position.q && p.position.r === activeDragData.position.r);
+          {dnd.activeDragData?.type === 'placed-unit' && (() => {
+            const dragData = dnd.activeDragData;
+            const teamArr = dragData.team === 'player' ? tm.playerTeam : tm.enemyTeam;
+            const placed = teamArr.find(p => p.position.q === dragData.position.q && p.position.r === dragData.position.r);
             if (!placed) return null;
             return (
               <div style={{ opacity: 0.7 }}>
@@ -1249,9 +843,9 @@ export default function SimulatorPage() {
               </div>
             );
           })()}
-          {activeDragData?.type === 'item' && (
+          {dnd.activeDragData?.type === 'item' && (
             <div style={{ opacity: 0.7 }}>
-              <ItemIcon item={activeDragData.item} size={32} showTooltip={false} />
+              <ItemIcon item={dnd.activeDragData.item} size={32} showTooltip={false} />
             </div>
           )}
         </DragOverlay>

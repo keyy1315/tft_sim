@@ -251,6 +251,16 @@ export type AbilityTargetingType =
   | 'self'
   | 'aoe_center';
 
+export type AbilityPattern =
+  | 'single'      // 타겟 1명
+  | 'line'        // 직선 관통
+  | 'aoe_circle'  // 원형 범위
+  | 'cone'        // 원뿔형
+  | 'multi'       // 지정 다수
+  | 'bounce'      // 튕김
+  | 'global'      // 전체 적
+  | 'self_buff';  // 자기 버프
+
 export type StatusEffectType = 'stun' | 'slow' | 'burn' | 'shield' | 'invulnerable' | 'disarm' | 'taunt';
 
 export interface StatusEffect {
@@ -342,6 +352,13 @@ export interface CombatLog {
   message: string;
 }
 
+export interface MultiSimResult {
+  playerWins: number;
+  enemyWins: number;
+  draws: number;
+  total: number;
+}
+
 export interface CombatResult {
   winner: 'player' | 'enemy' | 'draw';
   duration: number;
@@ -349,6 +366,7 @@ export interface CombatResult {
   playerUnits: CombatUnit[];
   enemyUnits: CombatUnit[];
   snapshots: TickSnapshot[];
+  multiSim?: MultiSimResult;
 }
 
 export interface TickSnapshot {
@@ -359,6 +377,7 @@ export interface TickSnapshot {
     currentMana: number;
     position: HexCoord;
     isAlive: boolean;
+    shield: number;
     statusEffects: { type: string; remainingTicks: number; value?: number }[];
   }>;
   events: CombatLog[];

@@ -20,6 +20,7 @@ interface UnitTokenProps {
   isSelected?: boolean;
   onClick?: () => void;
   size?: 'sm' | 'md';
+  shield?: number;
 }
 
 const STATUS_ICONS: Record<string, { label: string; color: string }> = {
@@ -48,6 +49,7 @@ export default function UnitToken({
   isSelected = false,
   onClick,
   size = 'md',
+  shield = 0,
 }: UnitTokenProps) {
   const isMd = size === 'md';
   const w = isMd ? 64 : 48;
@@ -121,13 +123,23 @@ export default function UnitToken({
 
       {/* HP Bar */}
       <div
-        className="rounded-sm overflow-hidden bg-gray-800"
+        className="relative rounded-sm overflow-hidden bg-gray-800"
         style={{ width: imgSize, height: isMd ? 7 : 4 }}
       >
         <div
-          className="h-full rounded-sm transition-all duration-150"
+          className="absolute inset-0 h-full rounded-sm transition-all duration-150"
           style={{ width: `${hpRatio * 100}%`, backgroundColor: hpColor }}
         />
+        {shield > 0 && maxHp > 0 && (
+          <div
+            className="absolute inset-0 h-full rounded-sm transition-all duration-150"
+            style={{
+              left: `${hpRatio * 100}%`,
+              width: `${Math.min(shield / maxHp, 1 - hpRatio) * 100}%`,
+              backgroundColor: '#e5e7eb',
+            }}
+          />
+        )}
       </div>
 
       {/* Mana Bar */}

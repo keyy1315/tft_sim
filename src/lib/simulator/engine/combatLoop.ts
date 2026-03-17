@@ -4,7 +4,8 @@ import {
   RawTrait, RawAugment, ActiveTrait, ItemEffect,
 } from '@/types';
 import { calculateStats } from '@/lib/simulator/systems/stat';
-import { getAbilityDamage } from '@/lib/simulator/systems/ability';
+import { getAbilityDamage, getAbilityShield, findAbilityTargets, CHAMPION_ABILITY_PATTERNS } from '@/lib/simulator/systems/ability';
+import type { AbilityConfig } from '@/lib/simulator/systems/ability';
 import { canAttack, getMoveTicks, findBestMoveToward, coordKey } from '@/lib/simulator/systems/movement';
 import { TICK_DURATION, MAX_TICKS, TICKS_PER_SECOND } from '@/lib/simulator/models/constants';
 import { createRNG, SeededRNG } from '@/lib/simulator/engine/rng';
@@ -16,6 +17,16 @@ import { ROLE_OMNIVAMP } from '@/lib/simulator/models/unit';
 import { resolveTraits } from '@/lib/simulator/systems/trait';
 import { resolveAugmentEffects, resolveInCombatAugmentEffects, resolvePerUnitMods, applyPerUnitMods, AugmentWithStacks } from '@/lib/simulator/systems/augment';
 
+function mergeEffects(a: ItemEffect, b: ItemEffect): ItemEffect {
+  const result = { ...a };
+  for (const [key, value] of Object.entries(b)) {
+    if (typeof value === 'number') {
+      (result as Record<string, number>)[key] = ((result as Record<string, number>)[key] || 0) + value;
+    }
+  }
+  return result;
+}
+
 export interface SimulateOptions {
   seed?: number;
   allTraits?: RawTrait[];
@@ -25,6 +36,9 @@ export interface SimulateOptions {
   enemyAugmentStacks?: Record<string, number>;
   /** When true, enemy positions are used as-is (no mirror). Use when positions are already in 8-row space. */
   skipMirror?: boolean;
+  /** Pre-resolved bilgewater stat effects per team (from resolveBilgewaterStatEffects) */
+  playerBilgewaterEffects?: ItemEffect;
+  enemyBilgewaterEffects?: ItemEffect;
 }
 
 function createCombatUnit(
@@ -83,6 +97,19 @@ function applyShield(unit: CombatUnit, damage: number, eventBus: EventBus, tick:
     eventBus.emit('on_shield_break', { sourceId: unit.id, tick });
   }
   return remaining;
+}
+
+/** Warden 시너지 전투 시작 시 보호막 부여 (최대 체력의 PercentHealthShield%) */
+function applyWardenShields(activeTraits: ActiveTrait[], units: CombatUnit[]): void {
+  const warden = activeTraits.find(t => t.trait.apiName === 'TFT16_Warden' && t.activeEffect);
+  if (!warden?.activeEffect) return;
+  const shieldPct = (warden.activeEffect.variables['PercentHealthShield'] ?? 0) as number;
+  if (shieldPct <= 0) return;
+  for (const u of units) {
+    const shieldAmount = u.maxHp * shieldPct;
+    u.shield += shieldAmount;
+    u.statusEffects.push({ type: 'shield', sourceId: 'warden', remainingTicks: 9999, value: shieldAmount });
+  }
 }
 
 function tickStatusEffects(unit: CombatUnit): void {
@@ -398,18 +425,26 @@ export function simulateCombat(
   const playerActiveTraits = resolveTraits(allyTeam, allTraits);
   const enemyActiveTraits = resolveTraits(enemyTeam, allTraits);
 
+  // Bilgewater stat effects — merge into augmentEffects for bilgewater units
+  const playerBWEffects = options.playerBilgewaterEffects ?? {};
+  const enemyBWEffects = options.enemyBilgewaterEffects ?? {};
+
   const rng: SeededRNG = createRNG(seed);
   const eventBus = new EventBus();
 
   const playerUnits = allyTeam.map((p, i) => {
-    const unit = createCombatUnit(p, 'player', i, playerActiveTraits, playerAugmentEffects);
+    const isBW = p.champion.traits.includes('빌지워터');
+    const effects = isBW ? mergeEffects(playerAugmentEffects, playerBWEffects) : playerAugmentEffects;
+    const unit = createCombatUnit(p, 'player', i, playerActiveTraits, effects);
     const mod = resolvePerUnitMods(playerAugsWithStacks, p.champion);
     applyPerUnitMods(unit, mod);
     return unit;
   });
   const enemies = enemyTeam.map((p, i) => {
     const positioned = options.skipMirror ? p : { ...p, position: mirrorPosition(p.position) };
-    const unit = createCombatUnit(positioned, 'enemy', i, enemyActiveTraits, enemyAugmentEffects);
+    const isBW = p.champion.traits.includes('빌지워터');
+    const effects = isBW ? mergeEffects(enemyAugmentEffects, enemyBWEffects) : enemyAugmentEffects;
+    const unit = createCombatUnit(positioned, 'enemy', i, enemyActiveTraits, effects);
     const mod = resolvePerUnitMods(enemyAugsWithStacks, p.champion);
     applyPerUnitMods(unit, mod);
     return unit;
@@ -430,6 +465,10 @@ export function simulateCombat(
       for (const u of enemies) { u.omnivamp += vamp; }
     }
   }
+
+  // Apply Warden trait shields at combat start
+  applyWardenShields(playerActiveTraits, playerUnits);
+  applyWardenShields(enemyActiveTraits, enemies);
 
   const allUnits = [...playerUnits, ...enemies];
 
@@ -585,46 +624,92 @@ export function simulateCombat(
 
           if (unit.currentMana >= unit.maxMana) {
             unit.currentMana = 0;
+            unit.state = 'casting';
+
             const { damage: abilityDmg, type: dmgType } = getAbilityDamage(
               unit.champion, unit.starLevel, unit.stats.ap
             );
-            const resistance = dmgType === 'magic' ? target.stats.magicResist
-              : dmgType === 'physical' ? target.stats.armor : 0;
-            const pen = dmgType === 'magic' ? unit.stats.magicPen
-              : dmgType === 'physical' ? unit.stats.armorPen : 0;
-            let effectiveAbilityDmg = applyResistance(abilityDmg * (1 + unit.damageAmp), resistance, pen);
+            const config: AbilityConfig = CHAMPION_ABILITY_PATTERNS[unit.champion.apiName] ?? { pattern: 'single' };
+            const opposingTeam = unit.team === 'player' ? enemies : playerUnits;
+            const abilityTargets = findAbilityTargets(unit, target, opposingTeam, config);
 
-            if (target.damageReduction > 0) {
-              effectiveAbilityDmg *= (1 - target.damageReduction);
+            // 어빌리티 보호막 적용 (자기 자신에게)
+            const abilityShield = getAbilityShield(unit.champion, unit.starLevel, unit.stats.ap);
+            if (abilityShield > 0) {
+              unit.shield += abilityShield;
+              unit.statusEffects.push({ type: 'shield', sourceId: unit.id, remainingTicks: 300, value: abilityShield });
+              const shieldLog: CombatLog = {
+                tick, time, type: 'ability',
+                sourceId: unit.id,
+                value: Math.round(abilityShield),
+                message: `${unit.champion.name}이(가) ${Math.round(abilityShield)} 보호막 획득!`,
+              };
+              logs.push(shieldLog);
+              tickLogs.push(shieldLog);
             }
 
-            effectiveAbilityDmg = applyShield(target, effectiveAbilityDmg, eventBus, tick);
+            // 다중 타겟 피해 루프
+            let totalAbilityDmg = 0;
+            for (let ti = 0; ti < abilityTargets.length; ti++) {
+              const t = abilityTargets[ti];
+              if (t.state === 'dead') continue;
 
-            if (target.statusEffects.some(e => e.type === 'invulnerable')) {
-              effectiveAbilityDmg = 0;
+              let dmg = abilityDmg * (1 + unit.damageAmp);
+              if (config.damageDecay && ti > 0) {
+                dmg *= Math.pow(1 - config.damageDecay, ti);
+              }
+
+              const resistance = dmgType === 'magic' ? t.stats.magicResist
+                : dmgType === 'physical' ? t.stats.armor : 0;
+              const pen = dmgType === 'magic' ? unit.stats.magicPen
+                : dmgType === 'physical' ? unit.stats.armorPen : 0;
+              let effectiveDmg = applyResistance(dmg, resistance, pen);
+
+              if (t.damageReduction > 0) {
+                effectiveDmg *= (1 - t.damageReduction);
+              }
+              effectiveDmg = applyShield(t, effectiveDmg, eventBus, tick);
+              if (t.statusEffects.some(e => e.type === 'invulnerable')) {
+                effectiveDmg = 0;
+              }
+
+              t.currentHp -= effectiveDmg;
+              t.totalDamageTaken += effectiveDmg;
+              unit.totalDamageDealt += effectiveDmg;
+              totalAbilityDmg += effectiveDmg;
+
+              const abilityLog: CombatLog = {
+                tick, time, type: 'ability',
+                sourceId: unit.id, targetId: t.id,
+                value: Math.round(effectiveDmg),
+                message: `${unit.champion.name}이(가) ${unit.champion.ability.name} 시전! ${t.champion.name}에게 ${Math.round(effectiveDmg)} ${dmgType === 'magic' ? '마법' : dmgType === 'physical' ? '물리' : '트루'} 피해`,
+              };
+              logs.push(abilityLog);
+              tickLogs.push(abilityLog);
+
+              // 타겟 사망 처리
+              if (t.currentHp <= 0) {
+                t.currentHp = 0;
+                t.state = 'dead';
+                const deathLog: CombatLog = {
+                  tick, time, type: 'death',
+                  sourceId: t.id,
+                  message: `${t.champion.name} 사망! (${unit.champion.name}의 ${unit.champion.ability.name})`,
+                };
+                logs.push(deathLog);
+                tickLogs.push(deathLog);
+                eventBus.emit('on_death', { sourceId: t.id, tick });
+              }
             }
 
-            target.currentHp -= effectiveAbilityDmg;
-            target.totalDamageTaken += effectiveAbilityDmg;
-            unit.totalDamageDealt += effectiveAbilityDmg;
-
-            if (unit.omnivamp > 0 && effectiveAbilityDmg > 0) {
+            // 전체 피해량 기반 흡혈
+            if (unit.omnivamp > 0 && totalAbilityDmg > 0) {
               const grievousReduction = target.augmentGrievousWounds > 0 ? (1 - target.augmentGrievousWounds) : 1;
-              const heal = effectiveAbilityDmg * unit.omnivamp * grievousReduction;
+              const heal = totalAbilityDmg * unit.omnivamp * grievousReduction;
               unit.currentHp = Math.min(unit.maxHp, unit.currentHp + heal);
             }
 
-            unit.state = 'casting';
-            eventBus.emit('on_cast', { sourceId: unit.id, targetId: target.id, value: effectiveAbilityDmg, tick });
-
-            const abilityLog: CombatLog = {
-              tick, time, type: 'ability',
-              sourceId: unit.id, targetId: target.id,
-              value: Math.round(effectiveAbilityDmg),
-              message: `${unit.champion.name}이(가) ${unit.champion.ability.name} 시전! ${target.champion.name}에게 ${Math.round(effectiveAbilityDmg)} ${dmgType === 'magic' ? '마법' : dmgType === 'physical' ? '물리' : '트루'} 피해`,
-            };
-            logs.push(abilityLog);
-            tickLogs.push(abilityLog);
+            eventBus.emit('on_cast', { sourceId: unit.id, targetId: target.id, value: totalAbilityDmg, tick });
           }
 
           // Execute threshold: kill if below HP %
@@ -632,7 +717,7 @@ export function simulateCombat(
             && target.currentHp > 0
             && target.currentHp / target.maxHp < unit.augmentExecuteThreshold;
 
-          if (target.currentHp <= 0 || shouldExecute) {
+          if ((target.currentHp <= 0 || shouldExecute) && target.state !== 'dead') {
             target.state = 'dead';
             target.currentHp = 0;
             eventBus.emit('on_kill', { sourceId: unit.id, targetId: target.id, tick });

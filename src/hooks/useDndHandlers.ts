@@ -1,0 +1,87 @@
+import { useState } from 'react';
+import { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
+import { PlacedChampion, HexCoord, axialToOffset, DragData, RawItem } from '@/types';
+import { DEFAULT_STAR_LEVEL } from '@/lib/simulator/models/constants';
+import { getTeamFromRow, parseCellId } from '@/hooks/useTeamManagement';
+
+interface UseDndHandlersArgs {
+  playerTeam: PlacedChampion[];
+  enemyTeam: PlacedChampion[];
+  updatePlayerTeam: (action: PlacedChampion[] | ((prev: PlacedChampion[]) => PlacedChampion[])) => void;
+  updateEnemyTeam: (action: PlacedChampion[] | ((prev: PlacedChampion[]) => PlacedChampion[])) => void;
+  handleEquipItem: (team: 'player' | 'enemy', index: number, item: RawItem) => void;
+}
+
+export function useDndHandlers({
+  playerTeam,
+  enemyTeam,
+  updatePlayerTeam,
+  updateEnemyTeam,
+  handleEquipItem,
+}: UseDndHandlersArgs) {
+  const [activeDragData, setActiveDragData] = useState<DragData | null>(null);
+
+  const handleDragStart = (event: DragStartEvent) => {
+    const data = event.active.data.current as DragData | undefined;
+    if (data) setActiveDragData(data);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    setActiveDragData(null);
+    const { active, over } = event;
+    if (!over) return;
+
+    const dragData = active.data.current as DragData | undefined;
+    if (!dragData) return;
+
+    const cellInfo = parseCellId(over.id as string);
+    if (!cellInfo) return;
+
+    const { row, col } = cellInfo;
+    const team = getTeamFromRow(row);
+    const dataRow = team === 'player' ? row - 4 : row;
+    const pos: HexCoord = { q: col - Math.floor(dataRow / 2), r: dataRow };
+    const teamArr = team === 'player' ? playerTeam : enemyTeam;
+    const setTeam = team === 'player' ? updatePlayerTeam : updateEnemyTeam;
+
+    const existingIdx = teamArr.findIndex(p => {
+      const off = axialToOffset(p.position);
+      return off.row === dataRow && off.col === col;
+    });
+
+    if (dragData.type === 'champion') {
+      if (existingIdx >= 0) return;
+      setTeam(prev => [...prev, { champion: dragData.champion, position: pos, starLevel: DEFAULT_STAR_LEVEL, items: [] }]);
+    } else if (dragData.type === 'placed-unit') {
+      if (dragData.team !== team) return;
+      const srcIdx = teamArr.findIndex(p => {
+        const off = axialToOffset(p.position);
+        const srcOff = axialToOffset(dragData.position);
+        return off.row === srcOff.row && off.col === srcOff.col;
+      });
+      if (srcIdx < 0) return;
+
+      if (existingIdx >= 0 && existingIdx !== srcIdx) {
+        setTeam(prev => prev.map((p, i) => {
+          if (i === srcIdx) return { ...p, position: prev[existingIdx].position };
+          if (i === existingIdx) return { ...p, position: prev[srcIdx].position };
+          return p;
+        }));
+      } else if (existingIdx < 0) {
+        setTeam(prev => prev.map((p, i) => {
+          if (i === srcIdx) return { ...p, position: pos };
+          return p;
+        }));
+      }
+    } else if (dragData.type === 'item') {
+      if (existingIdx < 0) return;
+      handleEquipItem(team, existingIdx, dragData.item);
+    }
+  };
+
+  return {
+    activeDragData,
+    handleDragStart,
+    handleDragEnd,
+  };
+}

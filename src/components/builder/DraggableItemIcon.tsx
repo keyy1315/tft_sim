@@ -1,6 +1,6 @@
 'use client';
 
-import { useDraggable } from '@dnd-kit/core';
+import { useDraggable, useDndContext } from '@dnd-kit/core';
 import { RawItem, DragData } from '@/types';
 import ItemIcon from './ItemIcon';
 
@@ -15,6 +15,8 @@ export default function DraggableItemIcon({ item, size = 36 }: DraggableItemIcon
     id: `drag-item-${item.apiName}`,
     data: dragData,
   });
+  const { active } = useDndContext();
+  const anyDragging = active !== null;
 
   return (
     <div
@@ -23,7 +25,7 @@ export default function DraggableItemIcon({ item, size = 36 }: DraggableItemIcon
       {...attributes}
       style={{ opacity: isDragging ? 0.4 : 1, touchAction: 'none' }}
     >
-      <ItemIcon item={item} size={size} />
+      <ItemIcon item={item} size={size} tooltipDisabled={anyDragging} />
     </div>
   );
 }

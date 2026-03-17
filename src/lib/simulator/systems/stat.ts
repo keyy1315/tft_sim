@@ -1,6 +1,30 @@
 import { RawChampion, RawItem, ChampionStats, StatBreakdown, ItemEffect, ActiveTrait, STAR_SCALING } from '@/types';
 import { ITEM_EFFECT_KEYS } from '@/lib/simulator/models/constants';
 
+/** 빌지워터 능력치 구매 → ItemEffect 변환 (빌지워터 유닛에만 적용) */
+export function resolveBilgewaterStatEffects(
+  purchases: Record<string, number>,
+  allItems: RawItem[]
+): ItemEffect {
+  const result: ItemEffect = {};
+  for (const [apiName, count] of Object.entries(purchases)) {
+    const item = allItems.find(i => i.apiName === apiName);
+    if (!item) continue;
+    for (const [key, value] of Object.entries(item.effects)) {
+      if (typeof value !== 'number') continue;
+      if (key === 'BonusAD') result.ad = (result.ad ?? 0) + value * count;
+      if (key === 'BonusAP') result.ap = (result.ap ?? 0) + value * count;
+      if (key === 'BonusAS') result.as = (result.as ?? 0) + value * count;
+      if (key === 'BonusHealthPercent') result.hp = (result.hp ?? 0) + value * count;
+      if (key === 'BonusArmorMR') {
+        result.armor = (result.armor ?? 0) + value * count;
+        result.magicResist = (result.magicResist ?? 0) + value * count;
+      }
+    }
+  }
+  return result;
+}
+
 export function getItemEffects(items: RawItem[]): ItemEffect {
   const result: ItemEffect = {};
   for (const item of items) {

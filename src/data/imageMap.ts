@@ -1,6 +1,12 @@
+// 전투 중 소환되는 유닛의 apiName → 실제 이미지 apiName 매핑
+const CHAMPION_IMAGE_ALIASES: Record<string, string> = {
+  'TFT16_NoxusAtakhan': 'TFT16_Atakhan',
+};
+
 // Maps apiName to image path
 export function getChampionImage(apiName: string): string {
-  const name = apiName.replace('TFT16_', 'tft16_').replace('TFT_', 'tft_').toLowerCase();
+  const resolved = CHAMPION_IMAGE_ALIASES[apiName] ?? apiName;
+  const name = resolved.replace('TFT16_', 'tft16_').replace('TFT_', 'tft_').toLowerCase();
   return `/data/images/tft_set16_champions/${name}_square.tft_set16.png`;
 }
 
@@ -93,9 +99,19 @@ function deriveItemPath(apiName: string): string {
   return `/data/images/artifacts/${normalized}.tft_set13.png`;
 }
 
+const traitImageCache = new Map<string, string>();
+
+/** Register trait images from loaded JSON data (call once after loading traits) */
+export function registerTraitImages(traits: { apiName: string; icon: string }[]): void {
+  for (const t of traits) {
+    const parts = t.icon.split('/');
+    const filename = parts[parts.length - 1].toLowerCase();
+    traitImageCache.set(t.apiName, `/data/images/traits/${filename}`);
+  }
+}
+
 export function getTraitImage(apiName: string): string {
-  // Traits use the icon path from JSON, but we can provide a fallback
-  return `/data/images/traits/${apiName}.png`;
+  return traitImageCache.get(apiName) ?? `/data/images/traits/${apiName}.png`;
 }
 
 // === Augment image helpers ===

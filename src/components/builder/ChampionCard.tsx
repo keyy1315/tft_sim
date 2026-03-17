@@ -3,7 +3,7 @@
 import { RawChampion, COST_COLORS } from '@/types';
 import { getChampionImage } from '@/data/imageMap';
 import Tooltip from '@/components/ui/Tooltip';
-import { stripHtml } from '@/lib/utils/text';
+import { resolveDescription } from '@/lib/utils/text';
 import Image from 'next/image';
 
 interface ChampionCardProps {
@@ -13,10 +13,11 @@ interface ChampionCardProps {
   selected?: boolean;
   onClick?: () => void;
   showName?: boolean;
+  tooltipDisabled?: boolean;
 }
 
 export default function ChampionCard({
-  champion, size = 64, starLevel, selected, onClick, showName = true
+  champion, size = 64, starLevel, selected, onClick, showName = true, tooltipDisabled,
 }: ChampionCardProps) {
   const costColor = COST_COLORS[champion.cost] || COST_COLORS[1];
   const stars = starLevel ? '★'.repeat(starLevel) : '';
@@ -55,6 +56,7 @@ export default function ChampionCard({
 
   return (
     <Tooltip
+      disabled={tooltipDisabled}
       content={
         <div className="max-w-[220px]">
           <div className="font-bold text-yellow-400">{champion.name}</div>
@@ -63,7 +65,7 @@ export default function ChampionCard({
             <>
               <div className="text-xs text-cyan-400 mt-1 font-bold">{champion.ability.name}</div>
               {champion.ability.desc && (
-                <div className="text-xs text-gray-300 mt-0.5 leading-relaxed">{stripHtml(champion.ability.desc)}</div>
+                <div className="text-xs text-gray-300 mt-0.5 leading-relaxed whitespace-pre-line">{resolveDescription(champion.ability.desc, champion.ability.variables, starLevel)}</div>
               )}
             </>
           )}

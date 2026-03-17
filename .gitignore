@@ -7,3 +7,4 @@
 .env
 .playwright-mcp
 .vercel
+*.tsbuildinfo

@@ -187,9 +187,20 @@ export default function ReplayBoard({
                 </text>
               )}
 
-              {/* HP Bar */}
+              {/* HP Bar + Shield */}
               <rect x={barX} y={cy + HEX_R - 16} width={barW} height={6} rx={2} fill="#1f2937" />
               <rect x={barX} y={cy + HEX_R - 16} width={barW * hpRatio} height={6} rx={2} fill={hpColor} />
+              {unitSnap.shield > 0 && meta.maxHp > 0 && (
+                <rect
+                  x={barX + barW * hpRatio}
+                  y={cy + HEX_R - 16}
+                  width={barW * Math.min(unitSnap.shield / meta.maxHp, 1 - hpRatio)}
+                  height={6}
+                  rx={2}
+                  fill="#e5e7eb"
+                  opacity={0.85}
+                />
+              )}
 
               {/* Mana Bar */}
               <rect x={barX} y={cy + HEX_R - 9} width={barW} height={4} rx={1.5} fill="#1f2937" />
