@@ -3,6 +3,7 @@ import {
   HexCoord, TickSnapshot, mapGameRole,
   RawTrait, RawAugment, ActiveTrait, ItemEffect,
 } from '@/types';
+import type { StatusEffectType } from '@/types';
 import { calculateStats } from '@/lib/simulator/systems/stat';
 import { getAbilityDamage, getAbilityShield, findAbilityTargets, CHAMPION_ABILITY_PATTERNS } from '@/lib/simulator/systems/ability';
 import type { AbilityConfig } from '@/lib/simulator/systems/ability';
@@ -16,6 +17,17 @@ import { EventBus } from '@/lib/simulator/events/eventBus';
 import { ROLE_OMNIVAMP } from '@/lib/simulator/models/unit';
 import { resolveTraits } from '@/lib/simulator/systems/trait';
 import { resolveAugmentEffects, resolveInCombatAugmentEffects, resolvePerUnitMods, applyPerUnitMods, AugmentWithStacks } from '@/lib/simulator/systems/augment';
+
+/** 상태이상 한글 레이블 (엔진 로그용 — UI 모듈에 의존하지 않음) */
+const STATUS_EFFECT_LABELS: Record<StatusEffectType, string> = {
+  stun: '기절',
+  slow: '둔화',
+  burn: '화상',
+  disarm: '무장해제',
+  taunt: '도발',
+  shield: '보호막',
+  invulnerable: '무적',
+};
 
 function mergeEffects(a: ItemEffect, b: ItemEffect): ItemEffect {
   const result = { ...a };
@@ -112,13 +124,37 @@ function applyWardenShields(activeTraits: ActiveTrait[], units: CombatUnit[]): v
   }
 }
 
-function tickStatusEffects(unit: CombatUnit): void {
+function tickStatusEffects(
+  unit: CombatUnit,
+  tick: number,
+  time: number,
+  logs: CombatLog[],
+  tickLogs: CombatLog[],
+): void {
   for (const effect of unit.statusEffects) {
     effect.remainingTicks--;
     if (effect.type === 'burn' && effect.value) {
       unit.currentHp -= effect.value;
     }
   }
+
+  // 만료된 상태이상 로그 생성
+  const expired = unit.statusEffects.filter(e => e.remainingTicks <= 0);
+  for (const effect of expired) {
+    const label = STATUS_EFFECT_LABELS[effect.type as StatusEffectType];
+    if (label) {
+      const log: CombatLog = {
+        tick, time,
+        type: 'status_expire',
+        sourceId: unit.id,
+        statusType: effect.type as StatusEffectType,
+        message: `${unit.champion.name}의 ${label} 해제`,
+      };
+      logs.push(log);
+      tickLogs.push(log);
+    }
+  }
+
   unit.statusEffects = unit.statusEffects.filter(e => e.remainingTicks > 0);
 }
 
@@ -539,7 +575,7 @@ export function simulateCombat(
     for (const unit of allUnits) {
       if (unit.state === 'dead') continue;
 
-      tickStatusEffects(unit);
+      tickStatusEffects(unit, tick, time, logs, tickLogs);
       gainManaPerTick(unit, TICK_DURATION);
 
       // Augment mana regen (per second, applied per tick)
@@ -603,6 +639,17 @@ export function simulateCombat(
               remainingTicks: TICKS_PER_SECOND * 3,
               value: burnPerTick,
             });
+            const burnLog: CombatLog = {
+              tick, time,
+              type: 'status_apply',
+              sourceId: unit.id,
+              targetId: target.id,
+              statusType: 'burn',
+              value: TICKS_PER_SECOND * 3,
+              message: `${unit.champion.name}이(가) ${target.champion.name}에게 화상 적용 (3.0초)`,
+            };
+            logs.push(burnLog);
+            tickLogs.push(burnLog);
           }
 
           gainManaOnAttack(unit);

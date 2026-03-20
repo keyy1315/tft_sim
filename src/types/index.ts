@@ -345,10 +345,13 @@ export interface CombatUnit {
 export interface CombatLog {
   tick: number;
   time: number;
-  type: 'attack' | 'ability' | 'move' | 'death' | 'mana';
+  type: 'attack' | 'ability' | 'move' | 'death' | 'mana'
+      | 'status_apply' | 'status_expire';
   sourceId: string;
   targetId?: string;
   value?: number;
+  /** 상태이상 이벤트일 때 어떤 상태이상인지 */
+  statusType?: StatusEffectType;
   message: string;
 }
 
