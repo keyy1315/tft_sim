@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { COST_COLORS } from '@/types';
 import { getChampionImage } from '@/data/imageMap';
+import StatusEffectBadge from '@/components/battle/StatusEffectBadge';
 
 interface UnitTokenProps {
   championName: string;
@@ -22,16 +23,6 @@ interface UnitTokenProps {
   size?: 'sm' | 'md';
   shield?: number;
 }
-
-const STATUS_ICONS: Record<string, { label: string; color: string }> = {
-  stun: { label: 'S', color: '#fbbf24' },
-  slow: { label: 'W', color: '#60a5fa' },
-  burn: { label: 'B', color: '#f97316' },
-  shield: { label: 'D', color: '#a3e635' },
-  invulnerable: { label: 'I', color: '#c084fc' },
-  disarm: { label: 'X', color: '#f87171' },
-  taunt: { label: 'T', color: '#fb923c' },
-};
 
 export default function UnitToken({
   championName,
@@ -100,26 +91,16 @@ export default function UnitToken({
           height={imgSize}
           unoptimized
         />
-        {/* Status effect overlay icons */}
-        {statusEffects.length > 0 && (
-          <div className="absolute top-0 right-0 flex flex-col gap-px">
-            {statusEffects.slice(0, 3).map((e, i) => {
-              const cfg = STATUS_ICONS[e.type];
-              if (!cfg) return null;
-              return (
-                <div
-                  key={i}
-                  className="w-3 h-3 rounded-sm flex items-center justify-center text-[7px] font-black text-black"
-                  style={{ backgroundColor: cfg.color }}
-                  title={`${e.type} (${e.remainingTicks} ticks)`}
-                >
-                  {cfg.label}
-                </div>
-              );
-            })}
-          </div>
-        )}
       </div>
+
+      {/* Status effect badges */}
+      {isAlive && statusEffects.length > 0 && (
+        <StatusEffectBadge
+          effects={statusEffects}
+          size={size}
+          maxDisplay={isMd ? 4 : 3}
+        />
+      )}
 
       {/* HP Bar */}
       <div
