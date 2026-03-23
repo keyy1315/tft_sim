@@ -2,15 +2,102 @@
 
 import { useState } from 'react';
 import { ActiveTrait, TRAIT_STYLE_COLORS, RawItem } from '@/types';
-import TraitEffectDetail from './TraitEffectDetail';
+import { getTraitImage } from '@/data/imageMap';
+import { resolveDescription } from '@/lib/utils/text';
+import Tooltip from '@/components/ui/Tooltip';
+import Image from 'next/image';
 
 interface SynergyPanelProps {
   activeTraits: ActiveTrait[];
   team: 'player' | 'enemy';
   items: RawItem[];
+  piltoverModules?: RawItem[];
+  bilgewaterStats?: Record<string, number>;
 }
 
-export default function SynergyPanel({ activeTraits, team, items }: SynergyPanelProps) {
+function TraitTooltipContent({ at }: { at: ActiveTrait }) {
+  return (
+    <div className="max-w-[260px]">
+      <div className="font-bold text-yellow-400 mb-1">{at.trait.name}</div>
+      {at.trait.desc && (
+        <div className="text-xs text-gray-300 mb-2 leading-relaxed whitespace-pre-line">
+          {resolveDescription(at.trait.desc, at.activeEffect?.variables ?? {})}
+        </div>
+      )}
+      <div className="space-y-0.5">
+        {at.trait.effects.map((eff) => {
+          const isActive = at.activeEffect === eff;
+          const vars = Object.entries(eff.variables).filter(([, v]) => v != null);
+          return (
+            <div
+              key={eff.minUnits}
+              className={`text-xs px-1.5 py-0.5 rounded ${isActive ? 'bg-yellow-900/40 text-yellow-300 font-bold' : 'text-gray-400'}`}
+            >
+              <span className="mr-1.5">({eff.minUnits})</span>
+              {vars.map(([key, val]) => {
+                const display = typeof val === 'number' && val > 0 && val < 1
+                  ? `${(val * 100).toFixed(0)}%`
+                  : String(val);
+                return <span key={key} className="mr-2">{key}: {display}</span>;
+              })}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function BilgewaterStatsSummary({ stats, allItems }: { stats: Record<string, number>; allItems: RawItem[] }) {
+  if (Object.keys(stats).length === 0) return null;
+
+  const totals: Record<string, number> = {};
+  for (const [apiName, count] of Object.entries(stats)) {
+    const item = allItems.find(i => i.apiName === apiName);
+    if (!item) continue;
+    for (const [key, value] of Object.entries(item.effects)) {
+      if (typeof value === 'number') {
+        totals[key] = (totals[key] ?? 0) + value * count;
+      }
+    }
+  }
+
+  const parts: string[] = [];
+  if (totals['BonusAD']) parts.push(`공격력 +${(totals['BonusAD'] * 100).toFixed(0)}%`);
+  if (totals['BonusAP']) parts.push(`주문력 +${Math.round(totals['BonusAP'])}`);
+  if (totals['BonusAS']) parts.push(`공속 +${(totals['BonusAS'] * 100).toFixed(0)}%`);
+  if (totals['BonusHealthPercent']) parts.push(`체력 +${(totals['BonusHealthPercent'] * 100).toFixed(0)}%`);
+  if (totals['BonusArmorMR']) parts.push(`방마저 +${Math.round(totals['BonusArmorMR'])}`);
+
+  if (parts.length === 0) return null;
+
+  return (
+    <div className="text-[9px] text-teal-400 pl-7 mt-0.5">
+      {parts.join(' | ')}
+    </div>
+  );
+}
+
+function PiltoverModulesSummary({ modules }: { modules: RawItem[] }) {
+  if (modules.length === 0) return null;
+  return (
+    <div className="flex gap-1 pl-7 mt-0.5">
+      {modules.map((m, i) => (
+        <Image
+          key={`${m.apiName}-${i}`}
+          src={`/data/images/tft_set16_piltover/${m.icon?.split('/').pop()?.toLowerCase() ?? `${m.apiName.toLowerCase()}.tft_set16.png`}`}
+          alt={m.name}
+          width={16}
+          height={16}
+          className="rounded border border-gray-600"
+          unoptimized
+        />
+      ))}
+    </div>
+  );
+}
+
+export default function SynergyPanel({ activeTraits, team, items, piltoverModules = [], bilgewaterStats = {} }: SynergyPanelProps) {
   const [collapsed, setCollapsed] = useState(false);
   const teamLabel = team === 'player' ? 'TEAM A' : 'TEAM B';
   const teamColor = team === 'player' ? 'text-blue-400' : 'text-red-400';
@@ -51,24 +138,34 @@ export default function SynergyPanel({ activeTraits, team, items }: SynergyPanel
           const isActive = at.style > 0;
           const nextTier = at.trait.effects.find(e => e.minUnits > at.count);
           const label = nextTier ? `${at.count}/${nextTier.minUnits}` : `${at.count}`;
+          const isPiltover = at.trait.apiName === 'TFT16_Piltover';
+          const isBilgewater = at.trait.apiName === 'TFT16_Bilgewater';
 
           return (
             <div key={at.trait.apiName}>
-              <div className={`flex items-center gap-2 px-2 py-1 rounded ${isActive ? 'bg-[#1f2937]' : 'bg-[#111827] opacity-60'}`}>
+              <Tooltip content={<TraitTooltipContent at={at} />}>
                 <div
-                  className="w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold shrink-0"
-                  style={{ backgroundColor: `${color}30`, color }}
+                  className={`flex items-center gap-2 px-2 py-1 rounded ${isActive ? '' : 'opacity-60'}`}
+                  style={isActive ? { backgroundColor: `${color}20` } : { backgroundColor: '#111827' }}
                 >
-                  {at.count}
+                  <Image
+                    src={getTraitImage(at.trait.apiName)}
+                    alt={at.trait.name}
+                    width={16}
+                    height={16}
+                    className="shrink-0"
+                    unoptimized
+                  />
+                  <span className={`text-xs flex-1 truncate ${isActive ? 'text-gray-200' : 'text-gray-500'}`}>
+                    {at.trait.name}
+                  </span>
+                  <span className="text-[10px] shrink-0" style={{ color }}>
+                    {label}
+                  </span>
                 </div>
-                <span className={`text-xs flex-1 truncate ${isActive ? 'text-gray-200' : 'text-gray-500'}`}>
-                  {at.trait.name}
-                </span>
-                <span className="text-[10px] shrink-0" style={{ color }}>
-                  {label}
-                </span>
-              </div>
-              {isActive && <TraitEffectDetail activeTrait={at} items={items} />}
+              </Tooltip>
+              {isActive && isPiltover && <PiltoverModulesSummary modules={piltoverModules} />}
+              {isActive && isBilgewater && <BilgewaterStatsSummary stats={bilgewaterStats} allItems={items} />}
             </div>
           );
         })}

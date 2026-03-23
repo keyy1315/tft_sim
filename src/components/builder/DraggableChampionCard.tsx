@@ -1,6 +1,6 @@
 'use client';
 
-import { useDraggable } from '@dnd-kit/core';
+import { useDraggable, useDndContext } from '@dnd-kit/core';
 import { RawChampion, DragData } from '@/types';
 import ChampionCard from './ChampionCard';
 
@@ -15,6 +15,8 @@ export default function DraggableChampionCard({ champion, size = 56 }: Draggable
     id: `drag-champ-${champion.apiName}`,
     data: dragData,
   });
+  const { active } = useDndContext();
+  const anyDragging = active !== null;
 
   return (
     <div
@@ -23,7 +25,7 @@ export default function DraggableChampionCard({ champion, size = 56 }: Draggable
       {...attributes}
       style={{ opacity: isDragging ? 0.4 : 1, touchAction: 'none' }}
     >
-      <ChampionCard champion={champion} size={size} />
+      <ChampionCard champion={champion} size={size} tooltipDisabled={anyDragging} />
     </div>
   );
 }

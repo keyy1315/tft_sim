@@ -251,6 +251,16 @@ export type AbilityTargetingType =
   | 'self'
   | 'aoe_center';
 
+export type AbilityPattern =
+  | 'single'      // 타겟 1명
+  | 'line'        // 직선 관통
+  | 'aoe_circle'  // 원형 범위
+  | 'cone'        // 원뿔형
+  | 'multi'       // 지정 다수
+  | 'bounce'      // 튕김
+  | 'global'      // 전체 적
+  | 'self_buff';  // 자기 버프
+
 export type StatusEffectType = 'stun' | 'slow' | 'burn' | 'shield' | 'invulnerable' | 'disarm' | 'taunt';
 
 export interface StatusEffect {
@@ -330,16 +340,28 @@ export interface CombatUnit {
   augmentGrievousWounds: number;
   augmentExecuteThreshold: number;
   augmentBurnPercent: number;
+  /** 발명품 탱커 대상 추가 피해증폭 (ArmorNullifier) */
+  inventionTankDamageAmp: number;
 }
 
 export interface CombatLog {
   tick: number;
   time: number;
-  type: 'attack' | 'ability' | 'move' | 'death' | 'mana';
+  type: 'attack' | 'ability' | 'move' | 'death' | 'mana'
+      | 'status_apply' | 'status_expire';
   sourceId: string;
   targetId?: string;
   value?: number;
+  /** 상태이상 이벤트일 때 어떤 상태이상인지 */
+  statusType?: StatusEffectType;
   message: string;
+}
+
+export interface MultiSimResult {
+  playerWins: number;
+  enemyWins: number;
+  draws: number;
+  total: number;
 }
 
 export interface CombatResult {
@@ -349,6 +371,7 @@ export interface CombatResult {
   playerUnits: CombatUnit[];
   enemyUnits: CombatUnit[];
   snapshots: TickSnapshot[];
+  multiSim?: MultiSimResult;
 }
 
 export interface TickSnapshot {
@@ -359,6 +382,7 @@ export interface TickSnapshot {
     currentMana: number;
     position: HexCoord;
     isAlive: boolean;
+    shield: number;
     statusEffects: { type: string; remainingTicks: number; value?: number }[];
   }>;
   events: CombatLog[];

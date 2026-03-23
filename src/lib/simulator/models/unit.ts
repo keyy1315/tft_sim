@@ -15,12 +15,12 @@ export const ROLE_OMNIVAMP: Record<UnitRole, number> = {
   Specialist: 0,
 };
 
-/** Role별 타게팅 가중치 */
+/** Role별 타게팅 가중치 — Tank(3) > Fighter/Assassin(2) > Marksman/Caster/Specialist(1) */
 export const TARGETING_WEIGHT: Record<UnitRole, number> = {
   Tank: 3,
   Fighter: 2,
-  Marksman: 2,
-  Caster: 2,
-  Specialist: 2,
-  Assassin: 1,
+  Assassin: 2,
+  Marksman: 1,
+  Caster: 1,
+  Specialist: 1,
 };

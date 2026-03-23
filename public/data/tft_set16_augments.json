@@ -2,7 +2,7 @@
   "meta": {
     "set": 16,
     "source": "CommunityDragon TFT ko_kr.json",
-    "extractedAt": "2026-03-12T06:13:42.956Z",
+    "extractedAt": "2026-03-18T00:00:00.000Z",
     "totalAugments": 389,
     "set16Exclusive": 141,
     "shared": 248
@@ -285,11 +285,12 @@
       "tags": [
         "{ce1fd21c}",
         "{b72bd3bf}",
-        "{38baf02e}",
+        "{39baf1c1}",
         "{3754d0ae}",
         "{7aaa3b47}",
         "{d22ae649}",
-        "{84a6d904}"
+        "{84a6d904}",
+        "{d02ae323}"
       ]
     },
     {
@@ -495,7 +496,7 @@
       "desc": "아타칸이 처치 관여를 달성할 때마다 영구히 주문력을 @AP@%, 최대 체력을 @MaxHealth@ 얻습니다. 브라이어와 사이온을 획득합니다. <br>(현재 처치 관여: @TFTUnitProperty.trait:TFT16_Augment_Noxus_BringerOfRuin_Takedowns@)",
       "effects": {
         "AP": 1,
-        "MaxHealth": 40,
+        "MaxHealth": 30,
         "TakedownBreakpoint": 1
       },
       "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/BringerOfRuin_II.TFT_Set16.tex",
@@ -5098,7 +5099,7 @@
       "apiName": "TFT_Augment_MuseumHeist",
       "desc": "플레이어 대상 전투 @NumberOfCombats@회 후 모든 조합 아이템을 1개씩 획득합니다. 즉시 무작위 조합 아이템 1개를 획득합니다.<br><br>@TFTUnitProperty.item:TFT_Augment_MuseumHeist_TooltipTRAKey@ @TFTUnitProperty.item:TFT_Augment_MuseumHeist_CompleteTRAKey@",
       "effects": {
-        "Numberofcombats": 4
+        "Numberofcombats": 5
       },
       "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/MuseumHeist_III.TFT_Set16.tex",
       "associatedTraits": [],
@@ -5112,12 +5113,12 @@
       ]
     },
     {
-      "name": "오오라 축적",
+      "name": "오라 축적",
       "apiName": "TFT_Augment_AuraFarming",
       "desc": "추천 아이템을 장착한 5단계 @StarLevel@성 챔피언을 획득합니다. 이 유닛은 스테이지 @UnlockStage@-@UnlockRound@부터 배치할 수 있습니다.",
       "effects": {
         "NumItems": 1,
-        "UnlockRound": 2,
+        "UnlockRound": 3,
         "UnlockStage": 4,
         "starLevel": 2
       },
@@ -5488,7 +5489,7 @@
       "apiName": "TFT9_Augment_Commander_Ascension",
       "desc": "전투 시작 @Delay@초 후, 피해 증폭을 @DamageAmp@% 얻습니다.",
       "effects": {
-        "DamageAmp": 40,
+        "DamageAmp": 35,
         "Delay": 12
       },
       "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Ascension2.tex",
@@ -6440,7 +6441,7 @@
       "apiName": "TFT_Augment_MirroredMonetization",
       "desc": "@GoldContained@골드를 획득합니다. 다음 @Rounds@라운드 동안 적 챔피언이 처치될 때 @PercCost@골드를 떨어뜨립니다.<br><br>@TFTUnitProperty.item:TFT_Augment_MirroredMonetization_TotalGoldTooltip@",
       "effects": {
-        "GoldContained": 10,
+        "GoldContained": 7,
         "PercCost": 2,
         "rounds": 2
       },

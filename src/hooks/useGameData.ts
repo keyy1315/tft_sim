@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { RawChampion, RawItem, RawTrait, RawAugment, TeamPlannerEntry } from '@/types';
 import { loadChampions, loadItems, loadTraits, loadAugments, loadTeamPlannerMapping } from '@/data/loader';
+import { registerTraitImages } from '@/data/imageMap';
 
 export function useChampions() {
   const [champions, setChampions] = useState<RawChampion[]>([]);
@@ -38,6 +39,7 @@ export function useTraits() {
 
   useEffect(() => {
     loadTraits().then((data) => {
+      registerTraitImages(data);
       setTraits(data);
       setLoading(false);
     });

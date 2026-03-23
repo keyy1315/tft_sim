@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { RawItem, ActiveTrait } from '@/types';
 import { getPiltoverModuleLimit, canAddPiltoverModule, getItemCategory } from '@/lib/simulator/systems/item';
+import { getAllowedModuleApiNames, PILTOVER_MODULE_TIERS } from '@/data/traitModules';
 import ItemIcon from './ItemIcon';
 import Modal from '@/components/ui/Modal';
 import SearchBar from '@/components/ui/SearchBar';
@@ -26,7 +27,12 @@ export default function PiltoverModulePanel({
   const [search, setSearch] = useState('');
 
   const limit = getPiltoverModuleLimit(activeTraits);
-  const piltoverItems = allItems.filter(i => getItemCategory(i) === 'piltover');
+  const piltoverTrait = activeTraits.find(t => t.trait.apiName === 'TFT16_Piltover');
+  const piltoverCount = piltoverTrait?.count ?? 0;
+  const allowedApiNames = getAllowedModuleApiNames(piltoverCount);
+  const piltoverItems = allItems.filter(i =>
+    getItemCategory(i) === 'piltover' && allowedApiNames.has(i.apiName)
+  );
 
   const [collapsed, setCollapsed] = useState(false);
 
@@ -36,6 +42,17 @@ export default function PiltoverModulePanel({
     if (search && !item.name.toLowerCase().includes(search.toLowerCase())) return false;
     return true;
   });
+
+  // 티어별 그룹핑
+  const tierGroups: { tier: number; items: RawItem[] }[] = [];
+  for (const tier of [2, 4, 6]) {
+    if (piltoverCount < tier) break;
+    const tierApiNames = new Set(PILTOVER_MODULE_TIERS[tier] ?? []);
+    const tierItems = filteredPiltover.filter(i => tierApiNames.has(i.apiName));
+    if (tierItems.length > 0) {
+      tierGroups.push({ tier, items: tierItems });
+    }
+  }
 
   return (
     <div className="bg-[#111827] rounded-lg border border-cyan-700/30 p-2.5 space-y-2">
@@ -81,27 +98,34 @@ export default function PiltoverModulePanel({
       <Modal isOpen={showPicker} onClose={() => setShowPicker(false)} title="필트오버 모듈 선택">
         <div className="space-y-3">
           <SearchBar value={search} onChange={setSearch} placeholder="모듈 검색..." />
-          <div className="grid grid-cols-6 gap-1.5 max-h-[250px] overflow-y-auto p-1">
-            {filteredPiltover.map((item) => {
-              const validation = canAddPiltoverModule(item, modules, activeTraits);
-              const disabled = !validation.canEquip;
-              return (
-                <div
-                  key={item.apiName}
-                  className={disabled ? 'opacity-30 cursor-not-allowed' : ''}
-                  title={disabled ? validation.reason : item.name}
-                >
-                  <ItemIcon
-                    item={item}
-                    size={36}
-                    onClick={disabled ? undefined : () => {
-                      onAddModule(item);
-                      setShowPicker(false);
-                    }}
-                  />
+          <div className="max-h-[300px] overflow-y-auto space-y-3 p-1">
+            {tierGroups.map(({ tier, items: tierItems }) => (
+              <div key={tier}>
+                <div className="text-[10px] font-bold text-cyan-400 mb-1">{tier} 필트오버</div>
+                <div className="grid grid-cols-6 gap-1.5">
+                  {tierItems.map((item) => {
+                    const validation = canAddPiltoverModule(item, modules, activeTraits);
+                    const disabled = !validation.canEquip;
+                    return (
+                      <div
+                        key={item.apiName}
+                        className={disabled ? 'opacity-30 cursor-not-allowed' : ''}
+                        title={disabled ? validation.reason : item.name}
+                      >
+                        <ItemIcon
+                          item={item}
+                          size={36}
+                          onClick={disabled ? undefined : () => {
+                            onAddModule(item);
+                            setShowPicker(false);
+                          }}
+                        />
+                      </div>
+                    );
+                  })}
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
         </div>
       </Modal>

@@ -20,6 +20,7 @@ export function captureSnapshot(
       currentMana: u.currentMana,
       position: { ...u.position },
       isAlive: u.state !== 'dead',
+      shield: u.shield,
       statusEffects: u.statusEffects.map(e => ({
         type: e.type,
         remainingTicks: e.remainingTicks,

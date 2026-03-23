@@ -1,8 +1,10 @@
 'use client';
 
 import { TickSnapshot, HexCoord, axialToOffset, COST_COLORS } from '@/types';
+import type { StatusEffectType } from '@/types';
 import { getChampionImage } from '@/data/imageMap';
 import { BOARD_COLS } from '@/lib/simulator/models/constants';
+import { STATUS_EFFECT_CONFIG, CATEGORY_BORDER } from '@/lib/statusEffectConfig';
 
 interface ReplayBoardProps {
   snapshot: TickSnapshot | null;
@@ -187,18 +189,88 @@ export default function ReplayBoard({
                 </text>
               )}
 
-              {/* HP Bar */}
+              {/* HP Bar + Shield */}
               <rect x={barX} y={cy + HEX_R - 16} width={barW} height={6} rx={2} fill="#1f2937" />
               <rect x={barX} y={cy + HEX_R - 16} width={barW * hpRatio} height={6} rx={2} fill={hpColor} />
+              {unitSnap.shield > 0 && meta.maxHp > 0 && (
+                <rect
+                  x={barX + barW * hpRatio}
+                  y={cy + HEX_R - 16}
+                  width={barW * Math.min(unitSnap.shield / meta.maxHp, 1 - hpRatio)}
+                  height={6}
+                  rx={2}
+                  fill="#e5e7eb"
+                  opacity={0.85}
+                />
+              )}
 
               {/* Mana Bar */}
               <rect x={barX} y={cy + HEX_R - 9} width={barW} height={4} rx={1.5} fill="#1f2937" />
               <rect x={barX} y={cy + HEX_R - 9} width={barW * manaRatio} height={4} rx={1.5} fill="#3b82f6" />
 
-              {/* Status effects */}
-              {unitSnap.statusEffects.length > 0 && (
-                <circle cx={cx + HEX_R - 6} cy={cy - HEX_R + 6} r={4} fill="#fbbf24" />
+              {/* Status effect overlays (stun / invulnerable) */}
+              {unitSnap.statusEffects.some(e => e.type === 'stun') && (
+                <polygon
+                  points={hexPoints(cx, cy, HEX_R - 1)}
+                  fill="rgba(251,191,36,0.25)"
+                  stroke="none"
+                  style={{ pointerEvents: 'none' }}
+                />
               )}
+              {unitSnap.statusEffects.some(e => e.type === 'invulnerable') && (
+                <polygon
+                  points={hexPoints(cx, cy, HEX_R - 1)}
+                  fill="rgba(192,132,252,0.25)"
+                  stroke="none"
+                  style={{ pointerEvents: 'none' }}
+                />
+              )}
+
+              {/* Status effect icon group */}
+              {unitSnap.statusEffects.length > 0 && (() => {
+                const maxIcons = 3;
+                const displayed = unitSnap.statusEffects.slice(0, maxIcons);
+                const overflow = unitSnap.statusEffects.length - maxIcons;
+                const iconX = cx + HEX_R - 2;
+                const iconYStart = cy - HEX_R + 10;
+                const iconGap = 14;
+
+                return (
+                  <g>
+                    {displayed.map((effect, i) => {
+                      const cfg = STATUS_EFFECT_CONFIG[effect.type as StatusEffectType];
+                      if (!cfg) return null;
+                      const borderColor = CATEGORY_BORDER[cfg.category];
+                      const iy = iconYStart + i * iconGap;
+                      return (
+                        <g key={i}>
+                          <circle cx={iconX} cy={iy} r={6} fill={cfg.bgColor} stroke={borderColor} strokeWidth={1} />
+                          <text
+                            x={iconX} y={iy + 1}
+                            textAnchor="middle" dominantBaseline="central"
+                            fontSize={8} fontWeight="bold" fill={cfg.color}
+                          >
+                            {cfg.icon}
+                          </text>
+                          <title>{`${cfg.label} (${effect.remainingTicks}틱)`}</title>
+                        </g>
+                      );
+                    })}
+                    {overflow > 0 && (
+                      <g>
+                        <circle cx={iconX} cy={iconYStart + maxIcons * iconGap} r={6} fill="#374151" stroke="#6b7280" strokeWidth={1} />
+                        <text
+                          x={iconX} y={iconYStart + maxIcons * iconGap + 1}
+                          textAnchor="middle" dominantBaseline="central"
+                          fontSize={7} fill="#9ca3af"
+                        >
+                          +{overflow}
+                        </text>
+                      </g>
+                    )}
+                  </g>
+                );
+              })()}
 
               {/* Item dots */}
               {meta.items.length > 0 && (

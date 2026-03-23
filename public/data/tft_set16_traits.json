@@ -2,7 +2,7 @@
   "meta": {
     "set": 16,
     "source": "CommunityDragon TFT ko_kr.json",
-    "extractedAt": "2026-03-12T06:57:37.153Z",
+    "extractedAt": "2026-03-18T00:00:00.000Z",
     "totalTraits": 53
   },
   "traits": [
@@ -718,10 +718,10 @@
           "style": 4,
           "variables": {
             "JarvanResistDamage1": 1,
-            "JarvanResistDamage2": 1.2000000476837158,
-            "JarvanResistDamage3": 1.399999976158142,
-            "JarvanResistDamage4": 1.75,
-            "JarvanShieldShare": 1
+            "JarvanResistDamage2": 1,
+            "JarvanResistDamage3": 1.25,
+            "JarvanResistDamage4": 1.5,
+            "JarvanShieldShare": 0.75
           }
         }
       ]

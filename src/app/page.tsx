@@ -20,6 +20,8 @@ const features = [
 ];
 
 export default function HomePage() {
+  const mdGridColsClass = features.length === 2 ? 'md:grid-cols-2' : 'md:grid-cols-3';
+
   return (
     <div className="flex flex-col items-center justify-center min-h-[70vh]">
       <div className="text-center mb-12">
@@ -31,7 +33,7 @@ export default function HomePage() {
         <p className="text-sm text-gray-600 mt-2">116 챔피언 · 168 아이템 · 53 시너지 · 389 증강</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl">
+      <div className={`grid grid-cols-1 ${mdGridColsClass} gap-6 w-full max-w-4xl`}>
         {features.map((f) => (
           <Link
             key={f.href}

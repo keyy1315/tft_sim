@@ -2,7 +2,7 @@
  * Role 기반 타게팅 시스템 (Patch 15.1 Roles Revamped 기준)
  *
  * 1단계: 거리 우선 — 가장 가까운 적
- * 2단계: Role 타이브레이커 — Tank(3) > Fighter/Marksman/Caster/Specialist(2) > Assassin(1)
+ * 2단계: Role 타이브레이커 — Tank(3) > Fighter/Assassin(2) > Marksman/Caster/Specialist(1)
  */
 
 import { CombatUnit, UnitRole } from '@/types';
@@ -12,10 +12,10 @@ import { SeededRNG } from '@/lib/simulator/engine/rng';
 const TARGETING_WEIGHT: Record<UnitRole, number> = {
   Tank: 3,
   Fighter: 2,
-  Marksman: 2,
-  Caster: 2,
-  Specialist: 2,
-  Assassin: 1,
+  Assassin: 2,
+  Marksman: 1,
+  Caster: 1,
+  Specialist: 1,
 };
 
 export function getTargetingWeight(role: UnitRole): number {

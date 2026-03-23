@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { COST_COLORS } from '@/types';
 import { getChampionImage } from '@/data/imageMap';
+import StatusEffectBadge from '@/components/battle/StatusEffectBadge';
 
 interface UnitTokenProps {
   championName: string;
@@ -20,17 +21,8 @@ interface UnitTokenProps {
   isSelected?: boolean;
   onClick?: () => void;
   size?: 'sm' | 'md';
+  shield?: number;
 }
-
-const STATUS_ICONS: Record<string, { label: string; color: string }> = {
-  stun: { label: 'S', color: '#fbbf24' },
-  slow: { label: 'W', color: '#60a5fa' },
-  burn: { label: 'B', color: '#f97316' },
-  shield: { label: 'D', color: '#a3e635' },
-  invulnerable: { label: 'I', color: '#c084fc' },
-  disarm: { label: 'X', color: '#f87171' },
-  taunt: { label: 'T', color: '#fb923c' },
-};
 
 export default function UnitToken({
   championName,
@@ -48,6 +40,7 @@ export default function UnitToken({
   isSelected = false,
   onClick,
   size = 'md',
+  shield = 0,
 }: UnitTokenProps) {
   const isMd = size === 'md';
   const w = isMd ? 64 : 48;
@@ -98,36 +91,36 @@ export default function UnitToken({
           height={imgSize}
           unoptimized
         />
-        {/* Status effect overlay icons */}
-        {statusEffects.length > 0 && (
-          <div className="absolute top-0 right-0 flex flex-col gap-px">
-            {statusEffects.slice(0, 3).map((e, i) => {
-              const cfg = STATUS_ICONS[e.type];
-              if (!cfg) return null;
-              return (
-                <div
-                  key={i}
-                  className="w-3 h-3 rounded-sm flex items-center justify-center text-[7px] font-black text-black"
-                  style={{ backgroundColor: cfg.color }}
-                  title={`${e.type} (${e.remainingTicks} ticks)`}
-                >
-                  {cfg.label}
-                </div>
-              );
-            })}
-          </div>
-        )}
       </div>
+
+      {/* Status effect badges */}
+      {isAlive && statusEffects.length > 0 && (
+        <StatusEffectBadge
+          effects={statusEffects}
+          size={size}
+          maxDisplay={isMd ? 4 : 3}
+        />
+      )}
 
       {/* HP Bar */}
       <div
-        className="rounded-sm overflow-hidden bg-gray-800"
+        className="relative rounded-sm overflow-hidden bg-gray-800"
         style={{ width: imgSize, height: isMd ? 7 : 4 }}
       >
         <div
-          className="h-full rounded-sm transition-all duration-150"
+          className="absolute inset-0 h-full rounded-sm transition-all duration-150"
           style={{ width: `${hpRatio * 100}%`, backgroundColor: hpColor }}
         />
+        {shield > 0 && maxHp > 0 && (
+          <div
+            className="absolute inset-0 h-full rounded-sm transition-all duration-150"
+            style={{
+              left: `${hpRatio * 100}%`,
+              width: `${Math.min(shield / maxHp, 1 - hpRatio) * 100}%`,
+              backgroundColor: '#e5e7eb',
+            }}
+          />
+        )}
       </div>
 
       {/* Mana Bar */}
