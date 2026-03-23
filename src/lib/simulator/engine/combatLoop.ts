@@ -1083,7 +1083,22 @@ export function simulateCombat(
   const rng: SeededRNG = createRNG(seed);
   const eventBus = new EventBus();
 
-  const playerUnits = allyTeam.map((p, i) => {
+  // 갈리오는 필드에 배치되지만 전투 시작 시 제외 → 데마시아 결집 시 소환
+  const isGalio = (p: PlacedChampion) => p.champion.apiName === 'TFT16_Galio';
+  const playerGalioPlaced = allyTeam.find(isGalio);
+  const enemyGalioPlaced = enemyTeam.find(isGalio);
+  const playerTeamFiltered = allyTeam.filter(p => !isGalio(p));
+  const enemyTeamFiltered = enemyTeam.filter(p => !isGalio(p));
+
+  // options에서 전달된 갈리오보다 필드 배치된 갈리오 우선
+  const effectivePlayerGalio = playerGalioPlaced
+    ? { champion: playerGalioPlaced.champion, starLevel: playerGalioPlaced.starLevel }
+    : options.playerGalio ?? null;
+  const effectiveEnemyGalio = enemyGalioPlaced
+    ? { champion: enemyGalioPlaced.champion, starLevel: enemyGalioPlaced.starLevel }
+    : options.enemyGalio ?? null;
+
+  const playerUnits = playerTeamFiltered.map((p, i) => {
     const isBW = p.champion.traits.includes('빌지워터');
     const effects = isBW ? mergeEffects(playerAugmentEffects, playerBWEffects) : playerAugmentEffects;
     const unit = createCombatUnit(p, 'player', i, playerActiveTraits, effects);
@@ -1091,7 +1106,7 @@ export function simulateCombat(
     applyPerUnitMods(unit, mod);
     return unit;
   });
-  const enemies = enemyTeam.map((p, i) => {
+  const enemies = enemyTeamFiltered.map((p, i) => {
     const positioned = options.skipMirror ? p : { ...p, position: mirrorPosition(p.position) };
     const isBW = p.champion.traits.includes('빌지워터');
     const effects = isBW ? mergeEffects(enemyAugmentEffects, enemyBWEffects) : enemyAugmentEffects;
@@ -1182,9 +1197,9 @@ export function simulateCombat(
       if (enemyAtakhan) { allUnits.push(enemyAtakhan); enemies.push(enemyAtakhan); }
 
       // 갈리오 영웅 소환 체크
-      const playerGalio = trySpawnGalio(playerActiveTraits, 'player', playerUnits, enemies, allUnits, options.playerGalio, tick, time, logs, tickLogs, playerGalioFlag);
+      const playerGalio = trySpawnGalio(playerActiveTraits, 'player', playerUnits, enemies, allUnits, effectivePlayerGalio, tick, time, logs, tickLogs, playerGalioFlag);
       if (playerGalio) { allUnits.push(playerGalio); playerUnits.push(playerGalio); }
-      const enemyGalio = trySpawnGalio(enemyActiveTraits, 'enemy', enemies, playerUnits, allUnits, options.enemyGalio, tick, time, logs, tickLogs, enemyGalioFlag);
+      const enemyGalio = trySpawnGalio(enemyActiveTraits, 'enemy', enemies, playerUnits, allUnits, effectiveEnemyGalio, tick, time, logs, tickLogs, enemyGalioFlag);
       if (enemyGalio) { allUnits.push(enemyGalio); enemies.push(enemyGalio); }
     }
 

@@ -350,7 +350,7 @@ export default function SimulatorPage() {
 
               {/* Left: Both Synergy panels + Selected unit (desktop) */}
               <div className="order-3 lg:order-1 lg:w-52 lg:shrink-0 space-y-3">
-                <SynergyPanel activeTraits={tm.playerTraits} team="player" items={items} piltoverModules={tm.playerPiltoverModules} bilgewaterStats={tm.playerBilgewaterStats} ioniaPath={tm.playerIoniaPath} onIoniaPathChange={tm.setPlayerIoniaPath} galioEnabled={!!tm.playerGalio} onGalioToggle={(on) => { const g = champions.find(c => c.apiName === 'TFT16_Galio'); tm.setPlayerGalio(on && g ? { champion: g, starLevel: 2 } : null); }} />
+                <SynergyPanel activeTraits={tm.playerTraits} team="player" items={items} piltoverModules={tm.playerPiltoverModules} bilgewaterStats={tm.playerBilgewaterStats} ioniaPath={tm.playerIoniaPath} onIoniaPathChange={tm.setPlayerIoniaPath} />
                 <PiltoverModulePanel
                   modules={tm.playerPiltoverModules}
                   allItems={items}
@@ -358,7 +358,7 @@ export default function SimulatorPage() {
                   onAddModule={(item) => tm.handleAddPiltoverModule('player', item)}
                   onRemoveModule={(idx) => tm.handleRemovePiltoverModule('player', idx)}
                 />
-                <SynergyPanel activeTraits={tm.enemyTraits} team="enemy" items={items} piltoverModules={tm.enemyPiltoverModules} bilgewaterStats={tm.enemyBilgewaterStats} ioniaPath={tm.enemyIoniaPath} onIoniaPathChange={tm.setEnemyIoniaPath} galioEnabled={!!tm.enemyGalio} onGalioToggle={(on) => { const g = champions.find(c => c.apiName === 'TFT16_Galio'); tm.setEnemyGalio(on && g ? { champion: g, starLevel: 2 } : null); }} />
+                <SynergyPanel activeTraits={tm.enemyTraits} team="enemy" items={items} piltoverModules={tm.enemyPiltoverModules} bilgewaterStats={tm.enemyBilgewaterStats} ioniaPath={tm.enemyIoniaPath} onIoniaPathChange={tm.setEnemyIoniaPath} />
                 <PiltoverModulePanel
                   modules={tm.enemyPiltoverModules}
                   allItems={items}

@@ -17,9 +17,6 @@ interface SynergyPanelProps {
   bilgewaterStats?: Record<string, number>;
   ioniaPath?: IoniaPathType | null;
   onIoniaPathChange?: (path: IoniaPathType) => void;
-  galioEnabled?: boolean;
-  onGalioToggle?: (enabled: boolean) => void;
-  champions?: { apiName: string; name: string }[];
 }
 
 function TraitTooltipContent({ at }: { at: ActiveTrait }) {
@@ -104,7 +101,7 @@ function PiltoverModulesSummary({ modules }: { modules: RawItem[] }) {
   );
 }
 
-export default function SynergyPanel({ activeTraits, team, items, piltoverModules = [], bilgewaterStats = {}, ioniaPath, onIoniaPathChange, galioEnabled, onGalioToggle }: SynergyPanelProps) {
+export default function SynergyPanel({ activeTraits, team, items, piltoverModules = [], bilgewaterStats = {}, ioniaPath, onIoniaPathChange }: SynergyPanelProps) {
   const [collapsed, setCollapsed] = useState(false);
   const teamLabel = team === 'player' ? 'TEAM A' : 'TEAM B';
   const teamColor = team === 'player' ? 'text-blue-400' : 'text-red-400';
@@ -175,16 +172,10 @@ export default function SynergyPanel({ activeTraits, team, items, piltoverModule
               </Tooltip>
               {isActive && isPiltover && <PiltoverModulesSummary modules={piltoverModules} />}
               {isActive && isBilgewater && <BilgewaterStatsSummary stats={bilgewaterStats} allItems={items} />}
-              {isActive && at.trait.apiName === 'TFT16_Demacia' && demaciaActive && onGalioToggle && (
-                <label className="flex items-center gap-1 mt-1 text-[9px] text-yellow-400 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={galioEnabled ?? false}
-                    onChange={e => onGalioToggle(e.target.checked)}
-                    className="w-3 h-3 accent-yellow-500"
-                  />
-                  갈리오 대기석 배치
-                </label>
+              {isActive && at.trait.apiName === 'TFT16_Demacia' && demaciaActive && (
+                <div className="text-[9px] text-yellow-400 mt-0.5">
+                  갈리오 배치 시 전투 중 데마시아 결집으로 소환
+                </div>
               )}
               {isActive && at.trait.apiName === 'TFT16_Ionia' && ioniaActive && onIoniaPathChange && (
                 <div className="mt-1 space-y-0.5">
