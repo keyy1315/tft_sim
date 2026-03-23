@@ -101,6 +101,8 @@ export default function SimulatorPage() {
         enemyAugments: tm.enemyAugments, enemyAugmentStacks: tm.enemyAugmentStacks,
         playerBilgewaterEffects: resolveBilgewaterStatEffects(tm.playerBilgewaterStats, items),
         enemyBilgewaterEffects: resolveBilgewaterStatEffects(tm.enemyBilgewaterStats, items),
+        playerPiltoverModules: tm.playerPiltoverModules,
+        enemyPiltoverModules: tm.enemyPiltoverModules,
       });
       replay.setCombatResult(result);
       setIsRunning(false);
@@ -108,7 +110,7 @@ export default function SimulatorPage() {
       replay.setReplayTick(0);
       replay.setIsPlaying(true);
     }, 100);
-  }, [tm.playerTeam, tm.enemyTeam, traits, tm.playerAugments, tm.playerAugmentStacks, tm.enemyAugments, tm.enemyAugmentStacks, tm.playerBilgewaterStats, tm.enemyBilgewaterStats, items, toEightRowCoords, replay]);
+  }, [tm.playerTeam, tm.enemyTeam, traits, tm.playerAugments, tm.playerAugmentStacks, tm.enemyAugments, tm.enemyAugmentStacks, tm.playerBilgewaterStats, tm.enemyBilgewaterStats, tm.playerPiltoverModules, tm.enemyPiltoverModules, items, toEightRowCoords, replay]);
 
   const runMultiple = useCallback(() => {
     if (tm.playerTeam.length === 0 || tm.enemyTeam.length === 0) return;
@@ -126,7 +128,9 @@ export default function SimulatorPage() {
           playerAugments: tm.playerAugments, playerAugmentStacks: tm.playerAugmentStacks,
           enemyAugments: tm.enemyAugments, enemyAugmentStacks: tm.enemyAugmentStacks,
           playerBilgewaterEffects: resolveBilgewaterStatEffects(tm.playerBilgewaterStats, items),
-        enemyBilgewaterEffects: resolveBilgewaterStatEffects(tm.enemyBilgewaterStats, items),
+          enemyBilgewaterEffects: resolveBilgewaterStatEffects(tm.enemyBilgewaterStats, items),
+          playerPiltoverModules: tm.playerPiltoverModules,
+          enemyPiltoverModules: tm.enemyPiltoverModules,
         });
         if (r.winner === 'player') playerWins++;
         else if (r.winner === 'enemy') enemyWins++;
@@ -141,7 +145,7 @@ export default function SimulatorPage() {
       replay.setViewMode('replay');
       replay.setReplayTick(lastResult ? lastResult.snapshots.length - 1 : 0);
     }, 100);
-  }, [tm.playerTeam, tm.enemyTeam, traits, tm.playerAugments, tm.playerAugmentStacks, tm.enemyAugments, tm.enemyAugmentStacks, tm.playerBilgewaterStats, tm.enemyBilgewaterStats, items, toEightRowCoords, replay]);
+  }, [tm.playerTeam, tm.enemyTeam, traits, tm.playerAugments, tm.playerAugmentStacks, tm.enemyAugments, tm.enemyAugmentStacks, tm.playerBilgewaterStats, tm.enemyBilgewaterStats, tm.playerPiltoverModules, tm.enemyPiltoverModules, items, toEightRowCoords, replay]);
 
   const filteredLogs = useMemo(() => {
     if (!replay.combatResult) return [];

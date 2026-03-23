@@ -1,7 +1,7 @@
 import {
   CombatUnit, CombatResult, CombatLog, PlacedChampion,
   HexCoord, TickSnapshot, mapGameRole,
-  RawTrait, RawAugment, ActiveTrait, ItemEffect,
+  RawTrait, RawAugment, RawItem, ActiveTrait, ItemEffect,
 } from '@/types';
 import type { StatusEffectType } from '@/types';
 import { calculateStats } from '@/lib/simulator/systems/stat';
@@ -51,6 +51,9 @@ export interface SimulateOptions {
   /** Pre-resolved bilgewater stat effects per team (from resolveBilgewaterStatEffects) */
   playerBilgewaterEffects?: ItemEffect;
   enemyBilgewaterEffects?: ItemEffect;
+  /** 필트오버 팀 모듈 (팀 슬롯에서 선택한 모듈 아이템 배열) */
+  playerPiltoverModules?: RawItem[];
+  enemyPiltoverModules?: RawItem[];
 }
 
 function createCombatUnit(
@@ -434,7 +437,6 @@ function pickRandomN<T>(arr: T[], n: number, rng: SeededRNG): T[] {
 }
 
 /** 유닛 레벨 모듈 (팀 전체가 아닌 장착 유닛만 적용) */
-const UNIT_SCOPED_MODULES = new Set(['VoltageConduit', 'MicroRockets']);
 
 function getModuleKey(apiName: string): string {
   return apiName.replace('TFT16_Item_Piltover_', '');
@@ -445,6 +447,7 @@ function applyPiltoverInvention(
   activeTraits: ActiveTrait[],
   teamUnits: CombatUnit[],
   enemyUnits: CombatUnit[],
+  teamModules: RawItem[],
   tick: number,
   logs: CombatLog[],
   tickLogs: CombatLog[],
@@ -453,6 +456,17 @@ function applyPiltoverInvention(
 ): void {
   const piltover = activeTraits.find(t => t.trait.apiName === 'TFT16_Piltover' && t.activeEffect);
   if (!piltover || !piltover.activeEffect) return;
+
+  // 팀 모듈 슬롯 + 유닛 장착 필트오버 아이템 모두 수집
+  const allPiltoverItems: RawItem[] = [...teamModules];
+  for (const unit of teamUnits) {
+    for (const item of unit.items) {
+      if (item.apiName.includes('TFT16_Item_Piltover_')) {
+        allPiltoverItems.push(item);
+      }
+    }
+  }
+  if (allPiltoverItems.length === 0) return;
 
   const fireTime = (piltover.activeEffect.variables['InventionFireTime'] ?? 5) as number;
   const fireTick = Math.round(fireTime / TICK_DURATION);
@@ -463,181 +477,181 @@ function applyPiltoverInvention(
   if (aliveTeam.length === 0) return;
 
   const processedModules = new Set<string>();
+  // 대표 sourceId — 팀 모듈은 특정 유닛에 귀속되지 않으므로 첫 번째 생존 유닛 사용
+  const sourceUnit = aliveTeam[0];
 
-  for (const unit of aliveTeam) {
-    for (const item of unit.items) {
-      if (!item.apiName.includes('TFT16_Item_Piltover_')) continue;
-      const moduleKey = getModuleKey(item.apiName);
-      const moduleName = getModuleShortName(item.apiName);
+  for (const item of allPiltoverItems) {
+    if (!item.apiName.includes('TFT16_Item_Piltover_')) continue;
+    const moduleKey = getModuleKey(item.apiName);
+    const moduleName = getModuleShortName(item.apiName);
 
-      if (UNIT_SCOPED_MODULES.has(moduleKey)) {
-        // --- 유닛 레벨 모듈 ---
-        if (moduleKey === 'VoltageConduit') {
-          const reduction = (item.effects['ManaReduction'] ?? 0.30) as number;
-          unit.maxMana = Math.round(unit.maxMana * (1 - reduction));
-          pushInventionLog(logs, tickLogs, tick, time, unit.id,
-            `[발명품] ${unit.champion.name}의 ${moduleName} 발동! 최대 마나 ${Math.round(reduction * 100)}% 감소`);
-        } else if (moduleKey === 'MicroRockets') {
-          const adRatio = (item.effects['DamageRepeat'] ?? 0.66) as number;
-          const numMissiles = (item.effects['NumMissiles'] ?? 16) as number;
-          const dmgPerMissile = Math.round(unit.stats.damage * adRatio);
-          let totalDmg = 0;
-          for (let i = 0; i < numMissiles; i++) {
-            if (aliveEnemies.length === 0) break;
-            const target = aliveEnemies[Math.floor(rng.next() * aliveEnemies.length)];
-            const finalDmg = applyResistance(dmgPerMissile, target.stats.armor, unit.stats.armorPen);
-            target.currentHp -= finalDmg;
-            target.totalDamageTaken += finalDmg;
-            unit.totalDamageDealt += finalDmg;
-            totalDmg += finalDmg;
-          }
-          pushInventionLog(logs, tickLogs, tick, time, unit.id,
-            `[발명품] ${unit.champion.name}의 ${moduleName} 발동! 미사일 ${numMissiles}발 (각 AD ${Math.round(adRatio * 100)}% 물리 피해, 총 ${Math.round(totalDmg)})`,
-            Math.round(totalDmg));
-        }
-      } else if (!processedModules.has(moduleKey)) {
-        // --- 팀 레벨 모듈 (1회만 적용) ---
-        processedModules.add(moduleKey);
+    if (processedModules.has(moduleKey)) continue;
+    processedModules.add(moduleKey);
 
-        if (moduleKey === 'BlastShield') {
-          const pct = (item.effects['PercentHealthShield'] ?? 0.18) as number;
-          for (const ally of aliveTeam) {
-            const shieldAmt = Math.round(ally.maxHp * pct);
-            ally.shield += shieldAmt;
-            ally.statusEffects.push({ type: 'shield', sourceId: ally.id, remainingTicks: MAX_TICKS, value: shieldAmt });
-          }
-          pushInventionLog(logs, tickLogs, tick, time, unit.id,
-            `[발명품] ${moduleName} 발동! 아군 최대 체력 ${Math.round(pct * 100)}% 보호막`);
-
-        } else if (moduleKey === 'OverclockedCapacitors') {
-          const asBonus = (item.effects['AttackSpeed'] ?? 0.25) as number;
-          for (const ally of aliveTeam) {
-            ally.stats.attackSpeed *= (1 + asBonus);
-          }
-          pushInventionLog(logs, tickLogs, tick, time, unit.id,
-            `[발명품] ${moduleName} 발동! 아군 공격 속도 +${Math.round(asBonus * 100)}%`);
-
-        } else if (moduleKey === 'ContinuumCogs') {
-          const apBonus = (item.effects['AbilityPower'] ?? 15) as number;
-          const manaGen = (item.effects['ManaGen'] ?? 2) as number;
-          for (const ally of aliveTeam) {
-            ally.stats.ap += apBonus;
-            ally.augmentManaRegen += manaGen;
-          }
-          pushInventionLog(logs, tickLogs, tick, time, unit.id,
-            `[발명품] ${moduleName} 발동! 아군 주문력 +${apBonus}, 초당 마나 +${manaGen}`);
-
-        } else if (moduleKey === 'GigantificationRay') {
-          const hpGainPct = (item.effects['MaxHealthGain'] ?? 0.28) as number;
-          for (const ally of aliveTeam) {
-            const hpGain = Math.round(ally.maxHp * hpGainPct);
-            ally.maxHp += hpGain;
-            ally.currentHp += hpGain;
-          }
-          pushInventionLog(logs, tickLogs, tick, time, unit.id,
-            `[발명품] ${moduleName} 발동! 아군 최대 체력 +${Math.round(hpGainPct * 100)}%`);
-
-        } else if (moduleKey === 'KineticBarrier') {
-          const higher = (item.effects['HigherResist'] ?? 65) as number;
-          const lower = (item.effects['LowerResist'] ?? 30) as number;
-          for (const ally of aliveTeam) {
-            if (ally.stats.armor >= ally.stats.magicResist) {
-              ally.stats.armor += higher;
-              ally.stats.magicResist += lower;
-            } else {
-              ally.stats.magicResist += higher;
-              ally.stats.armor += lower;
-            }
-          }
-          pushInventionLog(logs, tickLogs, tick, time, unit.id,
-            `[발명품] ${moduleName} 발동! 높은 저항 +${higher}, 낮은 저항 +${lower}`);
-
-        } else if (moduleKey === 'Upgrade') {
-          const as = (item.effects['AttackSpeed'] ?? 0.25) as number;
-          const hp = (item.effects['MaxHealth'] ?? 300) as number;
-          for (const ally of aliveTeam) {
-            ally.stats.attackSpeed *= (1 + as);
-            ally.maxHp += hp;
-            ally.currentHp += hp;
-          }
-          pushInventionLog(logs, tickLogs, tick, time, unit.id,
-            `[발명품] ${moduleName} 발동! 아군 공속 +${Math.round(as * 100)}%, 체력 +${hp}`);
-
-        } else if (moduleKey === 'ElectricalOverload') {
-          const flat = (item.effects['FlatDamage'] ?? 50) as number;
-          const maxHpPct = (item.effects['MaxHealthRatio'] ?? 0.10) as number;
-          let totalDmg = 0;
-          for (const enemy of aliveEnemies) {
-            const rawDmg = flat + Math.round(enemy.maxHp * maxHpPct);
-            const finalDmg = applyResistance(rawDmg, enemy.stats.magicResist);
-            enemy.currentHp -= finalDmg;
-            enemy.totalDamageTaken += finalDmg;
-            totalDmg += finalDmg;
-          }
-          pushInventionLog(logs, tickLogs, tick, time, unit.id,
-            `[발명품] ${moduleName} 발동! 적 전체에 ${flat} + 최대 체력 ${Math.round(maxHpPct * 100)}% 마법 피해 (총 ${Math.round(totalDmg)})`,
-            Math.round(totalDmg));
-
-        } else if (moduleKey === '90CaliberNets') {
-          const duration = (item.effects['Duration'] ?? 2) as number;
-          const numTargets = (item.effects['NumEnemies'] ?? 3) as number;
-          const stunTicks = Math.round(duration * TICKS_PER_SECOND);
-          const targets = pickRandomN(aliveEnemies, numTargets, rng);
-          const targetNames: string[] = [];
-          for (const enemy of targets) {
-            enemy.statusEffects.push({ type: 'stun', sourceId: unit.id, remainingTicks: stunTicks });
-            enemy.state = 'idle';
-            enemy.attackCooldown = 0;
-            targetNames.push(enemy.champion.name);
-            pushInventionLog(logs, tickLogs, tick, time, unit.id,
-              `[발명품] ${enemy.champion.name}에게 기절 적용 (${duration}초)`,
-              undefined, enemy.id);
-          }
-          pushInventionLog(logs, tickLogs, tick, time, unit.id,
-            `[발명품] ${moduleName} 발동! 적 ${targets.length}명 기절 ${duration}초 (${targetNames.join(', ')})`);
-
-        } else if (moduleKey === 'EMP') {
-          const manaIncrease = (item.effects['ManaCostIncrease'] ?? 15) as number;
-          for (const enemy of aliveEnemies) {
-            enemy.maxMana += manaIncrease;
-          }
-          pushInventionLog(logs, tickLogs, tick, time, unit.id,
-            `[발명품] ${moduleName} 발동! 적 전체 최대 마나 +${manaIncrease}`);
-
-        } else if (moduleKey === 'MagnetronCoil') {
-          const baseAmp = (item.effects['BaseDamageAmp'] ?? 0.16) as number;
-          for (const ally of aliveTeam) {
-            ally.damageAmp += baseAmp;
-          }
-          pushInventionLog(logs, tickLogs, tick, time, unit.id,
-            `[발명품] ${moduleName} 발동! 아군 피해증폭 +${Math.round(baseAmp * 100)}%`);
-
-        } else if (moduleKey === 'ArmorNullifier') {
-          const baseAmp = (item.effects['BaseDamageAmp'] ?? 0.25) as number;
-          const tankAmp = (item.effects['TankDamageAmp'] ?? 0.45) as number;
-          for (const ally of aliveTeam) {
-            ally.damageAmp += baseAmp;
-            ally.inventionTankDamageAmp += (tankAmp - baseAmp);
-          }
-          pushInventionLog(logs, tickLogs, tick, time, unit.id,
-            `[발명품] ${moduleName} 발동! 피해증폭 +${Math.round(baseAmp * 100)}% (탱커 대상 ${Math.round(tankAmp * 100)}%)`);
-
-        } else if (moduleKey === 'AccelerationGate') {
-          const manaRefill = (item.effects['ManaRefill'] ?? 0.35) as number;
-          for (const ally of aliveTeam) {
-            const manaGain = Math.round(ally.maxMana * manaRefill);
-            ally.currentMana = Math.min(ally.maxMana, ally.currentMana + manaGain);
-          }
-          pushInventionLog(logs, tickLogs, tick, time, unit.id,
-            `[발명품] ${moduleName} 발동! 아군 마나 ${Math.round(manaRefill * 100)}% 회복`);
-        }
-        // 후순위 모듈 (EchoEngine, SuperiorLifeform, MomentumDrive, UnstableCore, MiningDrill, TunedOscillator)
-        // → 미구현, 로그만 남김
-        else {
-          pushInventionLog(logs, tickLogs, tick, time, unit.id,
-            `[발명품] ${moduleName} 발동! (효과 미구현)`);
+    if (moduleKey === 'VoltageConduit') {
+      const reduction = (item.effects['ManaReduction'] ?? 0.30) as number;
+      for (const ally of aliveTeam) {
+        if (ally.champion.traits.includes('필트오버')) {
+          ally.maxMana = Math.round(ally.maxMana * (1 - reduction));
         }
       }
+      pushInventionLog(logs, tickLogs, tick, time, sourceUnit.id,
+        `[발명품] ${moduleName} 발동! 필트오버 유닛 최대 마나 ${Math.round(reduction * 100)}% 감소`);
+
+    } else if (moduleKey === 'MicroRockets') {
+      const adRatio = (item.effects['DamageRepeat'] ?? 0.66) as number;
+      const numMissiles = (item.effects['NumMissiles'] ?? 16) as number;
+      const avgDamage = aliveTeam.reduce((sum, u) => sum + u.stats.damage, 0) / aliveTeam.length;
+      const dmgPerMissile = Math.round(avgDamage * adRatio);
+      let totalDmg = 0;
+      for (let i = 0; i < numMissiles; i++) {
+        if (aliveEnemies.length === 0) break;
+        const target = aliveEnemies[Math.floor(rng.next() * aliveEnemies.length)];
+        const finalDmg = applyResistance(dmgPerMissile, target.stats.armor);
+        target.currentHp -= finalDmg;
+        target.totalDamageTaken += finalDmg;
+        totalDmg += finalDmg;
+      }
+      pushInventionLog(logs, tickLogs, tick, time, sourceUnit.id,
+        `[발명품] ${moduleName} 발동! 미사일 ${numMissiles}발 (각 AD ${Math.round(adRatio * 100)}% 물리 피해, 총 ${Math.round(totalDmg)})`,
+        Math.round(totalDmg));
+
+    } else if (moduleKey === 'BlastShield') {
+      const pct = (item.effects['PercentHealthShield'] ?? 0.18) as number;
+      for (const ally of aliveTeam) {
+        const shieldAmt = Math.round(ally.maxHp * pct);
+        ally.shield += shieldAmt;
+        ally.statusEffects.push({ type: 'shield', sourceId: ally.id, remainingTicks: MAX_TICKS, value: shieldAmt });
+      }
+      pushInventionLog(logs, tickLogs, tick, time, sourceUnit.id,
+        `[발명품] ${moduleName} 발동! 아군 최대 체력 ${Math.round(pct * 100)}% 보호막`);
+
+    } else if (moduleKey === 'OverclockedCapacitors') {
+      const asBonus = (item.effects['AttackSpeed'] ?? 0.25) as number;
+      for (const ally of aliveTeam) {
+        ally.stats.attackSpeed *= (1 + asBonus);
+      }
+      pushInventionLog(logs, tickLogs, tick, time, sourceUnit.id,
+        `[발명품] ${moduleName} 발동! 아군 공격 속도 +${Math.round(asBonus * 100)}%`);
+
+    } else if (moduleKey === 'ContinuumCogs') {
+      const apBonus = (item.effects['AbilityPower'] ?? 15) as number;
+      const manaGen = (item.effects['ManaGen'] ?? 2) as number;
+      for (const ally of aliveTeam) {
+        ally.stats.ap += apBonus;
+        ally.augmentManaRegen += manaGen;
+      }
+      pushInventionLog(logs, tickLogs, tick, time, sourceUnit.id,
+        `[발명품] ${moduleName} 발동! 아군 주문력 +${apBonus}, 초당 마나 +${manaGen}`);
+
+    } else if (moduleKey === 'GigantificationRay') {
+      const hpGainPct = (item.effects['MaxHealthGain'] ?? 0.28) as number;
+      for (const ally of aliveTeam) {
+        const hpGain = Math.round(ally.maxHp * hpGainPct);
+        ally.maxHp += hpGain;
+        ally.currentHp += hpGain;
+      }
+      pushInventionLog(logs, tickLogs, tick, time, sourceUnit.id,
+        `[발명품] ${moduleName} 발동! 아군 최대 체력 +${Math.round(hpGainPct * 100)}%`);
+
+    } else if (moduleKey === 'KineticBarrier') {
+      const higher = (item.effects['HigherResist'] ?? 65) as number;
+      const lower = (item.effects['LowerResist'] ?? 30) as number;
+      for (const ally of aliveTeam) {
+        if (ally.stats.armor >= ally.stats.magicResist) {
+          ally.stats.armor += higher;
+          ally.stats.magicResist += lower;
+        } else {
+          ally.stats.magicResist += higher;
+          ally.stats.armor += lower;
+        }
+      }
+      pushInventionLog(logs, tickLogs, tick, time, sourceUnit.id,
+        `[발명품] ${moduleName} 발동! 높은 저항 +${higher}, 낮은 저항 +${lower}`);
+
+    } else if (moduleKey === 'Upgrade') {
+      const as = (item.effects['AttackSpeed'] ?? 0.25) as number;
+      const hp = (item.effects['MaxHealth'] ?? 300) as number;
+      for (const ally of aliveTeam) {
+        ally.stats.attackSpeed *= (1 + as);
+        ally.maxHp += hp;
+        ally.currentHp += hp;
+      }
+      pushInventionLog(logs, tickLogs, tick, time, sourceUnit.id,
+        `[발명품] ${moduleName} 발동! 아군 공속 +${Math.round(as * 100)}%, 체력 +${hp}`);
+
+    } else if (moduleKey === 'ElectricalOverload') {
+      const flat = (item.effects['FlatDamage'] ?? 50) as number;
+      const maxHpPct = (item.effects['MaxHealthRatio'] ?? 0.10) as number;
+      let totalDmg = 0;
+      for (const enemy of aliveEnemies) {
+        const rawDmg = flat + Math.round(enemy.maxHp * maxHpPct);
+        const finalDmg = applyResistance(rawDmg, enemy.stats.magicResist);
+        enemy.currentHp -= finalDmg;
+        enemy.totalDamageTaken += finalDmg;
+        totalDmg += finalDmg;
+      }
+      pushInventionLog(logs, tickLogs, tick, time, sourceUnit.id,
+        `[발명품] ${moduleName} 발동! 적 전체에 ${flat} + 최대 체력 ${Math.round(maxHpPct * 100)}% 마법 피해 (총 ${Math.round(totalDmg)})`,
+        Math.round(totalDmg));
+
+    } else if (moduleKey === '90CaliberNets') {
+      const duration = (item.effects['Duration'] ?? 2) as number;
+      const numTargets = (item.effects['NumEnemies'] ?? 3) as number;
+      const stunTicks = Math.round(duration * TICKS_PER_SECOND);
+      const targets = pickRandomN(aliveEnemies, numTargets, rng);
+      const targetNames: string[] = [];
+      for (const enemy of targets) {
+        enemy.statusEffects.push({ type: 'stun', sourceId: sourceUnit.id, remainingTicks: stunTicks });
+        enemy.state = 'idle';
+        enemy.attackCooldown = 0;
+        targetNames.push(enemy.champion.name);
+        pushInventionLog(logs, tickLogs, tick, time, sourceUnit.id,
+          `[발명품] ${enemy.champion.name}에게 기절 적용 (${duration}초)`,
+          undefined, enemy.id);
+      }
+      pushInventionLog(logs, tickLogs, tick, time, sourceUnit.id,
+        `[발명품] ${moduleName} 발동! 적 ${targets.length}명 기절 ${duration}초 (${targetNames.join(', ')})`);
+
+    } else if (moduleKey === 'EMP') {
+      const manaIncrease = (item.effects['ManaCostIncrease'] ?? 15) as number;
+      for (const enemy of aliveEnemies) {
+        enemy.maxMana += manaIncrease;
+      }
+      pushInventionLog(logs, tickLogs, tick, time, sourceUnit.id,
+        `[발명품] ${moduleName} 발동! 적 전체 최대 마나 +${manaIncrease}`);
+
+    } else if (moduleKey === 'MagnetronCoil') {
+      const baseAmp = (item.effects['BaseDamageAmp'] ?? 0.16) as number;
+      for (const ally of aliveTeam) {
+        ally.damageAmp += baseAmp;
+      }
+      pushInventionLog(logs, tickLogs, tick, time, sourceUnit.id,
+        `[발명품] ${moduleName} 발동! 아군 피해증폭 +${Math.round(baseAmp * 100)}%`);
+
+    } else if (moduleKey === 'ArmorNullifier') {
+      const baseAmp = (item.effects['BaseDamageAmp'] ?? 0.25) as number;
+      const tankAmp = (item.effects['TankDamageAmp'] ?? 0.45) as number;
+      for (const ally of aliveTeam) {
+        ally.damageAmp += baseAmp;
+        ally.inventionTankDamageAmp += (tankAmp - baseAmp);
+      }
+      pushInventionLog(logs, tickLogs, tick, time, sourceUnit.id,
+        `[발명품] ${moduleName} 발동! 피해증폭 +${Math.round(baseAmp * 100)}% (탱커 대상 ${Math.round(tankAmp * 100)}%)`);
+
+    } else if (moduleKey === 'AccelerationGate') {
+      const manaRefill = (item.effects['ManaRefill'] ?? 0.35) as number;
+      for (const ally of aliveTeam) {
+        const manaGain = Math.round(ally.maxMana * manaRefill);
+        ally.currentMana = Math.min(ally.maxMana, ally.currentMana + manaGain);
+      }
+      pushInventionLog(logs, tickLogs, tick, time, sourceUnit.id,
+        `[발명품] ${moduleName} 발동! 아군 마나 ${Math.round(manaRefill * 100)}% 회복`);
+
+    } else {
+      // 후순위 모듈 (EchoEngine, SuperiorLifeform, MomentumDrive, UnstableCore, MiningDrill, TunedOscillator)
+      pushInventionLog(logs, tickLogs, tick, time, sourceUnit.id,
+        `[발명품] ${moduleName} 발동! (효과 미구현)`);
     }
   }
 }
@@ -775,8 +789,10 @@ export function simulateCombat(
     }
 
     // Piltover invention trigger
-    applyPiltoverInvention(playerActiveTraits, playerUnits, enemies, tick, logs, tickLogs, time, rng);
-    applyPiltoverInvention(enemyActiveTraits, enemies, playerUnits, tick, logs, tickLogs, time, rng);
+    const playerModules = options.playerPiltoverModules ?? [];
+    const enemyModules = options.enemyPiltoverModules ?? [];
+    applyPiltoverInvention(playerActiveTraits, playerUnits, enemies, playerModules, tick, logs, tickLogs, time, rng);
+    applyPiltoverInvention(enemyActiveTraits, enemies, playerUnits, enemyModules, tick, logs, tickLogs, time, rng);
 
     const occupiedPositions = new Set(
       allUnits.filter(u => u.state !== 'dead').map(u => coordKey(u.position))
