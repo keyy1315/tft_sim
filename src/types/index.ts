@@ -340,6 +340,8 @@ export interface CombatUnit {
   augmentGrievousWounds: number;
   augmentExecuteThreshold: number;
   augmentBurnPercent: number;
+  /** 발명품 탱커 대상 추가 피해증폭 (ArmorNullifier) */
+  inventionTankDamageAmp: number;
 }
 
 export interface CombatLog {
