@@ -8,7 +8,7 @@ import { calculateStats } from '@/lib/simulator/systems/stat';
 import { getAbilityDamage, getAbilityShield, findAbilityTargets, CHAMPION_ABILITY_PATTERNS } from '@/lib/simulator/systems/ability';
 import type { AbilityConfig } from '@/lib/simulator/systems/ability';
 import { canAttack, getMoveTicks, findBestMoveToward, coordKey, getNeighbors, hexDistance } from '@/lib/simulator/systems/movement';
-import { TICK_DURATION, MAX_TICKS, TICKS_PER_SECOND } from '@/lib/simulator/models/constants';
+import { TICK_DURATION, MAX_TICKS, TICKS_PER_SECOND, CAST_TICKS, SELF_BUFF_CAST_TICKS, INITIAL_ATTACK_DELAY } from '@/lib/simulator/models/constants';
 import { createRNG, SeededRNG } from '@/lib/simulator/engine/rng';
 import { captureSnapshot } from '@/lib/simulator/engine/replayEngine';
 import { findTarget, getTargetingWeight } from '@/lib/simulator/systems/targeting';
@@ -978,6 +978,15 @@ export function simulateCombat(
     applyIoniaPath(enemyActiveTraits, enemies, options.enemyIoniaPath, logs);
   }
 
+  // 전투 시작 시 유닛별 랜덤 첫 공격 딜레이 (0~0.3초)
+  const maxDelayTicks = Math.round(INITIAL_ATTACK_DELAY * TICKS_PER_SECOND);
+  for (const u of playerUnits) {
+    u.attackCooldown = Math.floor(rng.next() * maxDelayTicks);
+  }
+  for (const u of enemies) {
+    u.attackCooldown = Math.floor(rng.next() * maxDelayTicks);
+  }
+
   const allUnits = [...playerUnits, ...enemies];
 
   // Spawn Freljord turrets
@@ -1166,10 +1175,14 @@ export function simulateCombat(
             unit.currentMana = 0;
             unit.state = 'casting';
 
+            const config: AbilityConfig = CHAMPION_ABILITY_PATTERNS[unit.champion.apiName] ?? { pattern: 'single' };
+
+            // 스킬 시전 후 cast time — 이 시간 동안 공격 불가
+            unit.attackCooldown = config.pattern === 'self_buff' ? SELF_BUFF_CAST_TICKS : CAST_TICKS;
+
             const { damage: abilityDmg, type: dmgType } = getAbilityDamage(
               unit.champion, unit.starLevel, unit.stats.ap
             );
-            const config: AbilityConfig = CHAMPION_ABILITY_PATTERNS[unit.champion.apiName] ?? { pattern: 'single' };
             const opposingTeam = unit.team === 'player' ? enemies : playerUnits;
 
             // 대쉬 이동 (config.dash가 있으면 대상 인접 칸으로 이동)
@@ -1267,6 +1280,61 @@ export function simulateCombat(
               const grievousReduction = target.augmentGrievousWounds > 0 ? (1 - target.augmentGrievousWounds) : 1;
               const heal = totalAbilityDmg * unit.omnivamp * grievousReduction;
               unit.currentHp = Math.min(unit.maxHp, unit.currentHp + heal);
+            }
+
+            // === CC 기절 적용 ===
+            if (config.stun && config.stun > 0) {
+              const stunTicks = Math.round(config.stun * TICKS_PER_SECOND);
+              const stunLimit = config.stunTargets ?? abilityTargets.length;
+              let stunCount = 0;
+              for (const t of abilityTargets) {
+                if (t.state === 'dead' || stunCount >= stunLimit) break;
+                t.statusEffects.push({ type: 'stun', sourceId: unit.id, remainingTicks: stunTicks });
+                t.state = 'idle';
+                t.attackCooldown = 0;
+                stunCount++;
+              }
+            }
+
+            // === 적 디버프 적용 ===
+            if (config.debuff) {
+              for (const t of abilityTargets) {
+                if (t.state === 'dead') continue;
+                if (config.debuff.armorReduction) t.stats.armor = Math.max(0, t.stats.armor - config.debuff.armorReduction);
+                if (config.debuff.mrReduction) t.stats.magicResist = Math.max(0, t.stats.magicResist - config.debuff.mrReduction);
+              }
+            }
+
+            // === 시전자 체력 회복 ===
+            if (config.heal) {
+              const healVar = unit.champion.ability.variables.find(v => v.name === 'Heal' || v.name === 'APHeal' || v.name === 'PercentMaximumHealthHealing');
+              if (healVar) {
+                const starIdx = Math.min(unit.starLevel, healVar.value.length - 1);
+                const healVal = healVar.value[starIdx] ?? healVar.value[0] ?? 0;
+                const healAmount = typeof healVal === 'number'
+                  ? (healVal < 1 ? Math.round(unit.maxHp * healVal) : Math.round(healVal * (1 + unit.stats.ap / 100)))
+                  : 0;
+                if (healAmount > 0) {
+                  unit.currentHp = Math.min(unit.maxHp, unit.currentHp + healAmount);
+                }
+              }
+            }
+
+            // === 자기 버프 ===
+            if (config.selfBuff) {
+              if (config.selfBuff.attackSpeed) unit.stats.attackSpeed *= (1 + config.selfBuff.attackSpeed);
+              if (config.selfBuff.ad) unit.stats.damage += config.selfBuff.ad;
+              if (config.selfBuff.ap) unit.stats.ap += config.selfBuff.ap;
+              if (config.selfBuff.durability) unit.damageReduction += config.selfBuff.durability;
+            }
+
+            // === 아군 전체 버프 ===
+            if (config.allyBuff) {
+              const allyTeam = unit.team === 'player' ? playerUnits : enemies;
+              for (const ally of allyTeam) {
+                if (ally.state === 'dead') continue;
+                if (config.allyBuff.attackSpeed) ally.stats.attackSpeed *= (1 + config.allyBuff.attackSpeed);
+              }
             }
 
             eventBus.emit('on_cast', { sourceId: unit.id, targetId: target.id, value: totalAbilityDmg, tick });
