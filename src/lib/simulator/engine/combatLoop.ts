@@ -651,12 +651,17 @@ function applyPiltoverInvention(
       const dmgPerMissile = Math.round(avgDamage * adRatio);
       let totalDmg = 0;
       for (let i = 0; i < numMissiles; i++) {
-        if (aliveEnemies.length === 0) break;
-        const target = aliveEnemies[Math.floor(rng.next() * aliveEnemies.length)];
+        const alive = aliveEnemies.filter(e => e.state !== 'dead' && e.currentHp > 0);
+        if (alive.length === 0) break;
+        const target = alive[Math.floor(rng.next() * alive.length)];
         const finalDmg = applyResistance(dmgPerMissile, target.stats.armor);
         target.currentHp -= finalDmg;
         target.totalDamageTaken += finalDmg;
         totalDmg += finalDmg;
+        if (target.currentHp <= 0) {
+          target.currentHp = 0;
+          target.state = 'dead';
+        }
       }
       pushInventionLog(logs, tickLogs, tick, time, sourceUnit.id,
         `[발명품] ${moduleName} 발동! 미사일 ${numMissiles}발 (각 AD ${Math.round(adRatio * 100)}% 물리 피해, 총 ${Math.round(totalDmg)})`,
@@ -731,11 +736,16 @@ function applyPiltoverInvention(
       const maxHpPct = (item.effects['MaxHealthRatio'] ?? 0.10) as number;
       let totalDmg = 0;
       for (const enemy of aliveEnemies) {
+        if (enemy.state === 'dead' || enemy.currentHp <= 0) continue;
         const rawDmg = flat + Math.round(enemy.maxHp * maxHpPct);
         const finalDmg = applyResistance(rawDmg, enemy.stats.magicResist);
         enemy.currentHp -= finalDmg;
         enemy.totalDamageTaken += finalDmg;
         totalDmg += finalDmg;
+        if (enemy.currentHp <= 0) {
+          enemy.currentHp = 0;
+          enemy.state = 'dead';
+        }
       }
       pushInventionLog(logs, tickLogs, tick, time, sourceUnit.id,
         `[발명품] ${moduleName} 발동! 적 전체에 ${flat} + 최대 체력 ${Math.round(maxHpPct * 100)}% 마법 피해 (총 ${Math.round(totalDmg)})`,

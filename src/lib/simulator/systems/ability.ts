@@ -96,7 +96,7 @@ export const CHAMPION_ABILITY_PATTERNS: Record<string, AbilityConfig> = {
   TFT16_Ryze:        { pattern: 'bounce', maxTargets: 3, damageDecay: 0.2 },
 
   // === Global (전체) ===
-  TFT16_Annie:       { pattern: 'global' },
+  TFT16_Annie:       { pattern: 'aoe_circle', radius: 2 },
   TFT16_Veigar:      { pattern: 'global' },
   TFT16_Brock:       { pattern: 'global' },
 
@@ -179,7 +179,7 @@ export function findAbilityTargets(
       return alive;
 
     case 'self_buff':
-      return [];
+      return [caster];
 
     default:
       return [primaryTarget];

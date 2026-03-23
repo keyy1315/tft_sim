@@ -15,7 +15,9 @@ export function resolveBilgewaterStatEffects(
       if (key === 'BonusAD') result.ad = (result.ad ?? 0) + value * count;
       if (key === 'BonusAP') result.ap = (result.ap ?? 0) + value * count;
       if (key === 'BonusAS') result.as = (result.as ?? 0) + value * count;
-      if (key === 'BonusHealthPercent') result.hp = (result.hp ?? 0) + value * count;
+      if (key === 'BonusHealthPercent') {
+        (result as Record<string, number>)['hpPercent'] = ((result as Record<string, number>)['hpPercent'] ?? 0) + value * count;
+      }
       if (key === 'BonusArmorMR') {
         result.armor = (result.armor ?? 0) + value * count;
         result.magicResist = (result.magicResist ?? 0) + value * count;
@@ -135,13 +137,15 @@ export function calculateStats(
   };
 
   const baseHp = champion.stats.hp;
+  const flatHp = baseHp * star + (itemFx.hp || 0) + (traitFx.hp || 0) + (augmentEffects.hp || 0);
+  const hpPercentBonus = (traitFx.hpPercent || 0) + ((augmentEffects as Record<string, number>)['hpPercent'] || 0);
   const hpBreakdown: StatBreakdown = {
     base: baseHp,
     starScaling: baseHp * star - baseHp,
     items: itemFx.hp || 0,
-    traits: traitFx.hp || 0,
-    augments: augmentEffects.hp || 0,
-    total: baseHp * star + (itemFx.hp || 0) + (traitFx.hp || 0) + (augmentEffects.hp || 0),
+    traits: (traitFx.hp || 0) + Math.round(flatHp * (traitFx.hpPercent || 0)),
+    augments: (augmentEffects.hp || 0) + Math.round(flatHp * ((augmentEffects as Record<string, number>)['hpPercent'] || 0)),
+    total: Math.round(flatHp * (1 + hpPercentBonus)),
   };
 
   const armorBreakdown: StatBreakdown = {
