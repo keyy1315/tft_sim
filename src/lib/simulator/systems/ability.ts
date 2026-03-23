@@ -15,6 +15,8 @@ export interface AbilityConfig {
   radius?: number;
   maxTargets?: number;
   damageDecay?: number;
+  /** 스킬 시전 시 이동 유형 */
+  dash?: 'to_target' | 'to_farthest' | 'to_lowest_hp' | 'to_backline';
 }
 
 /** 챔피언별 스킬 타게팅 패턴 매핑 */
@@ -25,11 +27,9 @@ export const CHAMPION_ABILITY_PATTERNS: Record<string, AbilityConfig> = {
   TFT16_Vayne:       { pattern: 'single' },
   TFT16_Yone:        { pattern: 'single' },
   TFT16_Volibear:    { pattern: 'single' },
-  TFT16_Renekton:    { pattern: 'single' },
   TFT16_Vi:          { pattern: 'single' },
   TFT16_Darius:      { pattern: 'single' },
   TFT16_BelVeth:     { pattern: 'single' },
-  TFT16_Fizz:        { pattern: 'single' },
   TFT16_Kalista:     { pattern: 'single' },
   TFT16_Zoe:         { pattern: 'single' },
   TFT16_Leblanc:     { pattern: 'single' },
@@ -39,16 +39,18 @@ export const CHAMPION_ABILITY_PATTERNS: Record<string, AbilityConfig> = {
   TFT16_Yunara:      { pattern: 'line', damageDecay: 0.15 },
   TFT16_Illaoi:      { pattern: 'line' },
   TFT16_Skarner:     { pattern: 'line', maxTargets: 3 },
-  TFT16_Ambessa:     { pattern: 'line' },
+  TFT16_Ambessa:     { pattern: 'line', dash: 'to_target' },
   TFT16_XinZhao:     { pattern: 'line', maxTargets: 3 },
+  TFT16_Renekton:    { pattern: 'line', maxTargets: 3, dash: 'to_lowest_hp' },
+  TFT16_Qiyana:      { pattern: 'line', maxTargets: 3, dash: 'to_target' },
 
   // === AOE Circle (원형 범위) ===
   TFT16_ChoGath:     { pattern: 'aoe_circle', radius: 2 },
-  TFT16_Neeko:       { pattern: 'aoe_circle', radius: 2 },
+  TFT16_Neeko:       { pattern: 'aoe_circle', radius: 2, dash: 'to_target' },
   TFT16_Ekko:        { pattern: 'aoe_circle', radius: 2 },
   TFT16_Kennen:      { pattern: 'aoe_circle', radius: 2 },
-  TFT16_Fiddlesticks:{ pattern: 'aoe_circle', radius: 2 },
-  TFT16_Kindred:     { pattern: 'aoe_circle', radius: 2 },
+  TFT16_Fiddlesticks:{ pattern: 'aoe_circle', radius: 2, dash: 'to_farthest' },
+  TFT16_Kindred:     { pattern: 'aoe_circle', radius: 2, dash: 'to_target' },
   TFT16_Diana:       { pattern: 'aoe_circle', radius: 1 },
   TFT16_Lucian:      { pattern: 'aoe_circle', radius: 1 },
   TFT16_Orianna:     { pattern: 'aoe_circle', radius: 2 },
@@ -57,13 +59,21 @@ export const CHAMPION_ABILITY_PATTERNS: Record<string, AbilityConfig> = {
   TFT16_Anivia:      { pattern: 'aoe_circle', radius: 2 },
   TFT16_Swain:       { pattern: 'aoe_circle', radius: 2 },
   TFT16_Gangplank:   { pattern: 'aoe_circle', radius: 2 },
+  // === AOE Circle + Dash ===
+  TFT16_Briar:       { pattern: 'aoe_circle', radius: 1, dash: 'to_farthest' },
+  TFT16_Nidalee:     { pattern: 'aoe_circle', radius: 1, dash: 'to_lowest_hp' },
+  TFT16_Fizz:        { pattern: 'aoe_circle', radius: 1, dash: 'to_backline' },
+  TFT16_Yasuo:       { pattern: 'aoe_circle', radius: 1, dash: 'to_target' },
+  TFT16_Zaahen:      { pattern: 'aoe_circle', radius: 1, dash: 'to_target' },
+  TFT16_Sylas:       { pattern: 'aoe_circle', radius: 2, dash: 'to_target' },
+  TFT16_Shyvana:     { pattern: 'aoe_circle', radius: 3, dash: 'to_farthest' },
 
   // === Cone (원뿔) ===
   TFT16_Rumble:      { pattern: 'cone', radius: 2 },
   TFT16_Graves:      { pattern: 'cone', radius: 2 },
-  TFT16_Gwen:        { pattern: 'cone', radius: 2 },
+  TFT16_Gwen:        { pattern: 'cone', radius: 2, dash: 'to_target' },
   TFT16_Sejuani:     { pattern: 'cone', radius: 2 },
-  TFT16_RekSai:      { pattern: 'cone', radius: 1 },
+  TFT16_RekSai:      { pattern: 'cone', radius: 1, dash: 'to_farthest' },
 
   // === Multi-target (다수 지정) ===
   TFT16_Aphelios:    { pattern: 'multi', maxTargets: 4 },

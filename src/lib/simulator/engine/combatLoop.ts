@@ -97,6 +97,83 @@ function createCombatUnit(
   };
 }
 
+/** 대쉬 대상 헬퍼: 가장 먼 적 */
+function findFarthestEnemy(unit: CombatUnit, enemies: CombatUnit[]): CombatUnit {
+  let farthest = enemies[0];
+  let maxDist = 0;
+  for (const e of enemies) {
+    const d = hexDistance(unit.position, e.position);
+    if (d > maxDist) { maxDist = d; farthest = e; }
+  }
+  return farthest;
+}
+
+/** 대쉬 대상 헬퍼: 체력 가장 낮은 적 */
+function findLowestHpEnemy(enemies: CombatUnit[]): CombatUnit {
+  let lowest = enemies[0];
+  for (const e of enemies) {
+    if (e.currentHp < lowest.currentHp) lowest = e;
+  }
+  return lowest;
+}
+
+/** 대쉬 대상 헬퍼: 탱커/전사 아닌 가장 먼 적 (피즈) */
+function findBacklineEnemy(unit: CombatUnit, enemies: CombatUnit[]): CombatUnit {
+  const backline = enemies.filter(e => e.role !== 'Tank' && e.role !== 'Fighter');
+  if (backline.length === 0) return findFarthestEnemy(unit, enemies);
+  return findFarthestEnemy(unit, backline);
+}
+
+/** 스킬 시전 시 대쉬 이동 — 대상 인접 빈 칸으로 이동 */
+function applyAbilityDash(
+  unit: CombatUnit,
+  dashType: 'to_target' | 'to_farthest' | 'to_lowest_hp' | 'to_backline',
+  currentTarget: CombatUnit,
+  enemyTeam: CombatUnit[],
+  occupiedPositions: Set<string>,
+  logs: CombatLog[],
+  tickLogs: CombatLog[],
+  tick: number,
+  time: number,
+): CombatUnit {
+  const aliveEnemies = enemyTeam.filter(e => e.state !== 'dead');
+  if (aliveEnemies.length === 0) return currentTarget;
+
+  let dashTarget: CombatUnit;
+  switch (dashType) {
+    case 'to_target': dashTarget = currentTarget; break;
+    case 'to_farthest': dashTarget = findFarthestEnemy(unit, aliveEnemies); break;
+    case 'to_lowest_hp': dashTarget = findLowestHpEnemy(aliveEnemies); break;
+    case 'to_backline': dashTarget = findBacklineEnemy(unit, aliveEnemies); break;
+  }
+
+  const neighbors = getNeighbors(dashTarget.position);
+  const freeNeighbors = neighbors.filter(n => !occupiedPositions.has(coordKey(n)));
+  if (freeNeighbors.length === 0) return dashTarget;
+
+  let bestHex = freeNeighbors[0];
+  let bestDist = Infinity;
+  for (const hex of freeNeighbors) {
+    const dist = hexDistance(hex, dashTarget.position);
+    if (dist < bestDist) { bestDist = dist; bestHex = hex; }
+  }
+
+  occupiedPositions.delete(coordKey(unit.position));
+  unit.position = bestHex;
+  occupiedPositions.add(coordKey(bestHex));
+  unit.target = dashTarget.id;
+
+  const log: CombatLog = {
+    tick, time, type: 'move',
+    sourceId: unit.id, targetId: dashTarget.id,
+    message: `${unit.champion.name}이(가) ${dashTarget.champion.name}에게 돌진!`,
+  };
+  logs.push(log);
+  tickLogs.push(log);
+
+  return dashTarget;
+}
+
 /** Fighter/Assassin 비타겟 피해 감소 비율 */
 const NON_TARGET_DAMAGE_REDUCTION = 0.15;
 
@@ -987,7 +1064,17 @@ export function simulateCombat(
             );
             const config: AbilityConfig = CHAMPION_ABILITY_PATTERNS[unit.champion.apiName] ?? { pattern: 'single' };
             const opposingTeam = unit.team === 'player' ? enemies : playerUnits;
-            const abilityTargets = findAbilityTargets(unit, target, opposingTeam, config);
+
+            // 대쉬 이동 (config.dash가 있으면 대상 인접 칸으로 이동)
+            let abilityTarget = target;
+            if (config.dash) {
+              abilityTarget = applyAbilityDash(
+                unit, config.dash, target, opposingTeam,
+                occupiedPositions, logs, tickLogs, tick, time
+              );
+            }
+
+            const abilityTargets = findAbilityTargets(unit, abilityTarget, opposingTeam, config);
 
             // 어빌리티 보호막 적용 (자기 자신에게)
             const abilityShield = getAbilityShield(unit.champion, unit.starLevel, unit.stats.ap);
