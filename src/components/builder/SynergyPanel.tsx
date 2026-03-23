@@ -6,7 +6,7 @@ import { getTraitImage } from '@/data/imageMap';
 import { resolveDescription } from '@/lib/utils/text';
 import Tooltip from '@/components/ui/Tooltip';
 import Image from 'next/image';
-import { IONIA_PATH_NAMES } from '@/data/traitModules';
+import { IONIA_PATH_NAMES, IONIA_PATH_DESCRIPTIONS, getIoniaPathEffectText } from '@/data/traitModules';
 import type { IoniaPathType } from '@/data/traitModules';
 
 interface SynergyPanelProps {
@@ -172,16 +172,23 @@ export default function SynergyPanel({ activeTraits, team, items, piltoverModule
               {isActive && isPiltover && <PiltoverModulesSummary modules={piltoverModules} />}
               {isActive && isBilgewater && <BilgewaterStatsSummary stats={bilgewaterStats} allItems={items} />}
               {isActive && at.trait.apiName === 'TFT16_Ionia' && ioniaActive && onIoniaPathChange && (
-                <select
-                  value={ioniaPath ?? ''}
-                  onChange={e => onIoniaPathChange(e.target.value as IoniaPathType)}
-                  className="w-full bg-gray-800 text-white text-[10px] rounded px-1 py-0.5 mt-1 border border-gray-600"
-                >
-                  <option value="">길 선택...</option>
-                  {Object.entries(IONIA_PATH_NAMES).map(([key, name]) => (
-                    <option key={key} value={key}>{name}</option>
-                  ))}
-                </select>
+                <div className="mt-1 space-y-0.5">
+                  <select
+                    value={ioniaPath ?? ''}
+                    onChange={e => onIoniaPathChange(e.target.value as IoniaPathType)}
+                    className="w-full bg-gray-800 text-white text-[10px] rounded px-1 py-0.5 border border-gray-600"
+                  >
+                    <option value="">길 선택...</option>
+                    {Object.entries(IONIA_PATH_NAMES).map(([key, name]) => (
+                      <option key={key} value={key}>{name} — {IONIA_PATH_DESCRIPTIONS[key as IoniaPathType]}</option>
+                    ))}
+                  </select>
+                  {ioniaPath && at.activeEffect && (
+                    <div className="text-[9px] text-yellow-400 bg-gray-900 rounded px-1.5 py-0.5 border border-gray-700">
+                      ⚔ {IONIA_PATH_NAMES[ioniaPath]}: {getIoniaPathEffectText(ioniaPath, at.activeEffect.variables)}
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           );
