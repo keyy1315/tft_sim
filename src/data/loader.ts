@@ -30,7 +30,11 @@ export async function loadItems(): Promise<RawItem[]> {
   if (itemsCache) return itemsCache;
   const res = await fetch('/data/tft_set16_items.json');
   const data: RawItemsData = await res.json();
-  itemsCache = data.items;
+  const DISABLED_ITEMS = new Set([
+    'TFT_Item_Artifact_MirroredPersona',
+    'TFT_Item_Artifact_LesserMirroredPersona',
+  ]);
+  itemsCache = data.items.filter(i => !DISABLED_ITEMS.has(i.apiName));
   registerItemImages(itemsCache);
   return itemsCache;
 }

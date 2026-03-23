@@ -2221,7 +2221,7 @@
         "{cd951938}": 0.10000000149011612
       },
       "desc": "매초 잃은 체력의 @MissingHealthHeal*100@%만큼 체력 회복",
-      "icon": "tft5_item_guardianangelradiant.tft_set13.png"
+      "icon": "radient_redemption.jpg"
     },
     {
       "name": "찬란한 워모그의 갑옷",
@@ -2909,7 +2909,7 @@
         "StackingSP": 2
       },
       "desc": "공격하거나 피해를 받으면 공격력 @StackingAD*100@%, 주문력 @StackingSP@% 증가 (최대 @StackCap@회 중첩)<br><br>최대 중첩 시 피해 증폭 @StackedAmp*100@% 획득 및 군중 제어 효과에 면역이 됨",
-      "icon": "tft5_item_leviathanradiant.tft_set13.png"
+      "icon": "tft5_item_titansresolveradiant.tft_set13.png"
     },
     {
       "name": "찬란한 공허의 지팡이",
@@ -2923,7 +2923,7 @@
         "ManaRegen": 1
       },
       "desc": "기본 공격 및 스킬로 피해를 입힐 경우 @MRShredDuration@초 동안 대상에게 <TFTKeyword>파쇄</TFTKeyword>를 @MRShred@% 적용 (중첩 불가)<br><br><tftitemrules><tftbold>파쇄</tftbold>: 마법 저항력 감소</tftitemrules>",
-      "icon": "tft5_item_spectralgauntletradiant.tft_set13.png"
+      "icon": "radient_statikkshiv.jpg"
     },
     {
       "name": "찬란한 굳건한 심장",
@@ -2938,7 +2938,7 @@
         "ThresholdForEmpower": 0.5
       },
       "desc": "내구력 @BaseDurability*100@% 획득. 체력이 @ThresholdForEmpower*100@% 이상일 때 대신 내구력 @EmpoweredDurability*100@% 획득<br><br>@TFTUnitProperty.:TFT_Augment_WarmogsBuckle_TRAKey@",
-      "icon": "tft5_item_frozenheartradiant.tft_set13.png"
+      "icon": "tft5_item_nightharvesterradiant.tft_set13.png"
     },
     {
       "name": "찬란한 내셔의 이빨",
@@ -2953,7 +2953,7 @@
         "ManaOnCrit": 4
       },
       "desc": "기본 공격 시 추가 마나 @BaseManaOnHit@ 획득. 치명타 적중 시 @ManaOnCrit@ 획득",
-      "icon": "tft5_item_titansresolveradiant.tft_set13.png"
+      "icon": "tft5_item_leviathanradiant.tft_set13.png"
     },
     {
       "name": "찬란한 대천사의 지팡이",
@@ -3044,7 +3044,7 @@
         "StealthDuration": 1
       },
       "desc": "체력이 @HealthThreshold@%일 때 잠시 대상으로 지정할 수 없게 되며 해로운 효과 제거 및 잃은 체력의 @MissingHealthRestore*100@% 회복",
-      "icon": "tft5_item_nightharvesterradiant.tft_set13.png"
+      "icon": "tft5_item_guardianangelradiant.tft_set13.png"
     },
     {
       "name": "찬란한 붉은 덩굴정령",
@@ -3061,7 +3061,7 @@
         "{9f5117db}": 100
       },
       "desc": "기본 공격과 스킬이 @Duration@초 동안 적에게 <TFTKeyword>불태우기</TFTKeyword>를 @BurnPercent@%, <TFTKeyword>상처</TFTKeyword>를 @HealingReductionPct@% 적용<br><br><tftitemrules><tftbold>불태우기</tftbold>: 매초 대상 최대 체력의 일정 비율만큼 고정 피해<br><tftbold>상처</tftbold>: 체력 회복량 감소</tftitemrules>",
-      "icon": "tft5_item_bramblevestradiant.tft_set13.png"
+      "icon": "tft5_item_rapidfirecannonradiant.tft_set13.png"
     },
     {
       "name": "찬란한 수은",
@@ -3092,7 +3092,7 @@
         "TriggerMana": 15
       },
       "desc": "전투 시작: 마나 @CombatStartMana@ 획득<br><br>체력이 @HealthThreshold@%일 때 마나 @TriggerMana@ 및 최대 체력의 @ShieldHealthPercent@%에 해당하는 보호막 획득",
-      "icon": "tft5_item_guardianangelradiant.tft_set13.png"
+      "icon": "tft5_item_frozenheartradiant.tft_set13.png"
     },
     {
       "name": "찬란한 스테락의 도전",
@@ -3151,7 +3151,7 @@
         "MagicResist": 20
       },
       "desc": "@HexRange@칸 내에 있는 적 @ARReductionAmount@% <TFTKeyword>파열</TFTKeyword> 전투 시작 후 @BonusResistDuration@초 동안 방어력과 마법 저항력 @BonusResists@ 증가<br><br><tftitemrules><tftbold>파열</tftbold>: 방어력 감소</tftitemrules>",
-      "icon": "tft5_item_frozenheartradiant.tft_set13.png"
+      "icon": "tft5_item_spectralgauntletradiant.tft_set13.png"
     },
     {
       "name": "찬란한 적응형 투구",
@@ -3209,7 +3209,7 @@
         "MaxStacks": 15
       },
       "desc": "기본 공격 시 공격력 @ADOnAttack*100@% (최대 @MaxStacks@회 중첩) 획득. 기본 공격 @MaxStacks@회 후 공격 속도 @ASCapstone*100@% 획득",
-      "icon": "tft5_item_rapidfirecannonradiant.tft_set13.png"
+      "icon": "tft_item_krakenslayerradiant.tft_tft14_5.png"
     },
     {
       "name": "찬란한 타격대의 철퇴",
