@@ -17,6 +17,7 @@ import { EventBus } from '@/lib/simulator/events/eventBus';
 import { ROLE_OMNIVAMP } from '@/lib/simulator/models/unit';
 import { resolveTraits } from '@/lib/simulator/systems/trait';
 import { resolveAugmentEffects, resolveInCombatAugmentEffects, resolvePerUnitMods, applyPerUnitMods, AugmentWithStacks } from '@/lib/simulator/systems/augment';
+import type { IoniaPathType } from '@/data/traitModules';
 
 /** 상태이상 한글 레이블 (엔진 로그용 — UI 모듈에 의존하지 않음) */
 const STATUS_EFFECT_LABELS: Record<StatusEffectType, string> = {
@@ -54,6 +55,9 @@ export interface SimulateOptions {
   /** 필트오버 팀 모듈 (팀 슬롯에서 선택한 모듈 아이템 배열) */
   playerPiltoverModules?: RawItem[];
   enemyPiltoverModules?: RawItem[];
+  /** 아이오니아 선택된 길 */
+  playerIoniaPath?: IoniaPathType;
+  enemyIoniaPath?: IoniaPathType;
 }
 
 function createCombatUnit(
@@ -172,6 +176,84 @@ function applyAbilityDash(
   tickLogs.push(log);
 
   return dashTarget;
+}
+
+/** 아이오니아 선택된 길의 능력치를 아이오니아 유닛에 적용 */
+function applyIoniaPath(
+  activeTraits: ActiveTrait[],
+  teamUnits: CombatUnit[],
+  pathType: IoniaPathType,
+  logs: CombatLog[],
+): void {
+  const ionia = activeTraits.find(t => t.trait.apiName === 'TFT16_Ionia' && t.activeEffect);
+  if (!ionia || !ionia.activeEffect) return;
+  const vars = ionia.activeEffect.variables;
+
+  const ioniaUnits = teamUnits.filter(u =>
+    u.state !== 'dead' && u.champion.traits.includes('아이오니아')
+  );
+  if (ioniaUnits.length === 0) return;
+
+  const pathNames: Record<IoniaPathType, string> = {
+    blades: '검의 길', enlightenment: '깨달음의 길',
+    transcendence: '초월의 길', generosity: '번영의 길', spirit: '영혼의 길',
+  };
+
+  switch (pathType) {
+    case 'blades': {
+      const chance = ((vars['BladesPercentChance'] ?? 30) as number) / 100;
+      for (const u of ioniaUnits) {
+        (u as CombatUnit & { ioniaBladeChance?: number }).ioniaBladeChance = chance;
+      }
+      break;
+    }
+    case 'enlightenment': {
+      const adap = (vars['EnlightenmentADAP'] ?? 10) as number;
+      for (const u of ioniaUnits) {
+        u.stats.damage += adap;
+        u.stats.ap += adap;
+      }
+      break;
+    }
+    case 'transcendence': {
+      const hpPct = (vars['TranscendenceHealth'] ?? 0.10) as number;
+      const magicAmp = (vars['TranscendenceMagicDamage'] ?? 0.20) as number;
+      for (const u of ioniaUnits) {
+        const hpGain = Math.round(u.maxHp * hpPct);
+        u.maxHp += hpGain;
+        u.currentHp += hpGain;
+        u.damageAmp += magicAmp;
+      }
+      break;
+    }
+    case 'generosity': {
+      const adap = (vars['GenerosityADAP'] ?? 10) as number;
+      for (const u of ioniaUnits) {
+        u.stats.damage += adap;
+        u.stats.ap += adap;
+      }
+      break;
+    }
+    case 'spirit': {
+      const adap = (vars['SpiritADAP'] ?? 3) as number;
+      const hpPct = (vars['SpiritHealth'] ?? 0.25) as number;
+      for (const u of ioniaUnits) {
+        u.stats.damage += adap;
+        u.stats.ap += adap;
+        const hpGain = Math.round(u.maxHp * hpPct);
+        u.maxHp += hpGain;
+        u.currentHp += hpGain;
+      }
+      break;
+    }
+  }
+
+  const sourceId = ioniaUnits[0].id;
+  const log: CombatLog = {
+    tick: 0, time: 0, type: 'ability', sourceId,
+    message: `[아이오니아] ${pathNames[pathType]} 적용!`,
+  };
+  logs.push(log);
 }
 
 /** Fighter/Assassin 비타겟 피해 감소 비율 */
@@ -882,9 +964,19 @@ export function simulateCombat(
     }
   }
 
+  const logs: CombatLog[] = [];
+
   // Apply Warden trait shields at combat start
   applyWardenShields(playerActiveTraits, playerUnits);
   applyWardenShields(enemyActiveTraits, enemies);
+
+  // 아이오니아 길 적용
+  if (options.playerIoniaPath) {
+    applyIoniaPath(playerActiveTraits, playerUnits, options.playerIoniaPath, logs);
+  }
+  if (options.enemyIoniaPath) {
+    applyIoniaPath(enemyActiveTraits, enemies, options.enemyIoniaPath, logs);
+  }
 
   const allUnits = [...playerUnits, ...enemies];
 
@@ -894,8 +986,6 @@ export function simulateCombat(
   allUnits.push(...playerTurrets, ...enemyTurrets);
   playerUnits.push(...playerTurrets);
   enemies.push(...enemyTurrets);
-
-  const logs: CombatLog[] = [];
 
   // 암살자 후열 점프 (전투 시작 직전)
   applyAssassinJump(playerUnits, enemies, allUnits, logs);
@@ -1007,6 +1097,13 @@ export function simulateCombat(
           // Fighter/Assassin 비타겟 피해 감소 15%
           if ((target.role === 'Fighter' || target.role === 'Assassin') && target.target !== unit.id) {
             finalDamage *= (1 - NON_TARGET_DAMAGE_REDUCTION);
+          }
+
+          // 아이오니아 검의 길: 확률적 추가 물리 피해
+          const bladeChance = (unit as CombatUnit & { ioniaBladeChance?: number }).ioniaBladeChance ?? 0;
+          if (bladeChance > 0 && rng.next() < bladeChance) {
+            const bladeBonusDmg = Math.round(unit.stats.damage * 0.5);
+            finalDamage += applyResistance(bladeBonusDmg, target.stats.armor, unit.stats.armorPen);
           }
 
           finalDamage = applyShield(target, finalDamage, eventBus, tick);

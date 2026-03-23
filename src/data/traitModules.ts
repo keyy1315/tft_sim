@@ -69,3 +69,14 @@ export function sumBilgewaterEffects(
   }
   return totals;
 }
+
+// === 아이오니아 시너지 길 ===
+export type IoniaPathType = 'blades' | 'enlightenment' | 'transcendence' | 'generosity' | 'spirit';
+
+export const IONIA_PATH_NAMES: Record<IoniaPathType, string> = {
+  blades: '검의 길',
+  enlightenment: '깨달음의 길',
+  transcendence: '초월의 길',
+  generosity: '번영의 길',
+  spirit: '영혼의 길',
+};

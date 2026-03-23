@@ -6,6 +6,8 @@ import { getTraitImage } from '@/data/imageMap';
 import { resolveDescription } from '@/lib/utils/text';
 import Tooltip from '@/components/ui/Tooltip';
 import Image from 'next/image';
+import { IONIA_PATH_NAMES } from '@/data/traitModules';
+import type { IoniaPathType } from '@/data/traitModules';
 
 interface SynergyPanelProps {
   activeTraits: ActiveTrait[];
@@ -13,6 +15,8 @@ interface SynergyPanelProps {
   items: RawItem[];
   piltoverModules?: RawItem[];
   bilgewaterStats?: Record<string, number>;
+  ioniaPath?: IoniaPathType | null;
+  onIoniaPathChange?: (path: IoniaPathType) => void;
 }
 
 function TraitTooltipContent({ at }: { at: ActiveTrait }) {
@@ -97,10 +101,11 @@ function PiltoverModulesSummary({ modules }: { modules: RawItem[] }) {
   );
 }
 
-export default function SynergyPanel({ activeTraits, team, items, piltoverModules = [], bilgewaterStats = {} }: SynergyPanelProps) {
+export default function SynergyPanel({ activeTraits, team, items, piltoverModules = [], bilgewaterStats = {}, ioniaPath, onIoniaPathChange }: SynergyPanelProps) {
   const [collapsed, setCollapsed] = useState(false);
   const teamLabel = team === 'player' ? 'TEAM A' : 'TEAM B';
   const teamColor = team === 'player' ? 'text-blue-400' : 'text-red-400';
+  const ioniaActive = activeTraits.some(t => t.trait.apiName === 'TFT16_Ionia' && t.activeEffect);
 
   if (activeTraits.length === 0) {
     return (
@@ -166,6 +171,18 @@ export default function SynergyPanel({ activeTraits, team, items, piltoverModule
               </Tooltip>
               {isActive && isPiltover && <PiltoverModulesSummary modules={piltoverModules} />}
               {isActive && isBilgewater && <BilgewaterStatsSummary stats={bilgewaterStats} allItems={items} />}
+              {isActive && at.trait.apiName === 'TFT16_Ionia' && ioniaActive && onIoniaPathChange && (
+                <select
+                  value={ioniaPath ?? ''}
+                  onChange={e => onIoniaPathChange(e.target.value as IoniaPathType)}
+                  className="w-full bg-gray-800 text-white text-[10px] rounded px-1 py-0.5 mt-1 border border-gray-600"
+                >
+                  <option value="">길 선택...</option>
+                  {Object.entries(IONIA_PATH_NAMES).map(([key, name]) => (
+                    <option key={key} value={key}>{name}</option>
+                  ))}
+                </select>
+              )}
             </div>
           );
         })}

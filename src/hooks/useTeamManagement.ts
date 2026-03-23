@@ -5,6 +5,7 @@ import { resolveTraits } from '@/lib/simulator/systems/trait';
 import { canEquipItem, canAddPiltoverModule } from '@/lib/simulator/systems/item';
 import { getDefaultStacks } from '@/lib/simulator/systems/augment';
 import { FRELJORD_TURRET, TIBBERS_CHAMPION, AZIR_SOLDIER_CHAMPION, AZIR_MAX_SOLDIERS, isAutoUnit } from '@/data/specialUnits';
+import type { IoniaPathType } from '@/data/traitModules';
 import { RawTrait } from '@/types';
 
 // === Helper functions ===
@@ -176,6 +177,10 @@ export function useTeamManagement({ traits }: UseTeamManagementArgs) {
   // Bilgewater stat purchases (apiName → count)
   const [playerBilgewaterStats, setPlayerBilgewaterStats] = useState<Record<string, number>>({});
   const [enemyBilgewaterStats, setEnemyBilgewaterStats] = useState<Record<string, number>>({});
+
+  // Ionia path selection
+  const [playerIoniaPath, setPlayerIoniaPath] = useState<IoniaPathType | null>(null);
+  const [enemyIoniaPath, setEnemyIoniaPath] = useState<IoniaPathType | null>(null);
 
   // Selected unit state
   const [selectedCell, setSelectedCell] = useState<HexCoord | null>(null);
@@ -387,6 +392,12 @@ export function useTeamManagement({ traits }: UseTeamManagementArgs) {
     // Bilgewater stats
     playerBilgewaterStats,
     enemyBilgewaterStats,
+
+    // Ionia path
+    playerIoniaPath,
+    setPlayerIoniaPath,
+    enemyIoniaPath,
+    setEnemyIoniaPath,
 
     // Selection state
     selectedCell,
