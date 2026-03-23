@@ -182,6 +182,10 @@ export function useTeamManagement({ traits }: UseTeamManagementArgs) {
   const [playerIoniaPath, setPlayerIoniaPath] = useState<IoniaPathType | null>(null);
   const [enemyIoniaPath, setEnemyIoniaPath] = useState<IoniaPathType | null>(null);
 
+  // Galio bench (Hero synergy)
+  const [playerGalio, setPlayerGalio] = useState<{ champion: RawChampion; starLevel: number } | null>(null);
+  const [enemyGalio, setEnemyGalio] = useState<{ champion: RawChampion; starLevel: number } | null>(null);
+
   // Selected unit state
   const [selectedCell, setSelectedCell] = useState<HexCoord | null>(null);
   const [selectedCellTeam, setSelectedCellTeam] = useState<'player' | 'enemy'>('player');
@@ -398,6 +402,12 @@ export function useTeamManagement({ traits }: UseTeamManagementArgs) {
     setPlayerIoniaPath,
     enemyIoniaPath,
     setEnemyIoniaPath,
+
+    // Galio bench
+    playerGalio,
+    setPlayerGalio,
+    enemyGalio,
+    setEnemyGalio,
 
     // Selection state
     selectedCell,

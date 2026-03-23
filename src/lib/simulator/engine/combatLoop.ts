@@ -1,13 +1,14 @@
 import {
   CombatUnit, CombatResult, CombatLog, PlacedChampion,
   HexCoord, TickSnapshot, mapGameRole,
-  RawTrait, RawAugment, RawItem, ActiveTrait, ItemEffect,
+  RawTrait, RawAugment, RawItem, RawChampion, ActiveTrait, ItemEffect,
 } from '@/types';
 import type { StatusEffectType } from '@/types';
 import { calculateStats } from '@/lib/simulator/systems/stat';
 import { getAbilityDamage, getAbilityShield, findAbilityTargets, CHAMPION_ABILITY_PATTERNS } from '@/lib/simulator/systems/ability';
 import type { AbilityConfig } from '@/lib/simulator/systems/ability';
 import { canAttack, getMoveTicks, findBestMoveToward, coordKey, getNeighbors, hexDistance } from '@/lib/simulator/systems/movement';
+import { getHexesInRadius } from '@/lib/simulator/models/hex';
 import { TICK_DURATION, MAX_TICKS, TICKS_PER_SECOND, CAST_TICKS, SELF_BUFF_CAST_TICKS, INITIAL_ATTACK_DELAY } from '@/lib/simulator/models/constants';
 import { createRNG, SeededRNG } from '@/lib/simulator/engine/rng';
 import { captureSnapshot } from '@/lib/simulator/engine/replayEngine';
@@ -58,6 +59,9 @@ export interface SimulateOptions {
   /** 아이오니아 선택된 길 */
   playerIoniaPath?: IoniaPathType;
   enemyIoniaPath?: IoniaPathType;
+  /** 대기석 갈리오 (데마시아 결집 시 소환) */
+  playerGalio?: { champion: RawChampion; starLevel: number } | null;
+  enemyGalio?: { champion: RawChampion; starLevel: number } | null;
 }
 
 function createCombatUnit(
@@ -612,6 +616,155 @@ function trySpawnNoxusAtakhan(
   return atakhan;
 }
 
+/** 갈리오 영웅 소환 — 데마시아 결집 시 대기석 갈리오가 전투에 합류 */
+function trySpawnGalio(
+  activeTraits: ActiveTrait[],
+  team: 'player' | 'enemy',
+  teamUnits: CombatUnit[],
+  opposingUnits: CombatUnit[],
+  allUnits: CombatUnit[],
+  galioInfo: { champion: RawChampion; starLevel: number } | null | undefined,
+  tick: number,
+  time: number,
+  logs: CombatLog[],
+  tickLogs: CombatLog[],
+  spawnedFlag: { spawned: boolean },
+): CombatUnit | null {
+  if (spawnedFlag.spawned) return null;
+  if (!galioInfo) return null;
+
+  const demacia = activeTraits.find(t => t.trait.apiName === 'TFT16_Demacia' && t.activeEffect);
+  if (!demacia || !demacia.activeEffect) return null;
+
+  const maxHealthLost = (demacia.activeEffect.variables['MaxHealthLost'] ?? 0.25) as number;
+
+  // 아군 팀 HP 손실 비율 체크
+  const totalMaxHp = teamUnits.reduce((sum, u) => sum + u.maxHp, 0);
+  const totalCurrentHp = teamUnits.filter(u => u.state !== 'dead').reduce((sum, u) => sum + u.currentHp, 0);
+  if (totalMaxHp === 0) return null;
+
+  const hpLostRatio = 1 - (totalCurrentHp / totalMaxHp);
+  if (hpLostRatio < maxHealthLost) return null;
+
+  // 소환 트리거!
+  spawnedFlag.spawned = true;
+
+  const { stats } = calculateStats(galioInfo.champion, galioInfo.starLevel, [], activeTraits, {});
+  const star = galioInfo.starLevel as 1 | 2 | 3;
+
+  // 적 전방 빈 칸에 착지
+  const occupiedPositions = new Set(
+    allUnits.filter(u => u.state !== 'dead').map(u => `${u.position.q},${u.position.r}`)
+  );
+  const aliveEnemies = opposingUnits.filter(u => u.state !== 'dead');
+  let spawnPos: HexCoord | null = null;
+
+  // 적이 가장 밀집한 곳 근처 빈 칸
+  if (aliveEnemies.length > 0) {
+    const avgQ = Math.round(aliveEnemies.reduce((s, u) => s + u.position.q, 0) / aliveEnemies.length);
+    const avgR = Math.round(aliveEnemies.reduce((s, u) => s + u.position.r, 0) / aliveEnemies.length);
+    const center: HexCoord = { q: avgQ, r: avgR };
+    const neighbors = getNeighbors(center);
+    for (const n of [center, ...neighbors]) {
+      if (!occupiedPositions.has(coordKey(n))) {
+        spawnPos = n;
+        break;
+      }
+    }
+  }
+
+  // 밀집 지역에 빈 칸이 없으면 팀 전방 빈 칸
+  if (!spawnPos) {
+    const startRow = team === 'player' ? 4 : 0;
+    const endRow = team === 'player' ? 6 : 2;
+    for (let r = startRow; r <= endRow && !spawnPos; r++) {
+      for (const col of [3, 2, 4, 1, 5, 0, 6]) {
+        const q = col - Math.floor(r / 2);
+        if (!occupiedPositions.has(`${q},${r}`)) {
+          spawnPos = { q, r };
+          break;
+        }
+      }
+    }
+  }
+  if (!spawnPos) return null;
+
+  const galioId = `${team}-galio`;
+  const galio: CombatUnit = {
+    id: galioId,
+    champion: galioInfo.champion,
+    team,
+    position: spawnPos,
+    starLevel: star,
+    role: mapGameRole(galioInfo.champion.role),
+    items: [],
+    currentHp: stats.hp,
+    maxHp: stats.hp,
+    currentMana: stats.mana,
+    maxMana: stats.maxMana,
+    state: 'idle',
+    target: null,
+    stats,
+    attackCooldown: 0,
+    moveCooldown: 0,
+    totalDamageDealt: 0,
+    totalDamageTaken: 0,
+    statusEffects: [],
+    omnivamp: 0,
+    damageAmp: 0,
+    damageReduction: 0,
+    shield: 0,
+    augmentManaRegen: 0,
+    augmentGrievousWounds: 0,
+    augmentExecuteThreshold: 0,
+    augmentBurnPercent: 0,
+    inventionTankDamageAmp: 0,
+  };
+
+  // 착지 충격파 — 영웅 시너지 variables
+  const heroTrait = activeTraits.find(t => t.trait.apiName === 'TFT16_Heroic' && t.activeEffect);
+  const heroVars = heroTrait?.activeEffect?.variables ?? {};
+  const hexRadius = (heroVars['HexRadius'] ?? 3) as number;
+  const percentMaxHP = (heroVars['PercentMaxHP'] ?? 0.10) as number;
+  const knockupDuration = (heroVars['KnockupDuration'] ?? 1) as number;
+
+  const impactHexes = getHexesInRadius(spawnPos, hexRadius);
+  const impactSet = new Set(impactHexes.map(h => `${h.q},${h.r}`));
+  let totalImpactDmg = 0;
+
+  for (const enemy of aliveEnemies) {
+    if (!impactSet.has(`${enemy.position.q},${enemy.position.r}`)) continue;
+    const rawDmg = enemy.maxHp * percentMaxHP;
+    const finalDmg = applyResistance(rawDmg, enemy.stats.magicResist);
+    enemy.currentHp -= finalDmg;
+    enemy.totalDamageTaken += finalDmg;
+    totalImpactDmg += finalDmg;
+
+    // 거리 비례 기절
+    const dist = hexDistance(spawnPos, enemy.position);
+    const stunDur = knockupDuration * Math.max(0.5, 1 - dist * 0.15);
+    const stunTicks = Math.round(stunDur * TICKS_PER_SECOND);
+    enemy.statusEffects.push({ type: 'stun', sourceId: galioId, remainingTicks: stunTicks });
+    enemy.state = 'idle';
+    enemy.attackCooldown = 0;
+
+    if (enemy.currentHp <= 0) {
+      enemy.currentHp = 0;
+      enemy.state = 'dead';
+    }
+  }
+
+  const spawnLog: CombatLog = {
+    tick, time, type: 'ability', sourceId: galioId,
+    value: Math.round(totalImpactDmg),
+    message: `갈리오 소환! 착지 충격파 — ${hexRadius}칸 범위 적에게 최대 체력 ${Math.round(percentMaxHP * 100)}% 마법 피해 + 기절`,
+  };
+  logs.push(spawnLog);
+  tickLogs.push(spawnLog);
+
+  return galio;
+}
+
 /** 필트오버 모듈 한글명 매핑 */
 const PILTOVER_MODULE_NAMES: Record<string, string> = {
   '90CaliberNets': '90구경 그물',
@@ -1007,6 +1160,10 @@ export function simulateCombat(
   const playerAtakhanFlag = { spawned: false };
   const enemyAtakhanFlag = { spawned: false };
 
+  // 갈리오 영웅 소환 플래그
+  const playerGalioFlag = { spawned: false };
+  const enemyGalioFlag = { spawned: false };
+
   eventBus.emit('on_combat_start', { sourceId: '', tick: 0 });
 
   for (let tick = 0; tick < MAX_TICKS; tick++) {
@@ -1023,6 +1180,12 @@ export function simulateCombat(
       if (playerAtakhan) { allUnits.push(playerAtakhan); playerUnits.push(playerAtakhan); }
       const enemyAtakhan = trySpawnNoxusAtakhan(enemyActiveTraits, 'enemy', enemies, playerUnits, allUnits, rng, tick, time, logs, tickLogs, enemyAtakhanFlag);
       if (enemyAtakhan) { allUnits.push(enemyAtakhan); enemies.push(enemyAtakhan); }
+
+      // 갈리오 영웅 소환 체크
+      const playerGalio = trySpawnGalio(playerActiveTraits, 'player', playerUnits, enemies, allUnits, options.playerGalio, tick, time, logs, tickLogs, playerGalioFlag);
+      if (playerGalio) { allUnits.push(playerGalio); playerUnits.push(playerGalio); }
+      const enemyGalio = trySpawnGalio(enemyActiveTraits, 'enemy', enemies, playerUnits, allUnits, options.enemyGalio, tick, time, logs, tickLogs, enemyGalioFlag);
+      if (enemyGalio) { allUnits.push(enemyGalio); enemies.push(enemyGalio); }
     }
 
     // In-combat augment effects (apply every second = every 30 ticks)

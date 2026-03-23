@@ -105,6 +105,8 @@ export default function SimulatorPage() {
         enemyPiltoverModules: tm.enemyPiltoverModules,
         playerIoniaPath: tm.playerIoniaPath ?? undefined,
         enemyIoniaPath: tm.enemyIoniaPath ?? undefined,
+        playerGalio: tm.playerGalio,
+        enemyGalio: tm.enemyGalio,
       });
       replay.setCombatResult(result);
       setIsRunning(false);
@@ -112,7 +114,7 @@ export default function SimulatorPage() {
       replay.setReplayTick(0);
       replay.setIsPlaying(true);
     }, 100);
-  }, [tm.playerTeam, tm.enemyTeam, traits, tm.playerAugments, tm.playerAugmentStacks, tm.enemyAugments, tm.enemyAugmentStacks, tm.playerBilgewaterStats, tm.enemyBilgewaterStats, tm.playerPiltoverModules, tm.enemyPiltoverModules, tm.playerIoniaPath, tm.enemyIoniaPath, items, toEightRowCoords, replay]);
+  }, [tm.playerTeam, tm.enemyTeam, traits, tm.playerAugments, tm.playerAugmentStacks, tm.enemyAugments, tm.enemyAugmentStacks, tm.playerBilgewaterStats, tm.enemyBilgewaterStats, tm.playerPiltoverModules, tm.enemyPiltoverModules, tm.playerIoniaPath, tm.enemyIoniaPath, tm.playerGalio, tm.enemyGalio, items, toEightRowCoords, replay]);
 
   const runMultiple = useCallback(() => {
     if (tm.playerTeam.length === 0 || tm.enemyTeam.length === 0) return;
@@ -135,6 +137,8 @@ export default function SimulatorPage() {
           enemyPiltoverModules: tm.enemyPiltoverModules,
           playerIoniaPath: tm.playerIoniaPath ?? undefined,
           enemyIoniaPath: tm.enemyIoniaPath ?? undefined,
+          playerGalio: tm.playerGalio,
+          enemyGalio: tm.enemyGalio,
         });
         if (r.winner === 'player') playerWins++;
         else if (r.winner === 'enemy') enemyWins++;
@@ -149,7 +153,7 @@ export default function SimulatorPage() {
       replay.setViewMode('replay');
       replay.setReplayTick(lastResult ? lastResult.snapshots.length - 1 : 0);
     }, 100);
-  }, [tm.playerTeam, tm.enemyTeam, traits, tm.playerAugments, tm.playerAugmentStacks, tm.enemyAugments, tm.enemyAugmentStacks, tm.playerBilgewaterStats, tm.enemyBilgewaterStats, tm.playerPiltoverModules, tm.enemyPiltoverModules, tm.playerIoniaPath, tm.enemyIoniaPath, items, toEightRowCoords, replay]);
+  }, [tm.playerTeam, tm.enemyTeam, traits, tm.playerAugments, tm.playerAugmentStacks, tm.enemyAugments, tm.enemyAugmentStacks, tm.playerBilgewaterStats, tm.enemyBilgewaterStats, tm.playerPiltoverModules, tm.enemyPiltoverModules, tm.playerIoniaPath, tm.enemyIoniaPath, tm.playerGalio, tm.enemyGalio, items, toEightRowCoords, replay]);
 
   const filteredLogs = useMemo(() => {
     if (!replay.combatResult) return [];
@@ -346,7 +350,7 @@ export default function SimulatorPage() {
 
               {/* Left: Both Synergy panels + Selected unit (desktop) */}
               <div className="order-3 lg:order-1 lg:w-52 lg:shrink-0 space-y-3">
-                <SynergyPanel activeTraits={tm.playerTraits} team="player" items={items} piltoverModules={tm.playerPiltoverModules} bilgewaterStats={tm.playerBilgewaterStats} ioniaPath={tm.playerIoniaPath} onIoniaPathChange={tm.setPlayerIoniaPath} />
+                <SynergyPanel activeTraits={tm.playerTraits} team="player" items={items} piltoverModules={tm.playerPiltoverModules} bilgewaterStats={tm.playerBilgewaterStats} ioniaPath={tm.playerIoniaPath} onIoniaPathChange={tm.setPlayerIoniaPath} galioEnabled={!!tm.playerGalio} onGalioToggle={(on) => { const g = champions.find(c => c.apiName === 'TFT16_Galio'); tm.setPlayerGalio(on && g ? { champion: g, starLevel: 2 } : null); }} />
                 <PiltoverModulePanel
                   modules={tm.playerPiltoverModules}
                   allItems={items}
@@ -354,7 +358,7 @@ export default function SimulatorPage() {
                   onAddModule={(item) => tm.handleAddPiltoverModule('player', item)}
                   onRemoveModule={(idx) => tm.handleRemovePiltoverModule('player', idx)}
                 />
-                <SynergyPanel activeTraits={tm.enemyTraits} team="enemy" items={items} piltoverModules={tm.enemyPiltoverModules} bilgewaterStats={tm.enemyBilgewaterStats} ioniaPath={tm.enemyIoniaPath} onIoniaPathChange={tm.setEnemyIoniaPath} />
+                <SynergyPanel activeTraits={tm.enemyTraits} team="enemy" items={items} piltoverModules={tm.enemyPiltoverModules} bilgewaterStats={tm.enemyBilgewaterStats} ioniaPath={tm.enemyIoniaPath} onIoniaPathChange={tm.setEnemyIoniaPath} galioEnabled={!!tm.enemyGalio} onGalioToggle={(on) => { const g = champions.find(c => c.apiName === 'TFT16_Galio'); tm.setEnemyGalio(on && g ? { champion: g, starLevel: 2 } : null); }} />
                 <PiltoverModulePanel
                   modules={tm.enemyPiltoverModules}
                   allItems={items}

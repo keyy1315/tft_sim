@@ -150,6 +150,7 @@ export const CHAMPION_ABILITY_PATTERNS: Record<string, AbilityConfig> = {
   TFT16_Zilean:      { pattern: 'single' },
   TFT16_Loris:       { pattern: 'single', dash: 'to_target', stun: 1.0 },
   TFT16_Singed:      { pattern: 'self_buff' },
+  TFT16_Galio:       { pattern: 'aoe_circle', radius: 2, dash: 'to_farthest', stun: 1.0 },
 };
 
 /** 스킬 패턴에 따라 피해 대상 유닛 리스트 반환 */
