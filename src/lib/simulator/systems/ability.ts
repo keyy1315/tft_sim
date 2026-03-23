@@ -17,73 +17,100 @@ export interface AbilityConfig {
   damageDecay?: number;
   /** 스킬 시전 시 이동 유형 */
   dash?: 'to_target' | 'to_farthest' | 'to_lowest_hp' | 'to_backline';
+  /** CC 기절 지속시간 (초). 데미지 대상에 적용 */
+  stun?: number;
+  /** 기절 대상 수 제한 (기본: 데미지 대상 전원) */
+  stunTargets?: number;
+  /** 시전자 체력 회복 (true면 JSON Heal 변수에서 읽음) */
+  heal?: boolean;
+  /** 자기 버프 */
+  selfBuff?: {
+    attackSpeed?: number;
+    ad?: number;
+    ap?: number;
+    durability?: number;
+    duration?: number;
+  };
+  /** 아군 전체 버프 */
+  allyBuff?: {
+    attackSpeed?: number;
+    duration?: number;
+  };
+  /** 적 디버프 (데미지 대상에 적용) */
+  debuff?: {
+    armorReduction?: number;
+    mrReduction?: number;
+    duration?: number;
+  };
 }
 
 /** 챔피언별 스킬 타게팅 패턴 매핑 */
 export const CHAMPION_ABILITY_PATTERNS: Record<string, AbilityConfig> = {
   // === Single ===
-  TFT16_Poppy:       { pattern: 'single' },
+  TFT16_Poppy:       { pattern: 'single', stun: 1.0 },
   TFT16_Draven:      { pattern: 'single' },
   TFT16_Vayne:       { pattern: 'single' },
-  TFT16_Yone:        { pattern: 'single' },
   TFT16_Volibear:    { pattern: 'single' },
-  TFT16_Vi:          { pattern: 'single' },
-  TFT16_Darius:      { pattern: 'single' },
+  TFT16_Vi:          { pattern: 'single', stun: 1.0, stunTargets: 1 },
+  TFT16_Darius:      { pattern: 'single', heal: true },
   TFT16_BelVeth:     { pattern: 'single' },
-  TFT16_Kalista:     { pattern: 'single' },
-  TFT16_Zoe:         { pattern: 'single' },
-  TFT16_Leblanc:     { pattern: 'single' },
+  TFT16_Kalista:     { pattern: 'single', debuff: { armorReduction: 10, duration: 5 } },
+  TFT16_Zoe:         { pattern: 'single', debuff: { mrReduction: 20, duration: 4 } },
+  TFT16_Leblanc:     { pattern: 'single', stun: 1.5 },
 
   // === Line (직선 관통) ===
-  TFT16_Lux:         { pattern: 'line' },
+  TFT16_Lux:         { pattern: 'line', stun: 1.5, stunTargets: 2 },
   TFT16_Yunara:      { pattern: 'line', damageDecay: 0.15 },
-  TFT16_Illaoi:      { pattern: 'line' },
-  TFT16_Skarner:     { pattern: 'line', maxTargets: 3 },
+  TFT16_Illaoi:      { pattern: 'line', heal: true },
+  TFT16_Skarner:     { pattern: 'line', maxTargets: 3, stun: 1.5 },
   TFT16_Ambessa:     { pattern: 'line', dash: 'to_target' },
-  TFT16_XinZhao:     { pattern: 'line', maxTargets: 3 },
+  TFT16_XinZhao:     { pattern: 'line', maxTargets: 3, stun: 1.0, stunTargets: 1, heal: true },
   TFT16_Renekton:    { pattern: 'line', maxTargets: 3, dash: 'to_lowest_hp' },
   TFT16_Qiyana:      { pattern: 'line', maxTargets: 3, dash: 'to_target' },
+  TFT16_Yone:        { pattern: 'line', maxTargets: 3, stun: 1.0 },
 
   // === AOE Circle (원형 범위) ===
-  TFT16_ChoGath:     { pattern: 'aoe_circle', radius: 2 },
-  TFT16_Neeko:       { pattern: 'aoe_circle', radius: 2, dash: 'to_target' },
+  TFT16_ChoGath:     { pattern: 'aoe_circle', radius: 2, stun: 1.5, heal: true },
+  TFT16_Neeko:       { pattern: 'aoe_circle', radius: 2, dash: 'to_target', stun: 1.5 },
   TFT16_Ekko:        { pattern: 'aoe_circle', radius: 2 },
-  TFT16_Kennen:      { pattern: 'aoe_circle', radius: 2 },
-  TFT16_Fiddlesticks:{ pattern: 'aoe_circle', radius: 2, dash: 'to_farthest' },
-  TFT16_Kindred:     { pattern: 'aoe_circle', radius: 2, dash: 'to_target' },
+  TFT16_Kennen:      { pattern: 'aoe_circle', radius: 2, stun: 1.5, stunTargets: 3 },
+  TFT16_Fiddlesticks:{ pattern: 'aoe_circle', radius: 2, dash: 'to_farthest', stun: 1.5 },
+  TFT16_Kindred:     { pattern: 'aoe_circle', radius: 2, dash: 'to_target', selfBuff: { attackSpeed: 1.0, duration: 4 } },
   TFT16_Diana:       { pattern: 'aoe_circle', radius: 1 },
   TFT16_Lucian:      { pattern: 'aoe_circle', radius: 1 },
   TFT16_Orianna:     { pattern: 'aoe_circle', radius: 2 },
   TFT16_Ornn:        { pattern: 'aoe_circle', radius: 2 },
   TFT16_Ziggs:       { pattern: 'aoe_circle', radius: 1 },
   TFT16_Anivia:      { pattern: 'aoe_circle', radius: 2 },
-  TFT16_Swain:       { pattern: 'aoe_circle', radius: 2 },
-  TFT16_Gangplank:   { pattern: 'aoe_circle', radius: 2 },
+  TFT16_Swain:       { pattern: 'aoe_circle', radius: 2, stun: 1.5 },
+  TFT16_Gangplank:   { pattern: 'aoe_circle', radius: 2, debuff: { armorReduction: 15, duration: 5 } },
+  TFT16_Leona:       { pattern: 'multi', maxTargets: 3, stun: 1.5 },
+  TFT16_Lissandra:   { pattern: 'single', stun: 2.0 },
   // === AOE Circle + Dash ===
-  TFT16_Briar:       { pattern: 'aoe_circle', radius: 1, dash: 'to_farthest' },
+  TFT16_Briar:       { pattern: 'aoe_circle', radius: 1, dash: 'to_farthest', selfBuff: { attackSpeed: 0.5, ad: 30, duration: 4 } },
   TFT16_Nidalee:     { pattern: 'aoe_circle', radius: 1, dash: 'to_lowest_hp' },
-  TFT16_Fizz:        { pattern: 'aoe_circle', radius: 1, dash: 'to_backline' },
+  TFT16_Fizz:        { pattern: 'aoe_circle', radius: 1, dash: 'to_backline', selfBuff: { attackSpeed: 0.4, duration: 3 } },
   TFT16_Yasuo:       { pattern: 'aoe_circle', radius: 1, dash: 'to_target' },
   TFT16_Zaahen:      { pattern: 'aoe_circle', radius: 1, dash: 'to_target' },
-  TFT16_Sylas:       { pattern: 'aoe_circle', radius: 2, dash: 'to_target' },
+  TFT16_Sylas:       { pattern: 'aoe_circle', radius: 2, dash: 'to_target', stun: 1.5 },
   TFT16_Shyvana:     { pattern: 'aoe_circle', radius: 3, dash: 'to_farthest' },
 
   // === Cone (원뿔) ===
   TFT16_Rumble:      { pattern: 'cone', radius: 2 },
   TFT16_Graves:      { pattern: 'cone', radius: 2 },
   TFT16_Gwen:        { pattern: 'cone', radius: 2, dash: 'to_target' },
-  TFT16_Sejuani:     { pattern: 'cone', radius: 2 },
+  TFT16_Sejuani:     { pattern: 'cone', radius: 2, stun: 1.5 },
   TFT16_RekSai:      { pattern: 'cone', radius: 1, dash: 'to_farthest' },
 
   // === Multi-target (다수 지정) ===
-  TFT16_Aphelios:    { pattern: 'multi', maxTargets: 4 },
+  TFT16_Aphelios:    { pattern: 'multi', maxTargets: 4, debuff: { armorReduction: 15, duration: 4 } },
   TFT16_Jinx:        { pattern: 'multi', maxTargets: 3 },
   TFT16_Kaisa:       { pattern: 'multi', maxTargets: 4 },
   TFT16_Xerath:      { pattern: 'multi', maxTargets: 3 },
   TFT16_MissFortune: { pattern: 'multi', maxTargets: 4 },
   TFT16_Malzahar:    { pattern: 'multi', maxTargets: 3 },
-  TFT16_Tristana:    { pattern: 'multi', maxTargets: 2 },
-  TFT16_KogMaw:      { pattern: 'multi', maxTargets: 3 },
+  TFT16_Tristana:    { pattern: 'multi', maxTargets: 2, stun: 1.0, stunTargets: 1 },
+  TFT16_KogMaw:      { pattern: 'multi', maxTargets: 3, debuff: { armorReduction: 10, mrReduction: 10, duration: 5 } },
   TFT16_Ashe:        { pattern: 'multi', maxTargets: 4 },
   TFT16_Jhin:        { pattern: 'multi', maxTargets: 4 },
   TFT16_TwistedFate: { pattern: 'multi', maxTargets: 3 },
@@ -91,24 +118,38 @@ export const CHAMPION_ABILITY_PATTERNS: Record<string, AbilityConfig> = {
   TFT16_Ahri:        { pattern: 'multi', maxTargets: 3 },
 
   // === Bounce (튕김) ===
-  TFT16_Lulu:        { pattern: 'bounce', maxTargets: 2 },
+  TFT16_Lulu:        { pattern: 'bounce', maxTargets: 2, stun: 2.0, stunTargets: 1 },
   TFT16_Caitlyn:     { pattern: 'bounce', maxTargets: 2, damageDecay: 0.5 },
   TFT16_Ryze:        { pattern: 'bounce', maxTargets: 3, damageDecay: 0.2 },
 
   // === Global (전체) ===
   TFT16_Annie:       { pattern: 'aoe_circle', radius: 2 },
   TFT16_Veigar:      { pattern: 'global' },
-  TFT16_Brock:       { pattern: 'global' },
+  TFT16_Brock:       { pattern: 'global', stun: 1.5, stunTargets: 1 },
 
   // === Self/Buff (자기 버프) ===
   TFT16_Shen:        { pattern: 'self_buff' },
-  TFT16_Warwick:     { pattern: 'self_buff' },
-  TFT16_Tryndamere:  { pattern: 'self_buff' },
+  TFT16_Warwick:     { pattern: 'self_buff', selfBuff: { attackSpeed: 0.5, duration: 999 } },
+  TFT16_Tryndamere:  { pattern: 'self_buff', selfBuff: { durability: 0.25, duration: 5 } },
   TFT16_Taric:       { pattern: 'self_buff' },
-  TFT16_Braum:       { pattern: 'self_buff' },
+  TFT16_Braum:       { pattern: 'self_buff', selfBuff: { durability: 0.3, duration: 4 } },
   TFT16_Seraphine:   { pattern: 'self_buff' },
   TFT16_Milio:       { pattern: 'self_buff' },
-  TFT16_Sona:        { pattern: 'self_buff' },
+  TFT16_Sona:        { pattern: 'self_buff', heal: true },
+  TFT16_JarvanIV:    { pattern: 'self_buff', allyBuff: { attackSpeed: 0.3, duration: 6 } },
+
+  // === 미등록 챔피언 추가 ===
+  TFT16_DrMundo:     { pattern: 'self_buff', heal: true },
+  TFT16_Garen:       { pattern: 'aoe_circle', radius: 1, selfBuff: { durability: 0.2, duration: 4 }, heal: true },
+  TFT16_Nasus:       { pattern: 'multi', maxTargets: 3, selfBuff: { ad: 30, duration: 6 } },
+  TFT16_Wukong:      { pattern: 'aoe_circle', radius: 2 },
+  TFT16_Sett:        { pattern: 'aoe_circle', radius: 2, stun: 1.5 },
+  TFT16_Aatrox:      { pattern: 'aoe_circle', radius: 2, stun: 1.0 },
+  TFT16_TahmKench:   { pattern: 'single', stun: 2.5 },
+  TFT16_AurelionSol: { pattern: 'aoe_circle', radius: 3 },
+  TFT16_Zilean:      { pattern: 'single' },
+  TFT16_Loris:       { pattern: 'single', dash: 'to_target', stun: 1.0 },
+  TFT16_Singed:      { pattern: 'self_buff' },
 };
 
 /** 스킬 패턴에 따라 피해 대상 유닛 리스트 반환 */
