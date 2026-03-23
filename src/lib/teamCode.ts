@@ -101,39 +101,48 @@ export function encodeTeamCode(
 /** 역할군 기반 전방/후방 분류 */
 const FRONT_ROLES = new Set(['Tank', 'Fighter', 'Assassin']);
 
+/**
+ * 역할군 기반 자동 배치.
+ * - player: 전방 row 0→1, 후방 row 3→2 (이후 toEightRowCoords(+4)로 최종 4→5, 7→6)
+ * - enemy:  전방 row 3→2, 후방 row 0→1
+ */
 export function autoPlaceChampions(
   decoded: { champion: RawChampion; starLevel: number }[],
   cols: number = BOARD_COLS,
+  team: 'player' | 'enemy' = 'player',
 ): PlacedChampion[] {
-  // 역할군 기반 전방/후방 분류
   const front = decoded.filter(e => FRONT_ROLES.has(mapGameRole(e.champion.role)));
   const back = decoded.filter(e => !FRONT_ROLES.has(mapGameRole(e.champion.role)));
 
   const placed: PlacedChampion[] = [];
 
-  // 전방: row 0~1 (왼쪽부터 채움)
-  front.forEach((entry, idx) => {
-    const row = Math.floor(idx / cols);
-    const col = idx % cols;
-    placed.push({
-      champion: entry.champion,
-      position: offsetToAxial({ row, col }),
-      starLevel: entry.starLevel,
-      items: [],
+  if (team === 'player') {
+    // 전방: row 0 → 1 (최종 4 → 5)
+    front.forEach((entry, idx) => {
+      const row = Math.floor(idx / cols);
+      const col = idx % cols;
+      placed.push({ champion: entry.champion, position: offsetToAxial({ row: Math.min(row, 1), col }), starLevel: entry.starLevel, items: [] });
     });
-  });
-
-  // 후방: row 2~3 (왼쪽부터 채움)
-  back.forEach((entry, idx) => {
-    const row = 2 + Math.floor(idx / cols);
-    const col = idx % cols;
-    placed.push({
-      champion: entry.champion,
-      position: offsetToAxial({ row: Math.min(row, 3), col }),
-      starLevel: entry.starLevel,
-      items: [],
+    // 후방: row 3 → 2 (최종 7 → 6)
+    back.forEach((entry, idx) => {
+      const row = 3 - Math.floor(idx / cols);
+      const col = idx % cols;
+      placed.push({ champion: entry.champion, position: offsetToAxial({ row: Math.max(row, 2), col }), starLevel: entry.starLevel, items: [] });
     });
-  });
+  } else {
+    // 전방: row 3 → 2
+    front.forEach((entry, idx) => {
+      const row = 3 - Math.floor(idx / cols);
+      const col = idx % cols;
+      placed.push({ champion: entry.champion, position: offsetToAxial({ row: Math.max(row, 2), col }), starLevel: entry.starLevel, items: [] });
+    });
+    // 후방: row 0 → 1
+    back.forEach((entry, idx) => {
+      const row = Math.floor(idx / cols);
+      const col = idx % cols;
+      placed.push({ champion: entry.champion, position: offsetToAxial({ row: Math.min(row, 1), col }), starLevel: entry.starLevel, items: [] });
+    });
+  }
 
   return placed;
 }

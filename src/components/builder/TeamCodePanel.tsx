@@ -41,7 +41,7 @@ export default function TeamCodePanel({
         setError('디코딩된 챔피언이 없습니다');
         return;
       }
-      const placed = autoPlaceChampions(result.champions);
+      const placed = autoPlaceChampions(result.champions, undefined, importTarget);
       onImport(importTarget, placed);
       if (result.warnings.length > 0) {
         setWarning(result.warnings.join(', '));
