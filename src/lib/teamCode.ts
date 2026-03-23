@@ -1,4 +1,4 @@
-import { RawChampion, TeamPlannerEntry, TeamCodeDecodeResult, PlacedChampion, offsetToAxial } from '@/types';
+import { RawChampion, TeamPlannerEntry, TeamCodeDecodeResult, PlacedChampion, offsetToAxial, mapGameRole } from '@/types';
 import { BOARD_COLS } from '@/lib/simulator/models/constants';
 
 const SUFFIX = 'TFTSet16';
@@ -64,7 +64,7 @@ export function decodeTeamCode(
 
     result.champions.push({
       champion,
-      starLevel: starLevel || 1,
+      starLevel: starLevel || 2,
     });
   }
 
@@ -98,18 +98,42 @@ export function encodeTeamCode(
   return bitsToHex(bits) + SUFFIX;
 }
 
+/** 역할군 기반 전방/후방 분류 */
+const FRONT_ROLES = new Set(['Tank', 'Fighter', 'Assassin']);
+
 export function autoPlaceChampions(
   decoded: { champion: RawChampion; starLevel: number }[],
   cols: number = BOARD_COLS,
 ): PlacedChampion[] {
-  return decoded.map((entry, idx) => {
+  // 역할군 기반 전방/후방 분류
+  const front = decoded.filter(e => FRONT_ROLES.has(mapGameRole(e.champion.role)));
+  const back = decoded.filter(e => !FRONT_ROLES.has(mapGameRole(e.champion.role)));
+
+  const placed: PlacedChampion[] = [];
+
+  // 전방: row 0~1 (왼쪽부터 채움)
+  front.forEach((entry, idx) => {
     const row = Math.floor(idx / cols);
     const col = idx % cols;
-    return {
+    placed.push({
       champion: entry.champion,
       position: offsetToAxial({ row, col }),
       starLevel: entry.starLevel,
       items: [],
-    };
+    });
   });
+
+  // 후방: row 2~3 (왼쪽부터 채움)
+  back.forEach((entry, idx) => {
+    const row = 2 + Math.floor(idx / cols);
+    const col = idx % cols;
+    placed.push({
+      champion: entry.champion,
+      position: offsetToAxial({ row: Math.min(row, 3), col }),
+      starLevel: entry.starLevel,
+      items: [],
+    });
+  });
+
+  return placed;
 }
