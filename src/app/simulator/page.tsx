@@ -17,7 +17,8 @@ import SetupBoard from '@/components/battle/SetupBoard';
 import DroppableHexCell from '@/components/battle/DroppableHexCell';
 import ReplayBoard from '@/components/battle/ReplayBoard';
 import BattleControls from '@/components/battle/BattleControls';
-import UnitToken from '@/components/battle/UnitToken';
+import DamageSidebar from '@/components/battle/DamageSidebar';
+import UnitDetailPanel from '@/components/battle/UnitDetailPanel';
 import Modal from '@/components/ui/Modal';
 import SynergyPanel from '@/components/builder/SynergyPanel';
 import SelectedUnitPanel from '@/components/builder/SelectedUnitPanel';
@@ -589,7 +590,7 @@ export default function SimulatorPage() {
               ticksPerSecond={TICKS_PER_SECOND}
             />
 
-            {/* Replay Board + Unit Detail side panel */}
+            {/* Replay Board + Damage Sidebar */}
             <div className="flex flex-col lg:flex-row gap-3 lg:gap-4">
               {/* Board */}
               <div className="bg-[#0d1117] rounded-xl border border-gray-800 p-2 lg:p-3 flex justify-center flex-1 min-w-0">
@@ -605,129 +606,23 @@ export default function SimulatorPage() {
                 </div>
               </div>
 
-              {/* Unit detail panel */}
-              <div className="w-full lg:w-56 lg:shrink-0 space-y-3">
-                {replay.selectedUnitId && replay.selectedUnitSnap && replay.unitMeta[replay.selectedUnitId] && (
-                  <div className="bg-[#111827] rounded-xl border border-gray-800 p-3 space-y-2">
-                    <UnitToken
-                      championName={replay.unitMeta[replay.selectedUnitId].championName}
-                      championApiName={replay.unitMeta[replay.selectedUnitId].championApiName}
-                      cost={replay.unitMeta[replay.selectedUnitId].cost}
-                      currentHp={replay.selectedUnitSnap.currentHp}
-                      maxHp={replay.unitMeta[replay.selectedUnitId].maxHp}
-                      currentMana={replay.selectedUnitSnap.currentMana}
-                      maxMana={replay.unitMeta[replay.selectedUnitId].maxMana}
-                      starLevel={replay.unitMeta[replay.selectedUnitId].starLevel}
-                      items={replay.unitMeta[replay.selectedUnitId].items}
-                      statusEffects={replay.selectedUnitSnap.statusEffects}
-                      isAlive={replay.selectedUnitSnap.isAlive}
-                      team={replay.unitMeta[replay.selectedUnitId].team}
-                      shield={replay.selectedUnitSnap.shield}
-                      isSelected
-                      size="md"
-                    />
-                    <div className="text-[10px] text-gray-400 space-y-0.5">
-                      <div className="flex justify-between">
-                        <span>HP</span>
-                        <span className="text-green-400">{Math.round(replay.selectedUnitSnap.currentHp)} / {Math.round(replay.unitMeta[replay.selectedUnitId].maxHp)}</span>
-                      </div>
-                      {replay.selectedUnitSnap.shield > 0 && (
-                        <div className="flex justify-between">
-                          <span>보호막</span>
-                          <span className="text-gray-200">{Math.round(replay.selectedUnitSnap.shield)}</span>
-                        </div>
-                      )}
-                      <div className="flex justify-between">
-                        <span>Mana</span>
-                        <span className="text-blue-400">{Math.round(replay.selectedUnitSnap.currentMana)} / {replay.unitMeta[replay.selectedUnitId].maxMana}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>위치</span>
-                        <span className="text-gray-300">
-                          ({(() => { const off = axialToOffset(replay.selectedUnitSnap.position as { q: number; r: number }); return `${off.row}, ${off.col}`; })()})
-                        </span>
-                      </div>
-                      {replay.selectedUnitSnap.statusEffects.length > 0 && (
-                        <div className="pt-1 border-t border-gray-700">
-                          <span className="text-yellow-400">상태이상:</span>
-                          {replay.selectedUnitSnap.statusEffects.map((e, i) => (
-                            <div key={i} className="text-yellow-300 pl-2">
-                              {e.type} ({e.remainingTicks}t)
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* All units list */}
-                <div className="bg-[#111827] rounded-xl border border-gray-800 p-2 space-y-1 max-h-[400px] overflow-y-auto">
-                  <div className="text-[9px] font-bold text-blue-400 px-1">TEAM A</div>
-                  {replay.combatResult.playerUnits.map((u) => {
-                    const snap = replay.currentSnapshot?.units[u.id];
-                    if (!snap) return null;
-                    return (
-                      <div
-                        key={u.id}
-                        onClick={() => replay.setSelectedUnitId(u.id)}
-                        className={`flex items-center gap-1.5 px-1 py-0.5 rounded cursor-pointer transition-colors ${
-                          replay.selectedUnitId === u.id ? 'bg-blue-900/30' : 'hover:bg-[#1f2937]'
-                        } ${!snap.isAlive ? 'opacity-30' : ''}`}
-                      >
-                        <UnitToken
-                          championName={u.champion.name}
-                          championApiName={u.champion.apiName}
-                          cost={u.champion.cost}
-                          currentHp={snap.currentHp}
-                          maxHp={u.maxHp}
-                          currentMana={snap.currentMana}
-                          maxMana={u.maxMana}
-                          starLevel={u.starLevel}
-                          items={u.items.map(it => ({ apiName: it.apiName }))}
-                          statusEffects={snap.statusEffects}
-                          isAlive={snap.isAlive}
-                          team="player"
-                          shield={snap.shield}
-                          size="sm"
-                        />
-                      </div>
-                    );
-                  })}
-                  <div className="text-[9px] font-bold text-red-400 px-1 pt-1">TEAM B</div>
-                  {replay.combatResult.enemyUnits.map((u) => {
-                    const snap = replay.currentSnapshot?.units[u.id];
-                    if (!snap) return null;
-                    return (
-                      <div
-                        key={u.id}
-                        onClick={() => replay.setSelectedUnitId(u.id)}
-                        className={`flex items-center gap-1.5 px-1 py-0.5 rounded cursor-pointer transition-colors ${
-                          replay.selectedUnitId === u.id ? 'bg-red-900/30' : 'hover:bg-[#1f2937]'
-                        } ${!snap.isAlive ? 'opacity-30' : ''}`}
-                      >
-                        <UnitToken
-                          championName={u.champion.name}
-                          championApiName={u.champion.apiName}
-                          cost={u.champion.cost}
-                          currentHp={snap.currentHp}
-                          maxHp={u.maxHp}
-                          currentMana={snap.currentMana}
-                          maxMana={u.maxMana}
-                          starLevel={u.starLevel}
-                          items={u.items.map(it => ({ apiName: it.apiName }))}
-                          statusEffects={snap.statusEffects}
-                          isAlive={snap.isAlive}
-                          team="enemy"
-                          shield={snap.shield}
-                          size="sm"
-                        />
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
+              {/* Damage Sidebar */}
+              <DamageSidebar
+                combatResult={replay.combatResult}
+                currentSnapshot={replay.currentSnapshot}
+                selectedUnitId={replay.selectedUnitId}
+                onUnitClick={replay.setSelectedUnitId}
+              />
             </div>
+
+            {/* Unit Detail Panel — 챔피언 클릭 시 보드 하단에 표시 */}
+            {replay.selectedUnitId && replay.selectedUnitSnap && replay.unitMeta[replay.selectedUnitId] && (
+              <UnitDetailPanel
+                unitSnapshot={replay.selectedUnitSnap}
+                meta={replay.unitMeta[replay.selectedUnitId]}
+                onClose={() => replay.setSelectedUnitId(null)}
+              />
+            )}
 
             {/* Tick events */}
             {replay.tickEvents.length > 0 && (

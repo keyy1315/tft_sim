@@ -375,17 +375,24 @@ export interface CombatResult {
   multiSim?: MultiSimResult;
 }
 
+export interface TickSnapshotUnit {
+  id: string;
+  currentHp: number;
+  currentMana: number;
+  position: HexCoord;
+  isAlive: boolean;
+  shield: number;
+  statusEffects: { type: string; remainingTicks: number; value?: number }[];
+  totalDamageDealt: number;
+  stats: ChampionStats;
+  damageAmp: number;
+  omnivamp: number;
+  damageReduction: number;
+}
+
 export interface TickSnapshot {
   tick: number;
-  units: Record<string, {
-    id: string;
-    currentHp: number;
-    currentMana: number;
-    position: HexCoord;
-    isAlive: boolean;
-    shield: number;
-    statusEffects: { type: string; remainingTicks: number; value?: number }[];
-  }>;
+  units: Record<string, TickSnapshotUnit>;
   events: CombatLog[];
 }
 
