@@ -71,7 +71,8 @@ function createCombatUnit(
   activeTraits: ActiveTrait[] = [],
   augmentEffects: ItemEffect = {},
 ): CombatUnit {
-  const { stats } = calculateStats(placed.champion, placed.starLevel, placed.items, activeTraits, augmentEffects);
+  const allItems = placed.voidItem ? [...placed.items, placed.voidItem] : placed.items;
+  const { stats } = calculateStats(placed.champion, placed.starLevel, allItems, activeTraits, augmentEffects);
   const role = mapGameRole(placed.champion.role);
   return {
     id: `${team}-${index}`,
@@ -80,7 +81,7 @@ function createCombatUnit(
     position: { ...placed.position },
     starLevel: placed.starLevel as 1 | 2 | 3,
     role,
-    items: placed.items,
+    items: allItems,
     currentHp: stats.hp,
     maxHp: stats.hp,
     currentMana: stats.mana,

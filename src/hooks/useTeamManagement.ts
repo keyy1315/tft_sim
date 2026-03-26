@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { PlacedChampion, HexCoord, RawChampion, RawItem, RawAugment } from '@/types';
 import { BOARD_COLS, DEFAULT_STAR_LEVEL } from '@/lib/simulator/models/constants';
 import { resolveTraits } from '@/lib/simulator/systems/trait';
-import { canEquipItem, canAddPiltoverModule } from '@/lib/simulator/systems/item';
+import { canEquipItem, canAddPiltoverModule, isVoidMutation } from '@/lib/simulator/systems/item';
 import { getDefaultStacks } from '@/lib/simulator/systems/augment';
 import { FRELJORD_TURRET, TIBBERS_CHAMPION, AZIR_SOLDIER_CHAMPION, AZIR_MAX_SOLDIERS, isAutoUnit } from '@/data/specialUnits';
 import type { IoniaPathType } from '@/data/traitModules';
@@ -251,6 +251,9 @@ export function useTeamManagement({ traits }: UseTeamManagementArgs) {
     const setTeam = team === 'player' ? updatePlayerTeam : updateEnemyTeam;
     setTeam(prev => prev.map((p, i) => {
       if (i !== index) return p;
+      if (isVoidMutation(item)) {
+        return { ...p, voidItem: item };
+      }
       return { ...p, items: [...p.items, item] };
     }));
   };
@@ -260,6 +263,14 @@ export function useTeamManagement({ traits }: UseTeamManagementArgs) {
     setTeam(prev => prev.map((p, i) => {
       if (i !== index) return p;
       return { ...p, items: p.items.filter((_item: RawItem, ii: number) => ii !== itemIdx) };
+    }));
+  };
+
+  const handleRemoveVoidItem = (team: 'player' | 'enemy', index: number) => {
+    const setTeam = team === 'player' ? updatePlayerTeam : updateEnemyTeam;
+    setTeam(prev => prev.map((p, i) => {
+      if (i !== index) return p;
+      return { ...p, voidItem: null };
     }));
   };
 
@@ -428,6 +439,7 @@ export function useTeamManagement({ traits }: UseTeamManagementArgs) {
     handleChampionSelect,
     handleEquipItem,
     handleRemoveItem,
+    handleRemoveVoidItem,
     handleAddPiltoverModule,
     handleRemovePiltoverModule,
     handleStarChange,

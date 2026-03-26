@@ -343,6 +343,7 @@ export default function SimulatorPage() {
                     onStarChange={(level) => tm.handleStarChange(tm.selectedUnit!.team, tm.selectedUnit!.index, level)}
                     onEquipItem={(item) => tm.handleEquipItem(tm.selectedUnit!.team, tm.selectedUnit!.index, item)}
                     onRemoveItem={(itemIdx) => tm.handleRemoveItem(tm.selectedUnit!.team, tm.selectedUnit!.index, itemIdx)}
+                    onRemoveVoidItem={() => tm.handleRemoveVoidItem(tm.selectedUnit!.team, tm.selectedUnit!.index)}
                     onRemoveUnit={() => tm.handleRemoveUnit(tm.selectedUnit!.team, tm.selectedUnit!.index)}
                   />
                 </div>
@@ -376,6 +377,7 @@ export default function SimulatorPage() {
                       onStarChange={(level) => tm.handleStarChange(tm.selectedUnit!.team, tm.selectedUnit!.index, level)}
                       onEquipItem={(item) => tm.handleEquipItem(tm.selectedUnit!.team, tm.selectedUnit!.index, item)}
                       onRemoveItem={(itemIdx) => tm.handleRemoveItem(tm.selectedUnit!.team, tm.selectedUnit!.index, itemIdx)}
+                      onRemoveVoidItem={() => tm.handleRemoveVoidItem(tm.selectedUnit!.team, tm.selectedUnit!.index)}
                       onRemoveUnit={() => tm.handleRemoveUnit(tm.selectedUnit!.team, tm.selectedUnit!.index)}
                     />
                   </div>

@@ -18,6 +18,7 @@ interface SelectedUnitPanelProps {
   onStarChange: (level: number) => void;
   onEquipItem: (item: RawItem) => void;
   onRemoveItem: (itemIdx: number) => void;
+  onRemoveVoidItem?: () => void;
   onRemoveUnit: () => void;
 }
 
@@ -29,6 +30,7 @@ export default function SelectedUnitPanel({
   onStarChange,
   onEquipItem,
   onRemoveItem,
+  onRemoveVoidItem,
   onRemoveUnit,
 }: SelectedUnitPanelProps) {
   const [showItemPicker, setShowItemPicker] = useState(false);
@@ -84,6 +86,30 @@ export default function SelectedUnitPanel({
           )}
         </div>
       </div>
+
+      {placed.champion.traits.includes('공허') && (
+        <div>
+          <div className="text-xs text-gray-400 mb-1.5">
+            돌연변이 ({placed.voidItem ? 1 : 0}/1)
+          </div>
+          <div className="flex gap-1.5 items-center">
+            {placed.voidItem ? (
+              <ItemIcon
+                item={placed.voidItem}
+                size={32}
+                onRemove={onRemoveVoidItem}
+              />
+            ) : (
+              <button
+                onClick={() => setShowItemPicker(true)}
+                className="w-8 h-8 rounded border border-dashed border-purple-600/50 text-purple-400 hover:border-purple-400 hover:text-purple-300 flex items-center justify-center text-sm"
+              >
+                +
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       <div className="text-[10px] text-gray-500 space-y-0.5">
         <div>특성: {placed.champion.traits.join(', ')}</div>

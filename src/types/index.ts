@@ -231,6 +231,7 @@ export interface PlacedChampion {
   position: HexCoord;
   starLevel: number; // 1, 2, 3
   items: RawItem[];
+  voidItem?: RawItem | null;
 }
 
 export interface TeamComp {
