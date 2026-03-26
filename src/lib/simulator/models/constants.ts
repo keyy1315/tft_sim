@@ -51,6 +51,10 @@ export const ITEM_EFFECT_KEYS: Record<string, string> = {
   'BonusAS': 'as',
   'BonusAD': 'ad',
   'BonusAP': 'ap',
+  // 공허 돌연변이 키
+  'MaxHealth': 'hp',
+  'MaxHP': 'hp',
+  'ADAP': 'adap',
 };
 
 // === 스탯 이름 한글화 ===

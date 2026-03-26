@@ -74,7 +74,7 @@ function createCombatUnit(
   const allItems = placed.voidItem ? [...placed.items, placed.voidItem] : placed.items;
   const { stats } = calculateStats(placed.champion, placed.starLevel, allItems, activeTraits, augmentEffects);
   const role = mapGameRole(placed.champion.role);
-  return {
+  const unit: CombatUnit = {
     id: `${team}-${index}`,
     champion: placed.champion,
     team,
@@ -104,6 +104,22 @@ function createCombatUnit(
     augmentBurnPercent: 0,
     inventionTankDamageAmp: 0,
   };
+
+  // 공허 돌연변이 전투 효과 적용
+  for (const item of allItems) {
+    if (!item.apiName.includes('Consumable_Void')) continue;
+    const fx = item.effects;
+    // 아드레날린 모듈: 피해증폭
+    if (typeof fx['BaseDamageAmp'] === 'number') {
+      unit.damageAmp += fx['BaseDamageAmp'] as number;
+    }
+    // 흡수 세포핵: 옴니뱀프 (피해량의 N% 체력 회복)
+    if (typeof fx['HealPercent'] === 'number') {
+      unit.omnivamp += fx['HealPercent'] as number;
+    }
+  }
+
+  return unit;
 }
 
 /** 대쉬 대상 헬퍼: 가장 먼 적 */

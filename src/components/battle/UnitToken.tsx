@@ -137,13 +137,16 @@ export default function UnitToken({
       {/* Item dots */}
       {items.length > 0 && (
         <div className="flex gap-0.5">
-          {items.slice(0, 3).map((_, i) => (
-            <div
-              key={i}
-              className="rounded-full bg-yellow-500 border border-gray-900"
-              style={{ width: isMd ? 6 : 4, height: isMd ? 6 : 4 }}
-            />
-          ))}
+          {items.map((item, i) => {
+            const isVoid = item.apiName.includes('Consumable_Void');
+            return (
+              <div
+                key={i}
+                className={`rounded-full border border-gray-900 ${isVoid ? 'bg-purple-500' : 'bg-yellow-500'}`}
+                style={{ width: isMd ? 6 : 4, height: isMd ? 6 : 4 }}
+              />
+            );
+          })}
         </div>
       )}
 

@@ -107,23 +107,26 @@ export function calculateStats(
   const itemFx = getItemEffects(items);
   const traitFx = getTraitBonuses(activeTraits);
 
+  // 공허 돌연변이 ADAP (AD% + AP 동시 증가)
+  const adapBonus = (itemFx as Record<string, number>)['adap'] || 0;
+
   const baseAd = champion.stats.damage;
   const adBreakdown: StatBreakdown = {
     base: baseAd,
     starScaling: baseAd * star - baseAd,
-    items: baseAd * star * (itemFx.ad || 0),
+    items: baseAd * star * ((itemFx.ad || 0) + adapBonus),
     traits: baseAd * star * (traitFx.ad || 0),
     augments: baseAd * star * (augmentEffects.ad || 0),
-    total: baseAd * star * (1 + (itemFx.ad || 0) + (traitFx.ad || 0) + (augmentEffects.ad || 0)),
+    total: baseAd * star * (1 + (itemFx.ad || 0) + adapBonus + (traitFx.ad || 0) + (augmentEffects.ad || 0)),
   };
 
   const apBreakdown: StatBreakdown = {
     base: 0,
     starScaling: 0,
-    items: itemFx.ap || 0,
+    items: (itemFx.ap || 0) + adapBonus * 100,
     traits: traitFx.ap || 0,
     augments: augmentEffects.ap || 0,
-    total: (itemFx.ap || 0) + (traitFx.ap || 0) + (augmentEffects.ap || 0),
+    total: (itemFx.ap || 0) + adapBonus * 100 + (traitFx.ap || 0) + (augmentEffects.ap || 0),
   };
 
   const baseAs = champion.stats.attackSpeed;
@@ -137,8 +140,13 @@ export function calculateStats(
   };
 
   const baseHp = champion.stats.hp;
+  // 공허 거대 껍질: BonusPercentHP → hpPercent로 변환
+  const voidHpPercent = items.reduce((sum, item) => {
+    const bph = item.effects['BonusPercentHP'];
+    return sum + (typeof bph === 'number' ? bph : 0);
+  }, 0);
   const flatHp = baseHp * star + (itemFx.hp || 0) + (traitFx.hp || 0) + (augmentEffects.hp || 0);
-  const hpPercentBonus = (traitFx.hpPercent || 0) + ((augmentEffects as Record<string, number>)['hpPercent'] || 0);
+  const hpPercentBonus = (traitFx.hpPercent || 0) + ((augmentEffects as Record<string, number>)['hpPercent'] || 0) + voidHpPercent;
   const hpBreakdown: StatBreakdown = {
     base: baseHp,
     starScaling: baseHp * star - baseHp,
