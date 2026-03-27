@@ -377,6 +377,57 @@ function applyWardenShields(activeTraits: ActiveTrait[], units: CombatUnit[]): v
   }
 }
 
+/** 엄호대 — BonusArmorMR은 엄호대 유닛만 추가 (armor + MR) */
+function applyDefenderBonus(activeTraits: ActiveTrait[], units: CombatUnit[]): void {
+  const defender = activeTraits.find(t => t.trait.apiName === 'TFT16_Defender' && t.activeEffect);
+  if (!defender?.activeEffect) return;
+  const bonus = (defender.activeEffect.variables['BonusArmorMR'] ?? 0) as number;
+  if (bonus <= 0) return;
+  for (const u of units) {
+    if (u.champion.traits.includes('엄호대')) {
+      u.stats.armor += bonus;
+      u.stats.magicResist += bonus;
+    }
+  }
+}
+
+/** 비전 마법사 — BonusAP는 비전 마법사 유닛에게만 추가 */
+function applySorcererBonus(activeTraits: ActiveTrait[], units: CombatUnit[]): void {
+  const sorc = activeTraits.find(t => t.trait.apiName === 'TFT16_Sorcerer' && t.activeEffect);
+  if (!sorc?.activeEffect) return;
+  const bonusAP = (sorc.activeEffect.variables['BonusAP'] ?? 0) as number;
+  if (bonusAP <= 0) return;
+  for (const u of units) {
+    if (u.champion.traits.includes('비전 마법사')) {
+      u.stats.ap += bonusAP;
+    }
+  }
+}
+
+/** 기원자 — 팀 전체 마나 재생 보너스 */
+function applyInvokerManaRegen(activeTraits: ActiveTrait[], units: CombatUnit[]): void {
+  const invoker = activeTraits.find(t => t.trait.apiName === 'TFT16_Invoker' && t.activeEffect);
+  if (!invoker?.activeEffect) return;
+  const teamMana = (invoker.activeEffect.variables['TeamBonusMana'] ?? 0) as number;
+  if (teamMana <= 0) return;
+  for (const u of units) {
+    u.augmentManaRegen += teamMana;
+  }
+}
+
+/** 전쟁기계 — BaseDR을 damageReduction에 적용 */
+function applyJuggernautDR(activeTraits: ActiveTrait[], units: CombatUnit[]): void {
+  const jugg = activeTraits.find(t => t.trait.apiName === 'TFT16_Juggernaut' && t.activeEffect);
+  if (!jugg?.activeEffect) return;
+  const baseDR = (jugg.activeEffect.variables['BaseDR'] ?? 0) as number;
+  if (baseDR <= 0) return;
+  for (const u of units) {
+    if (u.champion.traits.includes('전쟁기계')) {
+      u.damageReduction += baseDR;
+    }
+  }
+}
+
 function tickStatusEffects(
   unit: CombatUnit,
   tick: number,
@@ -779,6 +830,24 @@ function trySpawnGalio(
   logs.push(spawnLog);
   tickLogs.push(spawnLog);
 
+  // 데마시아 결집 버프 — ArmorMR / ManaReductionPct / EnemyTrueDamage
+  const dVars = demacia.activeEffect.variables;
+  const rallyArmorMR = (dVars['ArmorMR'] ?? 0) as number;
+  const manaReductionPct = (dVars['ManaReductionPct'] ?? 0) as number;
+  const enemyTrueDamage = (dVars['EnemyTrueDamage'] ?? 0) as number;
+
+  for (const u of teamUnits) {
+    if (!u.champion.traits.includes('데마시아') || u.state === 'dead') continue;
+    u.stats.armor += rallyArmorMR;
+    u.stats.magicResist += rallyArmorMR;
+    if (manaReductionPct > 0) {
+      u.maxMana = Math.round(u.maxMana * (1 - manaReductionPct));
+    }
+    if (enemyTrueDamage > 0) {
+      u.damageAmp += enemyTrueDamage;
+    }
+  }
+
   return galio;
 }
 
@@ -1151,9 +1220,17 @@ export function simulateCombat(
 
   const logs: CombatLog[] = [];
 
-  // Apply Warden trait shields at combat start
+  // Apply trait combat-start bonuses
   applyWardenShields(playerActiveTraits, playerUnits);
   applyWardenShields(enemyActiveTraits, enemies);
+  applyDefenderBonus(playerActiveTraits, playerUnits);
+  applyDefenderBonus(enemyActiveTraits, enemies);
+  applySorcererBonus(playerActiveTraits, playerUnits);
+  applySorcererBonus(enemyActiveTraits, enemies);
+  applyInvokerManaRegen(playerActiveTraits, playerUnits);
+  applyInvokerManaRegen(enemyActiveTraits, enemies);
+  applyJuggernautDR(playerActiveTraits, playerUnits);
+  applyJuggernautDR(enemyActiveTraits, enemies);
 
   // 아이오니아 길 적용
   if (options.playerIoniaPath) {
@@ -1162,6 +1239,30 @@ export function simulateCombat(
   if (options.enemyIoniaPath) {
     applyIoniaPath(enemyActiveTraits, enemies, options.enemyIoniaPath, logs);
   }
+
+  // 수확자 — 적 사망 시 마나 획득 + 적 방저 감소
+  function registerHarvester(activeTraits: ActiveTrait[], killerTeam: CombatUnit[], enemyTeam: CombatUnit[]): void {
+    const harvester = activeTraits.find(t => t.trait.apiName === 'TFT16_Harvester' && t.activeEffect);
+    if (!harvester?.activeEffect) return;
+    const manaPerKill = (harvester.activeEffect.variables['ManaPerEnemyDeath'] ?? 0) as number;
+    const armorMRReduction = (harvester.activeEffect.variables['EnemyArmorMRReduction'] ?? 0) as number;
+    if (manaPerKill <= 0 && armorMRReduction <= 0) return;
+    eventBus.on('on_death', 'harvester', () => {
+      for (const u of killerTeam) {
+        if (u.champion.traits.includes('수확자') && u.state !== 'dead') {
+          u.currentMana = Math.min(u.maxMana, u.currentMana + manaPerKill);
+        }
+      }
+      for (const e of enemyTeam) {
+        if (e.state !== 'dead') {
+          e.stats.armor = Math.max(0, e.stats.armor - armorMRReduction);
+          e.stats.magicResist = Math.max(0, e.stats.magicResist - armorMRReduction);
+        }
+      }
+    });
+  }
+  registerHarvester(playerActiveTraits, playerUnits, enemies);
+  registerHarvester(enemyActiveTraits, enemies, playerUnits);
 
   // 전투 시작 시 유닛별 랜덤 첫 공격 딜레이 (0~0.3초)
   const maxDelayTicks = Math.round(INITIAL_ATTACK_DELAY * TICKS_PER_SECOND);

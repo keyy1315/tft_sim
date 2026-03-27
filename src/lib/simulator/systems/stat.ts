@@ -44,11 +44,16 @@ export function getItemEffects(items: RawItem[]): ItemEffect {
 const TRAIT_STAT_MAP: Record<string, Record<string, string>> = {
   TFT16_Vanquisher: { BaseCritChance: 'critChance', CritDmg: 'critDamage' },
   TFT16_Slayer: { BonusAD: 'ad', BonusOmnivamp: 'omnivamp' },
-  TFT16_Rapidfire: { MinBonusAS: 'as' },
-  TFT16_Sorcerer: { BonusAP: 'ap', AllyAP: 'ap' },
+  TFT16_Rapidfire: { MinBonusAS: 'as', TeamwideAS: 'as' },
+  TFT16_Sorcerer: { AllyAP: 'ap' },
   TFT16_Brawler: { TeamFlatHealth: 'hp', BonusPercentHealth: 'hpPercent' },
-  TFT16_Defender: { BonusArmorMR: 'armor', TeamwideArmorMR: 'armor' },
+  TFT16_Defender: { TeamwideArmorMR: 'armorMR' },
   TFT16_Warden: { PercentHealthShield: 'shield' },
+  TFT16_Demacia: { ArmorMR: 'armorMR' },
+  TFT16_Yordle: { BonusHealth: 'hp', AS: 'as' },
+  TFT16_Shurima: { ArmorMR: 'armorMR', BonusHealth: 'hpPercent', ASPerSecond: 'as' },
+  TFT16_ShadowIsles: { ADAP: 'adap' },
+  TFT16_Invoker: { TeamBonusMana: 'manaRegen' },
 };
 
 export interface ExtendedTraitEffect extends ItemEffect {
@@ -56,6 +61,7 @@ export interface ExtendedTraitEffect extends ItemEffect {
   damageAmp?: number;
   hpPercent?: number;
   shield?: number;
+  manaRegen?: number;
 }
 
 export function getTraitBonuses(activeTraits: ActiveTrait[]): ExtendedTraitEffect {
@@ -78,7 +84,15 @@ export function getTraitBonuses(activeTraits: ActiveTrait[]): ExtendedTraitEffec
       for (const [varKey, statKey] of Object.entries(traitMap)) {
         const val = vars[varKey];
         if (typeof val === 'number') {
-          (result as Record<string, number>)[statKey] = ((result as Record<string, number>)[statKey] || 0) + val;
+          if (statKey === 'armorMR') {
+            result.armor = (result.armor || 0) + val;
+            result.magicResist = (result.magicResist || 0) + val;
+          } else if (statKey === 'adap') {
+            result.ad = (result.ad || 0) + val;
+            result.ap = (result.ap || 0) + val * 100;
+          } else {
+            (result as Record<string, number>)[statKey] = ((result as Record<string, number>)[statKey] || 0) + val;
+          }
         }
       }
     }
