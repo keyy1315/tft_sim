@@ -3,9 +3,10 @@ import {
   HexCoord, TickSnapshot, mapGameRole,
   RawTrait, RawAugment, RawItem, RawChampion, ActiveTrait, ItemEffect,
 } from '@/types';
+import { findCarryAugment } from '@/data/carryAugments';
 import type { StatusEffectType } from '@/types';
 import { calculateStats } from '@/lib/simulator/systems/stat';
-import { getAbilityDamage, getAbilityShield, findAbilityTargets, CHAMPION_ABILITY_PATTERNS } from '@/lib/simulator/systems/ability';
+import { getAbilityDamage, getAbilityShield, findAbilityTargets, CHAMPION_ABILITY_PATTERNS, getChampionScaling, starValue, getSynergyScaling } from '@/lib/simulator/systems/ability';
 import type { AbilityConfig } from '@/lib/simulator/systems/ability';
 import { canAttack, getMoveTicks, findBestMoveToward, coordKey, getNeighbors, hexDistance } from '@/lib/simulator/systems/movement';
 import { getHexesInRadius } from '@/lib/simulator/models/hex';
@@ -103,6 +104,9 @@ function createCombatUnit(
     augmentExecuteThreshold: 0,
     augmentBurnPercent: 0,
     inventionTankDamageAmp: 0,
+    attackCount: 0,
+    castCount: 0,
+    killCount: 0,
   };
 
   // 공허 돌연변이 전투 효과 적용
@@ -120,6 +124,127 @@ function createCombatUnit(
   }
 
   return unit;
+}
+
+/** 영구 스택 적용 (이즈리얼 드론, 초가스 체력) */
+function applyPermanentStacks(unit: CombatUnit, placed: PlacedChampion): void {
+  const stacks = placed.permanentStacks;
+  if (!stacks || stacks.value <= 0) return;
+
+  if (stacks.type === 'chogath_hp') {
+    unit.maxHp += stacks.value;
+    unit.currentHp += stacks.value;
+  }
+  // ezreal_drones: 전투 루프 내 스킬 시전 시 추가 피해로 처리
+  // 드론 수는 unit에 임시 저장
+  if (stacks.type === 'ezreal_drones') {
+    const drones = Math.floor(stacks.value / 8);
+    (unit as CombatUnit & { _ezrealDrones?: number })._ezrealDrones = drones;
+  }
+}
+
+/** 전투 시작 패시브 적용 (진 AS→AD 등) */
+function applyStartPassives(unit: CombatUnit): void {
+  const sc = getChampionScaling(unit.champion.apiName);
+  if (!sc || sc.trigger !== 'passive') return;
+
+  // 진: AS → AD 전환
+  if (sc.effect.type === 'asToAd') {
+    const fixedAS = starValue(sc.fixedAS as number[], unit.starLevel);
+    const convertRate = (sc.convertRate as number) ?? 0.75;
+    const bonusAS = unit.stats.attackSpeed - fixedAS;
+    if (bonusAS > 0 && fixedAS > 0) {
+      unit.stats.damage += Math.round(bonusAS * 100 * convertRate);
+      unit.stats.attackSpeed = fixedAS;
+    }
+  }
+}
+
+/** Set 17 시너지 전투 버프 적용 (JSON scaling 데이터 기반) */
+function applySet17SynergyBuffs(traits: ActiveTrait[], units: CombatUnit[]): void {
+  for (const at of traits) {
+    if (!at.activeEffect || at.style === 0) continue;
+    const sc = getSynergyScaling(at.trait.apiName);
+    if (!sc) continue;
+
+    // 활성 티어 인덱스 (effects 배열에서 몇 번째)
+    const tierIdx = at.trait.effects.findIndex(e => e === at.activeEffect);
+    const ti = Math.max(0, tierIdx);
+
+    const isChampTrait = (u: CombatUnit) => u.champion.traits.includes(at.trait.name);
+
+    // 도전자: 아군 AS + 도전자 추가 AS
+    if (sc.teamwideAS) {
+      const teamAS = (sc.teamwideAS as number[])[ti] ?? 0;
+      const champAS = (sc.championAS as number[])[ti] ?? 0;
+      for (const u of units) {
+        u.stats.attackSpeed *= (1 + teamAS);
+        if (isChampTrait(u)) u.stats.attackSpeed *= (1 + champAS);
+      }
+    }
+
+    // 습격자: 흡혈 + AD
+    if (sc.teamwideOmnivamp) {
+      const teamVamp = (sc.teamwideOmnivamp as number[])[ti] ?? 0;
+      const champVamp = (sc.championOmnivamp as number[])[ti] ?? 0;
+      const champAD = (sc.championAD as number[])[ti] ?? 0;
+      for (const u of units) {
+        u.omnivamp += teamVamp;
+        if (isChampTrait(u)) {
+          u.omnivamp += champVamp;
+          u.stats.damage = Math.round(u.stats.damage * (1 + champAD));
+        }
+      }
+    }
+
+    // 전달자: 마나 재생
+    if (sc.teamManaRegen) {
+      const teamMR = (sc.teamManaRegen as number[])[ti] ?? 0;
+      const champMR = (sc.channelerManaRegen as number[])[ti] ?? 0;
+      for (const u of units) {
+        u.augmentManaRegen += teamMR;
+        if (isChampTrait(u)) u.augmentManaRegen += champMR;
+      }
+    }
+
+    // 구원자: 활성 특성당 AS/방어력/마저
+    if (sc.offensiveStat) {
+      const activeTraitCount = traits.filter(t => t.style > 0).length;
+      const asPerTrait = (sc.offensiveStat as number[])[ti] ?? 0;
+      const defPerTrait = (sc.defensiveStat as number[])[ti] ?? 0;
+      for (const u of units) {
+        u.stats.attackSpeed *= (1 + asPerTrait * activeTraitCount);
+        u.stats.armor += defPerTrait * activeTraitCount;
+        u.stats.magicResist += defPerTrait * activeTraitCount;
+      }
+    }
+
+    // 불한당: AD/AP 획득
+    if (sc.adap) {
+      const adap = (sc.adap as number[])[ti] ?? 0;
+      for (const u of units) {
+        if (isChampTrait(u)) {
+          u.stats.damage = Math.round(u.stats.damage * (1 + adap / 100));
+          u.stats.ap += adap;
+        }
+      }
+    }
+  }
+}
+
+/** 캐리 증강 사거리 오버라이드 */
+function applyCarryAugmentRange(unit: CombatUnit, augmentApiNames: string[]): void {
+  const carry = findCarryAugment(unit.champion.apiName, augmentApiNames);
+  if (carry?.rangeOverride) {
+    unit.stats.range = carry.rangeOverride;
+  }
+}
+
+/** 캐리 증강 포함 AbilityConfig 결정 */
+function getAbilityConfigForUnit(unit: CombatUnit, augmentApiNames: string[]): AbilityConfig {
+  const carry = findCarryAugment(unit.champion.apiName, augmentApiNames);
+  if (carry) return carry.abilityOverride;
+  return CHAMPION_ABILITY_PATTERNS[unit.champion.apiName] ?? { pattern: 'single' };
 }
 
 /** 대쉬 대상 헬퍼: 가장 먼 적 */
@@ -550,6 +675,9 @@ function spawnFreljordTurrets(
             augmentExecuteThreshold: 0,
             augmentBurnPercent: 0,
             inventionTankDamageAmp: 0,
+            attackCount: 0,
+            castCount: 0,
+            killCount: 0,
           };
           // Store stun duration for prismatic tier
           if (stunDuration > 0) {
@@ -670,6 +798,9 @@ function trySpawnNoxusAtakhan(
     augmentExecuteThreshold: 0,
     augmentBurnPercent: 0,
     inventionTankDamageAmp: 0,
+    attackCount: 0,
+    castCount: 0,
+    killCount: 0,
   };
 
   const logEntry: CombatLog = {
@@ -787,6 +918,9 @@ function trySpawnGalio(
     augmentExecuteThreshold: 0,
     augmentBurnPercent: 0,
     inventionTankDamageAmp: 0,
+    attackCount: 0,
+    castCount: 0,
+    killCount: 0,
   };
 
   // 착지 충격파 — 영웅 시너지 variables
@@ -1166,6 +1300,9 @@ export function simulateCombat(
   const playerBWEffects = options.playerBilgewaterEffects ?? {};
   const enemyBWEffects = options.enemyBilgewaterEffects ?? {};
 
+  const playerAugApiNames = playerAugsWithStacks.map(a => a.augment.apiName);
+  const enemyAugApiNames = enemyAugsWithStacks.map(a => a.augment.apiName);
+
   const rng: SeededRNG = createRNG(seed);
   const eventBus = new EventBus();
 
@@ -1190,6 +1327,9 @@ export function simulateCombat(
     const unit = createCombatUnit(p, 'player', i, playerActiveTraits, effects);
     const mod = resolvePerUnitMods(playerAugsWithStacks, p.champion);
     applyPerUnitMods(unit, mod);
+    applyPermanentStacks(unit, p);
+    applyCarryAugmentRange(unit, playerAugApiNames);
+    applyStartPassives(unit);
     return unit;
   });
   const enemies = enemyTeamFiltered.map((p, i) => {
@@ -1199,6 +1339,9 @@ export function simulateCombat(
     const unit = createCombatUnit(positioned, 'enemy', i, enemyActiveTraits, effects);
     const mod = resolvePerUnitMods(enemyAugsWithStacks, p.champion);
     applyPerUnitMods(unit, mod);
+    applyPermanentStacks(unit, positioned);
+    applyCarryAugmentRange(unit, enemyAugApiNames);
+    applyStartPassives(unit);
     return unit;
   });
 
@@ -1217,6 +1360,10 @@ export function simulateCombat(
       for (const u of enemies) { u.omnivamp += vamp; }
     }
   }
+
+  // === Set 17 시너지 전투 버프 (JSON 기반) ===
+  applySet17SynergyBuffs(playerActiveTraits, playerUnits);
+  applySet17SynergyBuffs(enemyActiveTraits, enemies);
 
   const logs: CombatLog[] = [];
 
@@ -1421,6 +1568,16 @@ export function simulateCombat(
           target.totalDamageTaken += finalDamage;
           unit.totalDamageDealt += finalDamage;
 
+          // 자동공격으로 적 처치
+          if (target.currentHp <= 0 && target.state !== 'dead') {
+            target.currentHp = 0;
+            target.state = 'dead';
+            unit.killCount++;
+            const deathLog: CombatLog = { tick, time, type: 'death', sourceId: target.id, message: `${target.champion.name} 사망! (${unit.champion.name}의 기본 공격)` };
+            logs.push(deathLog); tickLogs.push(deathLog);
+            eventBus.emit('on_death', { sourceId: target.id, tick });
+          }
+
           if (unit.omnivamp > 0 && finalDamage > 0) {
             const grievousReduction = target.augmentGrievousWounds > 0 ? (1 - target.augmentGrievousWounds) : 1;
             const heal = finalDamage * unit.omnivamp * grievousReduction;
@@ -1454,6 +1611,41 @@ export function simulateCombat(
           gainManaOnDamageTaken(target, finalDamage);
 
           unit.state = 'attacking';
+          unit.attackCount++;
+
+          // === 챔피언 전투 내 스케일링 (onAttack) — JSON 기반 ===
+          const atkSc = getChampionScaling(unit.champion.apiName);
+          if (atkSc?.trigger === 'onAttack' && target.state !== 'dead') {
+            const every = atkSc.every ?? 1;
+            if (unit.attackCount % every === 0) {
+              const effType = atkSc.effect.type;
+              if (effType === 'extraDamage' || effType === 'trueDamage') {
+                // 피해 수치: 챔피언별 damage 배열에서 추출
+                const dmgArr = (atkSc.passiveDamage ?? atkSc.damageAD ?? atkSc.hitDamage ?? atkSc.vitalDamage) as number[] | undefined;
+                const val = starValue(dmgArr, unit.starLevel);
+                const sDmgType = atkSc.effect.damageType ?? 'true';
+                const resistance = sDmgType === 'magic' ? target.stats.magicResist : sDmgType === 'physical' ? target.stats.armor : 0;
+                const pen = sDmgType === 'magic' ? unit.stats.magicPen : sDmgType === 'physical' ? unit.stats.armorPen : 0;
+                let sDmg = sDmgType === 'true' ? val : applyResistance(val * (1 + unit.damageAmp), resistance, pen);
+                sDmg = applyShield(target, sDmg, eventBus, tick);
+                target.currentHp -= sDmg;
+                unit.totalDamageDealt += sDmg;
+                // 피오라 급소 회복
+                const healPct = atkSc.healPercent as number | undefined;
+                if (healPct && sDmg > 0) {
+                  unit.currentHp = Math.min(unit.maxHp, unit.currentHp + sDmg * healPct);
+                }
+              }
+            }
+          }
+
+          // === 카이사: 처치 관여 시 마나 (onKill) ===
+          const killSc = getChampionScaling(unit.champion.apiName);
+          if (killSc?.trigger === 'onKill' && killSc.effect.type === 'mana' && target.state === 'dead') {
+            const manaGain = (killSc.manaPerKill as number) ?? 10;
+            unit.currentMana = Math.min(unit.maxMana, unit.currentMana + manaGain);
+          }
+
           eventBus.emit('on_attack', { sourceId: unit.id, targetId: target.id, value: finalDamage, tick });
           eventBus.emit('on_hit', { sourceId: unit.id, targetId: target.id, value: finalDamage, damageType: 'physical', tick });
           eventBus.emit('on_damage', { sourceId: target.id, targetId: unit.id, value: finalDamage, damageType: 'physical', tick });
@@ -1470,8 +1662,10 @@ export function simulateCombat(
           if (unit.currentMana >= unit.maxMana) {
             unit.currentMana = 0;
             unit.state = 'casting';
+            unit.castCount++;
 
-            const config: AbilityConfig = CHAMPION_ABILITY_PATTERNS[unit.champion.apiName] ?? { pattern: 'single' };
+            const augNames = unit.team === 'player' ? playerAugApiNames : enemyAugApiNames;
+            const config: AbilityConfig = getAbilityConfigForUnit(unit, augNames);
 
             // 스킬 시전 후 cast time — 이 시간 동안 공격 불가
             unit.attackCooldown = config.pattern === 'self_buff' ? SELF_BUFF_CAST_TICKS : CAST_TICKS;
@@ -1560,6 +1754,7 @@ export function simulateCombat(
               if (t.currentHp <= 0) {
                 t.currentHp = 0;
                 t.state = 'dead';
+                unit.killCount++;
                 const deathLog: CombatLog = {
                   tick, time, type: 'death',
                   sourceId: t.id,
