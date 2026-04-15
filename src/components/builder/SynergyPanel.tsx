@@ -9,6 +9,40 @@ import Image from 'next/image';
 import { IONIA_PATH_NAMES, IONIA_PATH_DESCRIPTIONS, getIoniaPathEffectText } from '@/data/traitModules';
 import type { IoniaPathType } from '@/data/traitModules';
 
+/** 시너지 variables 영어 키 → 한국어 매핑 */
+const VARIABLE_KR: Record<string, string> = {
+  AD: '공격력', AP: '주문력', AS: '공격 속도', HP: '체력',
+  ADAP: '공격력/주문력',
+  AttackSpeed: '공격 속도', AttackSpeedPercent: '공격 속도',
+  AttackSpeedDuration: '공속 지속시간',
+  BonusAD: '추가 공격력', BonusArmor: '추가 방어력', BonusMR: '추가 마법저항력',
+  BonusDA: '추가 피해증폭', BonusHealth: '추가 체력',
+  BonusTrueDamage: '추가 고정 피해',
+  BurstDuration: '버스트 지속시간',
+  CritChance: '치명타 확률', CritDamage: '치명타 피해량',
+  DamageAmp: '피해 증폭', DamageInstances: '피해 횟수',
+  DamageMultiplier: '피해 배율', DamageReduction: '피해 감소',
+  DamageReductionPct: '피해 감소',
+  Duration: '지속시간',
+  EnhancedDurability: '강화 내구력',
+  EnhancedTeamwideArmor: '강화 전체 방어력',
+  FlatDamage: '고정 피해',
+  Heal: '회복', HealthBonus: '추가 체력', HealthRatio: '체력 비율',
+  HealthThreshold: '체력 임계치',
+  Mana: '마나', ManaToSpend: '마나 사용량',
+  MaxPercentHealthShield: '최대 체력 보호막',
+  NumAttacks: '공격 횟수', NumSeconds: '초',
+  Omnivamp: '모든 피해 흡혈',
+  PerHexIncrease: '칸당 증가', PercentDamageIncrease: '피해 증가',
+  PercentHealth: '체력 비율', PercentHealthHeal: '체력 비율 회복',
+  PercentHealthShield: '체력 비율 보호막',
+  ShieldDuration: '보호막 지속시간', ShieldHP: '보호막',
+  ShieldPercentAmount: '보호막 비율', ShieldValue: '보호막',
+  StatMultiplier: '능력치 배율',
+  TeamSize: '팀 인원', TeamwideAS: '전체 공격 속도', TeamwideResists: '전체 저항력',
+  rounds: '라운드',
+};
+
 interface SynergyPanelProps {
   activeTraits: ActiveTrait[];
   team: 'player' | 'enemy';
@@ -38,11 +72,14 @@ function TraitTooltipContent({ at }: { at: ActiveTrait }) {
               className={`text-xs px-1.5 py-0.5 rounded ${isActive ? 'bg-yellow-900/40 text-yellow-300 font-bold' : 'text-gray-400'}`}
             >
               <span className="mr-1.5">({eff.minUnits})</span>
-              {vars.map(([key, val]) => {
+              {vars
+                .filter(([key]) => !key.startsWith('{'))
+                .map(([key, val]) => {
+                const label = VARIABLE_KR[key] ?? key;
                 const display = typeof val === 'number' && val > 0 && val < 1
                   ? `${(val * 100).toFixed(0)}%`
-                  : String(val);
-                return <span key={key} className="mr-2">{key}: {display}</span>;
+                  : typeof val === 'number' ? String(Math.round(val * 100) / 100) : String(val);
+                return <span key={key} className="mr-2">{label}: {display}</span>;
               })}
             </div>
           );
