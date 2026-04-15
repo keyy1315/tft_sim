@@ -2,86 +2,95 @@
 
 import { useState, useEffect } from 'react';
 import { RawChampion, RawItem, RawTrait, RawAugment, TeamPlannerEntry } from '@/types';
-import { loadChampions, loadItems, loadTraits, loadAugments, loadTeamPlannerMapping } from '@/data/loader';
+import { loadChampions, loadItems, loadTraits, loadAugments, loadTeamPlannerMapping, loadScalingData } from '@/data/loader';
 import { registerTraitImages } from '@/data/imageMap';
+import type { SetId } from '@/data/setConfig';
+import { DEFAULT_SET } from '@/data/setConfig';
 
-export function useChampions() {
-  const [champions, setChampions] = useState<RawChampion[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    loadChampions().then((data) => {
-      setChampions(data);
-      setLoading(false);
-    });
-  }, []);
-
-  return { champions, loading };
-}
-
-export function useItems() {
-  const [items, setItems] = useState<RawItem[]>([]);
-  const [loading, setLoading] = useState(true);
+export function useChampions(setId: SetId = DEFAULT_SET) {
+  const [state, setState] = useState<{ data: RawChampion[]; loadedSet: string | null }>({ data: [], loadedSet: null });
 
   useEffect(() => {
-    loadItems().then((data) => {
-      setItems(data);
-      setLoading(false);
+    let cancelled = false;
+    loadChampions(setId).then((result) => {
+      if (!cancelled) setState({ data: result, loadedSet: setId });
     });
-  }, []);
+    return () => { cancelled = true; };
+  }, [setId]);
 
-  return { items, loading };
+  return { champions: state.data, loading: state.loadedSet !== setId };
 }
 
-export function useTraits() {
-  const [traits, setTraits] = useState<RawTrait[]>([]);
-  const [loading, setLoading] = useState(true);
+export function useItems(setId: SetId = DEFAULT_SET) {
+  const [state, setState] = useState<{ data: RawItem[]; loadedSet: string | null }>({ data: [], loadedSet: null });
 
   useEffect(() => {
-    loadTraits().then((data) => {
-      registerTraitImages(data);
-      setTraits(data);
-      setLoading(false);
+    let cancelled = false;
+    loadItems(setId).then((result) => {
+      if (!cancelled) setState({ data: result, loadedSet: setId });
     });
-  }, []);
+    return () => { cancelled = true; };
+  }, [setId]);
 
-  return { traits, loading };
+  return { items: state.data, loading: state.loadedSet !== setId };
 }
 
-export function useAugments() {
-  const [augments, setAugments] = useState<RawAugment[]>([]);
-  const [loading, setLoading] = useState(true);
+export function useTraits(setId: SetId = DEFAULT_SET) {
+  const [state, setState] = useState<{ data: RawTrait[]; loadedSet: string | null }>({ data: [], loadedSet: null });
 
   useEffect(() => {
-    loadAugments().then((data) => {
-      setAugments(data);
-      setLoading(false);
+    let cancelled = false;
+    loadTraits(setId).then((result) => {
+      if (!cancelled) {
+        registerTraitImages(result);
+        setState({ data: result, loadedSet: setId });
+      }
     });
-  }, []);
+    return () => { cancelled = true; };
+  }, [setId]);
 
-  return { augments, loading };
+  return { traits: state.data, loading: state.loadedSet !== setId };
 }
 
-export function useTeamPlannerMapping() {
-  const [teamPlannerMapping, setTeamPlannerMapping] = useState<TeamPlannerEntry[]>([]);
-  const [loading, setLoading] = useState(true);
+export function useAugments(setId: SetId = DEFAULT_SET) {
+  const [state, setState] = useState<{ data: RawAugment[]; loadedSet: string | null }>({ data: [], loadedSet: null });
 
   useEffect(() => {
-    loadTeamPlannerMapping().then((data) => {
-      setTeamPlannerMapping(data);
-      setLoading(false);
+    let cancelled = false;
+    loadAugments(setId).then((result) => {
+      if (!cancelled) setState({ data: result, loadedSet: setId });
     });
-  }, []);
+    return () => { cancelled = true; };
+  }, [setId]);
 
-  return { teamPlannerMapping, loading };
+  return { augments: state.data, loading: state.loadedSet !== setId };
 }
 
-export function useGameData() {
-  const { champions, loading: champLoading } = useChampions();
-  const { items, loading: itemsLoading } = useItems();
-  const { traits, loading: traitsLoading } = useTraits();
-  const { augments, loading: augLoading } = useAugments();
-  const { teamPlannerMapping, loading: tpLoading } = useTeamPlannerMapping();
+export function useTeamPlannerMapping(setId: SetId = DEFAULT_SET) {
+  const [state, setState] = useState<{ data: TeamPlannerEntry[]; loadedSet: string | null }>({ data: [], loadedSet: null });
+
+  useEffect(() => {
+    let cancelled = false;
+    loadTeamPlannerMapping(setId).then((result) => {
+      if (!cancelled) setState({ data: result, loadedSet: setId });
+    });
+    return () => { cancelled = true; };
+  }, [setId]);
+
+  return { teamPlannerMapping: state.data, loading: state.loadedSet !== setId };
+}
+
+export function useGameData(setId: SetId = DEFAULT_SET) {
+  const { champions, loading: champLoading } = useChampions(setId);
+  const { items, loading: itemsLoading } = useItems(setId);
+  const { traits, loading: traitsLoading } = useTraits(setId);
+  const { augments, loading: augLoading } = useAugments(setId);
+  const { teamPlannerMapping, loading: tpLoading } = useTeamPlannerMapping(setId);
+
+  // 스케일링 데이터 로드 (전투 시뮬레이션용)
+  useEffect(() => {
+    loadScalingData(setId);
+  }, [setId]);
 
   return {
     champions,
