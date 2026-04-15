@@ -9,7 +9,7 @@
     {
       "name": "파멸자",
       "apiName": "TFT17_VexUniqueTrait",
-      "desc": "전투 시작: 모든 적에게 파멸 표식을 남깁니다.<br><br>각 전투에서 적이 처음으로 피해를 입으면 파멸 표식이 소모되고 해당 적의 공격력과 주문력을 @ADAP1@%만큼 강탈해 가장 강한 아군 벡스에게 부여합니다.",
+      "desc": "전투 시작: 모든 적에게 파멸 표식을 남깁니다.각 전투에서 적이 처음으로 피해를 입으면 파멸 표식이 소모되고 해당 적의 공격력과 주문력을 ?%만큼 강탈해 가장 강한 아군 벡스에게 부여합니다.",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_17_Doomer.TFT_Set17.tex",
       "effects": [
         {
@@ -25,7 +25,7 @@
     {
       "name": "도전자",
       "apiName": "TFT17_ASTrait",
-      "desc": "아군이 공격 속도를 @TeamwideAS*100@% 얻습니다. 도전자는 추가 공격 속도를 얻습니다. 대상이 사망하면 새로운 대상에게 돌진하며 @BurstDuration@초 동안 공격 속도 상승 효과가 @BurstPercent*100@% 증가합니다.<br><br><row>(@MinUnits@) @AttackSpeedPercent*100@% %i:scaleAS%</row><br><row>(@MinUnits@) @AttackSpeedPercent*100@% %i:scaleAS%</row><br><row>(@MinUnits@) @AttackSpeedPercent*100@% %i:scaleAS%</row><br><row>(@MinUnits@) @AttackSpeedPercent*100@% %i:scaleAS%</row>",
+      "desc": "아군이 공격 속도를 10% 얻습니다. 도전자는 추가 공격 속도를 얻습니다. 대상이 사망하면 새로운 대상에게 돌진하며 2.5초 동안 공격 속도 상승 효과가 ?% 증가합니다.15% 15% 15% 15%",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_17_Challenger.TFT_Set17.tex",
       "effects": [
         {
@@ -88,7 +88,7 @@
     {
       "name": "별돌보미",
       "apiName": "TFT17_Stargazer_Wolf",
-      "desc": "별돌보미는 게임마다 다른 별자리를 그립니다. 이번 게임: <TFTStargazer>멧돼지</TFTStargazer><br>플레이어 대상 전투 승리 후 골드를 획득합니다. 강화된 칸에 있는 아군이 체력, 공격력, 주문력을 @Wolf_Health_Teamwide*100@% 얻습니다. 별돌보미는 능력치를 더 얻습니다.<br>(획득한 골드: @TFTUnitProperty.trait:TFT17_Stargazer_Wolf_TotalGold@)<br><expandRow>(@MinUnits@) @Wolf_Gold@골드, @Wolf_Health*100@% %i:scaleHealth%, @Wolf_ADAP@% %i:scaleAD%%i:scaleAP%</expandRow><br><rules>플레이어 레벨이 오를 때마다 더 많은 칸이 드러납니다.</rules>",
+      "desc": "별돌보미는 게임마다 다른 별자리를 그립니다. 이번 게임: 멧돼지플레이어 대상 전투 승리 후 골드를 획득합니다. 강화된 칸에 있는 아군이 체력, 공격력, 주문력을 8% 얻습니다. 별돌보미는 능력치를 더 얻습니다.(획득한 골드: ?)?골드, ?% , ?% 플레이어 레벨이 오를 때마다 더 많은 칸이 드러납니다.",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_17_Stargazer.TFT_Set17.tex",
       "effects": [
         {
@@ -144,7 +144,7 @@
     {
       "name": "복제자",
       "apiName": "TFT17_APTrait",
-      "desc": "복제자 스킬은 감소된 효과로 한 번 더 발동됩니다.<br><br><expandRow>(@MinUnits@) @Effectiveness*100@% 위력</expandRow>",
+      "desc": "복제자 스킬은 감소된 효과로 한 번 더 발동됩니다.?% 위력",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_17_Replicator.TFT_Set17.tex",
       "effects": [
         {
@@ -168,7 +168,7 @@
     {
       "name": "선봉대",
       "apiName": "TFT17_ShieldTank",
-      "desc": "선봉대가 보호막이 씌워진 동안 내구력을 @DamageReductionPct*100@% 얻습니다. <br><br>전투 시작 시 및 체력 @HealthThreshold*100@%: @ShieldDuration@초 동안 최대 체력 비례 보호막을 얻습니다.<br><br><row>(@MinUnits@) 최대 체력의 @ShieldPercentAmount*100@%</row><br><row>(@MinUnits@) 최대 체력의 @ShieldPercentAmount*100@%</row><br><row>(@MinUnits@) 최대 체력의 @ShieldPercentAmount*100@%<br>보호막이 씌워진 동안 @EnhancedDurability*100@% %i:scaleDR%</row>",
+      "desc": "선봉대가 보호막이 씌워진 동안 내구력을 5% 얻습니다. 전투 시작 시 및 체력 50%: 10초 동안 최대 체력 비례 보호막을 얻습니다.최대 체력의 16%최대 체력의 16%최대 체력의 16%보호막이 씌워진 동안 8%",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_12_Vanguard.TFT_Set12.tex",
       "effects": [
         {
@@ -212,7 +212,7 @@
     {
       "name": "초능력",
       "apiName": "TFT17_PsyOps",
-      "desc": "모든 아군에게 장착시킬 수 있는 초능력 아이템을 획득합니다.<br><br><row>(@MinUnits@) @TFTUnitProperty.trait:TFT17_PsyOps_Item1@ 획득</row><br><row>(@MinUnits@) @TFTUnitProperty.trait:TFT17_PsyOps_Item2@ 획득, 초능력 유닛이 초능력 아이템 장착 시 추가 효과 획득</row><br><br><br>",
+      "desc": "모든 아군에게 장착시킬 수 있는 초능력 아이템을 획득합니다.? 획득? 획득, 초능력 유닛이 초능력 아이템 장착 시 추가 효과 획득",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_17_PsyOps.TFT_Set17.tex",
       "effects": [
         {
@@ -236,7 +236,7 @@
     {
       "name": "말살자",
       "apiName": "TFT17_JhinUniqueTrait",
-      "desc": "적의 방어력 및 마법 저항력이 @PctResists*100@% 감소합니다.",
+      "desc": "적의 방어력 및 마법 저항력이 ?% 감소합니다.",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_17_Singularity.TFT_Set17.tex",
       "effects": [
         {
@@ -252,7 +252,7 @@
     {
       "name": "시간 균열자",
       "apiName": "TFT17_Timebreaker",
-      "desc": "<row>(@MinUnits@) 패배 시 무료 새로고침 획득. 승리 시 시간 코어에 경험치 저장 (스테이지에 비례)</row><br><row>(@MinUnits@) 또한 아군이 공격 속도 @AttackSpeed*100@% 획득</row><br><row>(@MinUnits@) 또한 시간 균열자가 추가로 공격 속도 @TimebreakerAdditionalAS*100@% 획득</row><br><br><rules>패배 시 새로고침: @TFTUnitProperty.:TFT17_Timebreaker_NumRerollsTooltip@<br>승리 시 경험치: @TFTUnitProperty.:TFT17_Timebreaker_NumXPTooltip@</rules>",
+      "desc": "패배 시 무료 새로고침 획득. 승리 시 시간 코어에 경험치 저장 (스테이지에 비례)또한 아군이 공격 속도 25% 획득또한 시간 균열자가 추가로 공격 속도 ?% 획득패배 시 새로고침: ?승리 시 경험치: ?",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_17_Timebreaker.TFT_Set17.tex",
       "effects": [
         {
@@ -290,7 +290,7 @@
     {
       "name": "습격자",
       "apiName": "TFT17_MeleeTrait",
-      "desc": "아군이 모든 피해 흡혈을 @TeamwideBonus*100@% 얻습니다. 습격자가 모든 피해 흡혈, 공격력을 더 얻고 모든 피해 흡혈 초과 회복량이 보호막으로 전환됩니다. (최대 체력의 @MaxPercentHealthShield*100@%까지)<br><br><row>(@MinUnits@) @Omnivamp*100@% %i:scaleSV%, @AD*100@% %i:scaleAD%</row><br><row>(@MinUnits@) @Omnivamp*100@% %i:scaleSV%, @AD*100@% %i:scaleAD%</row><br><row>(@MinUnits@) @Omnivamp*100@% %i:scaleSV%, @AD*100@% %i:scaleAD%.</row>",
+      "desc": "아군이 모든 피해 흡혈을 ?% 얻습니다. 습격자가 모든 피해 흡혈, 공격력을 더 얻고 모든 피해 흡혈 초과 회복량이 보호막으로 전환됩니다. (최대 체력의 25%까지)5% , 20% 5% , 20% 5% , 20% .",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_16_Slayer.tex",
       "effects": [
         {
@@ -354,7 +354,7 @@
     {
       "name": "동물특공대",
       "apiName": "TFT17_AnimaSquad",
-      "desc": "플레이어 대상 전투에서 패배하면 기술을 @TechPerCombat@ 얻으며, 연패 횟수의 @TechPerLoss@배만큼 더 많이 얻습니다. 또한 동물특공대 처치 관여마다 기술을 @TechPerKill@ 획득합니다.<br><br>동물특공대가 기술을 @TechBreakpoint@ 얻을 때마다 새로운 동물특공대 무기를 제작합니다. 해당 무기를 획득하거나, 기술을 모아 다음에 더 강력한 무기를 획득할 수 있습니다.<br><br><row>(@MinUnits@) 연구 시작! </row><br><row>(@MinUnits@) 플레이어 대상 전투 승리 후 전리품 획득!</row>",
+      "desc": "플레이어 대상 전투에서 패배하면 기술을 5 얻으며, 연패 횟수의 1배만큼 더 많이 얻습니다. 또한 동물특공대 처치 관여마다 기술을 1 획득합니다.동물특공대가 기술을 20 얻을 때마다 새로운 동물특공대 무기를 제작합니다. 해당 무기를 획득하거나, 기술을 모아 다음에 더 강력한 무기를 획득할 수 있습니다.연구 시작! 플레이어 대상 전투 승리 후 전리품 획득!",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_17_AnimaTech.TFT_Set17.tex",
       "effects": [
         {
@@ -394,7 +394,7 @@
     {
       "name": "운명술사",
       "apiName": "TFT17_Fateweaver",
-      "desc": "고유: 운명술사는 <TFTKeyword>정밀</TFTKeyword>을 가집니다.<br><br><row>(@MinUnits@) 스킬의 확률 효과에 <TFTKeyword>행운</TFTKeyword> 적용</row><br><row>(@MinUnits@) 치명타 확률 @CritChance*100@%, 치명타 피해량 @CritDamage@% 획득. 치명타 또한 <TFTKeyword>행운</TFTKeyword> 적용</row><br><br>{{TFT_Keyword_Precision}}<br><rules>행운: 두 번 시도하고 더 나은 결과를 선택합니다.</rules>",
+      "desc": "고유: 운명술사는 정밀을 가집니다.스킬의 확률 효과에 행운 적용치명타 확률 20%, 치명타 피해량 % 획득. 치명타 또한 행운 적용행운: 두 번 시도하고 더 나은 결과를 선택합니다.행운: 두 번 시도하고 더 나은 결과를 선택합니다.",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_17_Fateweaver.TFT_Set17.tex",
       "effects": [
         {
@@ -419,7 +419,7 @@
     {
       "name": "은하계 사냥꾼",
       "apiName": "TFT17_ZedUniqueTrait",
-      "desc": "제드는 침략자 제드 증강으로 획득할 수 있습니다.<br><br>분신이 하나 이상 살아있는 동안 제드가 추가 공격력을 @BonusAD*100@% 얻습니다.",
+      "desc": "제드는 침략자 제드 증강으로 획득할 수 있습니다.분신이 하나 이상 살아있는 동안 제드가 추가 공격력을 40% 얻습니다.",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_17_GalaxyHunter.TFT_Set17.tex",
       "effects": [
         {
@@ -435,7 +435,7 @@
     {
       "name": "보루",
       "apiName": "TFT17_ShenUniqueTrait",
-      "desc": "배치할 수 있는 유물을 소환합니다. 전투 시작 시 유물은 인접한 아군에게 최대 체력의 @PercentHealthShield*100@%에 해당하는 보호막과 @AttackSpeed*100@%의 공격 속도를 부여합니다.",
+      "desc": "배치할 수 있는 유물을 소환합니다. 전투 시작 시 유물은 인접한 아군에게 최대 체력의 10%에 해당하는 보호막과 10%의 공격 속도를 부여합니다.",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_17_Bulwark.TFT_Set17.tex",
       "effects": [
         {
@@ -454,7 +454,7 @@
     {
       "name": "지휘관",
       "apiName": "TFT17_SonaUniqueTrait",
-      "desc": "(@MinUnits@) 소나가 @RoundsPerMod@라운드마다 아군의 전투 시 행동 방식을 변경할 수 있는 무작위 지휘 모드를 제공합니다. 지휘 모드는 장착하지 않았더라도 플레이어 대상 전투 @RoundsPerMod@회 동안 지속됩니다.",
+      "desc": "소나가 3라운드마다 아군의 전투 시 행동 방식을 변경할 수 있는 무작위 지휘 모드를 제공합니다. 지휘 모드는 장착하지 않았더라도 플레이어 대상 전투 3회 동안 지속됩니다.",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_17_Commander.TFT_Set17.tex",
       "effects": [
         {
@@ -472,7 +472,7 @@
     {
       "name": "별돌보미",
       "apiName": "TFT17_Stargazer_Medallion",
-      "desc": "별돌보미는 게임마다 다른 별자리를 그립니다. 이번 게임: <TFTStargazer>메달</TFTStargazer><br><br><row>(@MinUnits@) 강화된 칸에 있는 아군이 피해 증폭을 @Medallion_DA@% 얻습니다. 이 효과는 아군 3성 유닛 하나당 @Medallion_IncreasePer3Star@% 증가합니다.</row><br><br>(현재 추가 효과: @TFTUnitProperty.trait:TFT17_Stargazer_Medallion_Increase@% %i:scaleDA%)<br><br><rules>플레이어 레벨이 오를 때마다 더 많은 칸이 드러납니다.</rules>",
+      "desc": "별돌보미는 게임마다 다른 별자리를 그립니다. 이번 게임: 메달강화된 칸에 있는 아군이 피해 증폭을 ?% 얻습니다. 이 효과는 아군 3성 유닛 하나당 ?% 증가합니다.(현재 추가 효과: ?% )플레이어 레벨이 오를 때마다 더 많은 칸이 드러납니다.",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_17_Stargazer.TFT_Set17.tex",
       "effects": [
         {
@@ -492,7 +492,7 @@
     {
       "name": "별돌보미",
       "apiName": "TFT17_Stargazer_Huntress",
-      "desc": "별돌보미는 게임마다 다른 별자리를 그립니다. 이번 게임: <TFTStargazer>여사냥꾼</TFTStargazer><br>전투 시작: 체력이 가장 높은 적에게 표식을 남깁니다. <br>강화된 칸에 있는 아군이 공격 속도를 @Huntress_AS_Teamwide*100@% 얻습니다. 강화된 칸에 있는 별돌보미는 능력치를 더 얻고 표식이 남은 적 사망 시 최대 체력의 @Huntress_Heal*100@%만큼 체력을 회복합니다.<br><row>(@MinUnits@) @Huntress_AS*100@% %i:scaleAS%, 표식 @NumMarks@개</row><br><row>(@MinUnits@) @Huntress_AS*100@% %i:scaleAS%, 표식 @NumMarks@개</row><br><row>(@MinUnits@) @Huntress_AS*100@% %i:scaleAS%, 표식 @NumMarks@개</row><br><rules>플레이어 레벨이 오를 때마다 더 많은 칸이 드러납니다.</rules>",
+      "desc": "별돌보미는 게임마다 다른 별자리를 그립니다. 이번 게임: 여사냥꾼전투 시작: 체력이 가장 높은 적에게 표식을 남깁니다. 강화된 칸에 있는 아군이 공격 속도를 ?% 얻습니다. 강화된 칸에 있는 별돌보미는 능력치를 더 얻고 표식이 남은 적 사망 시 최대 체력의 ?%만큼 체력을 회복합니다.?% , 표식 1개?% , 표식 1개?% , 표식 1개플레이어 레벨이 오를 때마다 더 많은 칸이 드러납니다.",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_17_Stargazer.TFT_Set17.tex",
       "effects": [
         {
@@ -533,7 +533,7 @@
     {
       "name": "신의 축복",
       "apiName": "Set17_CarouselMarket_EmpoweredHexTrait",
-      "desc": "@TFTUnitProperty.trait:TFT17_CarouselMarket_TraitTRAKey1@<br><br>@TFTUnitProperty.trait:TFT17_CarouselMarket_TraitTRAKey2@<br><br>@TFTUnitProperty.trait:TFT17_CarouselMarket_TraitTRAKey3@<br><br>@TFTUnitProperty.trait:TFT17_CarouselMarket_TraitTRAKey4@<br><br>@TFTUnitProperty.trait:TFT17_CarouselMarket_TraitTRAKey5@<br><br>@TFTUnitProperty.trait:TFT17_CarouselMarket_TraitTRAKey6@<br><br>@TFTUnitProperty.trait:TFT17_CarouselMarket_TraitTRAKey7@<br><br>@TFTUnitProperty.trait:TFT17_CarouselMarket_TraitTRAKey8@<br><br>@TFTUnitProperty.trait:TFT17_CarouselMarket_TraitTRAKey9@<br><br>@TFTUnitProperty.trait:TFT17_CarouselMarket_TraitTRAKey10@<br>",
+      "desc": "??????????",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_17_GodBlessed.TFT_Set17.tex",
       "effects": [
         {
@@ -547,7 +547,7 @@
     {
       "name": "별돌보미",
       "apiName": "TFT17_Stargazer_Serpent",
-      "desc": "별돌보미는 게임마다 다른 별자리를 그립니다. 이번 게임: <TFTStargazer>뱀</TFTStargazer><br>강화된 칸에 있는 아군이 내구력을 @Serpent_DR_Teamwide*100@% 얻습니다. 강화된 칸에 있는 별돌보미는 능력치를 더 얻고, 적을 중독시켜 적에게 입힌 피해량의 일부를 @Serpent_Duration@초에 걸쳐 마법 피해로 다시 입힙니다.<br><expandRow>(@MinUnits@) @Serpent_DR*100@% %i:scaleDR%, 중독 피해량 @Serpent_Poison*100@%</expandRow><br><rules>플레이어 레벨이 오를 때마다 더 많은 칸이 드러납니다.</rules>",
+      "desc": "별돌보미는 게임마다 다른 별자리를 그립니다. 이번 게임: 뱀강화된 칸에 있는 아군이 내구력을 ?% 얻습니다. 강화된 칸에 있는 별돌보미는 능력치를 더 얻고, 적을 중독시켜 적에게 입힌 피해량의 일부를 ?초에 걸쳐 마법 피해로 다시 입힙니다.?% , 중독 피해량 ?%플레이어 레벨이 오를 때마다 더 많은 칸이 드러납니다.",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_17_Stargazer.TFT_Set17.tex",
       "effects": [
         {
@@ -588,7 +588,7 @@
     {
       "name": "별돌보미",
       "apiName": "TFT17_Stargazer_Shield",
-      "desc": "별돌보미는 게임마다 다른 별자리를 그립니다. 이번 게임: <TFTStargazer>제단</TFTStargazer><br><row>(@MinUnits@) 챔피언이 사망하면 제단의 제물이 됩니다. 강화된 칸에 있는 아군이 체력을 @Shield_Health_Teamwide@%, 공격 속도를 @Shield_AS_Teamwide@% 얻습니다.<br>제물을 @Shield_NumDeaths@회 바치면 강화된 칸에 있는 별돌보미가 추가로 %i:scaleHealth%을 @Shield_CashoutHP@%, %i:scaleAS%를 @Shield_CashoutAS@% 얻습니다.<br>제물: (@TFTUnitProperty.trait:TFT17_Stargazer_Shield_Deaths@ / @Shield_NumDeaths@)</row><br><rules>플레이어 레벨이 오를 때마다 더 많은 칸이 드러납니다.</rules>",
+      "desc": "별돌보미는 게임마다 다른 별자리를 그립니다. 이번 게임: 제단챔피언이 사망하면 제단의 제물이 됩니다. 강화된 칸에 있는 아군이 체력을 ?%, 공격 속도를 ?% 얻습니다.제물을 ?회 바치면 강화된 칸에 있는 별돌보미가 추가로 을 ?%, 를 ?% 얻습니다.제물: (? / ?)플레이어 레벨이 오를 때마다 더 많은 칸이 드러납니다.",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_17_Stargazer.TFT_Set17.tex",
       "effects": [
         {
@@ -608,7 +608,7 @@
     {
       "name": "별돌보미",
       "apiName": "TFT17_Stargazer_Fountain",
-      "desc": "별돌보미는 게임마다 다른 별자리를 그립니다. 이번 게임: <TFTStargazer>우물</TFTStargazer><br><br>강화된 칸에 있는 아군이 마나 재생을 @Fountain_ManaRegen_Teamwide@ 얻습니다. 별돌보미는 능력치를 더 얻고 스킬로 체력이 가장 낮은 아군의 체력을 회복시킵니다.<br><br><row>(@MinUnits@) @Fountain_ManaRegen@ %i:TFTManaRegen%, 스킬 피해량의 @Fountain_HealPercent*100@%만큼 체력 회복</row><br><row>(@MinUnits@) @Fountain_ManaRegen@ %i:TFTManaRegen%, 스킬 피해량의 @Fountain_HealPercent*100@%만큼 체력 회복</row><br><br><rules>플레이어 레벨이 오를 때마다 더 많은 칸이 드러납니다.</rules>",
+      "desc": "별돌보미는 게임마다 다른 별자리를 그립니다. 이번 게임: 우물강화된 칸에 있는 아군이 마나 재생을 ? 얻습니다. 별돌보미는 능력치를 더 얻고 스킬로 체력이 가장 낮은 아군의 체력을 회복시킵니다.? , 스킬 피해량의 ?%만큼 체력 회복? , 스킬 피해량의 ?%만큼 체력 회복플레이어 레벨이 오를 때마다 더 많은 칸이 드러납니다.",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_17_Stargazer.TFT_Set17.tex",
       "effects": [
         {
@@ -636,7 +636,7 @@
     {
       "name": "불한당",
       "apiName": "TFT17_AssassinTrait",
-      "desc": "불한당이 공격력 및 주문력을 얻습니다. 체력이 처음 @HealthThreshold*100@% 아래로 떨어지면 그림자 속으로 숨어듭니다. 해당 불한당을 대상으로 지정하던 적은 주변 다른 유닛으로 대상을 변경하며, 탱커를 우선합니다.<br><br><row>(@MinUnits@) @AP@% %i:scaleAD% %i:scaleAP%</row><br><row>(@MinUnits@) @AP@% %i:scaleAD% %i:scaleAP%</row><br><row>(@MinUnits@) @AP@% %i:scaleAD% %i:scaleAP%</row><br><row>(@MinUnits@) @AP@% %i:scaleAD% %i:scaleAP%</row>",
+      "desc": "불한당이 공격력 및 주문력을 얻습니다. 체력이 처음 50% 아래로 떨어지면 그림자 속으로 숨어듭니다. 해당 불한당을 대상으로 지정하던 적은 주변 다른 유닛으로 대상을 변경하며, 탱커를 우선합니다.12% 12% 12% 12%",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_17_Rogue.TFT_Set17.tex",
       "effects": [
         {
@@ -688,7 +688,7 @@
     {
       "name": "암흑의 별",
       "apiName": "TFT17_DarkStar",
-      "desc": "<row>(@MinUnits@) 암흑의 별이 최대 체력이 @ExecuteHPPercent*100@% 이하인 적을 집어삼키는 블랙홀 생성</row><br><row>(@MinUnits@) 또한 @ADAP@% %i:scaleAD%%i:scaleAP% 획득</row><br><row>(@MinUnits@) 또한 가장 강한 암흑의 별 유닛이 초대질량 상태가 되어 암흑의 별 효과 @SupermassivePercentBonus*100@% 증가 및 소형 블랙홀 2개 생성</row><br><row>(@MinUnits@) 모든 암흑의 별이 초대질량 상태가 됨. 10레벨 달성 시 모두를 빨아들임 </row>",
+      "desc": "암흑의 별이 최대 체력이 ?% 이하인 적을 집어삼키는 블랙홀 생성또한 45% 획득또한 가장 강한 암흑의 별 유닛이 초대질량 상태가 되어 암흑의 별 효과 ?% 증가 및 소형 블랙홀 2개 생성모든 암흑의 별이 초대질량 상태가 됨. 10레벨 달성 시 모두를 빨아들임",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_17_DarkStar.TFT_Set17.tex",
       "effects": [
         {
@@ -740,7 +740,7 @@
     {
       "name": "태고족",
       "apiName": "TFT17_Primordian",
-      "desc": "<row>(@MinUnits@) 피해를 입히면 서로 다른 태고족 별 레벨에 따라 군체 유충 생성</row><br><row>(@MinUnits@) 군체 유충 @PercentMoreSwarmlings@% 추가 생성! 플레이어 대상 전투를 마칠 때마다 무작위 1단계 또는 2단계 챔피언 1명을 획득합니다. </row><br><br><rules>받은 피해량의 @DamageTakenPercentModifier*100@%가 입히는 피해량에 기여합니다.</rules>",
+      "desc": "피해를 입히면 서로 다른 태고족 별 레벨에 따라 군체 유충 생성군체 유충 ?% 추가 생성! 플레이어 대상 전투를 마칠 때마다 무작위 1단계 또는 2단계 챔피언 1명을 획득합니다. 받은 피해량의 ?%가 입히는 피해량에 기여합니다.",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_17_Primordian.TFT_Set17.tex",
       "effects": [
         {
@@ -770,7 +770,7 @@
     {
       "name": "우주 그루브",
       "apiName": "TFT17_SpaceGroove",
-      "desc": "<row>(@MinUnits@) 그루비안은 {{TFT17_SpaceGroove_TheGroove}} 상태 진입 가능. 그루브 상태인 동안 아군 그루비안 1명당 공격 속도 및 최대 체력 재생 증가</row><br><row>(@MinUnits@) 모든 그루비안이 전투 시작 시 @StartOfCombatDuration@초 동안 {{TFT17_SpaceGroove_TheGroove}} 상태가 됨</row><br><row>(@MinUnits@) {{TFT17_SpaceGroove_TheGroove}} 상태인 동안 매초 중첩되는 공격력 및 주문력 @ADAPPerSecond@% 획득</row><br><row>(@MinUnits@) 이 모든 효과가 @EffectBonus@% 증가!</row><br><row>(@MinUnits@) {{TFT17_SpaceGroove_Groove}}</row><br><br>{{TFT17_SpaceGroove_TheGroove}}: @TFTUnitProperty.:TFT17_SpaceGroove_AS*100@% %i:scaleAS%, @TFTUnitProperty.:TFT17_SpaceGroove_HealthRegen*100@% %i:scaleHPRegen%",
+      "desc": "그루비안은 그루브 상태 진입 가능. 그루브 상태인 동안 아군 그루비안 1명당 공격 속도 및 최대 체력 재생 증가모든 그루비안이 전투 시작 시 3초 동안 그루브 상태가 됨그루브 상태인 동안 매초 중첩되는 공격력 및 주문력 ?% 획득이 모든 효과가 ?% 증가!그루브그루브: ?% , ?%",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_17_SpaceGroove.TFT_Set17.tex",
       "effects": [
         {
@@ -830,7 +830,7 @@
     {
       "name": "중재자",
       "apiName": "TFT17_ADMIN",
-      "desc": "고유 신성 법률을 기록하여 선택된 원인이 발생했을 때 중재자에게 적용할 결과를 선택합니다.<br><br><row>(@MinUnits@) 법률의 원인과 결과 선택</row><br><row>(@MinUnits@) 결과가 더 강력해짐 </row>",
+      "desc": "고유 신성 법률을 기록하여 선택된 원인이 발생했을 때 중재자에게 적용할 결과를 선택합니다.법률의 원인과 결과 선택결과가 더 강력해짐",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_17_Arbiter.TFT_Set17.tex",
       "effects": [
         {
@@ -866,7 +866,7 @@
     {
       "name": "별돌보미",
       "apiName": "TFT17_Stargazer_Mountain",
-      "desc": "별돌보미는 게임마다 다른 별자리를 그립니다. 이번 게임: <TFTStargazer>산</TFTStargazer><br>플레이어 대상 전투 @Mountain_RoundsPerEmblem@회마다 별돌보미 상징을 획득합니다. 강화된 칸에 있는 별돌보미는 다양한 추가 효과를 얻습니다.<br>(남은 전투: @TFTUnitProperty.trait:TFT17_Stargazer_Mountain_CombatsRemaining@)<br><row>(@MinUnits@) 체력 @Mountain_Health*100@% 획득</row><br><row>(@MinUnits@) 또한 공격력 및 주문력 @Mountain_ADAP*100@% 획득</row><br><row>(@MinUnits@) 또한 방어력 및 마법 저항력 @Mountain_Resists@ 획득</row><br><row>(@MinUnits@) 또한 공격 속도 @Mountain_AS*100@% 획득</row><br><row>(@MinUnits@) 또한 내구력 @Mountain_DR*100@% 획득</row><br><row>(@MinUnits@) 또한 그 외 모든 추가 효과 @Mountain_StatIncrease*100@% 증가</row><br><rules>플레이어 레벨이 오를 때마다 더 많은 칸이 드러납니다.</rules>",
+      "desc": "별돌보미는 게임마다 다른 별자리를 그립니다. 이번 게임: 산플레이어 대상 전투 ?회마다 별돌보미 상징을 획득합니다. 강화된 칸에 있는 별돌보미는 다양한 추가 효과를 얻습니다.(남은 전투: ?)체력 ?% 획득또한 공격력 및 주문력 ?% 획득또한 방어력 및 마법 저항력 ? 획득또한 공격 속도 ?% 획득또한 내구력 ?% 획득또한 그 외 모든 추가 효과 ?% 증가플레이어 레벨이 오를 때마다 더 많은 칸이 드러납니다.",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_17_Stargazer.TFT_Set17.tex",
       "effects": [
         {
@@ -1018,7 +1018,7 @@
     {
       "name": "길잡이",
       "apiName": "TFT17_SummonTrait",
-      "desc": "길잡이는 전투를 돕는 별의 결속을 소환합니다.<br><br><row>(@MinUnits@) 비아 소환</row><br><row>(@MinUnits@) 바이엔 소환</row><br><row>(@MinUnits@) 비아와 바이엔의 결속 강화</row><br><br><rules>비아와 바이엔의 위력은 모든 길잡이 별 레벨 총합에 따라 증가합니다.</rules>",
+      "desc": "길잡이는 전투를 돕는 별의 결속을 소환합니다.비아 소환바이엔 소환비아와 바이엔의 결속 강화비아와 바이엔의 위력은 모든 길잡이 별 레벨 총합에 따라 증가합니다.",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_17_Shepherd.TFT_Set17.tex",
       "effects": [
         {
@@ -1044,7 +1044,7 @@
     {
       "name": "구원자",
       "apiName": "TFT17_RhaastUniqueTrait",
-      "desc": "<row>(@MinUnits@) 활성화된 고유 특성이 아닌 특성 하나당 아군이 공격 속도 @BonusOffensiveStat1*100@%/@BonusOffensiveStat2*100@%/@BonusOffensiveStat3*100@%, 방어력 및 마법 저항력 @BonusDefensiveStat1@/@BonusDefensiveStat2@/@BonusDefensiveStat3@ 획득</row><br><br>아군 전체 공격 속도: @TFTUnitProperty.trait:TFT17_RhaastUnique_OffensiveStatToGain@% %i:scaleAS%<br>아군 전체 방어력 및 마법 저항력: @TFTUnitProperty.trait:TFT17_RhaastUnique_DefensiveStatToGain@ %i:scaleArmor%%i:scaleMR%",
+      "desc": "활성화된 고유 특성이 아닌 특성 하나당 아군이 공격 속도 2%/3%/2.5%, 방어력 및 마법 저항력 3/5/4 획득아군 전체 공격 속도: ?% 아군 전체 방어력 및 마법 저항력: ?",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_17_Redeemer.TFT_Set17.tex",
       "effects": [
         {
@@ -1065,7 +1065,7 @@
     {
       "name": "싸움꾼",
       "apiName": "TFT17_HPTank",
-      "desc": "아군이 체력을 @TeamwideBonus*100@% 얻습니다. 싸움꾼은 능력치를 더 얻습니다.<br><br><expandRow>(@MinUnits@) 최대 체력 +@HealthBonus*100@%</expandRow>",
+      "desc": "아군이 체력을 ?% 얻습니다. 싸움꾼은 능력치를 더 얻습니다.최대 체력 +20%",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_Brawler.tex",
       "effects": [
         {
@@ -1100,7 +1100,7 @@
     {
       "name": "요새",
       "apiName": "TFT17_ResistTank",
-      "desc": "아군이 방어력 및 마법 저항력을 @TeamwideResists@ 얻습니다.<br><br>요새는 능력치를 더 얻습니다. 전투 시작 후 @Duration@초 동안, 요새는 추가 수치를 2배로 얻습니다.<br><br><row>(@MinUnits@) @BonusArmor@ %i:scaleArmor%%i:scaleMR%</row><br><row>(@MinUnits@) @BonusArmor@ %i:scaleArmor%%i:scaleMR%</row><br><row>(@MinUnits@) @BonusArmor@ %i:scaleArmor%%i:scaleMR%, 요새가 아닌 유닛이 @EnhancedTeamwideArmor@ %i:scaleArmor%%i:scaleMR% 추가 획득</row>",
+      "desc": "아군이 방어력 및 마법 저항력을 15 얻습니다.요새는 능력치를 더 얻습니다. 전투 시작 후 10초 동안, 요새는 추가 수치를 2배로 얻습니다.16 16 16 , 요새가 아닌 유닛이 20 추가 획득",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_9_Bastion.tex",
       "effects": [
         {
@@ -1147,7 +1147,7 @@
     {
       "name": "정령족",
       "apiName": "TFT17_Astronaut",
-      "desc": "정령족은 정령을 끌어들여 정령다운 방식으로 정령족 스킬을 강화합니다. 또한 추가 체력을 얻습니다.<br><br><row>(@MinUnits@) @Meeps@ %i:set14AmpIcon%, @BonusHealth@ %i:scaleHealth%</row><br><row>(@MinUnits@) @Meeps@ %i:set14AmpIcon%, @BonusHealth@ %i:scaleHealth%</row><br><row>(@MinUnits@) @Meeps@ %i:set14AmpIcon%, @BonusHealth@ %i:scaleHealth%. 대기석에 복제 슬롯을 생성합니다. 복제 슬롯에 배치한 챔피언의 복제가 완료되면 골드와 1성 복사본을 획득합니다.</row><br><row>(@MinUnits@) @Meeps@ %i:set14AmpIcon%, @BonusHealth@ %i:scaleHealth% 정령군주 넷 소환!</row><br><br><rules>복제 시간 = 챔피언 단계</rules>",
+      "desc": "정령족은 정령을 끌어들여 정령다운 방식으로 정령족 스킬을 강화합니다. 또한 추가 체력을 얻습니다.? , 100 ? , 100 ? , 100 . 대기석에 복제 슬롯을 생성합니다. 복제 슬롯에 배치한 챔피언의 복제가 완료되면 골드와 1성 복사본을 획득합니다.? , 100 정령군주 넷 소환!복제 시간 = 챔피언 단계",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_17_Astronaut.TFT_Set17.tex",
       "effects": [
         {
@@ -1191,7 +1191,7 @@
     {
       "name": "전달자",
       "apiName": "TFT17_ManaTrait",
-      "desc": "고유: 전달자가 모든 요소로부터 얻는 마나가 @InnateManaGain*100@% 증가합니다.<br><br>아군이 마나 재생을 얻습니다. 전달자는 능력치를 더 얻습니다.<br><br><expandRow>(@MinUnits@) @TeamManaRegen@ %i:TFTManaRegen% | @ChannelerManaRegen@ %i:TFTManaRegen%</expandRow><br><br>",
+      "desc": "고유: 전달자가 모든 요소로부터 얻는 마나가 15% 증가합니다.아군이 마나 재생을 얻습니다. 전달자는 능력치를 더 얻습니다.? | ?",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_17_Channeler.TFT_Set17.tex",
       "effects": [
         {
@@ -1239,7 +1239,7 @@
     {
       "name": "메카",
       "apiName": "TFT17_Mecha",
-      "desc": "고유: 메카 유닛은 궁극의 형태로 변신할 수 있으며, 변신 시 스킬이 업그레이드되고 체력을 @TransformedPercentHealth*100@% 얻습니다. 변신한 메카는 2개의 팀 슬롯을 차지하며 메카 특성 중첩 2개로 간주됩니다.<br><br><row>(@MinUnits@) 에너지 전지: 메카가 %i:scaleAD%%i:scaleAP% @AP@% 획득</row><br><row>(@MinUnits@) 과출력 전지: %i:scaleAD%%i:scaleAP% @AP@%로 증가</row><br><row>(@MinUnits@) 정밀 엔지니어링: 최대 팀 규모 +@TeamSize@</row><br><br><rules>메카 변신기를 사용해 메카 유닛의 형태를 전환하세요.</rules>",
+      "desc": "고유: 메카 유닛은 궁극의 형태로 변신할 수 있으며, 변신 시 스킬이 업그레이드되고 체력을 ?% 얻습니다. 변신한 메카는 2개의 팀 슬롯을 차지하며 메카 특성 중첩 2개로 간주됩니다.에너지 전지: 메카가 20% 획득과출력 전지: 20%로 증가정밀 엔지니어링: 최대 팀 규모 +1메카 변신기를 사용해 메카 유닛의 형태를 전환하세요.",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_17_Mecha.TFT_Set17.tex",
       "effects": [
         {
@@ -1280,7 +1280,7 @@
     {
       "name": "최신상",
       "apiName": "TFT17_GravesTrait",
-      "desc": "전투에 참여한 후 무기고를 열어 가장 강한 아군 그레이브즈를 위한 영구적인 업그레이드를 구매합니다.<br><br>업그레이드 @NumberOfUpgradesBeforeRoundCostIncrease@회마다 다음 업그레이드에 필요한 라운드 수가 하나씩 증가합니다.<br><br><rules>다음 업그레이드: @TFTUnitProperty.trait:TFT17_GravesTrait_RoundsUntilUpgrade@라운드 후</rules>",
+      "desc": "전투에 참여한 후 무기고를 열어 가장 강한 아군 그레이브즈를 위한 영구적인 업그레이드를 구매합니다.업그레이드 4회마다 다음 업그레이드에 필요한 라운드 수가 하나씩 증가합니다.다음 업그레이드: ?라운드 후",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_17_FactoryNew.TFT_Set17.tex",
       "effects": [
         {
@@ -1296,7 +1296,7 @@
     {
       "name": "별돌보미",
       "apiName": "TFT17_Stargazer",
-      "desc": "별돌보미는 게임마다 다른 별자리를 그립니다.<br><br>강화된 칸에 있는 별돌보미는 다양한 추가 효과를 얻으며, (@MinUnits@) 별돌보미부터 활성화됩니다.<br><br><rules>플레이어 레벨이 오를 때마다 더 많은 칸이 드러납니다.</rules>",
+      "desc": "별돌보미는 게임마다 다른 별자리를 그립니다.강화된 칸에 있는 별돌보미는 다양한 추가 효과를 얻으며, 별돌보미부터 활성화됩니다.플레이어 레벨이 오를 때마다 더 많은 칸이 드러납니다.",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_17_Stargazer.TFT_Set17.tex",
       "effects": [
         {
@@ -1564,7 +1564,7 @@
     {
       "name": "여행자",
       "apiName": "TFT17_FlexTrait",
-      "desc": "전투 시작: 아군 탱커가 @ShieldDuration@초 동안 보호막을 얻습니다. 그 외 아군이 피해 증폭을 얻습니다. <br><br>여행자는 능력치를 두 배로 얻습니다.<br><br><expandRow>(@MinUnits@) 보호막 @ShieldHP@, @BonusDA*100@% %i:scaleDA%</expandRow><br>",
+      "desc": "전투 시작: 아군 탱커가 15초 동안 보호막을 얻습니다. 그 외 아군이 피해 증폭을 얻습니다. 여행자는 능력치를 두 배로 얻습니다.보호막 175, 9%",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_17_Voyager.TFT_Set17.tex",
       "effects": [
         {
@@ -1627,7 +1627,7 @@
     {
       "name": "파티광",
       "apiName": "TFT17_BlitzcrankUniqueTrait",
-      "desc": "전투당 1회 체력이 @HealthThreshold*100@% 아래로 떨어지면 대상으로 지정할 수 없는 상태가 되고 수리를 시작해 매초 최대 체력의 @PercentHealthHeal*100@%만큼 체력을 회복합니다. 체력을 모두 회복하거나 다른 아군이 없을 경우 전투에 복귀합니다. 체력이 모두 회복된 경우, 전투가 끝날 때까지 블리츠크랭크가 {{TFT17_SpaceGroove_TheGroove}} 상태가 되며 불청객 기본 지속 효과 번개 발사 속도가 네 배 빨라집니다.",
+      "desc": "전투당 1회 체력이 45% 아래로 떨어지면 대상으로 지정할 수 없는 상태가 되고 수리를 시작해 매초 최대 체력의 15%만큼 체력을 회복합니다. 체력을 모두 회복하거나 다른 아군이 없을 경우 전투에 복귀합니다. 체력이 모두 회복된 경우, 전투가 끝날 때까지 블리츠크랭크가 그루브 상태가 되며 불청객 기본 지속 효과 번개 발사 속도가 네 배 빨라집니다.",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_17_PartyAnimal.TFT_Set17.tex",
       "effects": [
         {
@@ -1644,7 +1644,7 @@
     {
       "name": "N.O.V.A.",
       "apiName": "TFT17_DRX",
-      "desc": "<row>(@MinUnits@) 전투 시작 @TeamAttackDelay@초 후 N.O.V.A. 유닛이 챔피언에 따라 아군에게 힘의 고조 부여</row><br><row>(@MinUnits@) 타격 선택기 획득. 힘의 고조 시 선택한 N.O.V.A. 유닛 타격 발동</row><br><br><ShowIf.TFT17_DRX_HasAatrox><status>아트록스:</status> 아군이 입히는 피해가 적에게 @ShredAndSunder*100@% <TFTKeyword>파쇄</TFTKeyword> 및 <TFTKeyword>파열</TFTKeyword> 적용</ShowIf.TFT17_DRX_HasAatrox><ShowIfNot.TFT17_DRX_HasAatrox><TFTGuildInactive>아트록스: 적 파쇄 및 파열 적용</TFTGuildInactive></ShowIfNot.TFT17_DRX_HasAatrox><br><ShowIf.TFT17_DRX_HasCaitlyn><status>케이틀린:</status> 아군 공격 속도 @AS*100@% 증가</ShowIf.TFT17_DRX_HasCaitlyn><ShowIfNot.TFT17_DRX_HasCaitlyn><TFTGuildInactive>케이틀린: 공격 속도 증가</TFTGuildInactive></ShowIfNot.TFT17_DRX_HasCaitlyn><br><ShowIf.TFT17_DRX_HasAkali><status>아칼리:</status> 아군 <TFTKeyword>정밀</TFTKeyword> 획득</ShowIf.TFT17_DRX_HasAkali><ShowIfNot.TFT17_DRX_HasAkali><TFTGuildInactive>아칼리: 아군 정밀 획득</TFTGuildInactive></ShowIfNot.TFT17_DRX_HasAkali><br><ShowIf.TFT17_DRX_HasMaokai><status>마오카이:</status> 아군 최대 체력 @Heal*100@% 회복</ShowIf.TFT17_DRX_HasMaokai><ShowIfNot.TFT17_DRX_HasMaokai><TFTGuildInactive>마오카이: 아군 체력 회복</TFTGuildInactive></ShowIfNot.TFT17_DRX_HasMaokai><br><ShowIf.TFT17_DRX_HasKindred><status>킨드레드:</status> 가장 강한 탱커에게 <TFTBonus>@ShieldValue@</TFTBonus>초 동안 보호막 부여</ShowIf.TFT17_DRX_HasKindred><ShowIfNot.TFT17_DRX_HasKindred><TFTGuildInactive>킨드레드: 아군 보호막 부여</TFTGuildInactive></ShowIfNot.TFT17_DRX_HasKindred><br><ShowIf.TFT17_DRX_HasEmblem><status>상징:</status> 아군이 중첩되는 @BonusTrueDamage*100@% 추가 고정 피해 입힘</ShowIf.TFT17_DRX_HasEmblem><ShowIfNot.TFT17_DRX_HasEmblem><TFTGuildInactive>상징: 추가 고정 피해 입힘</TFTGuildInactive></ShowIfNot.TFT17_DRX_HasEmblem>",
+      "desc": "전투 시작 6초 후 N.O.V.A. 유닛이 챔피언에 따라 아군에게 힘의 고조 부여타격 선택기 획득. 힘의 고조 시 선택한 N.O.V.A. 유닛 타격 발동아트록스: 아군이 입히는 피해가 적에게 30% 파쇄 및 파열 적용아트록스: 적 파쇄 및 파열 적용케이틀린: 아군 공격 속도 20% 증가케이틀린: 공격 속도 증가아칼리: 아군 정밀 획득아칼리: 아군 정밀 획득마오카이: 아군 최대 체력 12% 회복마오카이: 아군 체력 회복킨드레드: 가장 강한 탱커에게 800초 동안 보호막 부여킨드레드: 아군 보호막 부여상징: 아군이 중첩되는 10% 추가 고정 피해 입힘상징: 추가 고정 피해 입힘",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_17_NOVA.TFT_Set17.tex",
       "effects": [
         {
@@ -1678,7 +1678,7 @@
     {
       "name": "예언자",
       "apiName": "TFT17_TahmKenchUniqueTrait",
-      "desc": "@Rounds@라운드마다 탐 켄치가 보상을 제공합니다!<br><br>남은 라운드: @TFTUnitProperty.trait:TFT17_TahmKench_RoundsRemaining@<br>마지막 보상: @TFTUnitProperty.trait:TFT17_TahmKench_LastReward@",
+      "desc": "?라운드마다 탐 켄치가 보상을 제공합니다!남은 라운드: ?마지막 보상: ?",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_12_Arcana.TFT_Set12.tex",
       "effects": [
         {
@@ -1694,7 +1694,7 @@
     {
       "name": "저격수",
       "apiName": "TFT17_RangedTrait",
-      "desc": "저격수가 피해 증폭을 얻습니다. 멀리 떨어진 적을 대상으로 수치가 증가합니다.<br><br><row>(@MinUnits@) @PercentDamageIncrease@% %i:scaleDA%, 칸 하나당 +@PerHexIncrease@% %i:scaleDA%</row><br><row>(@MinUnits@) @PercentDamageIncrease@% %i:scaleDA%, 칸 하나당 +@PerHexIncrease@% %i:scaleDA%</row><br><row>(@MinUnits@) @PercentDamageIncrease@% %i:scaleDA%, 칸 하나당 +@PerHexIncrease@% %i:scaleDA%</row>",
+      "desc": "저격수가 피해 증폭을 얻습니다. 멀리 떨어진 적을 대상으로 수치가 증가합니다.18% , 칸 하나당 +2% 18% , 칸 하나당 +2% 18% , 칸 하나당 +2%",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_6_Sniper.tex",
       "effects": [
         {
@@ -1729,7 +1729,7 @@
     {
       "name": "신성 결투가",
       "apiName": "TFT17_FioraUniqueTrait",
-      "desc": "전투 승리 시 입힌 플레이어 피해량의 @PlayerOmnivamp*100@%만큼 전략가 체력을 회복합니다.<br><br>피오라는 1대1 대결에서 항상 승리합니다.",
+      "desc": "전투 승리 시 입힌 플레이어 피해량의 ?%만큼 전략가 체력을 회복합니다.피오라는 1대1 대결에서 항상 승리합니다.",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_17_DivineDuelist.TFT_Set17.tex",
       "effects": [
         {
@@ -1748,7 +1748,7 @@
     {
       "name": "어둠의 여인",
       "apiName": "TFT17_MorganaUniqueTrait",
-      "desc": "아군이 스킬로 받는 피해량이 @UntransformedAbilityDA*100@% 감소합니다. 모르가나가 어둠의 형상일 때는 이 수치가 @TransformedAbilityDA*100@%로 증가합니다.",
+      "desc": "아군이 스킬로 받는 피해량이 ?% 감소합니다. 모르가나가 어둠의 형상일 때는 이 수치가 ?%로 증가합니다.",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_17_DarkLady.TFT_Set17.tex",
       "effects": [
         {
