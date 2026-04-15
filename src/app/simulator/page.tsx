@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { Suspense, useState, useMemo, useCallback } from 'react';
 import { DndContext, DragOverlay, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { useGameData } from '@/hooks/useGameData';
+import { useActiveSet } from '@/hooks/useActiveSet';
 import { simulateCombat } from '@/lib/simulator/engine/combatLoop';
 import { PlacedChampion, axialToOffset, offsetToAxial, CombatResult, CombatLog } from '@/types';
 import { TICKS_PER_SECOND, BOARD_COLS } from '@/lib/simulator/models/constants';
@@ -32,11 +33,21 @@ import AugmentSlots from '@/components/builder/AugmentSlots';
 import AugmentSelector from '@/components/builder/AugmentSelector';
 import AugmentDetailPopup from '@/components/builder/AugmentDetailPopup';
 import PiltoverModulePanel from '@/components/builder/PiltoverModulePanel';
+import MfModeSelector from '@/components/builder/MfModeSelector';
 
 type ItemFilterTab = 'all' | 'component' | 'combined' | 'artifact' | 'emblem' | 'radiant';
 
 export default function SimulatorPage() {
-  const { champions, items, traits, augments, teamPlannerMapping, loading } = useGameData();
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center h-[60vh] text-gray-500">로딩 중...</div>}>
+      <SimulatorContent />
+    </Suspense>
+  );
+}
+
+function SimulatorContent() {
+  const activeSet = useActiveSet();
+  const { champions, items, traits, augments, teamPlannerMapping, loading } = useGameData(activeSet);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
   );
@@ -49,6 +60,11 @@ export default function SimulatorPage() {
     updatePlayerTeam: tm.updatePlayerTeam,
     updateEnemyTeam: tm.updateEnemyTeam,
     handleEquipItem: tm.handleEquipItem,
+    onChampionPlaced: (team, index, champion) => {
+      if (champion.apiName === 'TFT17_MissFortune') {
+        tm.setPendingMfPlacement({ team, index });
+      }
+    },
   });
 
   // Champion/Item pool state
@@ -346,20 +362,14 @@ export default function SimulatorPage() {
                     onRemoveItem={(itemIdx) => tm.handleRemoveItem(tm.selectedUnit!.team, tm.selectedUnit!.index, itemIdx)}
                     onRemoveVoidItem={() => tm.handleRemoveVoidItem(tm.selectedUnit!.team, tm.selectedUnit!.index)}
                     onRemoveUnit={() => tm.handleRemoveUnit(tm.selectedUnit!.team, tm.selectedUnit!.index)}
+                    onMfModeChange={(mode) => tm.handleMfModeChange(tm.selectedUnit!.team, tm.selectedUnit!.index, mode)}
+                    onPermanentStackChange={(value) => tm.handlePermanentStackChange(tm.selectedUnit!.team, tm.selectedUnit!.index, value)}
                   />
                 </div>
               )}
 
               {/* Left: Both Synergy panels + Selected unit (desktop) */}
               <div className="order-3 lg:order-1 lg:w-52 lg:shrink-0 space-y-3">
-                <SynergyPanel activeTraits={tm.playerTraits} team="player" items={items} piltoverModules={tm.playerPiltoverModules} bilgewaterStats={tm.playerBilgewaterStats} ioniaPath={tm.playerIoniaPath} onIoniaPathChange={tm.setPlayerIoniaPath} />
-                <PiltoverModulePanel
-                  modules={tm.playerPiltoverModules}
-                  allItems={items}
-                  activeTraits={tm.playerTraits}
-                  onAddModule={(item) => tm.handleAddPiltoverModule('player', item)}
-                  onRemoveModule={(idx) => tm.handleRemovePiltoverModule('player', idx)}
-                />
                 <SynergyPanel activeTraits={tm.enemyTraits} team="enemy" items={items} piltoverModules={tm.enemyPiltoverModules} bilgewaterStats={tm.enemyBilgewaterStats} ioniaPath={tm.enemyIoniaPath} onIoniaPathChange={tm.setEnemyIoniaPath} />
                 <PiltoverModulePanel
                   modules={tm.enemyPiltoverModules}
@@ -367,6 +377,14 @@ export default function SimulatorPage() {
                   activeTraits={tm.enemyTraits}
                   onAddModule={(item) => tm.handleAddPiltoverModule('enemy', item)}
                   onRemoveModule={(idx) => tm.handleRemovePiltoverModule('enemy', idx)}
+                />
+                <SynergyPanel activeTraits={tm.playerTraits} team="player" items={items} piltoverModules={tm.playerPiltoverModules} bilgewaterStats={tm.playerBilgewaterStats} ioniaPath={tm.playerIoniaPath} onIoniaPathChange={tm.setPlayerIoniaPath} />
+                <PiltoverModulePanel
+                  modules={tm.playerPiltoverModules}
+                  allItems={items}
+                  activeTraits={tm.playerTraits}
+                  onAddModule={(item) => tm.handleAddPiltoverModule('player', item)}
+                  onRemoveModule={(idx) => tm.handleRemovePiltoverModule('player', idx)}
                 />
                 {tm.selectedUnit && tm.selectedPlaced && (
                   <div className="hidden lg:block">
@@ -380,6 +398,8 @@ export default function SimulatorPage() {
                       onRemoveItem={(itemIdx) => tm.handleRemoveItem(tm.selectedUnit!.team, tm.selectedUnit!.index, itemIdx)}
                       onRemoveVoidItem={() => tm.handleRemoveVoidItem(tm.selectedUnit!.team, tm.selectedUnit!.index)}
                       onRemoveUnit={() => tm.handleRemoveUnit(tm.selectedUnit!.team, tm.selectedUnit!.index)}
+                      onMfModeChange={(mode) => tm.handleMfModeChange(tm.selectedUnit!.team, tm.selectedUnit!.index, mode)}
+                      onPermanentStackChange={(value) => tm.handlePermanentStackChange(tm.selectedUnit!.team, tm.selectedUnit!.index, value)}
                     />
                   </div>
                 )}
@@ -705,6 +725,17 @@ export default function SimulatorPage() {
             </div>
           </div>
         )}
+
+        {/* MF mode selection popup */}
+        <MfModeSelector
+          isOpen={tm.pendingMfPlacement !== null}
+          onSelect={(mode) => {
+            if (tm.pendingMfPlacement) {
+              tm.handleMfModeChange(tm.pendingMfPlacement.team, tm.pendingMfPlacement.index, mode);
+            }
+          }}
+          onClose={() => tm.setPendingMfPlacement(null)}
+        />
 
         {/* Champion picker modal (for cell click) */}
         <Modal isOpen={tm.showPicker} onClose={() => tm.setShowPicker(false)} title="챔피언 선택">

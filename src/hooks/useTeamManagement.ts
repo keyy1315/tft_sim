@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { PlacedChampion, HexCoord, RawChampion, RawItem, RawAugment } from '@/types';
+import { PlacedChampion, HexCoord, RawChampion, RawItem, RawAugment, MfMode, PERMANENT_STACK_CONFIG } from '@/types';
 import { BOARD_COLS, DEFAULT_STAR_LEVEL } from '@/lib/simulator/models/constants';
 import { resolveTraits } from '@/lib/simulator/systems/trait';
 import { canEquipItem, canAddPiltoverModule, isVoidMutation } from '@/lib/simulator/systems/item';
@@ -192,7 +192,10 @@ export function useTeamManagement({ traits }: UseTeamManagementArgs) {
   const [showPicker, setShowPicker] = useState(false);
   const [selectedUnit, setSelectedUnit] = useState<{ team: 'player' | 'enemy'; index: number } | null>(null);
 
-  // Synergy calculation
+  // MF mode selection popup state
+  const [pendingMfPlacement, setPendingMfPlacement] = useState<{ team: 'player' | 'enemy'; index: number } | null>(null);
+
+  // Synergy calculation (pass mfMode for trait substitution)
   const playerTraits = useMemo(() => resolveTraits(playerTeam, traits), [playerTeam, traits]);
   const enemyTraits = useMemo(() => resolveTraits(enemyTeam, traits), [enemyTeam, traits]);
 
@@ -229,13 +232,36 @@ export function useTeamManagement({ traits }: UseTeamManagementArgs) {
     if (!selectedCell) return;
     const team = selectedCellTeam;
     const setTeam = team === 'player' ? updatePlayerTeam : updateEnemyTeam;
+    const isMf = champion.apiName === 'TFT17_MissFortune';
+    const currentLen = (team === 'player' ? playerTeam : enemyTeam).length;
     setTeam(prev => [...prev, {
       champion,
       position: selectedCell,
       starLevel: DEFAULT_STAR_LEVEL,
       items: [],
+      ...(isMf ? { mfMode: null } : {}),
     }]);
     setShowPicker(false);
+    if (isMf) {
+      // syncTeam may append auto-units, but MF index is always at currentLen
+      setPendingMfPlacement({ team, index: currentLen });
+    }
+  };
+
+  const handleMfModeChange = (team: 'player' | 'enemy', index: number, mode: MfMode) => {
+    const setTeam = team === 'player' ? updatePlayerTeam : updateEnemyTeam;
+    setTeam(prev => prev.map((p, i) => i === index ? { ...p, mfMode: mode } : p));
+    setPendingMfPlacement(null);
+  };
+
+  const handlePermanentStackChange = (team: 'player' | 'enemy', index: number, value: number) => {
+    const setTeam = team === 'player' ? updatePlayerTeam : updateEnemyTeam;
+    setTeam(prev => prev.map((p, i) => {
+      if (i !== index) return p;
+      const config = PERMANENT_STACK_CONFIG[p.champion.apiName];
+      if (!config) return p;
+      return { ...p, permanentStacks: { type: config.type, value: Math.max(0, Math.min(value, config.max)) } };
+    }));
   };
 
   const handleEquipItem = (team: 'player' | 'enemy', index: number, item: RawItem) => {
@@ -432,6 +458,12 @@ export function useTeamManagement({ traits }: UseTeamManagementArgs) {
     playerTraits,
     enemyTraits,
     selectedPlaced,
+
+    // MF mode
+    pendingMfPlacement,
+    setPendingMfPlacement,
+    handleMfModeChange,
+    handlePermanentStackChange,
 
     // Handlers
     handleCellClick,

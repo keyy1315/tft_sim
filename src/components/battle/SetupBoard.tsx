@@ -1,6 +1,6 @@
 'use client';
 
-import { PlacedChampion, HexCoord, axialToOffset, offsetToAxial, COST_COLORS } from '@/types';
+import { PlacedChampion, HexCoord, axialToOffset, offsetToAxial, COST_COLORS, MF_MODE_CONFIG } from '@/types';
 import { getChampionImage, getItemImage } from '@/data/imageMap';
 import { BOARD_COLS } from '@/lib/simulator/models/constants';
 import { hexPoints, hexCenter, HEX_R, HEX_W, HEX_H, PAD } from './HexBoard';
@@ -243,6 +243,26 @@ export default function SetupBoard({
                   stroke="#fff" strokeWidth={2} paintOrder="stroke">
                   {'★'.repeat(result.placed.starLevel)}
                 </text>
+              )}
+              {result && result.placed.mfMode && (
+                (() => {
+                  const modeIcon = MF_MODE_CONFIG[result.placed.mfMode].icon;
+                  const badgeSize = 14;
+                  const bx = cx + HEX_R * 0.45;
+                  const by = cy - HEX_R + 24;
+                  const patId = `mf-mode-${row}-${col}`;
+                  return (
+                    <g>
+                      <defs>
+                        <pattern id={patId} width="1" height="1" patternContentUnits="objectBoundingBox">
+                          <image href={modeIcon} width="1" height="1" preserveAspectRatio="xMidYMid slice" />
+                        </pattern>
+                      </defs>
+                      <circle cx={bx} cy={by} r={badgeSize / 2 + 1} fill="#111827" />
+                      <circle cx={bx} cy={by} r={badgeSize / 2} fill={`url(#${patId})`} stroke="#fbbf24" strokeWidth={0.8} />
+                    </g>
+                  );
+                })()
               )}
               {result && result.placed.items.length > 0 && (
                 <g>
