@@ -644,23 +644,23 @@ function SimulatorContent() {
               />
             )}
 
-            {/* Tick events */}
-            {replay.tickEvents.length > 0 && (
-              <div className="bg-[#111827] rounded-lg border border-gray-800 p-2">
-                <div className="text-[10px] font-bold text-gray-500 mb-1">현재 틱 이벤트</div>
-                <div className="space-y-0.5 font-mono text-[10px] max-h-[80px] overflow-y-auto">
-                  {replay.tickEvents.map((e, i) => (
-                    <div key={i} className={
-                      e.type === 'death' ? 'text-red-400' :
-                      e.type === 'ability' ? 'text-purple-400' :
-                      e.type === 'move' ? 'text-gray-600' : 'text-gray-400'
-                    }>
-                      {e.message}
-                    </div>
-                  ))}
-                </div>
+            {/* Tick events — 고정 높이로 깜빡임 방지 */}
+            <div className="bg-[#111827] rounded-lg border border-gray-800 p-2" style={{ minHeight: 60 }}>
+              <div className="text-[10px] font-bold text-gray-500 mb-1">현재 틱 이벤트</div>
+              <div className="space-y-0.5 font-mono text-[10px] h-[60px] overflow-y-auto">
+                {replay.tickEvents.length > 0 ? replay.tickEvents.map((e, i) => (
+                  <div key={`${e.tick}-${i}`} className={
+                    e.type === 'death' ? 'text-red-400' :
+                    e.type === 'ability' ? 'text-purple-400' :
+                    e.type === 'move' ? 'text-gray-600' : 'text-gray-400'
+                  }>
+                    {e.message}
+                  </div>
+                )) : (
+                  <div className="text-gray-600 text-[10px]">대기 중...</div>
+                )}
               </div>
-            )}
+            </div>
 
             {/* Full battle log — 고정 높이 컨테이너 */}
             <div className="p-4 bg-[#111827] rounded-xl border border-gray-800" style={{ minHeight: 280 }}>
