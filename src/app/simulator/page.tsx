@@ -662,8 +662,8 @@ function SimulatorContent() {
               </div>
             )}
 
-            {/* Full battle log */}
-            <div className="p-4 bg-[#111827] rounded-xl border border-gray-800">
+            {/* Full battle log — 고정 높이 컨테이너 */}
+            <div className="p-4 bg-[#111827] rounded-xl border border-gray-800" style={{ minHeight: 280 }}>
               <div className="flex items-center gap-2 mb-3">
                 <h4 className="text-sm font-bold text-gray-300">전투 로그</h4>
                 <div className="flex gap-1 ml-auto">
@@ -793,6 +793,12 @@ function SimulatorContent() {
           )}
         </DragOverlay>
       </div>
+
+      {/* Footer */}
+      <footer className="mt-8 py-4 border-t border-gray-800 text-center text-xs text-gray-600">
+        <p>TFT Combat Simulator &mdash; Set 17: Space Gods</p>
+        <p className="mt-1">Data from CommunityDragon &middot; Not affiliated with Riot Games</p>
+      </footer>
     </DndContext>
   );
 }
