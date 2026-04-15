@@ -65,22 +65,25 @@ function TraitTooltipContent({ at }: { at: ActiveTrait }) {
       <div className="space-y-0.5">
         {at.trait.effects.map((eff) => {
           const isActive = at.activeEffect === eff;
-          const vars = Object.entries(eff.variables).filter(([, v]) => v != null);
+          const vars = Object.entries(eff.variables)
+            .filter(([, v]) => v != null)
+            .filter(([key]) => !key.startsWith('{'));
+          const fmtVal = (val: number | null) => {
+            if (val == null) return '';
+            return val > 0 && val < 1 ? `${(val * 100).toFixed(0)}%` : String(Math.round(val * 100) / 100);
+          };
           return (
             <div
               key={eff.minUnits}
               className={`text-xs px-1.5 py-0.5 rounded ${isActive ? 'bg-yellow-900/40 text-yellow-300 font-bold' : 'text-gray-400'}`}
             >
               <span className="mr-1.5">({eff.minUnits})</span>
-              {vars
-                .filter(([key]) => !key.startsWith('{'))
-                .map(([key, val]) => {
-                const label = VARIABLE_KR[key] ?? key;
-                const display = typeof val === 'number' && val > 0 && val < 1
-                  ? `${(val * 100).toFixed(0)}%`
-                  : typeof val === 'number' ? String(Math.round(val * 100) / 100) : String(val);
-                return <span key={key} className="mr-2">{label}: {display}</span>;
-              })}
+              {vars.length > 0
+                ? vars.map(([key, val]) => (
+                    <span key={key} className="mr-2">{VARIABLE_KR[key] ?? key}: {fmtVal(val as number)}</span>
+                  ))
+                : <span className="text-gray-500">{isActive ? '활성' : ''}</span>
+              }
             </div>
           );
         })}
