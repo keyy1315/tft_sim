@@ -680,10 +680,13 @@ function SimulatorContent() {
                   ))}
                 </div>
               </div>
-              <div className="max-h-[200px] overflow-y-auto space-y-0.5 font-mono text-xs">
+              <div
+                className="h-[200px] overflow-y-auto space-y-0.5 font-mono text-xs"
+                ref={(el) => { if (el) el.scrollTop = el.scrollHeight; }}
+              >
                 {filteredLogs.map((log, i) => (
                   <div
-                    key={i}
+                    key={`${log.tick}-${i}`}
                     className={`py-0.5 px-2 rounded ${
                       log.type === 'death' ? 'bg-red-900/20 text-red-400' :
                       log.type === 'ability' ? 'text-purple-400' :
