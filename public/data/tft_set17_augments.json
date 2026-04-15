@@ -3,7 +3,7 @@
     "set": 17,
     "source": "CommunityDragon TFT ko_kr.json",
     "extractedAt": "2026-04-15T05:04:01.035Z",
-    "totalAugments": 80
+    "totalAugments": 79
   },
   "augments": [
     {
@@ -1327,25 +1327,6 @@
         "{d02ae323}",
         "{d12ae4b6}",
         "{db57774d}"
-      ]
-    },
-    {
-      "name": "치명적 성공",
-      "apiName": "TFT_Augment_ComponentQuestGlove",
-      "desc": "연습용 장갑 1개를 획득합니다. 아군의 기본 공격이 @StacksForReward@회 치명타로 적중하면 @NumDelayed@개 더 획득합니다.<br><br><tftitemrules>치명타 횟수: @TFTUnitProperty.item:TFT_Augment_ComponentQuest_Tracker@</tftitemrules>",
-      "effects": {
-        "NumDelayed": 2,
-        "StacksForReward": 320,
-        "{1ed24481}": 1
-      },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/CriticalSuccess_I.TFT_Set16.tex",
-      "associatedTraits": [],
-      "tags": [
-        "{d11fd6d5}",
-        "{b72bd3bf}",
-        "{d22ae649}",
-        "{d12ae4b6}",
-        "{8fba48a3}"
       ]
     },
     {
