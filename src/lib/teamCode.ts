@@ -1,7 +1,7 @@
 import { RawChampion, TeamPlannerEntry, TeamCodeDecodeResult, PlacedChampion, offsetToAxial, mapGameRole } from '@/types';
 import { BOARD_COLS } from '@/lib/simulator/models/constants';
 
-const SUFFIX = 'TFTSet16';
+const SUFFIX = 'TFTSet17';
 const TOTAL_BITS = 128;
 const HEADER_BITS = 10;
 const SLOT_BITS = 12;

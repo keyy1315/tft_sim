@@ -1,0 +1,1749 @@
+{
+  "meta": {
+    "set": 16,
+    "source": "CommunityDragon TFT ko_kr.json",
+    "extractedAt": "2026-03-18T00:00:00.000Z",
+    "totalTraits": 53
+  },
+  "traits": [
+    {
+      "name": "독성 친구들",
+      "apiName": "TFT16_Teamup_SingedTeemo",
+      "desc": "2성 티모를 획득합니다. 신지드가 피해를 입히면 티모의 중독 지속시간이 초기화되며, 티모가 피해를 입히면 신지드가 주문력을 얻습니다. 각 플레이어 대상 전투 후 티모를 획득합니다.",
+      "icon": "ASSETS/UX/TraitIcons/TeamUp_Trait_PoisonPals.TFT_Set16.png",
+      "effects": [
+        {
+          "maxUnits": 25000,
+          "minUnits": 2,
+          "style": 4,
+          "variables": {
+            "SingedAPGain": 2,
+            "TeemoDamageReq": 100
+          }
+        }
+      ]
+    },
+    {
+      "name": "초월체",
+      "apiName": "TFT16_XerathUnique",
+      "desc": "전투를 마칠 때마다 초월체 주술이 상점에 등장합니다. 주술은 강력한 효과를 제공하며 골드로 구매할 수 있습니다.@TFTUnitProperty.trait:TFT16_XerathUnique_PurchasedCharmDisplay@<br><br><ShowIfCustom.Set=TFTSetEventCT>배불뚝이의 보물에서는 신실한 추종자 주술이 7레벨 전까지 등장하지 않습니다.</ShowIfCustom.Set=TFTSetEventCT>",
+      "icon": "ASSETS/UX/TraitIcons/Trait_Icon_12_Ascendant.TFT_Set12.png",
+      "effects": [
+        {
+          "maxUnits": 25000,
+          "minUnits": 1,
+          "style": 4,
+          "variables": {}
+        }
+      ]
+    },
+    {
+      "name": "프렐요드",
+      "apiName": "TFT16_Freljord",
+      "desc": "얼어붙은 포탑을 소환합니다. 얼어붙은 포탑 전방에 있는 아군은 체력을, 후방에 있는 아군은 피해 증폭을 얻습니다. <br><br>프렐요드는 @FreljordBonus*100@% 더 얻습니다.<br><br><row>(@MinUnits@) @HealthPercent*100@% %i:scaleHealth%, @DA*100@% %i:scaleDA%</row><br><row>(@MinUnits@) 포탑 2개. @HealthPercent*100@% %i:scaleHealth%, @DA*100@% %i:scaleDA%</row><br><row>(@MinUnits@) 포탑이 파괴될 때 적을 @StunDuration@초 동안 기절시킴. @HealthPercent*100@% %i:scaleHealth%, @DA*100@% %i:scaleDA%</row>",
+      "icon": "ASSETS/UX/TraitIcons/Trait_Icon_16_Freljord.TFT_Set16.png",
+      "effects": [
+        {
+          "maxUnits": 4,
+          "minUnits": 3,
+          "style": 1,
+          "variables": {
+            "DA": 0.10000000149011612,
+            "FreljordBonus": 1.5,
+            "HealthPercent": 0.07999999821186066,
+            "StunDuration": null,
+            "{03c21e23}": null,
+            "{7dced3cd}": 1
+          }
+        },
+        {
+          "maxUnits": 6,
+          "minUnits": 5,
+          "style": 3,
+          "variables": {
+            "DA": 0.1599999964237213,
+            "FreljordBonus": 1.5,
+            "HealthPercent": 0.11999999731779099,
+            "StunDuration": null,
+            "{03c21e23}": 1,
+            "{7dced3cd}": 2
+          }
+        },
+        {
+          "maxUnits": 25000,
+          "minUnits": 7,
+          "style": 5,
+          "variables": {
+            "DA": 0.2199999988079071,
+            "FreljordBonus": 1.5,
+            "HealthPercent": 0.1599999964237213,
+            "StunDuration": 1.5,
+            "{03c21e23}": 1,
+            "{7dced3cd}": 2
+          }
+        }
+      ]
+    },
+    {
+      "name": "전쟁기계",
+      "apiName": "TFT16_Juggernaut",
+      "desc": "전쟁기계가 내구력을 얻습니다. 체력이 @HealthBreakpoint*100@% 이상일 경우 수치가 증가합니다. 전쟁기계가 사망하면 다른 전쟁기계가 최대 체력의 @HealRatio*100@%만큼 체력을 회복합니다.<br><br><expandRow>(@MinUnits@) @BaseDR*100@% 또는 @IncreasedDR*100@% %i:scaleDR%</expandRow>",
+      "icon": "ASSETS/UX/TraitIcons/Trait_Icon_16_Juggernaut.png",
+      "effects": [
+        {
+          "maxUnits": 3,
+          "minUnits": 2,
+          "style": 1,
+          "variables": {
+            "BaseDR": 0.18000000715255737,
+            "HealRatio": 0.05000000074505806,
+            "HealthBreakpoint": 0.5,
+            "IncreasedDR": 0.25
+          }
+        },
+        {
+          "maxUnits": 5,
+          "minUnits": 4,
+          "style": 3,
+          "variables": {
+            "BaseDR": 0.20000000298023224,
+            "HealRatio": 0.05000000074505806,
+            "HealthBreakpoint": 0.5,
+            "IncreasedDR": 0.30000001192092896
+          }
+        },
+        {
+          "maxUnits": 25000,
+          "minUnits": 6,
+          "style": 5,
+          "variables": {
+            "BaseDR": 0.25999999046325684,
+            "HealRatio": 0.05000000074505806,
+            "HealthBreakpoint": 0.5,
+            "IncreasedDR": 0.36000001430511475
+          }
+        }
+      ]
+    },
+    {
+      "name": "기동타격대",
+      "apiName": "TFT16_Rapidfire",
+      "desc": "아군이 공격 속도를 @TeamwideAS*100@% 얻습니다. 기동타격대는 대상 잃은 체력에 따라 추가 공격 속도를 얻습니다.<br><br><row>(@MinUnits@) @MinBonusAS*100@~@MaxBonusAS*100@% %i:scaleAS%</row><br><row>(@MinUnits@) @MinBonusAS*100@~@MaxBonusAS*100@% %i:scaleAS%</row><br><row>(@MinUnits@) @MinBonusAS*100@~@MaxBonusAS*100@% %i:scaleAS%</row><br><row>(@MinUnits@) @MinBonusAS*100@~@MaxBonusAS*100@% %i:scaleAS%</row>",
+      "icon": "ASSETS/UX/TraitIcons/Trait_Icon_16_Quickstriker.png",
+      "effects": [
+        {
+          "maxUnits": 2,
+          "minUnits": 2,
+          "style": 1,
+          "variables": {
+            "MaxBonusAS": 0.30000001192092896,
+            "MinBonusAS": 0.10000000149011612,
+            "TeamwideAS": 0.15000000596046448
+          }
+        },
+        {
+          "maxUnits": 3,
+          "minUnits": 3,
+          "style": 3,
+          "variables": {
+            "MaxBonusAS": 0.44999998807907104,
+            "MinBonusAS": 0.20000000298023224,
+            "TeamwideAS": 0.15000000596046448
+          }
+        },
+        {
+          "maxUnits": 4,
+          "minUnits": 4,
+          "style": 3,
+          "variables": {
+            "MaxBonusAS": 0.6000000238418579,
+            "MinBonusAS": 0.30000001192092896,
+            "TeamwideAS": 0.15000000596046448
+          }
+        },
+        {
+          "maxUnits": 25000,
+          "minUnits": 5,
+          "style": 5,
+          "variables": {
+            "MaxBonusAS": 0.800000011920929,
+            "MinBonusAS": 0.4000000059604645,
+            "TeamwideAS": 0.15000000596046448
+          }
+        }
+      ]
+    },
+    {
+      "name": "원거리 사격",
+      "apiName": "TFT16_Longshot",
+      "desc": "원거리 사격이 피해 증폭을 얻고 멀리 떨어진 적에게 추가 피해를 입힙니다.<br><br><expandRow>(@MinUnits@) @BaseDamageAmp*100@% %i:scaleDA%+칸 하나당 @PercentDamageIncrease*100@%</expandRow>",
+      "icon": "ASSETS/UX/TraitIcons/Trait_Icon_16_Longshot.TFT_Set16.png",
+      "effects": [
+        {
+          "maxUnits": 2,
+          "minUnits": 2,
+          "style": 1,
+          "variables": {
+            "BaseDamageAmp": 0.18000000715255737,
+            "PercentDamageIncrease": 0.019999999552965164
+          }
+        },
+        {
+          "maxUnits": 3,
+          "minUnits": 3,
+          "style": 3,
+          "variables": {
+            "BaseDamageAmp": 0.23999999463558197,
+            "PercentDamageIncrease": 0.029999999329447746
+          }
+        },
+        {
+          "maxUnits": 4,
+          "minUnits": 4,
+          "style": 5,
+          "variables": {
+            "BaseDamageAmp": 0.2800000011920929,
+            "PercentDamageIncrease": 0.03999999910593033
+          }
+        },
+        {
+          "maxUnits": 25000,
+          "minUnits": 5,
+          "style": 5,
+          "variables": {
+            "BaseDamageAmp": 0.3199999928474426,
+            "PercentDamageIncrease": 0.05000000074505806
+          }
+        }
+      ]
+    },
+    {
+      "name": "토벌자",
+      "apiName": "TFT16_Vanquisher",
+      "desc": "토벌자의 스킬에 치명타가 적용될 수 있습니다. 또한 토벌자가 치명타 확률 및 치명타 피해량을 얻습니다.<br><br><expandRow>(@MinUnits@) @BaseCritChance@% %i:scaleCrit%, @CritDmg@% %i:scaleCritMult%</expandRow><br>",
+      "icon": "ASSETS/UX/TraitIcons/Trait_Icon_16_Vanquisher.png",
+      "effects": [
+        {
+          "maxUnits": 2,
+          "minUnits": 2,
+          "style": 1,
+          "variables": {
+            "BaseCritChance": 15,
+            "CritDmg": 15
+          }
+        },
+        {
+          "maxUnits": 3,
+          "minUnits": 3,
+          "style": 3,
+          "variables": {
+            "BaseCritChance": 20,
+            "CritDmg": 20
+          }
+        },
+        {
+          "maxUnits": 4,
+          "minUnits": 4,
+          "style": 3,
+          "variables": {
+            "BaseCritChance": 25,
+            "CritDmg": 25
+          }
+        },
+        {
+          "maxUnits": 25000,
+          "minUnits": 5,
+          "style": 5,
+          "variables": {
+            "BaseCritChance": 30,
+            "CritDmg": 30
+          }
+        }
+      ]
+    },
+    {
+      "name": "관리인",
+      "apiName": "TFT16_Caretaker",
+      "desc": "플레이어 대상 전투 승리 후 무작위 룬테라 유닛 1명을 획득합니다. 전투 패배 후 무료 새로고침을 얻습니다. 새로고침 횟수는 스테이지에 따라 증가합니다.<br><br><rules>패배 시 새로고침 횟수: @TFTUnitProperty.:TFT16_Caretaker_NumRerolls@</rules>",
+      "icon": "ASSETS/UX/TraitIcons/Trait_Icon_16_Caretaker.TFT_Set16.png",
+      "effects": [
+        {
+          "maxUnits": 25000,
+          "minUnits": 1,
+          "style": 4,
+          "variables": {}
+        }
+      ]
+    },
+    {
+      "name": "이쉬탈",
+      "apiName": "TFT16_Explorer",
+      "desc": "<row>(@MinUnits@) 퀘스트를 완료하여 태양파편(%i:Set16Ixtal%)을 모으고 이를 사용해 전리품 획득!</row><br><row>(@MinUnits@) 각 플레이어 대상 전투 시작 시 플레이어 체력 2 회복</row><br><row>(@MinUnits@) 전투 승리 후 %i:Set16Ixtal% @BonusClues@개 발견 및 추가 전리품 발굴</row><br><br><rules>전투가 끝나기 전에 퀘스트를 완료하면 다음 라운드 시작 시 새로운 퀘스트가 주어집니다.</rules>",
+      "icon": "ASSETS/UX/TraitIcons/Trait_Icon_16_Ixtal.TFT_Set16.png",
+      "effects": [
+        {
+          "maxUnits": 4,
+          "minUnits": 3,
+          "style": 1,
+          "variables": {
+            "BonusHealth_Pairs": null,
+            "Heal": null
+          }
+        },
+        {
+          "maxUnits": 6,
+          "minUnits": 5,
+          "style": 3,
+          "variables": {
+            "BonusHealth_Pairs": 250,
+            "Heal": 2
+          }
+        },
+        {
+          "maxUnits": 25000,
+          "minUnits": 7,
+          "style": 5,
+          "variables": {
+            "BonusClues": 50,
+            "BonusHealth_Pairs": 250,
+            "Heal": 2
+          }
+        }
+      ]
+    },
+    {
+      "name": "학살자",
+      "apiName": "TFT16_Slayer",
+      "desc": "학살자가 모든 피해 흡혈 및 공격력을 얻습니다. 추가 공격력은 학살자가 잃은 체력에 비례해 @AmountIncrease*100@%까지 증가합니다.<br><br><expandRow>(@MinUnits@) @BonusAD*100@% %i:scaleAD%, @BonusOmnivamp*100@% %i:scaleSV%</expandRow><br>",
+      "icon": "ASSETS/UX/TraitIcons/Trait_Icon_16_Slayer.png",
+      "effects": [
+        {
+          "maxUnits": 3,
+          "minUnits": 2,
+          "style": 1,
+          "variables": {
+            "AmountIncrease": 0.5,
+            "BonusAD": 0.20000000298023224,
+            "BonusOmnivamp": 0.10000000149011612
+          }
+        },
+        {
+          "maxUnits": 5,
+          "minUnits": 4,
+          "style": 3,
+          "variables": {
+            "AmountIncrease": 0.5,
+            "BonusAD": 0.30000001192092896,
+            "BonusOmnivamp": 0.1599999964237213
+          }
+        },
+        {
+          "maxUnits": 25000,
+          "minUnits": 6,
+          "style": 5,
+          "variables": {
+            "AmountIncrease": 0.5,
+            "BonusAD": 0.4000000059604645,
+            "BonusOmnivamp": 0.20000000298023224
+          }
+        }
+      ]
+    },
+    {
+      "name": "비전 마법사",
+      "apiName": "TFT16_Sorcerer",
+      "desc": "아군이 주문력을 얻습니다. 비전 마법사는 더 얻습니다.<br><br><expandRow>(@MinUnits@) @AllyAP@% %i:scaleAP%, 비전 마법사에게 @BonusAP@% %i:scaleAP%</expandRow>",
+      "icon": "ASSETS/UX/TraitIcons/Trait_Icon_6_Arcanist.png",
+      "effects": [
+        {
+          "maxUnits": 3,
+          "minUnits": 2,
+          "style": 1,
+          "variables": {
+            "AllyAP": 15,
+            "BonusAP": 25
+          }
+        },
+        {
+          "maxUnits": 5,
+          "minUnits": 4,
+          "style": 3,
+          "variables": {
+            "AllyAP": 20,
+            "BonusAP": 50
+          }
+        },
+        {
+          "maxUnits": 25000,
+          "minUnits": 6,
+          "style": 5,
+          "variables": {
+            "AllyAP": 35,
+            "BonusAP": 70
+          }
+        }
+      ]
+    },
+    {
+      "name": "황제",
+      "apiName": "TFT16_Emperor",
+      "desc": "아지르가 2명의 병사를 배치합니다. 병사는 전장의 원하는 위치에 배치할 수 있지만, 움직이거나 공격할 수 없으며 아지르가 처치되면 사라집니다.",
+      "icon": "ASSETS/UX/TraitIcons/Trait_Icon_16_Emperor.TFT_Set16.png",
+      "effects": [
+        {
+          "maxUnits": 25000,
+          "minUnits": 1,
+          "style": 4,
+          "variables": {}
+        }
+      ]
+    },
+    {
+      "name": "별의 창조자",
+      "apiName": "TFT16_AurelionSolUnique",
+      "desc": "아우렐리온 솔의 별가루 획득량이 전장에 배치한 다른 타곤 한 종류당 @BonusStardustPerOneStar*100@/@BonusStardustPerTwoStar*100@/@BonusStardustPerThreeStar*100@% 증가합니다.<br><br><rules>현재 보너스: @TFTUnitProperty.:TFT16_AurelionSol_StarMod@%</rules>",
+      "icon": "ASSETS/UX/TraitIcons/Trait_Icon_16_StarForger.TFT_Set16.png",
+      "effects": [
+        {
+          "maxUnits": 25000,
+          "minUnits": 1,
+          "style": 4,
+          "variables": {
+            "BonusStardustPerOneStar": 0.25,
+            "BonusStardustPerThreeStar": 1,
+            "BonusStardustPerTwoStar": 0.30000001192092896
+          }
+        }
+      ]
+    },
+    {
+      "name": "용족",
+      "apiName": "TFT16_ShyvanaUnique",
+      "desc": "스킬 사용 시 쉬바나가 자신의 스킬을 화염 숨결로 교체합니다. 변신한 동안 모든 아군이 적의 스킬로부터 받는 피해가 @AbilityDamageReduction*100@% 감소합니다.",
+      "icon": "ASSETS/UX/TraitIcons/Trait_Icon_16_Dragonborn.TFT_Set16.png",
+      "effects": [
+        {
+          "maxUnits": 25000,
+          "minUnits": 1,
+          "style": 4,
+          "variables": {
+            "AbilityDamageReduction": 0.07999999821186066
+          }
+        }
+      ]
+    },
+    {
+      "name": "총잡이",
+      "apiName": "TFT16_Gunslinger",
+      "desc": "총잡이가 공격력을 얻으며, 기본 공격 @NumAttacks@회마다 추가 물리 피해를 입힙니다.<br><br><expandRow>(@MinUnits@) @AD*100@% %i:scaleAD%, @BonusDamage@의 추가 피해</expandRow>",
+      "icon": "ASSETS/UX/TraitIcons/Trait_Icon_16_Gunslinger.TFT_Set16.png",
+      "effects": [
+        {
+          "maxUnits": 3,
+          "minUnits": 2,
+          "style": 1,
+          "variables": {
+            "AD": 0.2199999988079071,
+            "BonusDamage": 100,
+            "NumAttacks": 4
+          }
+        },
+        {
+          "maxUnits": 25000,
+          "minUnits": 4,
+          "style": 5,
+          "variables": {
+            "AD": 0.4000000059604645,
+            "BonusDamage": 200,
+            "NumAttacks": 4
+          }
+        }
+      ]
+    },
+    {
+      "name": "마법공학기계",
+      "apiName": "TFT16_HexMech",
+      "desc": "조종사 칸을 1개 획득합니다. 전투 시작: 조종사 칸에 있는 유닛이 T-헥스로 뛰어들어 T-헥스에게 유닛 체력의 @PercentHealth*100@% 및 역할군과 별 레벨에 따라 추가 능력치를 부여합니다.<br><br><TFTBonus>탱커:</TFTBonus> 모든 피해 흡혈 +@Vamp1@/@Vamp2@/@Vamp3@%<br><TFTBonus>전사:</TFTBonus> 공격력 +@AD1@/@AD2@/@AD3@%<br><TFTBonus>원거리 딜러:</TFTBonus> 피해 증폭 +@Amp1@/@Amp2@/@Amp3@%<br><TFTBonus>마법사:</TFTBonus> 마나 재생 +@Mana1@/@Mana2@/@Mana3@<br><TFTBonus>암살자:</TFTBonus>치명타 확률 +@Crit1@/@Crit2@/@Crit3@%<br><br>사망 시 조종사가 T-헥스에서 탈출하며 주변 적을 밀어내고 @StunDuration@초 동안 기절시킵니다.",
+      "icon": "ASSETS/UX/TraitIcons/Trait_Icon_16_Hexmech.TFT_Set16.png",
+      "effects": [
+        {
+          "maxUnits": 25000,
+          "minUnits": 1,
+          "style": 4,
+          "variables": {
+            "AD1": 20,
+            "AD2": 30,
+            "AD3": 40,
+            "Amp1": 12,
+            "Amp2": 20,
+            "Amp3": 30,
+            "Crit1": 40,
+            "Crit2": 70,
+            "Crit3": 100,
+            "Mana1": 2,
+            "Mana2": 4,
+            "Mana3": 5,
+            "PercentHealth": 0.800000011920929,
+            "StunDuration": 1.5,
+            "Vamp1": 20,
+            "Vamp2": 30,
+            "Vamp3": 40,
+            "{99dbd967}": 0.5
+          }
+        }
+      ]
+    },
+    {
+      "name": "선택받은 늑대",
+      "apiName": "TFT16_Teamup_AmbessaKindred",
+      "desc": "킨드레드가 스킬 사용 시 암베사가 항상 죽음으로부터 보호받으며 보호받는 동안 공격력을 @AmbessaBonusAD*100@% 얻습니다.<br><br>암베사가 스킬 사용 시 적중한 모든 적을 늑대가 타격해 @WolfDamage*100@%의 피해를 입힙니다.",
+      "icon": "ASSETS/UX/TraitIcons/TeamUp_Trait_ChosenWolves.TFT_Set16.png",
+      "effects": [
+        {
+          "maxUnits": 25000,
+          "minUnits": 2,
+          "style": 4,
+          "variables": {
+            "AmbessaBonusAD": 0.4000000059604645,
+            "WolfDamage": 0.30000001192092896
+          }
+        }
+      ]
+    },
+    {
+      "name": "사슬파괴자",
+      "apiName": "TFT16_SylasTrait",
+      "desc": "사일러스가 3가지 스킬을 번갈아 사용합니다. 현재 가장 유용한 스킬을 선택하지만, 같은 스킬을 두 번 연속 사용할 수 없습니다.",
+      "icon": "ASSETS/UX/TraitIcons/Trait_Icon_16_Chainbreaker.TFT_Set16.png",
+      "effects": [
+        {
+          "maxUnits": 25000,
+          "minUnits": 1,
+          "style": 4,
+          "variables": {}
+        }
+      ]
+    },
+    {
+      "name": "영혼결속자",
+      "apiName": "TFT16_Soulbound",
+      "desc": "루시안과 세나는 함께 싸우며 어느 한쪽이 스킬을 사용할 때마다 자리를 바꿉니다. 각 챔피언은 고유 스킬을 갖습니다.<br><br>가장 강한 아군 영혼결속자가 생존하는 동안 아군에게 추가 효과를 부여합니다. 세나가 전장에 있는 동안 모든 아군이 피해량 감소를 @SennaDR*100@% 얻습니다. 루시안이 전장에 있는 동안 모든 아군이 피해 증폭을 @LucianDA*100@% 얻습니다.",
+      "icon": "ASSETS/UX/TraitIcons/Trait_Icon_16_Soulbound.TFT_Set16.png",
+      "effects": [
+        {
+          "maxUnits": 25000,
+          "minUnits": 1,
+          "style": 4,
+          "variables": {
+            "LucianDA": 0.07000000029802322,
+            "SennaDR": 0.07000000029802322
+          }
+        }
+      ]
+    },
+    {
+      "name": "필트오버",
+      "apiName": "TFT16_Piltover",
+      "desc": "전장 오른쪽에 발명품을 만듭니다. @InventionFireTime@초 후 발명품이 활성화되어 각 모듈을 발동시킵니다.<br><br><row>(@MinUnits@) 모듈 선택</row><br><row>(@MinUnits@) 두 번째 모듈 선택</row><br><row>(@MinUnits@) 세 번째 모듈 선택</row>",
+      "icon": "ASSETS/UX/TraitIcons/Trait_Icon_16_Piltover.TFT_Set16.png",
+      "effects": [
+        {
+          "maxUnits": 3,
+          "minUnits": 2,
+          "style": 1,
+          "variables": {
+            "InventionFireTime": 8
+          }
+        },
+        {
+          "maxUnits": 5,
+          "minUnits": 4,
+          "style": 3,
+          "variables": {
+            "InventionFireTime": 8
+          }
+        },
+        {
+          "maxUnits": 25000,
+          "minUnits": 6,
+          "style": 5,
+          "variables": {
+            "InventionFireTime": 8
+          }
+        }
+      ]
+    },
+    {
+      "name": "시간의 톱니바퀴",
+      "apiName": "TFT16_Teamup_EkkoZilean",
+      "desc": "<row>에코가 전투에 참여할 때마다 경험치를 @TOOLTIPONLYXP@ 얻습니다. 에코를 3성으로 업그레이드하면 질리언을 획득합니다.</row><br><row>에코의 강화된 기본 공격이 전파되어 가장 강한 아군 질리언에게 피해를 입은 모든 적에게 기존 피해량의 @DamageShare*100@%만큼 피해를 입힙니다.</row><br><br><br><br>",
+      "icon": "ASSETS/UX/TraitIcons/TeamUp_Trait_Timewinders.TFT_Set16.png",
+      "effects": [
+        {
+          "maxUnits": 1,
+          "minUnits": 1,
+          "style": 4,
+          "variables": {
+            "DamageShare": 0.10000000149011612,
+            "TOOLTIPONLYXP": 2
+          }
+        },
+        {
+          "maxUnits": 25000,
+          "minUnits": 2,
+          "style": 4,
+          "variables": {
+            "DamageShare": 0.10000000149011612,
+            "TOOLTIPONLYXP": 2
+          }
+        }
+      ]
+    },
+    {
+      "name": "다르킨",
+      "apiName": "TFT16_DarkinWeapon",
+      "desc": "<row>(@MinUnits@) 다르킨이 모든 피해 흡혈 @Vamp*100@% 획득</row><br><row>(@MinUnits@) 또한 내가 입힌 플레이어 피해량의 @TacticianPercent*100@%만큼 내 체력 회복</row><br><row>(@MinUnits@) 또한 다르킨이 체력을 @HealThreshold@ 회복할 때마다 가장 가까운 적 @EnemyNum@명에게 @Damage@의 마법 피해를 입힘</row>",
+      "icon": "ASSETS/UX/TraitIcons/Trait_Icon_16_Darkin.TFT_Set16.png",
+      "effects": [
+        {
+          "maxUnits": 1,
+          "minUnits": 1,
+          "style": 1,
+          "variables": {
+            "Damage": 333,
+            "EnemyNum": 2,
+            "HealThreshold": 600,
+            "TacticianPercent": 0.25,
+            "Vamp": 0.15000000596046448
+          }
+        },
+        {
+          "maxUnits": 2,
+          "minUnits": 2,
+          "style": 3,
+          "variables": {
+            "Damage": 333,
+            "EnemyNum": 2,
+            "HealThreshold": 600,
+            "TacticianPercent": 0.25,
+            "Vamp": 0.15000000596046448
+          }
+        },
+        {
+          "maxUnits": 25000,
+          "minUnits": 3,
+          "style": 5,
+          "variables": {
+            "Damage": 333,
+            "EnemyNum": 2,
+            "HealThreshold": 600,
+            "TacticianPercent": 0.25,
+            "Vamp": 0.15000000596046448
+          }
+        }
+      ]
+    },
+    {
+      "name": "영겁",
+      "apiName": "TFT16_KindredUnique",
+      "desc": "킨드레드가 같은 적을 3회 기본 공격할 때마다 늑대가 대상을 물어뜯어 @PercentDamageMult*100@%의 피해를 입힙니다.",
+      "icon": "ASSETS/UX/TraitIcons/Trait_Icon_5_Eternal.png",
+      "effects": [
+        {
+          "maxUnits": 25000,
+          "minUnits": 1,
+          "style": 4,
+          "variables": {
+            "PercentDamageMult": 3.25
+          }
+        }
+      ]
+    },
+    {
+      "name": "어둠의 아이",
+      "apiName": "TFT16_DarkChild",
+      "desc": "애니가 대기석에 티버를 소환합니다. 티버는 전장에 배치하고 아이템을 장착할 수 있지만, 팀 슬롯을 차지합니다. 티버의 별 레벨은 애니와 동일합니다.",
+      "icon": "ASSETS/UX/TraitIcons/Trait_Icon_16_DarkChild.TFT_Set16.png",
+      "effects": [
+        {
+          "maxUnits": 25000,
+          "minUnits": 1,
+          "style": 4,
+          "variables": {}
+        }
+      ]
+    },
+    {
+      "name": "세계의 종결자",
+      "apiName": "TFT16_AatroxUnique",
+      "desc": "아트록스가 자신 모든 피해 흡혈의 @OmnivampToADRatio*100@%만큼 공격력을 얻습니다.<br><br>첫 사망 시 잠시 대상으로 지정할 수 없는 상태가 되고 @HealDuration@초에 걸쳐 체력을 모두 회복합니다. 이후 아트록스의 최대 마나가 @ManaReduction@ 감소하고 내구력을 @Durability*100@% 얻습니다.",
+      "icon": "ASSETS/UX/TraitIcons/Trait_Icon_9_Darkin.png",
+      "effects": [
+        {
+          "maxUnits": 25000,
+          "minUnits": 1,
+          "style": 4,
+          "variables": {
+            "Durability": 0.20000000298023224,
+            "HealDuration": 2,
+            "ManaReduction": 10,
+            "{63ed7d87}": 2
+          }
+        }
+      ]
+    },
+    {
+      "name": "흡수자",
+      "apiName": "TFT16_KaisaUnique",
+      "desc": "카이사는 공격력과 주문력 중 어느 쪽이 높은지에 따라 스킬이 바뀝니다.",
+      "icon": "ASSETS/UX/TraitIcons/Trait_Icon_16_Assimilator.TFT_Set16.png",
+      "effects": [
+        {
+          "maxUnits": 25000,
+          "minUnits": 1,
+          "style": 4,
+          "variables": {}
+        }
+      ]
+    },
+    {
+      "name": "용 감시단",
+      "apiName": "TFT16_Teamup_JarvanShyvana",
+      "desc": "자르반 4세가 스킬을 사용하면 쉬바나가 @JarvanShieldShare*100@%의 보호막을 얻습니다. 쉬바나가 스킬을 사용하면 자르반 4세가 도약하며 반경 2칸에 방어력 및 마법 저항력의 @JarvanResistDamage1*100@/@JarvanResistDamage2*100@/@JarvanResistDamage3*100@/@JarvanResistDamage4*100@%에 해당하는 마법 피해를 입힙니다.",
+      "icon": "ASSETS/UX/TraitIcons/TeamUp_Trait_UncompromisingWill.TFT_Set16.png",
+      "effects": [
+        {
+          "maxUnits": 25000,
+          "minUnits": 2,
+          "style": 4,
+          "variables": {
+            "JarvanResistDamage1": 1,
+            "JarvanResistDamage2": 1,
+            "JarvanResistDamage3": 1.25,
+            "JarvanResistDamage4": 1.5,
+            "JarvanShieldShare": 0.75
+          }
+        }
+      ]
+    },
+    {
+      "name": "방해꾼",
+      "apiName": "TFT16_Magus",
+      "desc": "방해꾼의 스킬이 적중한 적을 <TFTKeyword>현혹</TFTKeyword>시킵니다. 방해꾼이 현혹된 적을 대상으로 추가 피해를 입힙니다.<br><br><expandRow>(@MinUnits@) @DamageAmp*100@% 추가 피해</expandRow><br><br><rules>현혹: 입히는 피해 @DamageReduction*100@% 감소</rules><br><br><br>",
+      "icon": "ASSETS/UX/TraitIcons/Trait_Icon_16_Disruptor.png",
+      "effects": [
+        {
+          "maxUnits": 3,
+          "minUnits": 2,
+          "style": 1,
+          "variables": {
+            "DamageAmp": 0.18000000715255737,
+            "DamageReduction": 0.10000000149011612
+          }
+        },
+        {
+          "maxUnits": 25000,
+          "minUnits": 4,
+          "style": 5,
+          "variables": {
+            "DamageAmp": 0.4000000059604645,
+            "DamageReduction": 0.10000000149011612
+          }
+        }
+      ]
+    },
+    {
+      "name": "공허",
+      "apiName": "TFT16_Void",
+      "desc": "공허 챔피언만 사용할 수 있는 변이를 획득합니다. 공허 챔피언이 공격 속도를 얻습니다.<br><br><row>(@MinUnits@) 변이 @NumMutations@개, @BonusAS*100@% %i:scaleAS%</row><br><row>(@MinUnits@) 변이 @NumMutations@개, @BonusAS*100@% %i:scaleAS%</row><br><row>(@MinUnits@) 변이 @NumMutations@개, @BonusAS*100@% %i:scaleAS%</row><br><row>(@MinUnits@) 변이가 폭주하여 위력 @SuperchargedMult*100@% 증가, @BonusAS*100@% %i:scaleAS%</row><br><br><rules>변이는 챔피언 한 명당 하나만 장착 가능합니다. 챔피언을 대기석에 놓으면 변이가 제거됩니다.</rules><br>",
+      "icon": "ASSETS/UX/TraitIcons/Trait_Icon_16_Void.TFT_Set16.png",
+      "effects": [
+        {
+          "maxUnits": 3,
+          "minUnits": 2,
+          "style": 1,
+          "variables": {
+            "BonusAS": 0.07999999821186066,
+            "NumMutations": 1,
+            "SuperchargedMult": null
+          }
+        },
+        {
+          "maxUnits": 5,
+          "minUnits": 4,
+          "style": 3,
+          "variables": {
+            "BonusAS": 0.18000000715255737,
+            "NumMutations": 2,
+            "{12afd090}": null
+          }
+        },
+        {
+          "maxUnits": 8,
+          "minUnits": 6,
+          "style": 5,
+          "variables": {
+            "BonusAS": 0.33000001311302185,
+            "NumMutations": 3,
+            "SuperchargedMult": null
+          }
+        },
+        {
+          "maxUnits": 25000,
+          "minUnits": 9,
+          "style": 5,
+          "variables": {
+            "BonusAS": 0.4000000059604645,
+            "NumMutations": 3,
+            "SuperchargedMult": 1
+          }
+        }
+      ]
+    },
+    {
+      "name": "룬 마법사",
+      "apiName": "TFT16_RuneMage",
+      "desc": "룬 마법사는 활성화된 모든 지역 특성 효과를 받지만 특성에 기여하지는 않습니다.<br><br>룬 마법사는 활성화된 지역 특성으로부터 룬의 힘을 얻어 자신의 스킬을 변경하고 고유한 방식으로 강화합니다.",
+      "icon": "ASSETS/UX/TraitIcons/Trait_Icon_16_RuneMage.TFT_Set16.png",
+      "effects": [
+        {
+          "maxUnits": 25000,
+          "minUnits": 1,
+          "style": 4,
+          "variables": {}
+        }
+      ]
+    },
+    {
+      "name": "우두머리",
+      "apiName": "TFT16_TheBoss",
+      "desc": "세트의 체력이 처음으로 @MaxHealthThreshold*100@% 아래로 떨어지면 전투에서 벗어나 윗몸일으키기를 합니다. 윗몸일으키기 1회당 최대 체력의 @HealPercent@%를 회복하고 공격 속도 및 이동 속도를 @AttackSpeedPercent@% 얻습니다.<br><br>체력을 모두 회복하면 강화된 상태로 전투에 복귀하며 기본 공격 및 스킬의 피해 유형이 모두 고정 피해로 전환됩니다. 모든 아군이 처치되면 전투에 즉시 복귀합니다.",
+      "icon": "ASSETS/UX/TraitIcons/Trait_Icon_4_Theboss.png",
+      "effects": [
+        {
+          "maxUnits": 25000,
+          "minUnits": 1,
+          "style": 4,
+          "variables": {
+            "AttackSpeedPercent": 60,
+            "HealPercent": 15,
+            "MaxHealthThreshold": 0.44999998807907104
+          }
+        }
+      ]
+    },
+    {
+      "name": "대식가",
+      "apiName": "TFT16_Glutton",
+      "desc": "준비 단계마다 한 번씩 탐 켄치에게 챔피언을 먹여 해당 챔피언의 역할군 및 별 레벨에 따라 체력, 공격 속도 또는 주문력 중 하나를 영구히 부여할 수 있습니다.<br><br><tftitemrules>대기석에 있는 아군을 탐 켄치 위로 드래그해 입을 벌릴 때까지 기다렸다가 놓으면 탐 켄치가 아군을 먹습니다.</tftitemrules><br><br>현재 능력치: @TFTUnitProperty.:TFT16_GluttonStat_HP@ %i:scaleHealth%, @TFTUnitProperty.:TFT16_GluttonStat_AS@% %i:scaleAS%, @TFTUnitProperty.:TFT16_GluttonStat_AP@% %i:scaleAP%",
+      "icon": "ASSETS/UX/TraitIcons/Trait_Icon_16_Glutton.TFT_Set16.png",
+      "effects": [
+        {
+          "maxUnits": 25000,
+          "minUnits": 1,
+          "style": 4,
+          "variables": {
+            "{6502b165}": 20,
+            "{72c78315}": 1.25
+          }
+        }
+      ]
+    },
+    {
+      "name": "기원자",
+      "apiName": "TFT16_Invoker",
+      "desc": "아군이 마나 재생을 @TeamBonusMana@ 얻습니다. 기원자는 모든 요소로부터 마나를 더 얻습니다.<br><br><expandRow>(@MinUnits@) 추가 마나 @PercentManaIncrease*100@%</expandRow>",
+      "icon": "ASSETS/UX/TraitIcons/Trait_Icon_16_Invoker.png",
+      "effects": [
+        {
+          "maxUnits": 3,
+          "minUnits": 2,
+          "style": 1,
+          "variables": {
+            "PercentManaIncrease": 0.25,
+            "TeamBonusMana": 1
+          }
+        },
+        {
+          "maxUnits": 25000,
+          "minUnits": 4,
+          "style": 5,
+          "variables": {
+            "PercentManaIncrease": 0.4000000059604645,
+            "TeamBonusMana": 1
+          }
+        }
+      ]
+    },
+    {
+      "name": "데마시아",
+      "apiName": "TFT16_Demacia",
+      "desc": "아군이 최대 체력의 @MaxHealthLost*100@%만큼 체력을 잃을 때마다 데마시아가 결집해 마나 소모량이 @ManaReductionPct*100@% 감소합니다. 데마시아가 방어력 및 마법 저항력을 얻습니다.<br><br><row>(@MinUnits@) @ArmorMR@ %i:scaleArmor%%i:scaleMR%</row><br><row>(@MinUnits@) @ArmorMR@ %i:scaleArmor%%i:scaleMR%</row><br><row>(@MinUnits@) @ArmorMR@ %i:scaleArmor%%i:scaleMR%. 결집 시 적을 강타해 대상 최대 체력의 @EnemyTrueDamage*100@%만큼 피해를 입힘</row><br><row>(@MinUnits@) @ArmorMR@ %i:scaleArmor%%i:scaleMR%. 데마시아를 위한 전투!</row><br>",
+      "icon": "ASSETS/UX/TraitIcons/Trait_Icon_16_Demacia.TFT_Set16.png",
+      "effects": [
+        {
+          "maxUnits": 4,
+          "minUnits": 3,
+          "style": 1,
+          "variables": {
+            "ArmorMR": 12,
+            "EnemyTrueDamage": 0.05000000074505806,
+            "ManaReductionPct": 0.10000000149011612,
+            "MaxHealthLost": 0.25,
+            "{050353fe}": 0.25,
+            "{54b32412}": 1500,
+            "{556d8bdf}": 3,
+            "{95d6e9fc}": 0.5
+          }
+        },
+        {
+          "maxUnits": 6,
+          "minUnits": 5,
+          "style": 3,
+          "variables": {
+            "ArmorMR": 35,
+            "EnemyTrueDamage": 0.05000000074505806,
+            "ManaReductionPct": 0.10000000149011612,
+            "MaxHealthLost": 0.25,
+            "{050353fe}": 0.25,
+            "{54b32412}": 1500,
+            "{556d8bdf}": 3,
+            "{95d6e9fc}": 0.5
+          }
+        },
+        {
+          "maxUnits": 10,
+          "minUnits": 7,
+          "style": 5,
+          "variables": {
+            "ArmorMR": 35,
+            "EnemyTrueDamage": 0.05000000074505806,
+            "ManaReductionPct": 0.10000000149011612,
+            "MaxHealthLost": 0.25,
+            "{050353fe}": 0.25,
+            "{54b32412}": 1500,
+            "{556d8bdf}": 3,
+            "{95d6e9fc}": 0.5
+          }
+        },
+        {
+          "maxUnits": 25000,
+          "minUnits": 11,
+          "style": 6,
+          "variables": {
+            "ArmorMR": 150,
+            "EnemyTrueDamage": 0.05000000074505806,
+            "ManaReductionPct": 0.10000000149011612,
+            "MaxHealthLost": 0.25,
+            "{050353fe}": 0.25,
+            "{54b32412}": 1500,
+            "{556d8bdf}": 3,
+            "{95d6e9fc}": 0.5
+          }
+        }
+      ]
+    },
+    {
+      "name": "빌지워터",
+      "apiName": "TFT16_Bilgewater",
+      "desc": "플레이어 대상 전투마다 바다뱀 은화(%i:scaleSerpents%)를 획득하고 빌지워터 처치 관여당 @SerpentsPerTakedown@개를 추가로 획득합니다.암시장에서 바다뱀 은화를 사용해 빌지워터 챔피언에게 추가 능력치 및 특별한 전리품을 제공할 수 있습니다. 높은 등급에서는 더 희귀한 전리품이 제공됩니다.<br><row>(@MinUnits@) @SerpentsPerRound@ %i:scaleSerpents%</row><br><row>(@MinUnits@) @SerpentsPerRound@ %i:scaleSerpents%, 향상된 전리품</row><br><row>(@MinUnits@) @SerpentsPerRound@ %i:scaleSerpents%, 상급 전리품</row><br><row>(@MinUnits@) @SerpentsPerRound@ %i:scaleSerpents%, @StatMult@x 능력치, 대포 발사!</row><br>현재 추가 능력치:<br>@TFTUnitProperty.:TFT16_Bilgewater_BonusAD*100@% %i:scaleAD%%i:scaleAP%, @TFTUnitProperty.:TFT16_Bilgewater_BonusAS*100@% %i:scaleAS%, @TFTUnitProperty.:TFT16_Bilgewater_BonusHealth*100@% %i:scaleHealth%<br>현재 바다뱀 은화: @TFTUnitProperty.:TFT16_Bilgewater_SilverSerpents@ %i:scaleSerpents%",
+      "icon": "ASSETS/UX/TraitIcons/Trait_Icon_9_Bilgewater.png",
+      "effects": [
+        {
+          "maxUnits": 4,
+          "minUnits": 3,
+          "style": 1,
+          "variables": {
+            "MaxItems": 8,
+            "SerpentsPerRound": 15,
+            "SerpentsPerTakedown": 1,
+            "StatMult": 1,
+            "{79b25b0f}": 300,
+            "{853eaa6d}": 1.5,
+            "{fb25c87b}": 2
+          }
+        },
+        {
+          "maxUnits": 6,
+          "minUnits": 5,
+          "style": 3,
+          "variables": {
+            "MaxItems": 8,
+            "SerpentsPerRound": 35,
+            "SerpentsPerTakedown": 1,
+            "StatMult": 1,
+            "{79b25b0f}": 300,
+            "{853eaa6d}": 1.5,
+            "{fb25c87b}": 2
+          }
+        },
+        {
+          "maxUnits": 9,
+          "minUnits": 7,
+          "style": 5,
+          "variables": {
+            "MaxItems": 8,
+            "SerpentsPerRound": 65,
+            "SerpentsPerTakedown": 1,
+            "StatMult": 1,
+            "{79b25b0f}": 300,
+            "{853eaa6d}": 1.5,
+            "{fb25c87b}": 2
+          }
+        },
+        {
+          "maxUnits": 25000,
+          "minUnits": 10,
+          "style": 6,
+          "variables": {
+            "MaxItems": 8,
+            "SerpentsPerRound": 150,
+            "SerpentsPerTakedown": 1,
+            "StatMult": 2,
+            "{79b25b0f}": 300,
+            "{853eaa6d}": 1.5,
+            "{fb25c87b}": 2
+          }
+        }
+      ]
+    },
+    {
+      "name": "균열의 재앙",
+      "apiName": "TFT16_BaronUnique",
+      "desc": "내셔 남작은 2개의 팀 슬롯을 차지하며 공허 특성을 +2 추가합니다.<br><br>@VoidTime@초 후 전장이 공허 균열로 진입합니다. 균열은 공허 유닛에게 피해 증폭을 @DamageAmp*100@% 부여하며, 지속적으로 플라즈마 광선을 발사해 적에게 최대 체력의 @LightningPercentHealth*100@%에 해당하는 마법 피해를 입힙니다.",
+      "icon": "ASSETS/UX/TraitIcons/Trait_Icon_16_Riftscourge.png",
+      "effects": [
+        {
+          "maxUnits": 25000,
+          "minUnits": 1,
+          "style": 4,
+          "variables": {
+            "DamageAmp": 0.30000001192092896,
+            "LightningPercentHealth": 0.05000000074505806,
+            "VoidTime": 8,
+            "{79ea70c9}": 0.5
+          }
+        }
+      ]
+    },
+    {
+      "name": "타곤",
+      "apiName": "TFT16_Targon",
+      "desc": "타곤인은 별로부터 만들어졌습니다. 타곤은 특성이 존재하지 않지만 일반적인 챔피언보다 강력합니다.",
+      "icon": "ASSETS/UX/TraitIcons/Trait_Icon_16_Targon.TFT_Set16.png",
+      "effects": [
+        {
+          "maxUnits": 25000,
+          "minUnits": 1,
+          "style": 5,
+          "variables": {}
+        }
+      ]
+    },
+    {
+      "name": "슈리마",
+      "apiName": "TFT16_Shurima",
+      "desc": "매초 슈리마가 공격 속도를 @ASPerSecond*100@% 얻고 체력을 @HealthRestorePerSecond@ 회복합니다. 전투 시작 시 추가 효과를 얻습니다.<ShowIfCustom.Set=TFTSetEventCT><ShowIf.TFT16_Shurima_NoPrismatic><rules><br><br>프리즘: 나서스, 레넥톤, 제라스 해금 후 슈리마 4명 배치</rules></ShowIf.TFT16_Shurima_NoPrismatic></ShowIfCustom.Set=TFTSetEventCT><br><br><row>(@MinUnits@) 최대 체력 @BonusHealth*100@%</row><br><row>(@MinUnits@) 방어력 및 마법 저항력 @ArmorMR@</row><br><row>(@MinUnits@) <ShowIf.TFT16_Shurima_PrismaticActive>슈리마가 @GodhoodCadence@초마다 신성 초월 </ShowIf.TFT16_Shurima_PrismaticActive><ShowIfCustom.Set=TFTSetEventCT><ShowIf.TFT16_Shurima_NoPrismatic>나서스, 레넥톤, 제라스가 해금되었을 때만 활성화됩니다.</ShowIf.TFT16_Shurima_NoPrismatic></ShowIfCustom.Set=TFTSetEventCT></row>",
+      "icon": "ASSETS/UX/TraitIcons/Trait_Icon_16_Shurima.TFT_Set16.png",
+      "effects": [
+        {
+          "maxUnits": 2,
+          "minUnits": 2,
+          "style": 1,
+          "variables": {
+            "ASPerSecond": 0.019999999552965164,
+            "ArmorMR": null,
+            "BonusHealth": 0.20000000298023224,
+            "GodhoodCadence": null,
+            "HealthRestorePerSecond": 20,
+            "{2b696a57}": null,
+            "{a1f805da}": 0.07999999821186066
+          }
+        },
+        {
+          "maxUnits": 3,
+          "minUnits": 3,
+          "style": 5,
+          "variables": {
+            "ASPerSecond": 0.019999999552965164,
+            "ArmorMR": 50,
+            "BonusHealth": 0.20000000298023224,
+            "GodhoodCadence": null,
+            "HealthRestorePerSecond": 20,
+            "{2b696a57}": null,
+            "{a1f805da}": 0.07999999821186066
+          }
+        },
+        {
+          "maxUnits": 25000,
+          "minUnits": 4,
+          "style": 6,
+          "variables": {
+            "ASPerSecond": 0.019999999552965164,
+            "ArmorMR": 50,
+            "BonusHealth": 0.20000000298023224,
+            "GodhoodCadence": 3,
+            "HealthRestorePerSecond": 20,
+            "{2b696a57}": 1,
+            "{a1f805da}": 0.07999999821186066
+          }
+        },
+        {
+          "maxUnits": 25000,
+          "minUnits": 4,
+          "style": 5,
+          "variables": {
+            "ASPerSecond": 0.019999999552965164,
+            "ArmorMR": 50,
+            "BonusHealth": 0.20000000298023224,
+            "GodhoodCadence": null,
+            "HealthRestorePerSecond": 20,
+            "{2b696a57}": null,
+            "{a1f805da}": 0.07999999821186066
+          }
+        }
+      ]
+    },
+    {
+      "name": "대장장이",
+      "apiName": "TFT16_Blacksmith",
+      "desc": "가장 강한 아군 오른이 플레이어 대상 전투에 참여할 때마다 유물 아이템을 제작하기 시작합니다.<br><br>장착한 아이템마다 해당 오른이 최대 체력을 @FlatHealthPerItem1Star@/@FlatHealthPerItem2Star@/@FlatHealthPerItem3Star@ 얻습니다. 유물 아이템은 @ArtifactMult*100@% 더 얻습니다.<br><br><rules>제작 진척도: @TFTUnitProperty.:TFT16_OrnnProgress@/@RoundsToCraft@</rules>",
+      "icon": "ASSETS/UX/TraitIcons/Trait_Icon_16_Blacksmith.TFT_Set16.png",
+      "effects": [
+        {
+          "maxUnits": 25000,
+          "minUnits": 1,
+          "style": 4,
+          "variables": {
+            "ArtifactMult": 3,
+            "FlatHealthPerItem1Star": 350,
+            "FlatHealthPerItem2Star": 600,
+            "FlatHealthPerItem3Star": 2000,
+            "RoundsToCraft": 4,
+            "{85699349}": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "그림자 군도",
+      "apiName": "TFT16_ShadowIsles",
+      "desc": "플레이어 대상 전투에서 어떤 챔피언이든 사망할 때마다 영혼(%i:scaleSouls%)을 얻습니다. 보유한 영혼 수에 따라 그림자 군도 챔피언의 스킬이 특별하게 강화됩니다.<br><br>그림자 군도 챔피언이 공격력 및 주문력을 얻습니다.<br><br><row>(@MinUnits@) @SoulMult@x%i:scaleSouls%, @ADAP*100@% %i:scaleAD%%i:scaleAP%</row><br><row>(@MinUnits@) @SoulMult@x%i:scaleSouls%, @ADAP*100@% %i:scaleAD%%i:scaleAP%</row><br><row>(@MinUnits@) @SoulMult@x%i:scaleSouls%, @ADAP*100@% %i:scaleAD%%i:scaleAP%</row><br><row>(@MinUnits@) @SoulMult@x%i:scaleSouls%, @ADAP*100@% %i:scaleAD%%i:scaleAP%</row><br><br><rules>수집한 영혼: @TFTUnitProperty.trait:TFT16_ShadowIsles_SoulsPlayerFacing@ %i:scaleSouls%</rules>",
+      "icon": "ASSETS/UX/TraitIcons/Trait_Icon_16_ShadowIsles.TFT_Set16.png",
+      "effects": [
+        {
+          "maxUnits": 2,
+          "minUnits": 2,
+          "style": 1,
+          "variables": {
+            "ADAP": 0.18000000715255737,
+            "SoulMult": 1,
+            "{1e24d16e}": 135,
+            "{263593f9}": 65,
+            "{2c785ea4}": null,
+            "{30214014}": 25,
+            "{570dee69}": 1,
+            "{689e69ab}": 160,
+            "{b3900e2d}": 215,
+            "{cd71fc1d}": 255,
+            "{e99a6f18}": 185
+          }
+        },
+        {
+          "maxUnits": 3,
+          "minUnits": 3,
+          "style": 3,
+          "variables": {
+            "ADAP": 0.20000000298023224,
+            "SoulMult": 1.2999999523162842,
+            "{1e24d16e}": 135,
+            "{263593f9}": 65,
+            "{2c785ea4}": null,
+            "{30214014}": 25,
+            "{570dee69}": 1,
+            "{689e69ab}": 160,
+            "{b3900e2d}": 215,
+            "{cd71fc1d}": 255,
+            "{e99a6f18}": 185
+          }
+        },
+        {
+          "maxUnits": 4,
+          "minUnits": 4,
+          "style": 3,
+          "variables": {
+            "ADAP": 0.25,
+            "SoulMult": 1.600000023841858,
+            "{1e24d16e}": 135,
+            "{263593f9}": 65,
+            "{2c785ea4}": null,
+            "{30214014}": 25,
+            "{570dee69}": 1,
+            "{689e69ab}": 160,
+            "{b3900e2d}": 215,
+            "{cd71fc1d}": 255,
+            "{e99a6f18}": 185
+          }
+        },
+        {
+          "maxUnits": 25000,
+          "minUnits": 5,
+          "style": 5,
+          "variables": {
+            "ADAP": 0.33000001311302185,
+            "SoulMult": 1.899999976158142,
+            "{1e24d16e}": 135,
+            "{263593f9}": 65,
+            "{2c785ea4}": null,
+            "{30214014}": 25,
+            "{570dee69}": 1,
+            "{689e69ab}": 160,
+            "{b3900e2d}": 215,
+            "{cd71fc1d}": 255,
+            "{e99a6f18}": 185
+          }
+        }
+      ]
+    },
+    {
+      "name": "수확자",
+      "apiName": "TFT16_Harvester",
+      "desc": "적 챔피언이 사망할 때마다 마나를 @ManaPerEnemyDeath@ 얻습니다. 스킬 사용 시 마나를 소모하지 않습니다. <br><br>모든 적의 방어력 및 마법 저항력이 @EnemyArmorMRReduction@ 감소합니다.",
+      "icon": "ASSETS/UX/TraitIcons/Trait_Icon_16_Harvester.TFT_Set16.png",
+      "effects": [
+        {
+          "maxUnits": 25000,
+          "minUnits": 1,
+          "style": 4,
+          "variables": {
+            "EnemyArmorMRReduction": 10,
+            "ManaPerEnemyDeath": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "불멸자",
+      "apiName": "TFT16_ZaahenTrait",
+      "desc": "신 짜오가 전장에 없을 때 자헨이 아이오니아, 데마시아, 파수꾼 특성을 얻습니다.<br><br>처치 시 자헨이 전투가 끝날 때까지 결심 중첩을 얻습니다. 사망 시 결심 중첩이 @FocusNeededToRevive@ 이상일 경우 집중을 소모해 부활하고 최대 체력의 @PercentMaxHealthHeal*100@%만큼 체력을 회복합니다.",
+      "icon": "ASSETS/UX/TraitIcons/Trait_Icon_16_Immortal.TFT_Set16.png",
+      "effects": [
+        {
+          "maxUnits": 25000,
+          "minUnits": 1,
+          "style": 4,
+          "variables": {
+            "FocusNeededToRevive": 3,
+            "PercentMaxHealthHeal": 0.6000000238418579,
+            "ReviveDuration": 0.5,
+            "{54747e02}": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "영웅",
+      "apiName": "TFT16_Heroic",
+      "desc": "갈리오는 전장에 배치할 수 없습니다. 대신, 대기석에서 갈리오의 특성이 적용되며 데마시아가 결집하면 갈리오가 전투에 합류합니다. <br><br>착지 시 @HexRadius@칸 범위의 충격파를 생성해 최대 체력의 @PercentMaxHP*100@%에 해당하는 마법 피해를 입힙니다. 적중한 적은 @KnockupDuration@초 동안 공중으로 띄워 올려집니다. 중심으로부터 거리에 따라 지속시간이 감소합니다.",
+      "icon": "ASSETS/UX/TraitIcons/Trait_Icon_16_Heroic.TFT_Set16.png",
+      "effects": [
+        {
+          "maxUnits": 25000,
+          "minUnits": 1,
+          "style": 4,
+          "variables": {
+            "HexRadius": 3,
+            "KnockupDuration": 1,
+            "PercentMaxHP": 0.10000000149011612
+          }
+        }
+      ]
+    },
+    {
+      "name": "녹서스",
+      "apiName": "TFT16_Noxus",
+      "desc": "적 팀이 체력의 @HPLostTrigger*100@%를 잃으면 파멸의 인도자 아타칸을 소환합니다. 각 녹서스 챔피언의 별 레벨에 따라 아타칸의 위력이 증가합니다.<br><br><row>(@MinUnits@) 아타칸이 적을 베어 마법 피해를 입힘</row> <br><row>(@MinUnits@) 아타칸 생존 시간에 따라 녹서스가 더 강해짐</row> <br><row>(@MinUnits@) 아타칸이 스킬 사용 시 적 영혼 흡수</row><br><row>(@MinUnits@) @RuinTimer@초 후 파멸 인도</row>",
+      "icon": "ASSETS/UX/TraitIcons/Trait_Icon_16_Noxus.TFT_Set16.png",
+      "effects": [
+        {
+          "maxUnits": 4,
+          "minUnits": 3,
+          "style": 1,
+          "variables": {
+            "HPLostTrigger": 0.15000000596046448,
+            "RuinTimer": 10
+          }
+        },
+        {
+          "maxUnits": 6,
+          "minUnits": 5,
+          "style": 3,
+          "variables": {
+            "HPLostTrigger": 0.15000000596046448,
+            "RuinTimer": 10
+          }
+        },
+        {
+          "maxUnits": 9,
+          "minUnits": 7,
+          "style": 5,
+          "variables": {
+            "HPLostTrigger": 0.15000000596046448,
+            "RuinTimer": 10
+          }
+        },
+        {
+          "maxUnits": 25000,
+          "minUnits": 10,
+          "style": 6,
+          "variables": {
+            "HPLostTrigger": 0.15000000596046448,
+            "RuinTimer": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "요들",
+      "apiName": "TFT16_Yordle",
+      "desc": "<row>(@MinUnits@) 요들이 배치한 서로 다른 요들 하나당 체력 @BonusHealth@, 공격 속도 @AS*100@% 획득. 3성 요들은 @BonusMultiplier*100@% 더 부여!</row><br><row>(@MinUnits@) 또한 각 라운드 첫 상점에 요들 포함!</row><br><row>(@MinUnits@) 또한 라운드마다 무료 새로고침 @FreeRerolls@회 획득!</row><br><row>(@MinUnits@) 또한 라운드마다 요들 꾸러미 획득!</row>",
+      "icon": "ASSETS/UX/TraitIcons/Trait_Icon_16_Yordle.TFT_Set16.png",
+      "effects": [
+        {
+          "maxUnits": 3,
+          "minUnits": 2,
+          "style": 1,
+          "variables": {
+            "AS": 0.05000000074505806,
+            "BonusHealth": 40,
+            "BonusMultiplier": 1,
+            "BonusStatMultiplier": 1,
+            "FreeRerolls": null,
+            "{12cd8d20}": null,
+            "{94706038}": null,
+            "{9f843340}": 700,
+            "{a90bd1e4}": 1.5,
+            "{ada76fc3}": 800,
+            "{b46678c7}": 200,
+            "{fe25b795}": null
+          }
+        },
+        {
+          "maxUnits": 5,
+          "minUnits": 4,
+          "style": 3,
+          "variables": {
+            "AS": 0.05000000074505806,
+            "BonusHealth": 40,
+            "BonusMultiplier": 1,
+            "BonusStatMultiplier": 1,
+            "FreeRerolls": null,
+            "{12cd8d20}": 1,
+            "{94706038}": null,
+            "{9f843340}": 700,
+            "{a90bd1e4}": 1.5,
+            "{ada76fc3}": 800,
+            "{b46678c7}": 200,
+            "{fe25b795}": null
+          }
+        },
+        {
+          "maxUnits": 7,
+          "minUnits": 6,
+          "style": 3,
+          "variables": {
+            "AS": 0.05000000074505806,
+            "BonusHealth": 40,
+            "BonusMultiplier": 1,
+            "BonusStatMultiplier": 1,
+            "FreeRerolls": 1,
+            "{12cd8d20}": 1,
+            "{94706038}": null,
+            "{9f843340}": 700,
+            "{a90bd1e4}": 1.5,
+            "{ada76fc3}": 800,
+            "{b46678c7}": 200,
+            "{fe25b795}": null
+          }
+        },
+        {
+          "maxUnits": 25000,
+          "minUnits": 8,
+          "style": 5,
+          "variables": {
+            "AS": 0.05000000074505806,
+            "BonusHealth": 40,
+            "BonusMultiplier": 1,
+            "BonusStatMultiplier": 1,
+            "FreeRerolls": 1,
+            "{12cd8d20}": 1,
+            "{94706038}": 1,
+            "{9f843340}": 700,
+            "{a90bd1e4}": 1.5,
+            "{ada76fc3}": 800,
+            "{b46678c7}": 200,
+            "{fe25b795}": null
+          }
+        },
+        {
+          "maxUnits": 25000,
+          "minUnits": 10,
+          "style": 6,
+          "variables": {
+            "AS": 0.05000000074505806,
+            "BonusHealth": 40,
+            "BonusMultiplier": 1,
+            "BonusStatMultiplier": 1,
+            "FreeRerolls": 1,
+            "{12cd8d20}": 1,
+            "{94706038}": 1,
+            "{9f843340}": 700,
+            "{a90bd1e4}": 1.5,
+            "{ada76fc3}": 800,
+            "{b46678c7}": 200,
+            "{fe25b795}": 1
+          }
+        }
+      ]
+    },
+    {
+      "name": "자운",
+      "apiName": "TFT16_Zaun",
+      "desc": "@InitialDelay@초 후 자운이 <TFTKeyword>시머 주입</TFTKeyword> 상태가 되어 내구력을 @ShimmerFuseDurability*100@%, @ShimmerFuseDuration@초 동안 점차 감소하는 공격 속도를 @ShimmerFuseAttackSpeed*100@% 얻습니다. <br><br>짧은 재사용 대기시간 후 다시 시머 주입 상태가 됩니다<br><br><row>(@MinUnits@) @RefreshSeconds@초마다 초기화 </row><br><row>(@MinUnits@) 체력이 @HealThreshold*100@%일 때 자운이 @HealDuration@초 동안 체력을 @MaxHealthHeal*100@% 회복하고 즉시 시머 주입 상태가 됨</row><br><row>(@MinUnits@) 시머 주입 추가 효과 @ShimmerFustMult*100@% 증가. 대신 @RefreshSeconds@초마다 초기화</row>",
+      "icon": "ASSETS/UX/TraitIcons/Trait_Icon_16_Zaun.TFT_Set16.png",
+      "effects": [
+        {
+          "maxUnits": 4,
+          "minUnits": 3,
+          "style": 1,
+          "variables": {
+            "HealDuration": 3,
+            "HealThreshold": 0.6000000238418579,
+            "InitialDelay": 4,
+            "MaxHealthHeal": null,
+            "RefreshSeconds": 4,
+            "ReviveDuration": 3,
+            "ShimmerFuseAttackSpeed": 0.8999999761581421,
+            "ShimmerFuseDurability": 0.15000000596046448,
+            "ShimmerFuseDuration": 4,
+            "ShimmerFustMult": null,
+            "{19b47e58}": 0.3499999940395355
+          }
+        },
+        {
+          "maxUnits": 6,
+          "minUnits": 5,
+          "style": 3,
+          "variables": {
+            "HealDuration": 3,
+            "HealThreshold": 0.6000000238418579,
+            "InitialDelay": 4,
+            "MaxHealthHeal": 0.30000001192092896,
+            "RefreshSeconds": 4,
+            "ReviveDuration": 3,
+            "ShimmerFuseAttackSpeed": 0.8999999761581421,
+            "ShimmerFuseDurability": 0.15000000596046448,
+            "ShimmerFuseDuration": 4,
+            "ShimmerFustMult": null,
+            "{19b47e58}": 0.3499999940395355
+          }
+        },
+        {
+          "maxUnits": 25000,
+          "minUnits": 7,
+          "style": 5,
+          "variables": {
+            "HealDuration": 3,
+            "HealThreshold": 0.6000000238418579,
+            "InitialDelay": 4,
+            "MaxHealthHeal": 0.30000001192092896,
+            "RefreshSeconds": 3,
+            "ReviveDuration": 3,
+            "ShimmerFuseAttackSpeed": 0.8999999761581421,
+            "ShimmerFuseDurability": 0.15000000596046448,
+            "ShimmerFuseDuration": 4,
+            "ShimmerFustMult": 0.5,
+            "{19b47e58}": 0.3499999940395355
+          }
+        }
+      ]
+    },
+    {
+      "name": "난동꾼",
+      "apiName": "TFT16_Brawler",
+      "desc": "아군이 최대 체력을 @TeamFlatHealth@ 얻습니다. 난동꾼은 더 얻습니다.<br><br><expandRow>(@MinUnits@) @BonusPercentHealth*100@% %i:scaleHealth%</expandRow>",
+      "icon": "ASSETS/UX/TraitIcons/Trait_Icon_16_Bruiser.TFT_Set16.png",
+      "effects": [
+        {
+          "maxUnits": 3,
+          "minUnits": 2,
+          "style": 1,
+          "variables": {
+            "BonusPercentHealth": 0.25,
+            "TeamFlatHealth": 150
+          }
+        },
+        {
+          "maxUnits": 5,
+          "minUnits": 4,
+          "style": 3,
+          "variables": {
+            "BonusPercentHealth": 0.4000000059604645,
+            "TeamFlatHealth": 150
+          }
+        },
+        {
+          "maxUnits": 25000,
+          "minUnits": 6,
+          "style": 5,
+          "variables": {
+            "BonusPercentHealth": 0.6000000238418579,
+            "TeamFlatHealth": 150
+          }
+        }
+      ]
+    },
+    {
+      "name": "시간의 수호자",
+      "apiName": "TFT16_Chronokeeper",
+      "desc": "스킬을 @CastsToGainXP@회 사용할 때마다 시간의 수호자가 <TFTBonus>@XPPerCast@</TFTBonus>의 경험치를 저장합니다. 플레이어가 레벨 업할 만큼 저장했다면 해당하는 경험치를 플레이어에게 이전합니다. <br><br>10레벨이라면 대신 시간의 수호자가 피해 증폭을 <TFTBonus>@DAGainAtMaxLevel@%</TFTBonus> 얻습니다.<br><br><rules>저장한 경험치: @TFTUnitProperty.trait:TFT16_ChronoKeeperStoredXP@</rules><ShowIfCustom.Set=TFTSetEventCT><br><br>배불뚝이의 보물에서는 스테이지 3-5까지 경험치 획득에 필요한 주문 사용 횟수가 @CastsToGainXPCT@회로 증가합니다.</ShowIfCustom.Set=TFTSetEventCT>",
+      "icon": "ASSETS/UX/TraitIcons/Trait_Icon_16_Chronokeeper.TFT_Set16.png",
+      "effects": [
+        {
+          "maxUnits": 25000,
+          "minUnits": 1,
+          "style": 4,
+          "variables": {
+            "CastsToGainXP": 2,
+            "CastsToGainXPPAIRS": 2,
+            "DAGainAtMaxLevel": 15,
+            "XPPerCast": 1,
+            "{4a528ef2}": 3,
+            "{bffe0f35}": null
+          }
+        }
+      ]
+    },
+    {
+      "name": "파수꾼",
+      "apiName": "TFT16_Warden",
+      "desc": "파수꾼의 체력이 처음으로 @FirstShieldPercentHealth*100@% 및 @SecondShieldPercentHealth*100@% 아래로 떨어지면 최대 체력에 비례한 보호막을 얻습니다.<br><br><expandRow>(@MinUnits@) @PercentHealthShield*100@% %i:scaleHealth%</expandRow>",
+      "icon": "ASSETS/UX/TraitIcons/Trait_Icon_16_Warden.TFT_Set16.png",
+      "effects": [
+        {
+          "maxUnits": 2,
+          "minUnits": 2,
+          "style": 1,
+          "variables": {
+            "FirstShieldPercentHealth": 0.75,
+            "PercentHealthShield": 0.1599999964237213,
+            "SecondShieldPercentHealth": 0.25
+          }
+        },
+        {
+          "maxUnits": 3,
+          "minUnits": 3,
+          "style": 3,
+          "variables": {
+            "FirstShieldPercentHealth": 0.75,
+            "PercentHealthShield": 0.20000000298023224,
+            "SecondShieldPercentHealth": 0.25
+          }
+        },
+        {
+          "maxUnits": 4,
+          "minUnits": 4,
+          "style": 3,
+          "variables": {
+            "FirstShieldPercentHealth": 0.75,
+            "PercentHealthShield": 0.25999999046325684,
+            "SecondShieldPercentHealth": 0.25
+          }
+        },
+        {
+          "maxUnits": 25000,
+          "minUnits": 5,
+          "style": 5,
+          "variables": {
+            "FirstShieldPercentHealth": 0.75,
+            "PercentHealthShield": 0.33000001311302185,
+            "SecondShieldPercentHealth": 0.25
+          }
+        }
+      ]
+    },
+    {
+      "name": "아이오니아",
+      "apiName": "TFT16_Ionia",
+      "desc": "아이오니아가 보호막, 공격력, 주문력을 얻습니다. 게임마다 아이오니아는 다른 길로 나아갑니다. <br><br>@TFTUnitProperty.trait:TFT16_Ionia_PathTooltip@<br><br><row>(@MinUnits@) 게임마다 다른 효과 획득</row><br><row>(@MinUnits@) 게임마다 다른 효과 획득</row><br><row>(@MinUnits@) 게임마다 다른 효과 획득</row>",
+      "icon": "ASSETS/UX/TraitIcons/Trait_Icon_16_Ionia.TFT_Set16.png",
+      "effects": [
+        {
+          "maxUnits": 4,
+          "minUnits": 3,
+          "style": 1,
+          "variables": {
+            "BladesFlatDamage": null,
+            "BladesPercentChance": 30,
+            "DeterminationFlatDamage": 20,
+            "DeterminationResists": 15,
+            "EnlightenmentADAP": 10,
+            "EnlightenmentADAPPerLevel": 2,
+            "EnlightenmentXP": 1,
+            "GenerosityADAP": 10,
+            "GenerosityIncreasePerGold": 0.019999999552965164,
+            "SpiritADAP": 3,
+            "SpiritHealth": 0.25,
+            "Transcendence3StarBuff": 1.2999999523162842,
+            "TranscendenceHealth": 0.10000000149011612,
+            "TranscendenceMagicDamage": 0.20000000298023224,
+            "{11fa863c}": 5,
+            "{da553f4f}": 15
+          }
+        },
+        {
+          "maxUnits": 6,
+          "minUnits": 5,
+          "style": 3,
+          "variables": {
+            "BladesFlatDamage": null,
+            "BladesPercentChance": 38,
+            "DeterminationFlatDamage": 40,
+            "DeterminationResists": 25,
+            "EnlightenmentADAP": 15,
+            "EnlightenmentADAPPerLevel": 3,
+            "EnlightenmentXP": 2,
+            "GenerosityADAP": 25,
+            "GenerosityIncreasePerGold": 0.019999999552965164,
+            "SpiritADAP": 4,
+            "SpiritHealth": 0.30000001192092896,
+            "Transcendence3StarBuff": 1.2999999523162842,
+            "TranscendenceHealth": 0.15000000596046448,
+            "TranscendenceMagicDamage": 0.25,
+            "{11fa863c}": 4,
+            "{da553f4f}": 25
+          }
+        },
+        {
+          "maxUnits": 25000,
+          "minUnits": 7,
+          "style": 5,
+          "variables": {
+            "BladesFlatDamage": null,
+            "BladesPercentChance": 45,
+            "DeterminationFlatDamage": 60,
+            "DeterminationResists": 40,
+            "EnlightenmentADAP": 20,
+            "EnlightenmentADAPPerLevel": 4,
+            "EnlightenmentXP": 4,
+            "GenerosityADAP": 40,
+            "GenerosityIncreasePerGold": 0.019999999552965164,
+            "SpiritADAP": 5,
+            "SpiritHealth": 0.3499999940395355,
+            "Transcendence3StarBuff": 1.2999999523162842,
+            "TranscendenceHealth": 0.20000000298023224,
+            "TranscendenceMagicDamage": 0.30000001192092896,
+            "{11fa863c}": 3,
+            "{da553f4f}": 50
+          }
+        },
+        {
+          "maxUnits": 25000,
+          "minUnits": 10,
+          "style": 6,
+          "variables": {
+            "BladesFlatDamage": 25,
+            "BladesPercentChance": 70,
+            "DeterminationFlatDamage": 100,
+            "DeterminationResists": 75,
+            "EnlightenmentADAP": 100,
+            "EnlightenmentADAPPerLevel": null,
+            "EnlightenmentXP": 4,
+            "GenerosityADAP": 50,
+            "GenerosityIncreasePerGold": 0.019999999552965164,
+            "SpiritADAP": 7,
+            "SpiritHealth": 0.75,
+            "Transcendence3StarBuff": 1.2999999523162842,
+            "TranscendenceHealth": 0.30000001192092896,
+            "TranscendenceMagicDamage": 0.699999988079071,
+            "{0c4f63cb}": 0.029999999329447746,
+            "{11fa863c}": 1,
+            "{ab6ec39e}": 0.75,
+            "{cf068040}": 0.30000001192092896,
+            "{da553f4f}": 100,
+            "{ec4adf8d}": 3
+          }
+        }
+      ]
+    },
+    {
+      "name": "엄호대",
+      "apiName": "TFT16_Defender",
+      "desc": "아군이 방어력 및 마법 저항력을 @TeamwideArmorMR@ 얻습니다. 엄호대는 더 얻습니다.<br><br><expandRow>(@MinUnits@) @BonusArmorMR@ %i:scaleArmor%%i:scaleMR%</expandRow>",
+      "icon": "ASSETS/UX/TraitIcons/Trait_Icon_16_Defender.png",
+      "effects": [
+        {
+          "maxUnits": 3,
+          "minUnits": 2,
+          "style": 1,
+          "variables": {
+            "BonusArmorMR": 30,
+            "TeamwideArmorMR": 12
+          }
+        },
+        {
+          "maxUnits": 5,
+          "minUnits": 4,
+          "style": 3,
+          "variables": {
+            "BonusArmorMR": 55,
+            "TeamwideArmorMR": 12
+          }
+        },
+        {
+          "maxUnits": 25000,
+          "minUnits": 6,
+          "style": 5,
+          "variables": {
+            "BonusArmorMR": 80,
+            "TeamwideArmorMR": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "빛의 감시자",
+      "apiName": "TFT16_Teamup_LucianVayne",
+      "desc": "베인이 검은 안개의 영향을 받는 적에게 스킬을 사용하면 위력이 @BoltEffectiveness*100@%인 추가 화살 @NumBonusBolts@개를 발사합니다. 베인이 처치 관여 달성 시 루시안과 세나가 공격 속도를 @LucianSennaAS*100@% 얻습니다.",
+      "icon": "ASSETS/UX/TraitIcons/TeamUp_Trait_SentinelsOfLight.TFT_Set16.png",
+      "effects": [
+        {
+          "maxUnits": 25000,
+          "minUnits": 2,
+          "style": 4,
+          "variables": {
+            "BoltEffectiveness": 0.25,
+            "LucianSennaAS": 0.5,
+            "NumBonusBolts": 2
+          }
+        }
+      ]
+    },
+    {
+      "name": "여사냥꾼",
+      "apiName": "TFT16_Huntress",
+      "desc": "가장 강한 아군 니코가 살아있는 동안 가장 강한 아군 니달리가 기본 공격 대상으로 지정되지 않으며 내구력을 @Durability*100@% 얻습니다.",
+      "icon": "ASSETS/UX/TraitIcons/Trait_Icon_16_Huntress.TFT_Set16.png",
+      "effects": [
+        {
+          "maxUnits": 25000,
+          "minUnits": 1,
+          "style": 4,
+          "variables": {
+            "Durability": 0.5
+          }
+        }
+      ]
+    }
+  ]
+}
