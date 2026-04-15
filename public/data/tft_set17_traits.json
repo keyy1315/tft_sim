@@ -38,7 +38,8 @@
             "DamageReduction": null,
             "TeamwideAS": 0.10000000149011612,
             "{2f14988e}": 0.5
-          }
+          },
+          "tierDesc": "AttackSpeedPercent%"
         },
         {
           "maxUnits": 3,
@@ -50,7 +51,8 @@
             "DamageReduction": null,
             "TeamwideAS": 0.10000000149011612,
             "{2f14988e}": 0.5
-          }
+          },
+          "tierDesc": "AttackSpeedPercent%"
         },
         {
           "maxUnits": 4,
@@ -62,7 +64,8 @@
             "DamageReduction": null,
             "TeamwideAS": 0.10000000149011612,
             "{2f14988e}": 0.5
-          }
+          },
+          "tierDesc": "AttackSpeedPercent%"
         },
         {
           "maxUnits": 25000,
@@ -74,7 +77,8 @@
             "DamageReduction": null,
             "TeamwideAS": 0.10000000149011612,
             "{2f14988e}": 0.5
-          }
+          },
+          "tierDesc": "AttackSpeedPercent%"
         }
       ]
     },
@@ -101,7 +105,8 @@
             "{b1d6fee6}": 10,
             "{cd978d30}": 1,
             "{f5b00dd5}": 8
-          }
+          },
+          "tierDesc": "Wolf_Gold골드, Wolf_Health% , Wolf_ADAP% 플레이어 레벨이 오를 때마다 더 많은 칸이 드러납니다."
         },
         {
           "maxUnits": 4,
@@ -153,7 +158,8 @@
           "style": 1,
           "variables": {
             "{c65f6279}": 0.2199999988079071
-          }
+          },
+          "tierDesc": "Effectiveness% 위력"
         },
         {
           "maxUnits": 25000,
@@ -181,7 +187,8 @@
             "HealthThreshold": 0.5,
             "ShieldDuration": 10,
             "ShieldPercentAmount": 0.1599999964237213
-          }
+          },
+          "tierDesc": "최대 체력의 ShieldPercentAmount%"
         },
         {
           "maxUnits": 5,
@@ -193,7 +200,8 @@
             "HealthThreshold": 0.5,
             "ShieldDuration": 10,
             "ShieldPercentAmount": 0.30000001192092896
-          }
+          },
+          "tierDesc": "최대 체력의 ShieldPercentAmount%"
         },
         {
           "maxUnits": 25000,
@@ -205,7 +213,8 @@
             "HealthThreshold": 0.5,
             "ShieldDuration": 10,
             "ShieldPercentAmount": 0.4000000059604645
-          }
+          },
+          "tierDesc": "최대 체력의 ShieldPercentAmount%\n보호막이 씌워진 동안 EnhancedDurability%"
         }
       ]
     },
@@ -221,7 +230,8 @@
           "style": 1,
           "variables": {
             "{1b889d1c}": null
-          }
+          },
+          "tierDesc": "? 획득"
         },
         {
           "maxUnits": 25000,
@@ -229,7 +239,8 @@
           "style": 5,
           "variables": {
             "{1b889d1c}": 50
-          }
+          },
+          "tierDesc": "? 획득, 초능력 유닛이 초능력 아이템 장착 시 추가 효과 획득"
         }
       ]
     },
@@ -263,7 +274,8 @@
             "AttackSpeed": null,
             "{1e1f6d15}": null,
             "{aaae13a0}": 1
-          }
+          },
+          "tierDesc": "또한 아군이 공격 속도 AttackSpeed% 획득"
         },
         {
           "maxUnits": 3,
@@ -273,7 +285,8 @@
             "AttackSpeed": 0.25,
             "{1e1f6d15}": null,
             "{aaae13a0}": 1
-          }
+          },
+          "tierDesc": "또한 시간 균열자가 추가로 공격 속도 TimebreakerAdditionalAS% 획득 패배 시 새로고침: ?\n승리 시 경험치: ?"
         },
         {
           "maxUnits": 25000,
@@ -303,7 +316,8 @@
             "Omnivamp": 0.05000000074505806,
             "{86f7ce25}": null,
             "{b44bae16}": 0.05000000074505806
-          }
+          },
+          "tierDesc": "Omnivamp% , AD%"
         },
         {
           "maxUnits": 5,
@@ -315,7 +329,8 @@
             "Omnivamp": 0.07000000029802322,
             "{86f7ce25}": null,
             "{b44bae16}": 0.05000000074505806
-          }
+          },
+          "tierDesc": "Omnivamp% , AD%"
         },
         {
           "maxUnits": 25000,
@@ -327,7 +342,8 @@
             "Omnivamp": 0.10000000149011612,
             "{86f7ce25}": 0.20000000298023224,
             "{b44bae16}": 0.05000000074505806
-          }
+          },
+          "tierDesc": "Omnivamp% , AD% ."
         }
       ]
     },
@@ -371,7 +387,8 @@
             "{f12fb39b}": 5,
             "{f45ba40a}": 20,
             "{fb9b6210}": 2
-          }
+          },
+          "tierDesc": "연구 시작!"
         },
         {
           "maxUnits": 25000,
@@ -387,7 +404,8 @@
             "{f12fb39b}": 5,
             "{f45ba40a}": 20,
             "{fb9b6210}": 2
-          }
+          },
+          "tierDesc": "플레이어 대상 전투 승리 후 전리품 획득!"
         }
       ]
     },
@@ -403,7 +421,8 @@
           "style": 1,
           "variables": {
             "CritDamage": null
-          }
+          },
+          "tierDesc": "스킬의 확률 효과에 행운 적용"
         },
         {
           "maxUnits": 25000,
@@ -412,7 +431,8 @@
           "variables": {
             "CritChance": 0.20000000298023224,
             "CritDamage": 20
-          }
+          },
+          "tierDesc": "치명타 확률 CritChance%, 치명타 피해량 CritDamage% 획득. 치명타 또한 행운 적용 행운\n행운: 두 번 시도하고 더 나은 결과를 선택합니다."
         }
       ]
     },
@@ -465,7 +485,8 @@
             "AS": 0.15000000596046448,
             "HealthRatio": 0.15000000596046448,
             "{0aa6b6fd}": 2
-          }
+          },
+          "tierDesc": "소나가 RoundsPerMod라운드마다 아군의 전투 시 행동 방식을 변경할 수 있는 무작위 지휘 모드를 제공합니다. 지휘 모드는 장착하지 않았더라도 플레이어 대상 전투 RoundsPerMod회 동안 지속됩니다."
         }
       ]
     },
@@ -504,7 +525,8 @@
             "{47ed491f}": 0.15000000596046448,
             "{80c9d1be}": 0.10000000149011612,
             "{cd6187f4}": 0.10000000149011612
-          }
+          },
+          "tierDesc": "Huntress_AS% , 표식 NumMarks개"
         },
         {
           "maxUnits": 6,
@@ -515,7 +537,8 @@
             "{47ed491f}": 0.15000000596046448,
             "{80c9d1be}": 0.10000000149011612,
             "{cd6187f4}": 0.30000001192092896
-          }
+          },
+          "tierDesc": "Huntress_AS% , 표식 NumMarks개"
         },
         {
           "maxUnits": 25000,
@@ -526,7 +549,8 @@
             "{47ed491f}": 0.15000000596046448,
             "{80c9d1be}": 0.10000000149011612,
             "{cd6187f4}": 0.44999998807907104
-          }
+          },
+          "tierDesc": "Huntress_AS% , 표식 NumMarks개\n플레이어 레벨이 오를 때마다 더 많은 칸이 드러납니다."
         }
       ]
     },
@@ -559,7 +583,8 @@
             "{c46c064d}": 0.25,
             "{cd767296}": 0.05000000074505806,
             "{dc3fb039}": 3
-          }
+          },
+          "tierDesc": "Serpent_DR% , 중독 피해량 Serpent_Poison%\n플레이어 레벨이 오를 때마다 더 많은 칸이 드러납니다."
         },
         {
           "maxUnits": 6,
@@ -619,7 +644,8 @@
             "{0923ca75}": 1,
             "{c365dfc6}": 1,
             "{f7e2b271}": 0.18000000715255737
-          }
+          },
+          "tierDesc": "Fountain_ManaRegen , 스킬 피해량의 Fountain_HealPercent%만큼 체력 회복"
         },
         {
           "maxUnits": 25000,
@@ -629,7 +655,8 @@
             "{0923ca75}": 1,
             "{c365dfc6}": 5,
             "{f7e2b271}": 0.25
-          }
+          },
+          "tierDesc": "Fountain_ManaRegen , 스킬 피해량의 Fountain_HealPercent%만큼 체력 회복 플레이어 레벨이 오를 때마다 더 많은 칸이 드러납니다."
         }
       ]
     },
@@ -648,7 +675,8 @@
             "AP": 12,
             "Duration": 3,
             "HealthThreshold": 0.5
-          }
+          },
+          "tierDesc": "AP%"
         },
         {
           "maxUnits": 3,
@@ -659,7 +687,8 @@
             "AP": 25,
             "Duration": 3,
             "HealthThreshold": 0.5
-          }
+          },
+          "tierDesc": "AP%"
         },
         {
           "maxUnits": 4,
@@ -670,7 +699,8 @@
             "AP": 40,
             "Duration": 3,
             "HealthThreshold": 0.5
-          }
+          },
+          "tierDesc": "AP%"
         },
         {
           "maxUnits": 25000,
@@ -681,7 +711,8 @@
             "AP": 55,
             "Duration": 3,
             "HealthThreshold": 0.5
-          }
+          },
+          "tierDesc": "AP%"
         }
       ]
     },
@@ -700,7 +731,8 @@
             "PercentHealth": 0.30000001192092896,
             "{98560b2e}": 0.8500000238418579,
             "{9f802af1}": 0.07999999821186066
-          }
+          },
+          "tierDesc": "암흑의 별이 최대 체력이 ExecuteHPPercent% 이하인 적을 집어삼키는 블랙홀 생성"
         },
         {
           "maxUnits": 5,
@@ -711,7 +743,8 @@
             "PercentHealth": 0.30000001192092896,
             "{98560b2e}": 0.8500000238418579,
             "{9f802af1}": 0.07999999821186066
-          }
+          },
+          "tierDesc": "또한 ADAP% 획득"
         },
         {
           "maxUnits": 8,
@@ -722,7 +755,8 @@
             "PercentHealth": 0.30000001192092896,
             "{98560b2e}": 0.8500000238418579,
             "{9f802af1}": 0.07999999821186066
-          }
+          },
+          "tierDesc": "또한 가장 강한 암흑의 별 유닛이 초대질량 상태가 되어 암흑의 별 효과 SupermassivePercentBonus% 증가 및 소형 블랙홀 2개 생성"
         },
         {
           "maxUnits": 25000,
@@ -733,7 +767,8 @@
             "PercentHealth": 0.30000001192092896,
             "{98560b2e}": 0.8500000238418579,
             "{9f802af1}": 0.07999999821186066
-          }
+          },
+          "tierDesc": "모든 암흑의 별이 초대질량 상태가 됨. 10레벨 달성 시 모두를 빨아들임"
         }
       ]
     },
@@ -752,7 +787,8 @@
             "{3ed71f24}": 6,
             "{5376c82a}": 45,
             "{ea763a6d}": 0.07999999821186066
-          }
+          },
+          "tierDesc": "피해를 입히면 서로 다른 태고족 별 레벨에 따라 군체 유충 생성"
         },
         {
           "maxUnits": 25000,
@@ -763,7 +799,8 @@
             "{3ed71f24}": 6,
             "{5376c82a}": 45,
             "{ea763a6d}": 0.07999999821186066
-          }
+          },
+          "tierDesc": "군체 유충 PercentMoreSwarmlings% 추가 생성! 플레이어 대상 전투를 마칠 때마다 무작위 1단계 또는 2단계 챔피언 1명을 획득합니다. 받은 피해량의 DamageTakenPercentModifier%가 입히는 피해량에 기여합니다."
         }
       ]
     },
@@ -781,7 +818,8 @@
             "{2277d14c}": null,
             "{61769c42}": null,
             "{805b18fb}": null
-          }
+          },
+          "tierDesc": "그루비안은 그루브 상태 진입 가능. 그루브 상태인 동안 아군 그루비안 1명당 공격 속도 및 최대 체력 재생 증가"
         },
         {
           "maxUnits": 4,
@@ -791,7 +829,8 @@
             "{2277d14c}": null,
             "{61769c42}": 3,
             "{805b18fb}": null
-          }
+          },
+          "tierDesc": "모든 그루비안이 전투 시작 시 StartOfCombatDuration초 동안 그루브 상태가 됨"
         },
         {
           "maxUnits": 6,
@@ -801,7 +840,8 @@
             "{2277d14c}": 5,
             "{61769c42}": 3,
             "{805b18fb}": null
-          }
+          },
+          "tierDesc": "그루브 상태인 동안 매초 중첩되는 공격력 및 주문력 ADAPPerSecond% 획득"
         },
         {
           "maxUnits": 9,
@@ -811,7 +851,8 @@
             "{2277d14c}": 5,
             "{61769c42}": 3,
             "{805b18fb}": 10
-          }
+          },
+          "tierDesc": "이 모든 효과가 EffectBonus% 증가!"
         },
         {
           "maxUnits": 25000,
@@ -823,7 +864,8 @@
             "{3e46e556}": 1500,
             "{61769c42}": 60,
             "{805b18fb}": 500
-          }
+          },
+          "tierDesc": "그루브 그루브: ?% , ?%"
         }
       ]
     },
@@ -845,7 +887,8 @@
             "NumSeconds": 4,
             "ShieldDuration": 4,
             "{fefec6fb}": 1
-          }
+          },
+          "tierDesc": "법률의 원인과 결과 선택"
         },
         {
           "maxUnits": 25000,
@@ -859,7 +902,8 @@
             "NumSeconds": 4,
             "ShieldDuration": 4,
             "{fefec6fb}": 1
-          }
+          },
+          "tierDesc": "결과가 더 강력해짐"
         }
       ]
     },
@@ -883,7 +927,8 @@
             "{9d012fe8}": null,
             "{b4bde48b}": null,
             "{d8eebfda}": null
-          }
+          },
+          "tierDesc": "체력 Mountain_Health% 획득"
         },
         {
           "maxUnits": 4,
@@ -899,7 +944,8 @@
             "{9d012fe8}": null,
             "{b4bde48b}": 0.11999999731779099,
             "{d8eebfda}": null
-          }
+          },
+          "tierDesc": "또한 공격력 및 주문력 Mountain_ADAP% 획득"
         },
         {
           "maxUnits": 5,
@@ -915,7 +961,8 @@
             "{9d012fe8}": null,
             "{b4bde48b}": 0.11999999731779099,
             "{d8eebfda}": 12
-          }
+          },
+          "tierDesc": "또한 방어력 및 마법 저항력 Mountain_Resists 획득"
         },
         {
           "maxUnits": 6,
@@ -931,7 +978,8 @@
             "{9d012fe8}": null,
             "{b4bde48b}": 0.11999999731779099,
             "{d8eebfda}": 12
-          }
+          },
+          "tierDesc": "또한 공격 속도 Mountain_AS% 획득"
         },
         {
           "maxUnits": 7,
@@ -947,7 +995,8 @@
             "{9d012fe8}": null,
             "{b4bde48b}": 0.11999999731779099,
             "{d8eebfda}": 12
-          }
+          },
+          "tierDesc": "또한 내구력 Mountain_DR% 획득"
         },
         {
           "maxUnits": 8,
@@ -963,7 +1012,8 @@
             "{9d012fe8}": null,
             "{b4bde48b}": 0.11999999731779099,
             "{d8eebfda}": 12
-          }
+          },
+          "tierDesc": "또한 그 외 모든 추가 효과 Mountain_StatIncrease% 증가\n플레이어 레벨이 오를 때마다 더 많은 칸이 드러납니다."
         },
         {
           "maxUnits": 9,
@@ -1025,19 +1075,22 @@
           "maxUnits": 4,
           "minUnits": 3,
           "style": 1,
-          "variables": {}
+          "variables": {},
+          "tierDesc": "비아 소환"
         },
         {
           "maxUnits": 6,
           "minUnits": 5,
           "style": 3,
-          "variables": {}
+          "variables": {},
+          "tierDesc": "바이엔 소환"
         },
         {
           "maxUnits": 25000,
           "minUnits": 7,
           "style": 5,
-          "variables": {}
+          "variables": {},
+          "tierDesc": "비아와 바이엔의 결속 강화 비아와 바이엔의 위력은 모든 길잡이 별 레벨 총합에 따라 증가합니다."
         }
       ]
     },
@@ -1058,7 +1111,8 @@
             "{e7ae6c08}": 0.019999999552965164,
             "{e9ae6f2e}": 0.029999999329447746,
             "{eaae70c1}": 0.02500000037252903
-          }
+          },
+          "tierDesc": "활성화된 고유 특성이 아닌 특성 하나당 아군이 공격 속도 BonusOffensiveStat1%/BonusOffensiveStat2%/BonusOffensiveStat3%, 방어력 및 마법 저항력 BonusDefensiveStat1/BonusDefensiveStat2/BonusDefensiveStat3 획득 아군 전체 공격 속도: ?% 아군 전체 방어력 및 마법 저항력: ?"
         }
       ]
     },
@@ -1075,7 +1129,8 @@
           "variables": {
             "HealthBonus": 0.20000000298023224,
             "{b44bae16}": 0.05000000074505806
-          }
+          },
+          "tierDesc": "최대 체력 +HealthBonus%"
         },
         {
           "maxUnits": 5,
@@ -1114,7 +1169,8 @@
             "EnhancedTeamwideArmor": 20,
             "StatMultiplier": 2,
             "TeamwideResists": 15
-          }
+          },
+          "tierDesc": "BonusArmor"
         },
         {
           "maxUnits": 5,
@@ -1127,7 +1183,8 @@
             "EnhancedTeamwideArmor": 20,
             "StatMultiplier": 2,
             "TeamwideResists": 15
-          }
+          },
+          "tierDesc": "BonusArmor"
         },
         {
           "maxUnits": 25000,
@@ -1140,7 +1197,8 @@
             "EnhancedTeamwideArmor": 20,
             "StatMultiplier": 2,
             "TeamwideResists": 15
-          }
+          },
+          "tierDesc": "BonusArmor , 요새가 아닌 유닛이 EnhancedTeamwideArmor 추가 획득"
         }
       ]
     },
@@ -1157,7 +1215,8 @@
           "variables": {
             "BonusHealth": 100,
             "{81f23603}": 2
-          }
+          },
+          "tierDesc": "Meeps , BonusHealth"
         },
         {
           "maxUnits": 6,
@@ -1166,7 +1225,8 @@
           "variables": {
             "BonusHealth": 400,
             "{81f23603}": 3
-          }
+          },
+          "tierDesc": "Meeps , BonusHealth"
         },
         {
           "maxUnits": 9,
@@ -1175,7 +1235,8 @@
           "variables": {
             "BonusHealth": 400,
             "{81f23603}": 4
-          }
+          },
+          "tierDesc": "Meeps , BonusHealth . 대기석에 복제 슬롯을 생성합니다. 복제 슬롯에 배치한 챔피언의 복제가 완료되면 골드와 1성 복사본을 획득합니다."
         },
         {
           "maxUnits": 25000,
@@ -1184,7 +1245,8 @@
           "variables": {
             "BonusHealth": 500,
             "{81f23603}": 6
-          }
+          },
+          "tierDesc": "Meeps , BonusHealth 정령군주 넷 소환! 복제 시간 = 챔피언 단계"
         }
       ]
     },
@@ -1202,7 +1264,8 @@
             "{446a27f8}": 1,
             "{447adcc5}": 3,
             "{c02c4568}": 0.20000000298023224
-          }
+          },
+          "tierDesc": "TeamManaRegen | ChannelerManaRegen"
         },
         {
           "maxUnits": 3,
@@ -1251,7 +1314,8 @@
             "AP": 20,
             "TeamSize": 1,
             "{3f11bdcd}": 0.5
-          }
+          },
+          "tierDesc": "에너지 전지: 메카가 AP% 획득"
         },
         {
           "maxUnits": 5,
@@ -1262,7 +1326,8 @@
             "AP": 35,
             "TeamSize": 1,
             "{3f11bdcd}": 0.5
-          }
+          },
+          "tierDesc": "과출력 전지: AP%로 증가"
         },
         {
           "maxUnits": 25000,
@@ -1273,7 +1338,8 @@
             "AP": 35,
             "TeamSize": 1,
             "{3f11bdcd}": 0.5
-          }
+          },
+          "tierDesc": "정밀 엔지니어링: 최대 팀 규모 +TeamSize 메카 변신기를 사용해 메카 유닛의 형태를 전환하세요."
         }
       ]
     },
@@ -1347,7 +1413,8 @@
             "{e5275a69}": 0.019999999552965164,
             "{e8338a44}": 0.15000000596046448,
             "{f7e2b271}": 0.18000000715255737
-          }
+          },
+          "tierDesc": "별돌보미부터 활성화됩니다. 플레이어 레벨이 오를 때마다 더 많은 칸이 드러납니다."
         },
         {
           "maxUnits": 6,
@@ -1576,7 +1643,8 @@
             "ShieldDuration": 15,
             "ShieldHP": 175,
             "{2ad3e251}": 2
-          }
+          },
+          "tierDesc": "보호막 ShieldHP, BonusDA%"
         },
         {
           "maxUnits": 3,
@@ -1658,7 +1726,8 @@
             "ShieldValue": 800,
             "{32acce47}": 6,
             "{bd4f38eb}": 0.30000001192092896
-          }
+          },
+          "tierDesc": "전투 시작 TeamAttackDelay초 후 N.O.V.A. 유닛이 챔피언에 따라 아군에게 힘의 고조 부여"
         },
         {
           "maxUnits": 25000,
@@ -1671,7 +1740,8 @@
             "ShieldValue": 800,
             "{32acce47}": 6,
             "{bd4f38eb}": 0.30000001192092896
-          }
+          },
+          "tierDesc": "타격 선택기 획득. 힘의 고조 시 선택한 N.O.V.A. 유닛 타격 발동 아트록스: 아군이 입히는 피해가 적에게 ShredAndSunder% 파쇄 및 파열 적용아트록스: 적 파쇄 및 파열 적용\n케이틀린: 아군 공격 속도 AS% 증가케이틀린: 공격 속도 증가\n아칼리: 아군 정밀 획득아칼리: 아군 정밀 획득\n마오카이: 아군 최대 체력 Heal% 회복마오카이: 아군 체력 회복\n킨드레드: 가장 강한 탱커에게 ShieldValue초 동안 보호막 부여킨드레드: 아군 보호막 부여\n상징: 아군이 중첩되는 BonusTrueDamage% 추가 고정 피해 입힘상징: 추가 고정 피해 입힘"
         }
       ]
     },
@@ -1704,7 +1774,8 @@
           "variables": {
             "PerHexIncrease": 2,
             "PercentDamageIncrease": 18
-          }
+          },
+          "tierDesc": "PercentDamageIncrease% , 칸 하나당 +PerHexIncrease%"
         },
         {
           "maxUnits": 3,
@@ -1713,7 +1784,8 @@
           "variables": {
             "PerHexIncrease": 3,
             "PercentDamageIncrease": 24
-          }
+          },
+          "tierDesc": "PercentDamageIncrease% , 칸 하나당 +PerHexIncrease%"
         },
         {
           "maxUnits": 25000,
@@ -1722,7 +1794,8 @@
           "variables": {
             "PerHexIncrease": 4,
             "PercentDamageIncrease": 28
-          }
+          },
+          "tierDesc": "PercentDamageIncrease% , 칸 하나당 +PerHexIncrease%"
         }
       ]
     },

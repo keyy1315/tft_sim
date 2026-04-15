@@ -78,11 +78,13 @@ function TraitTooltipContent({ at }: { at: ActiveTrait }) {
               className={`text-xs px-1.5 py-0.5 rounded ${isActive ? 'bg-yellow-900/40 text-yellow-300 font-bold' : 'text-gray-400'}`}
             >
               <span className="mr-1.5">({eff.minUnits})</span>
-              {vars.length > 0
-                ? vars.map(([key, val]) => (
-                    <span key={key} className="mr-2">{VARIABLE_KR[key] ?? key}: {fmtVal(val as number)}</span>
-                  ))
-                : <span className="text-gray-500">{isActive ? '활성' : ''}</span>
+              {eff.tierDesc
+                ? <span>{eff.tierDesc}</span>
+                : vars.length > 0
+                  ? vars.map(([key, val]) => (
+                      <span key={key} className="mr-2">{VARIABLE_KR[key] ?? key}: {fmtVal(val as number)}</span>
+                    ))
+                  : <span className="text-gray-500">{isActive ? '활성' : ''}</span>
               }
             </div>
           );

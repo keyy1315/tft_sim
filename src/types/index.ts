@@ -123,6 +123,7 @@ export interface TraitEffect {
   minUnits: number;
   style: number; // 1=bronze, 3=silver, 4=gold, 5=prismatic
   variables: Record<string, number | null>;
+  tierDesc?: string;
 }
 
 export interface RawTrait {
