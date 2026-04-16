@@ -16,6 +16,7 @@ interface SetupBoardProps {
   selectedUnit?: { team: 'player' | 'enemy'; index: number } | null;
   playerHexBuffs?: HexBuff[];
   enemyHexBuffs?: HexBuff[];
+  movingHexBuffApiName?: string | null;
 }
 
 const ROWS = 8;
@@ -119,6 +120,7 @@ export default function SetupBoard({
   selectedUnit,
   playerHexBuffs = [],
   enemyHexBuffs = [],
+  movingHexBuffApiName,
 }: SetupBoardProps) {
   const cols = BOARD_COLS;
   const width = cols * (HEX_W + PAD) + HEX_W / 2 + 40;
@@ -133,13 +135,15 @@ export default function SetupBoard({
     for (const pos of buff.positions) {
       const off = axialToOffset(pos);
       const displayRow = off.row + 4;
-      hexBuffMap.set(`${displayRow}-${off.col}`, { color: buff.color, label: buff.label, movable: buff.movable });
+      const isMoving = buff.movable && movingHexBuffApiName === buff.augmentApiName;
+      hexBuffMap.set(`${displayRow}-${off.col}`, { color: isMoving ? '#FF8C00' : buff.color, label: buff.label, movable: buff.movable });
     }
   }
   for (const buff of enemyHexBuffs) {
     for (const pos of buff.positions) {
       const off = axialToOffset(pos);
-      hexBuffMap.set(`${off.row}-${off.col}`, { color: buff.color, label: buff.label, movable: buff.movable });
+      const isMoving = buff.movable && movingHexBuffApiName === buff.augmentApiName;
+      hexBuffMap.set(`${off.row}-${off.col}`, { color: isMoving ? '#FF8C00' : buff.color, label: buff.label, movable: buff.movable });
     }
   }
 
@@ -261,9 +265,16 @@ export default function SetupBoard({
                 strokeDasharray={hexBuffInfo?.movable ? '4 2' : undefined}
               />
               {hexBuffInfo && !result && (
-                <text x={cx} y={cy + 4} textAnchor="middle" fill={hexBuffInfo.color} fontSize="8" fontWeight="bold" opacity={0.7}>
-                  {hexBuffInfo.label}
-                </text>
+                <>
+                  <text x={cx} y={hexBuffInfo.movable ? cy : cy + 4} textAnchor="middle" fill={hexBuffInfo.color} fontSize="8" fontWeight="bold" opacity={0.7}>
+                    {hexBuffInfo.label}
+                  </text>
+                  {hexBuffInfo.movable && (
+                    <text x={cx} y={cy + 12} textAnchor="middle" fill="#9CA3AF" fontSize="7" opacity={0.6}>
+                      클릭하여 이동
+                    </text>
+                  )}
+                </>
               )}
               {result && result.placed.starLevel > 0 && (
                 <text x={cx} y={cy - HEX_R + 14} textAnchor="middle" fill="#f59e0b" fontSize="14" fontWeight="bold"
