@@ -1,14 +1,17 @@
 import {
   CombatUnit, CombatResult, CombatLog, PlacedChampion,
-  HexCoord, TickSnapshot, mapGameRole,
-  RawTrait, RawAugment, RawItem, ActiveTrait, ItemEffect,
+  HexCoord, HexBuff, TickSnapshot, mapGameRole,
+  RawTrait, RawAugment, RawItem, RawChampion, ActiveTrait, ItemEffect,
+  MF_MODE_CONFIG,
 } from '@/types';
+import { findCarryAugment } from '@/data/carryAugments';
 import type { StatusEffectType } from '@/types';
 import { calculateStats } from '@/lib/simulator/systems/stat';
-import { getAbilityDamage, getAbilityShield, findAbilityTargets, CHAMPION_ABILITY_PATTERNS } from '@/lib/simulator/systems/ability';
+import { getAbilityDamage, getAbilityShield, findAbilityTargets, CHAMPION_ABILITY_PATTERNS, getChampionScaling, starValue, getSynergyScaling } from '@/lib/simulator/systems/ability';
 import type { AbilityConfig } from '@/lib/simulator/systems/ability';
 import { canAttack, getMoveTicks, findBestMoveToward, coordKey, getNeighbors, hexDistance } from '@/lib/simulator/systems/movement';
-import { TICK_DURATION, MAX_TICKS, TICKS_PER_SECOND } from '@/lib/simulator/models/constants';
+import { getHexesInRadius } from '@/lib/simulator/models/hex';
+import { TICK_DURATION, MAX_TICKS, TICKS_PER_SECOND, CAST_TICKS, SELF_BUFF_CAST_TICKS, INITIAL_ATTACK_DELAY } from '@/lib/simulator/models/constants';
 import { createRNG, SeededRNG } from '@/lib/simulator/engine/rng';
 import { captureSnapshot } from '@/lib/simulator/engine/replayEngine';
 import { findTarget, getTargetingWeight } from '@/lib/simulator/systems/targeting';
@@ -17,6 +20,7 @@ import { EventBus } from '@/lib/simulator/events/eventBus';
 import { ROLE_OMNIVAMP } from '@/lib/simulator/models/unit';
 import { resolveTraits } from '@/lib/simulator/systems/trait';
 import { resolveAugmentEffects, resolveInCombatAugmentEffects, resolvePerUnitMods, applyPerUnitMods, AugmentWithStacks } from '@/lib/simulator/systems/augment';
+import type { IoniaPathType } from '@/data/traitModules';
 
 /** 상태이상 한글 레이블 (엔진 로그용 — UI 모듈에 의존하지 않음) */
 const STATUS_EFFECT_LABELS: Record<StatusEffectType, string> = {
@@ -54,6 +58,15 @@ export interface SimulateOptions {
   /** 필트오버 팀 모듈 (팀 슬롯에서 선택한 모듈 아이템 배열) */
   playerPiltoverModules?: RawItem[];
   enemyPiltoverModules?: RawItem[];
+  /** 아이오니아 선택된 길 */
+  playerIoniaPath?: IoniaPathType;
+  enemyIoniaPath?: IoniaPathType;
+  /** 대기석 갈리오 (데마시아 결집 시 소환) */
+  playerGalio?: { champion: RawChampion; starLevel: number } | null;
+  enemyGalio?: { champion: RawChampion; starLevel: number } | null;
+  /** 칸 버프 증강 */
+  playerHexBuffs?: HexBuff[];
+  enemyHexBuffs?: HexBuff[];
 }
 
 function createCombatUnit(
@@ -63,16 +76,17 @@ function createCombatUnit(
   activeTraits: ActiveTrait[] = [],
   augmentEffects: ItemEffect = {},
 ): CombatUnit {
-  const { stats } = calculateStats(placed.champion, placed.starLevel, placed.items, activeTraits, augmentEffects);
+  const allItems = placed.voidItem ? [...placed.items, placed.voidItem] : placed.items;
+  const { stats } = calculateStats(placed.champion, placed.starLevel, allItems, activeTraits, augmentEffects);
   const role = mapGameRole(placed.champion.role);
-  return {
+  const unit: CombatUnit = {
     id: `${team}-${index}`,
     champion: placed.champion,
     team,
     position: { ...placed.position },
     starLevel: placed.starLevel as 1 | 2 | 3,
     role,
-    items: placed.items,
+    items: allItems,
     currentHp: stats.hp,
     maxHp: stats.hp,
     currentMana: stats.mana,
@@ -94,7 +108,196 @@ function createCombatUnit(
     augmentExecuteThreshold: 0,
     augmentBurnPercent: 0,
     inventionTankDamageAmp: 0,
+    attackCount: 0,
+    castCount: 0,
+    killCount: 0,
   };
+
+  // MF 특성 선택 → 실제 트레이트로 치환
+  if (placed.champion.apiName === 'TFT17_MissFortune' && placed.mfMode) {
+    const modeCfg = MF_MODE_CONFIG[placed.mfMode];
+    unit.resolvedTraits = placed.champion.traits.map(t => t === '특성 선택' ? modeCfg.name : t);
+  }
+
+  // 공허 돌연변이 전투 효과 적용
+  for (const item of allItems) {
+    if (!item.apiName.includes('Consumable_Void')) continue;
+    const fx = item.effects;
+    // 아드레날린 모듈: 피해증폭
+    if (typeof fx['BaseDamageAmp'] === 'number') {
+      unit.damageAmp += fx['BaseDamageAmp'] as number;
+    }
+    // 흡수 세포핵: 옴니뱀프 (피해량의 N% 체력 회복)
+    if (typeof fx['HealPercent'] === 'number') {
+      unit.omnivamp += fx['HealPercent'] as number;
+    }
+  }
+
+  return unit;
+}
+
+/** 영구 스택 적용 (이즈리얼 드론, 초가스 체력) */
+function applyPermanentStacks(unit: CombatUnit, placed: PlacedChampion): void {
+  const stacks = placed.permanentStacks;
+  if (!stacks || stacks.value <= 0) return;
+
+  if (stacks.type === 'chogath_hp') {
+    unit.maxHp += stacks.value;
+    unit.currentHp += stacks.value;
+  }
+  // ezreal_drones: 전투 루프 내 스킬 시전 시 추가 피해로 처리
+  // 드론 수는 unit에 임시 저장
+  if (stacks.type === 'ezreal_drones') {
+    const drones = Math.floor(stacks.value / 8);
+    (unit as CombatUnit & { _ezrealDrones?: number })._ezrealDrones = drones;
+  }
+}
+
+/** 전투 시작 패시브 적용 (진 AS→AD 등) */
+function applyStartPassives(unit: CombatUnit): void {
+  const sc = getChampionScaling(unit.champion.apiName);
+  if (!sc || sc.trigger !== 'passive') return;
+
+  // 진: AS → AD 전환
+  if (sc.effect.type === 'asToAd') {
+    const fixedAS = starValue(sc.fixedAS as number[], unit.starLevel);
+    const convertRate = (sc.convertRate as number) ?? 0.75;
+    const bonusAS = unit.stats.attackSpeed - fixedAS;
+    if (bonusAS > 0 && fixedAS > 0) {
+      unit.stats.damage += Math.round(bonusAS * 100 * convertRate);
+      unit.stats.attackSpeed = fixedAS;
+    }
+  }
+}
+
+/** Set 17 시너지 전투 버프 적용 (JSON scaling 데이터 기반) */
+function applySet17SynergyBuffs(traits: ActiveTrait[], units: CombatUnit[]): void {
+  for (const at of traits) {
+    if (!at.activeEffect || at.style === 0) continue;
+    const sc = getSynergyScaling(at.trait.apiName);
+    if (!sc) continue;
+
+    // 활성 티어 인덱스 (effects 배열에서 몇 번째)
+    const tierIdx = at.trait.effects.findIndex(e => e === at.activeEffect);
+    const ti = Math.max(0, tierIdx);
+
+    const isChampTrait = (u: CombatUnit) => (u.resolvedTraits ?? u.champion.traits).includes(at.trait.name);
+
+    // 도전자: 아군 AS + 도전자 추가 AS
+    if (sc.teamwideAS) {
+      const teamAS = (sc.teamwideAS as number[])[ti] ?? 0;
+      const champAS = (sc.championAS as number[])[ti] ?? 0;
+      for (const u of units) {
+        u.stats.attackSpeed *= (1 + teamAS);
+        if (isChampTrait(u)) u.stats.attackSpeed *= (1 + champAS);
+      }
+    }
+
+    // 습격자: 흡혈 + AD
+    if (sc.teamwideOmnivamp) {
+      const teamVamp = (sc.teamwideOmnivamp as number[])[ti] ?? 0;
+      const champVamp = (sc.championOmnivamp as number[])[ti] ?? 0;
+      const champAD = (sc.championAD as number[])[ti] ?? 0;
+      for (const u of units) {
+        u.omnivamp += teamVamp;
+        if (isChampTrait(u)) {
+          u.omnivamp += champVamp;
+          u.stats.damage = Math.round(u.stats.damage * (1 + champAD));
+        }
+      }
+    }
+
+    // 전달자: 마나 재생
+    if (sc.teamManaRegen) {
+      const teamMR = (sc.teamManaRegen as number[])[ti] ?? 0;
+      const champMR = (sc.channelerManaRegen as number[])[ti] ?? 0;
+      for (const u of units) {
+        u.augmentManaRegen += teamMR;
+        if (isChampTrait(u)) u.augmentManaRegen += champMR;
+      }
+    }
+
+    // 구원자: 활성 특성당 AS/방어력/마저
+    if (sc.offensiveStat) {
+      const activeTraitCount = traits.filter(t => t.style > 0).length;
+      const asPerTrait = (sc.offensiveStat as number[])[ti] ?? 0;
+      const defPerTrait = (sc.defensiveStat as number[])[ti] ?? 0;
+      for (const u of units) {
+        u.stats.attackSpeed *= (1 + asPerTrait * activeTraitCount);
+        u.stats.armor += defPerTrait * activeTraitCount;
+        u.stats.magicResist += defPerTrait * activeTraitCount;
+      }
+    }
+
+    // 불한당: AD/AP 획득
+    if (sc.adap) {
+      const adap = (sc.adap as number[])[ti] ?? 0;
+      for (const u of units) {
+        if (isChampTrait(u)) {
+          u.stats.damage = Math.round(u.stats.damage * (1 + adap / 100));
+          u.stats.ap += adap;
+        }
+      }
+    }
+  }
+}
+
+/** 캐리 증강 사거리 오버라이드 */
+function applyCarryAugmentRange(unit: CombatUnit, augmentApiNames: string[]): void {
+  const carry = findCarryAugment(unit.champion.apiName, augmentApiNames);
+  if (carry?.rangeOverride) {
+    unit.stats.range = carry.rangeOverride;
+  }
+}
+
+/** 칸 버프 증강 효과 적용 (전투 시작 시 유닛 위치 기반) */
+function applyHexBuffs(units: CombatUnit[], hexBuffs: HexBuff[]): void {
+  for (const buff of hexBuffs) {
+    if (buff.positions.length === 0) continue;
+    for (const unit of units) {
+      const onBuff = buff.positions.some(
+        p => p.q === unit.position.q && p.r === unit.position.r
+      );
+      if (!onBuff) continue;
+
+      if (buff.effects.hp) {
+        unit.maxHp += buff.effects.hp;
+        unit.currentHp += buff.effects.hp;
+        unit.stats.hp += buff.effects.hp;
+      }
+      if (buff.effects.hpPercent) {
+        const bonus = Math.round(unit.maxHp * buff.effects.hpPercent);
+        unit.maxHp += bonus;
+        unit.currentHp += bonus;
+        unit.stats.hp += bonus;
+      }
+      if (buff.effects.attackSpeed) {
+        unit.stats.attackSpeed *= (1 + buff.effects.attackSpeed);
+      }
+      if (buff.effects.damageAmp) {
+        unit.damageAmp += buff.effects.damageAmp;
+      }
+      if (buff.effects.armor) {
+        unit.stats.armor += buff.effects.armor;
+      }
+      if (buff.effects.magicResist) {
+        unit.stats.magicResist += buff.effects.magicResist;
+      }
+      if (buff.effects.ap) {
+        unit.stats.ap += buff.effects.ap;
+      }
+      if (buff.effects.ad) {
+        unit.stats.damage += buff.effects.ad;
+      }
+    }
+  }
+}
+
+/** 캐리 증강 포함 AbilityConfig 결정 */
+function getAbilityConfigForUnit(unit: CombatUnit, augmentApiNames: string[]): AbilityConfig {
+  const carry = findCarryAugment(unit.champion.apiName, augmentApiNames);
+  if (carry) return carry.abilityOverride;
+  return CHAMPION_ABILITY_PATTERNS[unit.champion.apiName] ?? { pattern: 'single' };
 }
 
 /** 대쉬 대상 헬퍼: 가장 먼 적 */
@@ -172,6 +375,84 @@ function applyAbilityDash(
   tickLogs.push(log);
 
   return dashTarget;
+}
+
+/** 아이오니아 선택된 길의 능력치를 아이오니아 유닛에 적용 */
+function applyIoniaPath(
+  activeTraits: ActiveTrait[],
+  teamUnits: CombatUnit[],
+  pathType: IoniaPathType,
+  logs: CombatLog[],
+): void {
+  const ionia = activeTraits.find(t => t.trait.apiName === 'TFT16_Ionia' && t.activeEffect);
+  if (!ionia || !ionia.activeEffect) return;
+  const vars = ionia.activeEffect.variables;
+
+  const ioniaUnits = teamUnits.filter(u =>
+    u.state !== 'dead' && u.champion.traits.includes('아이오니아')
+  );
+  if (ioniaUnits.length === 0) return;
+
+  const pathNames: Record<IoniaPathType, string> = {
+    blades: '검의 길', enlightenment: '깨달음의 길',
+    transcendence: '초월의 길', generosity: '번영의 길', spirit: '영혼의 길',
+  };
+
+  switch (pathType) {
+    case 'blades': {
+      const chance = ((vars['BladesPercentChance'] ?? 30) as number) / 100;
+      for (const u of ioniaUnits) {
+        (u as CombatUnit & { ioniaBladeChance?: number }).ioniaBladeChance = chance;
+      }
+      break;
+    }
+    case 'enlightenment': {
+      const adap = (vars['EnlightenmentADAP'] ?? 10) as number;
+      for (const u of ioniaUnits) {
+        u.stats.damage += adap;
+        u.stats.ap += adap;
+      }
+      break;
+    }
+    case 'transcendence': {
+      const hpPct = (vars['TranscendenceHealth'] ?? 0.10) as number;
+      const magicAmp = (vars['TranscendenceMagicDamage'] ?? 0.20) as number;
+      for (const u of ioniaUnits) {
+        const hpGain = Math.round(u.maxHp * hpPct);
+        u.maxHp += hpGain;
+        u.currentHp += hpGain;
+        u.damageAmp += magicAmp;
+      }
+      break;
+    }
+    case 'generosity': {
+      const adap = (vars['GenerosityADAP'] ?? 10) as number;
+      for (const u of ioniaUnits) {
+        u.stats.damage += adap;
+        u.stats.ap += adap;
+      }
+      break;
+    }
+    case 'spirit': {
+      const adap = (vars['SpiritADAP'] ?? 3) as number;
+      const hpPct = (vars['SpiritHealth'] ?? 0.25) as number;
+      for (const u of ioniaUnits) {
+        u.stats.damage += adap;
+        u.stats.ap += adap;
+        const hpGain = Math.round(u.maxHp * hpPct);
+        u.maxHp += hpGain;
+        u.currentHp += hpGain;
+      }
+      break;
+    }
+  }
+
+  const sourceId = ioniaUnits[0].id;
+  const log: CombatLog = {
+    tick: 0, time: 0, type: 'ability', sourceId,
+    message: `[아이오니아] ${pathNames[pathType]} 적용!`,
+  };
+  logs.push(log);
 }
 
 /** Fighter/Assassin 비타겟 피해 감소 비율 */
@@ -274,6 +555,57 @@ function applyWardenShields(activeTraits: ActiveTrait[], units: CombatUnit[]): v
   }
 }
 
+/** 엄호대 — BonusArmorMR은 엄호대 유닛만 추가 (armor + MR) */
+function applyDefenderBonus(activeTraits: ActiveTrait[], units: CombatUnit[]): void {
+  const defender = activeTraits.find(t => t.trait.apiName === 'TFT16_Defender' && t.activeEffect);
+  if (!defender?.activeEffect) return;
+  const bonus = (defender.activeEffect.variables['BonusArmorMR'] ?? 0) as number;
+  if (bonus <= 0) return;
+  for (const u of units) {
+    if (u.champion.traits.includes('엄호대')) {
+      u.stats.armor += bonus;
+      u.stats.magicResist += bonus;
+    }
+  }
+}
+
+/** 비전 마법사 — BonusAP는 비전 마법사 유닛에게만 추가 */
+function applySorcererBonus(activeTraits: ActiveTrait[], units: CombatUnit[]): void {
+  const sorc = activeTraits.find(t => t.trait.apiName === 'TFT16_Sorcerer' && t.activeEffect);
+  if (!sorc?.activeEffect) return;
+  const bonusAP = (sorc.activeEffect.variables['BonusAP'] ?? 0) as number;
+  if (bonusAP <= 0) return;
+  for (const u of units) {
+    if (u.champion.traits.includes('비전 마법사')) {
+      u.stats.ap += bonusAP;
+    }
+  }
+}
+
+/** 기원자 — 팀 전체 마나 재생 보너스 */
+function applyInvokerManaRegen(activeTraits: ActiveTrait[], units: CombatUnit[]): void {
+  const invoker = activeTraits.find(t => t.trait.apiName === 'TFT16_Invoker' && t.activeEffect);
+  if (!invoker?.activeEffect) return;
+  const teamMana = (invoker.activeEffect.variables['TeamBonusMana'] ?? 0) as number;
+  if (teamMana <= 0) return;
+  for (const u of units) {
+    u.augmentManaRegen += teamMana;
+  }
+}
+
+/** 전쟁기계 — BaseDR을 damageReduction에 적용 */
+function applyJuggernautDR(activeTraits: ActiveTrait[], units: CombatUnit[]): void {
+  const jugg = activeTraits.find(t => t.trait.apiName === 'TFT16_Juggernaut' && t.activeEffect);
+  if (!jugg?.activeEffect) return;
+  const baseDR = (jugg.activeEffect.variables['BaseDR'] ?? 0) as number;
+  if (baseDR <= 0) return;
+  for (const u of units) {
+    if (u.champion.traits.includes('전쟁기계')) {
+      u.damageReduction += baseDR;
+    }
+  }
+}
+
 function tickStatusEffects(
   unit: CombatUnit,
   tick: number,
@@ -329,7 +661,18 @@ function mirrorPosition(pos: HexCoord): HexCoord {
 function getEffectiveAttackSpeed(unit: CombatUnit): number {
   const slow = unit.statusEffects.find(e => e.type === 'slow');
   const mult = slow?.value ? Math.max(0.2, 1 - slow.value) : 1;
-  return unit.stats.attackSpeed * mult;
+  let as = unit.stats.attackSpeed * mult;
+
+  // 브라이어 패시브: 잃은 체력 1%당 AS 증가
+  const briarSc = unit.champion.apiName === 'TFT17_Briar' ? getChampionScaling('TFT17_Briar') : null;
+  if (briarSc) {
+    const missingPct = 1 - (unit.currentHp / unit.maxHp);
+    const asPerPct = starValue(briarSc.asPerMissingHpPercent as number[] | undefined, unit.starLevel) / 100;
+    const apScale = briarSc.apScaling ? (1 + unit.stats.ap / 100) : 1;
+    as *= (1 + missingPct * asPerPct * apScale);
+  }
+
+  return as;
 }
 
 /** Create Freljord turret units if trait is active */
@@ -396,6 +739,9 @@ function spawnFreljordTurrets(
             augmentExecuteThreshold: 0,
             augmentBurnPercent: 0,
             inventionTankDamageAmp: 0,
+            attackCount: 0,
+            castCount: 0,
+            killCount: 0,
           };
           // Store stun duration for prismatic tier
           if (stunDuration > 0) {
@@ -516,6 +862,9 @@ function trySpawnNoxusAtakhan(
     augmentExecuteThreshold: 0,
     augmentBurnPercent: 0,
     inventionTankDamageAmp: 0,
+    attackCount: 0,
+    castCount: 0,
+    killCount: 0,
   };
 
   const logEntry: CombatLog = {
@@ -528,6 +877,176 @@ function trySpawnNoxusAtakhan(
   tickLogs.push(logEntry);
 
   return atakhan;
+}
+
+/** 갈리오 영웅 소환 — 데마시아 결집 시 대기석 갈리오가 전투에 합류 */
+function trySpawnGalio(
+  activeTraits: ActiveTrait[],
+  team: 'player' | 'enemy',
+  teamUnits: CombatUnit[],
+  opposingUnits: CombatUnit[],
+  allUnits: CombatUnit[],
+  galioInfo: { champion: RawChampion; starLevel: number } | null | undefined,
+  tick: number,
+  time: number,
+  logs: CombatLog[],
+  tickLogs: CombatLog[],
+  spawnedFlag: { spawned: boolean },
+): CombatUnit | null {
+  if (spawnedFlag.spawned) return null;
+  if (!galioInfo) return null;
+
+  const demacia = activeTraits.find(t => t.trait.apiName === 'TFT16_Demacia' && t.activeEffect);
+  if (!demacia || !demacia.activeEffect) return null;
+
+  const maxHealthLost = (demacia.activeEffect.variables['MaxHealthLost'] ?? 0.25) as number;
+
+  // 아군 팀 HP 손실 비율 체크
+  const totalMaxHp = teamUnits.reduce((sum, u) => sum + u.maxHp, 0);
+  const totalCurrentHp = teamUnits.filter(u => u.state !== 'dead').reduce((sum, u) => sum + u.currentHp, 0);
+  if (totalMaxHp === 0) return null;
+
+  const hpLostRatio = 1 - (totalCurrentHp / totalMaxHp);
+  if (hpLostRatio < maxHealthLost) return null;
+
+  // 소환 트리거!
+  spawnedFlag.spawned = true;
+
+  const { stats } = calculateStats(galioInfo.champion, galioInfo.starLevel, [], activeTraits, {});
+  const star = galioInfo.starLevel as 1 | 2 | 3;
+
+  // 적 전방 빈 칸에 착지
+  const occupiedPositions = new Set(
+    allUnits.filter(u => u.state !== 'dead').map(u => `${u.position.q},${u.position.r}`)
+  );
+  const aliveEnemies = opposingUnits.filter(u => u.state !== 'dead');
+  let spawnPos: HexCoord | null = null;
+
+  // 적이 가장 밀집한 곳 근처 빈 칸
+  if (aliveEnemies.length > 0) {
+    const avgQ = Math.round(aliveEnemies.reduce((s, u) => s + u.position.q, 0) / aliveEnemies.length);
+    const avgR = Math.round(aliveEnemies.reduce((s, u) => s + u.position.r, 0) / aliveEnemies.length);
+    const center: HexCoord = { q: avgQ, r: avgR };
+    const neighbors = getNeighbors(center);
+    for (const n of [center, ...neighbors]) {
+      if (!occupiedPositions.has(coordKey(n))) {
+        spawnPos = n;
+        break;
+      }
+    }
+  }
+
+  // 밀집 지역에 빈 칸이 없으면 팀 전방 빈 칸
+  if (!spawnPos) {
+    const startRow = team === 'player' ? 4 : 0;
+    const endRow = team === 'player' ? 6 : 2;
+    for (let r = startRow; r <= endRow && !spawnPos; r++) {
+      for (const col of [3, 2, 4, 1, 5, 0, 6]) {
+        const q = col - Math.floor(r / 2);
+        if (!occupiedPositions.has(`${q},${r}`)) {
+          spawnPos = { q, r };
+          break;
+        }
+      }
+    }
+  }
+  if (!spawnPos) return null;
+
+  const galioId = `${team}-galio`;
+  const galio: CombatUnit = {
+    id: galioId,
+    champion: galioInfo.champion,
+    team,
+    position: spawnPos,
+    starLevel: star,
+    role: mapGameRole(galioInfo.champion.role),
+    items: [],
+    currentHp: stats.hp,
+    maxHp: stats.hp,
+    currentMana: stats.mana,
+    maxMana: stats.maxMana,
+    state: 'idle',
+    target: null,
+    stats,
+    attackCooldown: 0,
+    moveCooldown: 0,
+    totalDamageDealt: 0,
+    totalDamageTaken: 0,
+    statusEffects: [],
+    omnivamp: 0,
+    damageAmp: 0,
+    damageReduction: 0,
+    shield: 0,
+    augmentManaRegen: 0,
+    augmentGrievousWounds: 0,
+    augmentExecuteThreshold: 0,
+    augmentBurnPercent: 0,
+    inventionTankDamageAmp: 0,
+    attackCount: 0,
+    castCount: 0,
+    killCount: 0,
+  };
+
+  // 착지 충격파 — 영웅 시너지 variables
+  const heroTrait = activeTraits.find(t => t.trait.apiName === 'TFT16_Heroic' && t.activeEffect);
+  const heroVars = heroTrait?.activeEffect?.variables ?? {};
+  const hexRadius = (heroVars['HexRadius'] ?? 3) as number;
+  const percentMaxHP = (heroVars['PercentMaxHP'] ?? 0.10) as number;
+  const knockupDuration = (heroVars['KnockupDuration'] ?? 1) as number;
+
+  const impactHexes = getHexesInRadius(spawnPos, hexRadius);
+  const impactSet = new Set(impactHexes.map(h => `${h.q},${h.r}`));
+  let totalImpactDmg = 0;
+
+  for (const enemy of aliveEnemies) {
+    if (!impactSet.has(`${enemy.position.q},${enemy.position.r}`)) continue;
+    const rawDmg = enemy.maxHp * percentMaxHP;
+    const finalDmg = applyResistance(rawDmg, enemy.stats.magicResist);
+    enemy.currentHp -= finalDmg;
+    enemy.totalDamageTaken += finalDmg;
+    totalImpactDmg += finalDmg;
+
+    // 거리 비례 기절
+    const dist = hexDistance(spawnPos, enemy.position);
+    const stunDur = knockupDuration * Math.max(0.5, 1 - dist * 0.15);
+    const stunTicks = Math.round(stunDur * TICKS_PER_SECOND);
+    enemy.statusEffects.push({ type: 'stun', sourceId: galioId, remainingTicks: stunTicks });
+    enemy.state = 'idle';
+    enemy.attackCooldown = 0;
+
+    if (enemy.currentHp <= 0) {
+      enemy.currentHp = 0;
+      enemy.state = 'dead';
+    }
+  }
+
+  const spawnLog: CombatLog = {
+    tick, time, type: 'ability', sourceId: galioId,
+    value: Math.round(totalImpactDmg),
+    message: `갈리오 소환! 착지 충격파 — ${hexRadius}칸 범위 적에게 최대 체력 ${Math.round(percentMaxHP * 100)}% 마법 피해 + 기절`,
+  };
+  logs.push(spawnLog);
+  tickLogs.push(spawnLog);
+
+  // 데마시아 결집 버프 — ArmorMR / ManaReductionPct / EnemyTrueDamage
+  const dVars = demacia.activeEffect.variables;
+  const rallyArmorMR = (dVars['ArmorMR'] ?? 0) as number;
+  const manaReductionPct = (dVars['ManaReductionPct'] ?? 0) as number;
+  const enemyTrueDamage = (dVars['EnemyTrueDamage'] ?? 0) as number;
+
+  for (const u of teamUnits) {
+    if (!u.champion.traits.includes('데마시아') || u.state === 'dead') continue;
+    u.stats.armor += rallyArmorMR;
+    u.stats.magicResist += rallyArmorMR;
+    if (manaReductionPct > 0) {
+      u.maxMana = Math.round(u.maxMana * (1 - manaReductionPct));
+    }
+    if (enemyTrueDamage > 0) {
+      u.damageAmp += enemyTrueDamage;
+    }
+  }
+
+  return galio;
 }
 
 /** 필트오버 모듈 한글명 매핑 */
@@ -845,24 +1364,48 @@ export function simulateCombat(
   const playerBWEffects = options.playerBilgewaterEffects ?? {};
   const enemyBWEffects = options.enemyBilgewaterEffects ?? {};
 
+  const playerAugApiNames = playerAugsWithStacks.map(a => a.augment.apiName);
+  const enemyAugApiNames = enemyAugsWithStacks.map(a => a.augment.apiName);
+
   const rng: SeededRNG = createRNG(seed);
   const eventBus = new EventBus();
 
-  const playerUnits = allyTeam.map((p, i) => {
+  // 갈리오는 필드에 배치되지만 전투 시작 시 제외 → 데마시아 결집 시 소환
+  const isGalio = (p: PlacedChampion) => p.champion.apiName === 'TFT16_Galio';
+  const playerGalioPlaced = allyTeam.find(isGalio);
+  const enemyGalioPlaced = enemyTeam.find(isGalio);
+  const playerTeamFiltered = allyTeam.filter(p => !isGalio(p));
+  const enemyTeamFiltered = enemyTeam.filter(p => !isGalio(p));
+
+  // options에서 전달된 갈리오보다 필드 배치된 갈리오 우선
+  const effectivePlayerGalio = playerGalioPlaced
+    ? { champion: playerGalioPlaced.champion, starLevel: playerGalioPlaced.starLevel }
+    : options.playerGalio ?? null;
+  const effectiveEnemyGalio = enemyGalioPlaced
+    ? { champion: enemyGalioPlaced.champion, starLevel: enemyGalioPlaced.starLevel }
+    : options.enemyGalio ?? null;
+
+  const playerUnits = playerTeamFiltered.map((p, i) => {
     const isBW = p.champion.traits.includes('빌지워터');
     const effects = isBW ? mergeEffects(playerAugmentEffects, playerBWEffects) : playerAugmentEffects;
     const unit = createCombatUnit(p, 'player', i, playerActiveTraits, effects);
     const mod = resolvePerUnitMods(playerAugsWithStacks, p.champion);
     applyPerUnitMods(unit, mod);
+    applyPermanentStacks(unit, p);
+    applyCarryAugmentRange(unit, playerAugApiNames);
+    applyStartPassives(unit);
     return unit;
   });
-  const enemies = enemyTeam.map((p, i) => {
+  const enemies = enemyTeamFiltered.map((p, i) => {
     const positioned = options.skipMirror ? p : { ...p, position: mirrorPosition(p.position) };
     const isBW = p.champion.traits.includes('빌지워터');
     const effects = isBW ? mergeEffects(enemyAugmentEffects, enemyBWEffects) : enemyAugmentEffects;
     const unit = createCombatUnit(positioned, 'enemy', i, enemyActiveTraits, effects);
     const mod = resolvePerUnitMods(enemyAugsWithStacks, p.champion);
     applyPerUnitMods(unit, mod);
+    applyPermanentStacks(unit, positioned);
+    applyCarryAugmentRange(unit, enemyAugApiNames);
+    applyStartPassives(unit);
     return unit;
   });
 
@@ -882,9 +1425,68 @@ export function simulateCombat(
     }
   }
 
-  // Apply Warden trait shields at combat start
+  // === Set 17 시너지 전투 버프 (JSON 기반) ===
+  applySet17SynergyBuffs(playerActiveTraits, playerUnits);
+  applySet17SynergyBuffs(enemyActiveTraits, enemies);
+
+  // === 칸 버프 증강 ===
+  if (options.playerHexBuffs?.length) applyHexBuffs(playerUnits, options.playerHexBuffs);
+  if (options.enemyHexBuffs?.length) applyHexBuffs(enemies, options.enemyHexBuffs);
+
+  const logs: CombatLog[] = [];
+
+  // Apply trait combat-start bonuses
   applyWardenShields(playerActiveTraits, playerUnits);
   applyWardenShields(enemyActiveTraits, enemies);
+  applyDefenderBonus(playerActiveTraits, playerUnits);
+  applyDefenderBonus(enemyActiveTraits, enemies);
+  applySorcererBonus(playerActiveTraits, playerUnits);
+  applySorcererBonus(enemyActiveTraits, enemies);
+  applyInvokerManaRegen(playerActiveTraits, playerUnits);
+  applyInvokerManaRegen(enemyActiveTraits, enemies);
+  applyJuggernautDR(playerActiveTraits, playerUnits);
+  applyJuggernautDR(enemyActiveTraits, enemies);
+
+  // 아이오니아 길 적용
+  if (options.playerIoniaPath) {
+    applyIoniaPath(playerActiveTraits, playerUnits, options.playerIoniaPath, logs);
+  }
+  if (options.enemyIoniaPath) {
+    applyIoniaPath(enemyActiveTraits, enemies, options.enemyIoniaPath, logs);
+  }
+
+  // 수확자 — 적 사망 시 마나 획득 + 적 방저 감소
+  function registerHarvester(activeTraits: ActiveTrait[], killerTeam: CombatUnit[], enemyTeam: CombatUnit[]): void {
+    const harvester = activeTraits.find(t => t.trait.apiName === 'TFT16_Harvester' && t.activeEffect);
+    if (!harvester?.activeEffect) return;
+    const manaPerKill = (harvester.activeEffect.variables['ManaPerEnemyDeath'] ?? 0) as number;
+    const armorMRReduction = (harvester.activeEffect.variables['EnemyArmorMRReduction'] ?? 0) as number;
+    if (manaPerKill <= 0 && armorMRReduction <= 0) return;
+    eventBus.on('on_death', 'harvester', () => {
+      for (const u of killerTeam) {
+        if (u.champion.traits.includes('수확자') && u.state !== 'dead') {
+          u.currentMana = Math.min(u.maxMana, u.currentMana + manaPerKill);
+        }
+      }
+      for (const e of enemyTeam) {
+        if (e.state !== 'dead') {
+          e.stats.armor = Math.max(0, e.stats.armor - armorMRReduction);
+          e.stats.magicResist = Math.max(0, e.stats.magicResist - armorMRReduction);
+        }
+      }
+    });
+  }
+  registerHarvester(playerActiveTraits, playerUnits, enemies);
+  registerHarvester(enemyActiveTraits, enemies, playerUnits);
+
+  // 전투 시작 시 유닛별 랜덤 첫 공격 딜레이 (0~0.3초)
+  const maxDelayTicks = Math.round(INITIAL_ATTACK_DELAY * TICKS_PER_SECOND);
+  for (const u of playerUnits) {
+    u.attackCooldown = Math.floor(rng.next() * maxDelayTicks);
+  }
+  for (const u of enemies) {
+    u.attackCooldown = Math.floor(rng.next() * maxDelayTicks);
+  }
 
   const allUnits = [...playerUnits, ...enemies];
 
@@ -894,8 +1496,6 @@ export function simulateCombat(
   allUnits.push(...playerTurrets, ...enemyTurrets);
   playerUnits.push(...playerTurrets);
   enemies.push(...enemyTurrets);
-
-  const logs: CombatLog[] = [];
 
   // 암살자 후열 점프 (전투 시작 직전)
   applyAssassinJump(playerUnits, enemies, allUnits, logs);
@@ -907,6 +1507,10 @@ export function simulateCombat(
   // 녹서스 아타칸 소환 플래그
   const playerAtakhanFlag = { spawned: false };
   const enemyAtakhanFlag = { spawned: false };
+
+  // 갈리오 영웅 소환 플래그
+  const playerGalioFlag = { spawned: false };
+  const enemyGalioFlag = { spawned: false };
 
   eventBus.emit('on_combat_start', { sourceId: '', tick: 0 });
 
@@ -924,6 +1528,12 @@ export function simulateCombat(
       if (playerAtakhan) { allUnits.push(playerAtakhan); playerUnits.push(playerAtakhan); }
       const enemyAtakhan = trySpawnNoxusAtakhan(enemyActiveTraits, 'enemy', enemies, playerUnits, allUnits, rng, tick, time, logs, tickLogs, enemyAtakhanFlag);
       if (enemyAtakhan) { allUnits.push(enemyAtakhan); enemies.push(enemyAtakhan); }
+
+      // 갈리오 영웅 소환 체크
+      const playerGalio = trySpawnGalio(playerActiveTraits, 'player', playerUnits, enemies, allUnits, effectivePlayerGalio, tick, time, logs, tickLogs, playerGalioFlag);
+      if (playerGalio) { allUnits.push(playerGalio); playerUnits.push(playerGalio); }
+      const enemyGalio = trySpawnGalio(enemyActiveTraits, 'enemy', enemies, playerUnits, allUnits, effectiveEnemyGalio, tick, time, logs, tickLogs, enemyGalioFlag);
+      if (enemyGalio) { allUnits.push(enemyGalio); enemies.push(enemyGalio); }
     }
 
     // In-combat augment effects (apply every second = every 30 ticks)
@@ -1009,6 +1619,13 @@ export function simulateCombat(
             finalDamage *= (1 - NON_TARGET_DAMAGE_REDUCTION);
           }
 
+          // 아이오니아 검의 길: 확률적 추가 물리 피해
+          const bladeChance = (unit as CombatUnit & { ioniaBladeChance?: number }).ioniaBladeChance ?? 0;
+          if (bladeChance > 0 && rng.next() < bladeChance) {
+            const bladeBonusDmg = Math.round(unit.stats.damage * 0.5);
+            finalDamage += applyResistance(bladeBonusDmg, target.stats.armor, unit.stats.armorPen);
+          }
+
           finalDamage = applyShield(target, finalDamage, eventBus, tick);
 
           if (target.statusEffects.some(e => e.type === 'invulnerable')) {
@@ -1018,6 +1635,16 @@ export function simulateCombat(
           target.currentHp -= finalDamage;
           target.totalDamageTaken += finalDamage;
           unit.totalDamageDealt += finalDamage;
+
+          // 자동공격으로 적 처치
+          if (target.currentHp <= 0 && target.state !== 'dead') {
+            target.currentHp = 0;
+            target.state = 'dead';
+            unit.killCount++;
+            const deathLog: CombatLog = { tick, time, type: 'death', sourceId: target.id, message: `${target.champion.name} 사망! (${unit.champion.name}의 기본 공격)` };
+            logs.push(deathLog); tickLogs.push(deathLog);
+            eventBus.emit('on_death', { sourceId: target.id, tick });
+          }
 
           if (unit.omnivamp > 0 && finalDamage > 0) {
             const grievousReduction = target.augmentGrievousWounds > 0 ? (1 - target.augmentGrievousWounds) : 1;
@@ -1052,6 +1679,41 @@ export function simulateCombat(
           gainManaOnDamageTaken(target, finalDamage);
 
           unit.state = 'attacking';
+          unit.attackCount++;
+
+          // === 챔피언 전투 내 스케일링 (onAttack) — JSON 기반 ===
+          const atkSc = getChampionScaling(unit.champion.apiName);
+          if (atkSc?.trigger === 'onAttack' && target.state !== 'dead') {
+            const every = atkSc.every ?? 1;
+            if (unit.attackCount % every === 0) {
+              const effType = atkSc.effect.type;
+              if (effType === 'extraDamage' || effType === 'trueDamage') {
+                // 피해 수치: 챔피언별 damage 배열에서 추출
+                const dmgArr = (atkSc.passiveDamage ?? atkSc.damageAD ?? atkSc.hitDamage ?? atkSc.vitalDamage) as number[] | undefined;
+                const val = starValue(dmgArr, unit.starLevel);
+                const sDmgType = atkSc.effect.damageType ?? 'true';
+                const resistance = sDmgType === 'magic' ? target.stats.magicResist : sDmgType === 'physical' ? target.stats.armor : 0;
+                const pen = sDmgType === 'magic' ? unit.stats.magicPen : sDmgType === 'physical' ? unit.stats.armorPen : 0;
+                let sDmg = sDmgType === 'true' ? val : applyResistance(val * (1 + unit.damageAmp), resistance, pen);
+                sDmg = applyShield(target, sDmg, eventBus, tick);
+                target.currentHp -= sDmg;
+                unit.totalDamageDealt += sDmg;
+                // 피오라 급소 회복
+                const healPct = atkSc.healPercent as number | undefined;
+                if (healPct && sDmg > 0) {
+                  unit.currentHp = Math.min(unit.maxHp, unit.currentHp + sDmg * healPct);
+                }
+              }
+            }
+          }
+
+          // === 카이사: 처치 관여 시 마나 (onKill) ===
+          const killSc = getChampionScaling(unit.champion.apiName);
+          if (killSc?.trigger === 'onKill' && killSc.effect.type === 'mana' && target.state === 'dead') {
+            const manaGain = (killSc.manaPerKill as number) ?? 10;
+            unit.currentMana = Math.min(unit.maxMana, unit.currentMana + manaGain);
+          }
+
           eventBus.emit('on_attack', { sourceId: unit.id, targetId: target.id, value: finalDamage, tick });
           eventBus.emit('on_hit', { sourceId: unit.id, targetId: target.id, value: finalDamage, damageType: 'physical', tick });
           eventBus.emit('on_damage', { sourceId: target.id, targetId: unit.id, value: finalDamage, damageType: 'physical', tick });
@@ -1068,11 +1730,17 @@ export function simulateCombat(
           if (unit.currentMana >= unit.maxMana) {
             unit.currentMana = 0;
             unit.state = 'casting';
+            unit.castCount++;
+
+            const augNames = unit.team === 'player' ? playerAugApiNames : enemyAugApiNames;
+            const config: AbilityConfig = getAbilityConfigForUnit(unit, augNames);
+
+            // 스킬 시전 후 cast time — 이 시간 동안 공격 불가
+            unit.attackCooldown = config.pattern === 'self_buff' ? SELF_BUFF_CAST_TICKS : CAST_TICKS;
 
             const { damage: abilityDmg, type: dmgType } = getAbilityDamage(
               unit.champion, unit.starLevel, unit.stats.ap
             );
-            const config: AbilityConfig = CHAMPION_ABILITY_PATTERNS[unit.champion.apiName] ?? { pattern: 'single' };
             const opposingTeam = unit.team === 'player' ? enemies : playerUnits;
 
             // 대쉬 이동 (config.dash가 있으면 대상 인접 칸으로 이동)
@@ -1154,6 +1822,7 @@ export function simulateCombat(
               if (t.currentHp <= 0) {
                 t.currentHp = 0;
                 t.state = 'dead';
+                unit.killCount++;
                 const deathLog: CombatLog = {
                   tick, time, type: 'death',
                   sourceId: t.id,
@@ -1170,6 +1839,73 @@ export function simulateCombat(
               const grievousReduction = target.augmentGrievousWounds > 0 ? (1 - target.augmentGrievousWounds) : 1;
               const heal = totalAbilityDmg * unit.omnivamp * grievousReduction;
               unit.currentHp = Math.min(unit.maxHp, unit.currentHp + heal);
+            }
+
+            // === CC 기절 적용 ===
+            if (config.stun && config.stun > 0) {
+              const stunTicks = Math.round(config.stun * TICKS_PER_SECOND);
+              const stunLimit = config.stunTargets ?? abilityTargets.length;
+              let stunCount = 0;
+              for (const t of abilityTargets) {
+                if (t.state === 'dead' || stunCount >= stunLimit) break;
+                t.statusEffects.push({ type: 'stun', sourceId: unit.id, remainingTicks: stunTicks });
+                t.state = 'idle';
+                t.attackCooldown = 0;
+                stunCount++;
+              }
+            }
+
+            // === 적 디버프 적용 ===
+            if (config.debuff) {
+              for (const t of abilityTargets) {
+                if (t.state === 'dead') continue;
+                if (config.debuff.armorReduction) t.stats.armor = Math.max(0, t.stats.armor - config.debuff.armorReduction);
+                if (config.debuff.mrReduction) t.stats.magicResist = Math.max(0, t.stats.magicResist - config.debuff.mrReduction);
+              }
+            }
+
+            // === 시전자 체력 회복 ===
+            if (config.heal) {
+              const healVar = unit.champion.ability.variables.find(v => v.name === 'Heal' || v.name === 'APHeal' || v.name === 'PercentMaximumHealthHealing');
+              if (healVar) {
+                const starIdx = Math.min(unit.starLevel, healVar.value.length - 1);
+                const healVal = healVar.value[starIdx] ?? healVar.value[0] ?? 0;
+                const healAmount = typeof healVal === 'number'
+                  ? (healVal < 1 ? Math.round(unit.maxHp * healVal) : Math.round(healVal * (1 + unit.stats.ap / 100)))
+                  : 0;
+                if (healAmount > 0) {
+                  unit.currentHp = Math.min(unit.maxHp, unit.currentHp + healAmount);
+                }
+              }
+            }
+
+            // === 자기 버프 ===
+            if (config.selfBuff) {
+              if (config.selfBuff.attackSpeed) unit.stats.attackSpeed *= (1 + config.selfBuff.attackSpeed);
+              if (config.selfBuff.ad) unit.stats.damage += config.selfBuff.ad;
+              if (config.selfBuff.ap) unit.stats.ap += config.selfBuff.ap;
+              if (config.selfBuff.durability) unit.damageReduction += config.selfBuff.durability;
+            }
+
+            // === 아군 전체 버프 ===
+            if (config.allyBuff) {
+              const allyTeam = unit.team === 'player' ? playerUnits : enemies;
+              for (const ally of allyTeam) {
+                if (ally.state === 'dead') continue;
+                if (config.allyBuff.attackSpeed) ally.stats.attackSpeed *= (1 + config.allyBuff.attackSpeed);
+              }
+            }
+
+            // === 이즈리얼 드론: 스킬 사용 시 타겟에게 추가 물리 피해 ===
+            const ezDrones = (unit as CombatUnit & { _ezrealDrones?: number })._ezrealDrones ?? 0;
+            if (ezDrones > 0 && abilityTarget.state !== 'dead') {
+              const droneDmgBase = unit.champion.ability.variables?.find(v => v.name === 'DroneDamage')?.value?.[unit.starLevel] ?? 8;
+              const droneTotalRaw = ezDrones * droneDmgBase * (1 + unit.damageAmp);
+              const droneDmg = applyResistance(droneTotalRaw, abilityTarget.stats.armor, unit.stats.armorPen);
+              abilityTarget.currentHp -= droneDmg;
+              abilityTarget.totalDamageTaken += droneDmg;
+              unit.totalDamageDealt += droneDmg;
+              totalAbilityDmg += droneDmg;
             }
 
             eventBus.emit('on_cast', { sourceId: unit.id, targetId: target.id, value: totalAbilityDmg, tick });
@@ -1197,21 +1933,124 @@ export function simulateCombat(
           }
         }
       } else {
-        const newPos = findBestMoveToward(unit.position, target.position, occupiedPositions);
-        if (newPos) {
-          occupiedPositions.delete(coordKey(unit.position));
-          unit.position = newPos;
-          occupiedPositions.add(coordKey(newPos));
-          unit.state = 'moving';
-          unit.moveCooldown = moveTicks;
+        // === 사거리 밖 + 마나 풀 + dash/self_buff → 즉시 스킬 시전 ===
+        const augNames = unit.team === 'player' ? playerAugApiNames : enemyAugApiNames;
+        const outOfRangeConfig = getAbilityConfigForUnit(unit, augNames);
+        const canDashCast = unit.currentMana >= unit.maxMana
+          && unit.attackCooldown <= 0
+          && (outOfRangeConfig.dash || outOfRangeConfig.pattern === 'self_buff');
 
-          const moveLog: CombatLog = {
-            tick, time, type: 'move',
-            sourceId: unit.id,
-            message: `${unit.champion.name}이(가) 이동`,
+        if (canDashCast) {
+          unit.currentMana = 0;
+          unit.state = 'casting';
+          unit.castCount++;
+          unit.attackCooldown = outOfRangeConfig.pattern === 'self_buff' ? SELF_BUFF_CAST_TICKS : CAST_TICKS;
+
+          const { damage: abilityDmg, type: dmgType } = getAbilityDamage(
+            unit.champion, unit.starLevel, unit.stats.ap
+          );
+          const opposingTeam = unit.team === 'player' ? enemies : playerUnits;
+
+          let abilityTarget = target;
+          if (outOfRangeConfig.dash) {
+            abilityTarget = applyAbilityDash(
+              unit, outOfRangeConfig.dash, target, opposingTeam,
+              occupiedPositions, logs, tickLogs, tick, time
+            );
+          }
+
+          const abilityTargets = findAbilityTargets(unit, abilityTarget, opposingTeam, outOfRangeConfig);
+
+          // 보호막
+          const abilityShield = getAbilityShield(unit.champion, unit.starLevel, unit.stats.ap);
+          if (abilityShield > 0) {
+            unit.shield += abilityShield;
+            unit.statusEffects.push({ type: 'shield', sourceId: unit.id, remainingTicks: 300, value: abilityShield });
+          }
+
+          // self_buff
+          if (outOfRangeConfig.selfBuff) {
+            if (outOfRangeConfig.selfBuff.attackSpeed) {
+              unit.stats.attackSpeed *= (1 + outOfRangeConfig.selfBuff.attackSpeed);
+            }
+            if (outOfRangeConfig.selfBuff.ad) {
+              unit.stats.damage += outOfRangeConfig.selfBuff.ad;
+            }
+          }
+
+          // 피해 적용
+          let totalAbilityDmg = 0;
+          for (const t of abilityTargets) {
+            if (t.state === 'dead') continue;
+            const resistance = dmgType === 'magic' ? t.stats.magicResist : t.stats.armor;
+            const pen = dmgType === 'magic' ? unit.stats.magicPen : unit.stats.armorPen;
+            let dmg = dmgType === 'true' ? abilityDmg * (1 + unit.damageAmp) : applyResistance(abilityDmg * (1 + unit.damageAmp), resistance, pen);
+            if (t.damageReduction > 0) dmg *= (1 - t.damageReduction);
+            dmg = applyShield(t, dmg, eventBus, tick);
+            if (t.statusEffects.some(e => e.type === 'invulnerable')) dmg = 0;
+            t.currentHp -= dmg;
+            t.totalDamageTaken += dmg;
+            unit.totalDamageDealt += dmg;
+            totalAbilityDmg += dmg;
+
+            // 사망 처리
+            if (t.currentHp <= 0) {
+              t.state = 'dead';
+              t.currentHp = 0;
+              eventBus.emit('on_kill', { sourceId: unit.id, targetId: t.id, tick });
+              eventBus.emit('on_death', { sourceId: t.id, targetId: unit.id, tick });
+              logs.push({ tick, time, type: 'death', sourceId: t.id, message: `${t.champion.name} 사망!` });
+            }
+
+            // 스턴 (살아있을 때만)
+            if (outOfRangeConfig.stun && outOfRangeConfig.stun > 0 && t.currentHp > 0) {
+              const stunTicks = Math.round(outOfRangeConfig.stun * TICKS_PER_SECOND);
+              t.statusEffects.push({ type: 'stun', sourceId: unit.id, remainingTicks: stunTicks });
+              t.state = 'idle';
+              t.attackCooldown = 0;
+            }
+          }
+
+          // === 이즈리얼 드론: 스킬 사용 시 타겟에게 추가 물리 피해 ===
+          const ezDronesOOR = (unit as CombatUnit & { _ezrealDrones?: number })._ezrealDrones ?? 0;
+          if (ezDronesOOR > 0 && abilityTarget.state !== 'dead') {
+            const droneDmgBase = unit.champion.ability.variables?.find(v => v.name === 'DroneDamage')?.value?.[unit.starLevel] ?? 8;
+            const droneTotalRaw = ezDronesOOR * droneDmgBase * (1 + unit.damageAmp);
+            const droneDmg = applyResistance(droneTotalRaw, abilityTarget.stats.armor, unit.stats.armorPen);
+            abilityTarget.currentHp -= droneDmg;
+            abilityTarget.totalDamageTaken += droneDmg;
+            unit.totalDamageDealt += droneDmg;
+            totalAbilityDmg += droneDmg;
+          }
+
+          const castLog: CombatLog = {
+            tick, time, type: 'ability',
+            sourceId: unit.id, targetId: abilityTarget.id,
+            value: Math.round(totalAbilityDmg),
+            message: `${unit.champion.name}이(가) ${outOfRangeConfig.dash ? '돌진하여 ' : ''}스킬 시전! (${Math.round(totalAbilityDmg)} ${dmgType === 'magic' ? '마법' : dmgType === 'true' ? '고정' : '물리'} 피해)`,
           };
-          logs.push(moveLog);
-          tickLogs.push(moveLog);
+          logs.push(castLog);
+          tickLogs.push(castLog);
+
+          eventBus.emit('on_cast', { sourceId: unit.id, targetId: target.id, value: totalAbilityDmg, tick });
+        } else {
+          // 일반 이동
+          const newPos = findBestMoveToward(unit.position, target.position, occupiedPositions);
+          if (newPos) {
+            occupiedPositions.delete(coordKey(unit.position));
+            unit.position = newPos;
+            occupiedPositions.add(coordKey(newPos));
+            unit.state = 'moving';
+            unit.moveCooldown = moveTicks;
+
+            const moveLog: CombatLog = {
+              tick, time, type: 'move',
+              sourceId: unit.id,
+              message: `${unit.champion.name}이(가) 이동`,
+            };
+            logs.push(moveLog);
+            tickLogs.push(moveLog);
+          }
         }
       }
     }

@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { Suspense, useState, useMemo, useCallback } from 'react';
 import { DndContext, DragOverlay, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { useGameData } from '@/hooks/useGameData';
+import { useActiveSet } from '@/hooks/useActiveSet';
 import { simulateCombat } from '@/lib/simulator/engine/combatLoop';
 import { PlacedChampion, axialToOffset, offsetToAxial, CombatResult, CombatLog } from '@/types';
 import { TICKS_PER_SECOND, BOARD_COLS } from '@/lib/simulator/models/constants';
@@ -12,12 +13,14 @@ import { useDndHandlers } from '@/hooks/useDndHandlers';
 import { getItemCategory, isDisabledItem } from '@/lib/simulator/systems/item';
 import { isBilgewaterStatItem } from '@/data/traitModules';
 import { resolveBilgewaterStatEffects } from '@/lib/simulator/systems/stat';
+import { resolveHexBuffs } from '@/data/augmentHexBuffs';
 import ChampionGrid from '@/components/builder/ChampionGrid';
 import SetupBoard from '@/components/battle/SetupBoard';
 import DroppableHexCell from '@/components/battle/DroppableHexCell';
 import ReplayBoard from '@/components/battle/ReplayBoard';
 import BattleControls from '@/components/battle/BattleControls';
-import UnitToken from '@/components/battle/UnitToken';
+import DamageSidebar from '@/components/battle/DamageSidebar';
+import UnitDetailPanel from '@/components/battle/UnitDetailPanel';
 import Modal from '@/components/ui/Modal';
 import SynergyPanel from '@/components/builder/SynergyPanel';
 import SelectedUnitPanel from '@/components/builder/SelectedUnitPanel';
@@ -31,11 +34,21 @@ import AugmentSlots from '@/components/builder/AugmentSlots';
 import AugmentSelector from '@/components/builder/AugmentSelector';
 import AugmentDetailPopup from '@/components/builder/AugmentDetailPopup';
 import PiltoverModulePanel from '@/components/builder/PiltoverModulePanel';
+import MfModeSelector from '@/components/builder/MfModeSelector';
 
 type ItemFilterTab = 'all' | 'component' | 'combined' | 'artifact' | 'emblem' | 'radiant';
 
 export default function SimulatorPage() {
-  const { champions, items, traits, augments, teamPlannerMapping, loading } = useGameData();
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center h-[60vh] text-gray-500">로딩 중...</div>}>
+      <SimulatorContent />
+    </Suspense>
+  );
+}
+
+function SimulatorContent() {
+  const activeSet = useActiveSet();
+  const { champions, items, traits, augments, teamPlannerMapping, loading } = useGameData(activeSet);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
   );
@@ -48,6 +61,11 @@ export default function SimulatorPage() {
     updatePlayerTeam: tm.updatePlayerTeam,
     updateEnemyTeam: tm.updateEnemyTeam,
     handleEquipItem: tm.handleEquipItem,
+    onChampionPlaced: (team, index, champion) => {
+      if (champion.apiName === 'TFT17_MissFortune') {
+        tm.setPendingMfPlacement({ team, index });
+      }
+    },
   });
 
   // Champion/Item pool state
@@ -86,6 +104,16 @@ export default function SimulatorPage() {
     });
   }, []);
 
+  // 칸 버프 계산 (증강 + 팀 구성 변경 시 재계산)
+  const playerHexBuffs = useMemo(() =>
+    resolveHexBuffs(tm.playerAugments.map(a => a.apiName), tm.playerTeam),
+    [tm.playerAugments, tm.playerTeam]
+  );
+  const enemyHexBuffs = useMemo(() =>
+    resolveHexBuffs(tm.enemyAugments.map(a => a.apiName), tm.enemyTeam),
+    [tm.enemyAugments, tm.enemyTeam]
+  );
+
   const runSimulation = useCallback(() => {
     if (tm.playerTeam.length === 0 || tm.enemyTeam.length === 0) return;
     setIsRunning(true);
@@ -103,6 +131,12 @@ export default function SimulatorPage() {
         enemyBilgewaterEffects: resolveBilgewaterStatEffects(tm.enemyBilgewaterStats, items),
         playerPiltoverModules: tm.playerPiltoverModules,
         enemyPiltoverModules: tm.enemyPiltoverModules,
+        playerIoniaPath: tm.playerIoniaPath ?? undefined,
+        enemyIoniaPath: tm.enemyIoniaPath ?? undefined,
+        playerGalio: tm.playerGalio,
+        enemyGalio: tm.enemyGalio,
+        playerHexBuffs,
+        enemyHexBuffs,
       });
       replay.setCombatResult(result);
       setIsRunning(false);
@@ -110,7 +144,7 @@ export default function SimulatorPage() {
       replay.setReplayTick(0);
       replay.setIsPlaying(true);
     }, 100);
-  }, [tm.playerTeam, tm.enemyTeam, traits, tm.playerAugments, tm.playerAugmentStacks, tm.enemyAugments, tm.enemyAugmentStacks, tm.playerBilgewaterStats, tm.enemyBilgewaterStats, tm.playerPiltoverModules, tm.enemyPiltoverModules, items, toEightRowCoords, replay]);
+  }, [tm.playerTeam, tm.enemyTeam, traits, tm.playerAugments, tm.playerAugmentStacks, tm.enemyAugments, tm.enemyAugmentStacks, tm.playerBilgewaterStats, tm.enemyBilgewaterStats, tm.playerPiltoverModules, tm.enemyPiltoverModules, tm.playerIoniaPath, tm.enemyIoniaPath, tm.playerGalio, tm.enemyGalio, playerHexBuffs, enemyHexBuffs, items, toEightRowCoords, replay]);
 
   const runMultiple = useCallback(() => {
     if (tm.playerTeam.length === 0 || tm.enemyTeam.length === 0) return;
@@ -131,6 +165,12 @@ export default function SimulatorPage() {
           enemyBilgewaterEffects: resolveBilgewaterStatEffects(tm.enemyBilgewaterStats, items),
           playerPiltoverModules: tm.playerPiltoverModules,
           enemyPiltoverModules: tm.enemyPiltoverModules,
+          playerIoniaPath: tm.playerIoniaPath ?? undefined,
+          enemyIoniaPath: tm.enemyIoniaPath ?? undefined,
+          playerGalio: tm.playerGalio,
+          enemyGalio: tm.enemyGalio,
+          playerHexBuffs,
+          enemyHexBuffs,
         });
         if (r.winner === 'player') playerWins++;
         else if (r.winner === 'enemy') enemyWins++;
@@ -145,7 +185,7 @@ export default function SimulatorPage() {
       replay.setViewMode('replay');
       replay.setReplayTick(lastResult ? lastResult.snapshots.length - 1 : 0);
     }, 100);
-  }, [tm.playerTeam, tm.enemyTeam, traits, tm.playerAugments, tm.playerAugmentStacks, tm.enemyAugments, tm.enemyAugmentStacks, tm.playerBilgewaterStats, tm.enemyBilgewaterStats, tm.playerPiltoverModules, tm.enemyPiltoverModules, items, toEightRowCoords, replay]);
+  }, [tm.playerTeam, tm.enemyTeam, traits, tm.playerAugments, tm.playerAugmentStacks, tm.enemyAugments, tm.enemyAugmentStacks, tm.playerBilgewaterStats, tm.enemyBilgewaterStats, tm.playerPiltoverModules, tm.enemyPiltoverModules, tm.playerIoniaPath, tm.enemyIoniaPath, tm.playerGalio, tm.enemyGalio, playerHexBuffs, enemyHexBuffs, items, toEightRowCoords, replay]);
 
   const filteredLogs = useMemo(() => {
     if (!replay.combatResult) return [];
@@ -253,6 +293,8 @@ export default function SimulatorPage() {
                       onUnitCycleStars={tm.handleCycleStars}
                       selectedCell={tm.selectedCell}
                       selectedUnit={tm.selectedUnit}
+                      playerHexBuffs={playerHexBuffs}
+                      enemyHexBuffs={enemyHexBuffs}
                     />
                     {/* Droppable overlay */}
                     <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
@@ -335,28 +377,31 @@ export default function SimulatorPage() {
                     onStarChange={(level) => tm.handleStarChange(tm.selectedUnit!.team, tm.selectedUnit!.index, level)}
                     onEquipItem={(item) => tm.handleEquipItem(tm.selectedUnit!.team, tm.selectedUnit!.index, item)}
                     onRemoveItem={(itemIdx) => tm.handleRemoveItem(tm.selectedUnit!.team, tm.selectedUnit!.index, itemIdx)}
+                    onRemoveVoidItem={() => tm.handleRemoveVoidItem(tm.selectedUnit!.team, tm.selectedUnit!.index)}
                     onRemoveUnit={() => tm.handleRemoveUnit(tm.selectedUnit!.team, tm.selectedUnit!.index)}
+                    onMfModeChange={(mode) => tm.handleMfModeChange(tm.selectedUnit!.team, tm.selectedUnit!.index, mode)}
+                    onPermanentStackChange={(value) => tm.handlePermanentStackChange(tm.selectedUnit!.team, tm.selectedUnit!.index, value)}
                   />
                 </div>
               )}
 
               {/* Left: Both Synergy panels + Selected unit (desktop) */}
               <div className="order-3 lg:order-1 lg:w-52 lg:shrink-0 space-y-3">
-                <SynergyPanel activeTraits={tm.playerTraits} team="player" items={items} piltoverModules={tm.playerPiltoverModules} bilgewaterStats={tm.playerBilgewaterStats} />
-                <PiltoverModulePanel
-                  modules={tm.playerPiltoverModules}
-                  allItems={items}
-                  activeTraits={tm.playerTraits}
-                  onAddModule={(item) => tm.handleAddPiltoverModule('player', item)}
-                  onRemoveModule={(idx) => tm.handleRemovePiltoverModule('player', idx)}
-                />
-                <SynergyPanel activeTraits={tm.enemyTraits} team="enemy" items={items} piltoverModules={tm.enemyPiltoverModules} bilgewaterStats={tm.enemyBilgewaterStats} />
+                <SynergyPanel activeTraits={tm.enemyTraits} team="enemy" items={items} piltoverModules={tm.enemyPiltoverModules} bilgewaterStats={tm.enemyBilgewaterStats} ioniaPath={tm.enemyIoniaPath} onIoniaPathChange={tm.setEnemyIoniaPath} />
                 <PiltoverModulePanel
                   modules={tm.enemyPiltoverModules}
                   allItems={items}
                   activeTraits={tm.enemyTraits}
                   onAddModule={(item) => tm.handleAddPiltoverModule('enemy', item)}
                   onRemoveModule={(idx) => tm.handleRemovePiltoverModule('enemy', idx)}
+                />
+                <SynergyPanel activeTraits={tm.playerTraits} team="player" items={items} piltoverModules={tm.playerPiltoverModules} bilgewaterStats={tm.playerBilgewaterStats} ioniaPath={tm.playerIoniaPath} onIoniaPathChange={tm.setPlayerIoniaPath} />
+                <PiltoverModulePanel
+                  modules={tm.playerPiltoverModules}
+                  allItems={items}
+                  activeTraits={tm.playerTraits}
+                  onAddModule={(item) => tm.handleAddPiltoverModule('player', item)}
+                  onRemoveModule={(idx) => tm.handleRemovePiltoverModule('player', idx)}
                 />
                 {tm.selectedUnit && tm.selectedPlaced && (
                   <div className="hidden lg:block">
@@ -368,7 +413,10 @@ export default function SimulatorPage() {
                       onStarChange={(level) => tm.handleStarChange(tm.selectedUnit!.team, tm.selectedUnit!.index, level)}
                       onEquipItem={(item) => tm.handleEquipItem(tm.selectedUnit!.team, tm.selectedUnit!.index, item)}
                       onRemoveItem={(itemIdx) => tm.handleRemoveItem(tm.selectedUnit!.team, tm.selectedUnit!.index, itemIdx)}
+                      onRemoveVoidItem={() => tm.handleRemoveVoidItem(tm.selectedUnit!.team, tm.selectedUnit!.index)}
                       onRemoveUnit={() => tm.handleRemoveUnit(tm.selectedUnit!.team, tm.selectedUnit!.index)}
+                      onMfModeChange={(mode) => tm.handleMfModeChange(tm.selectedUnit!.team, tm.selectedUnit!.index, mode)}
+                      onPermanentStackChange={(value) => tm.handlePermanentStackChange(tm.selectedUnit!.team, tm.selectedUnit!.index, value)}
                     />
                   </div>
                 )}
@@ -579,7 +627,7 @@ export default function SimulatorPage() {
               ticksPerSecond={TICKS_PER_SECOND}
             />
 
-            {/* Replay Board + Unit Detail side panel */}
+            {/* Replay Board + Damage Sidebar */}
             <div className="flex flex-col lg:flex-row gap-3 lg:gap-4">
               {/* Board */}
               <div className="bg-[#0d1117] rounded-xl border border-gray-800 p-2 lg:p-3 flex justify-center flex-1 min-w-0">
@@ -595,150 +643,44 @@ export default function SimulatorPage() {
                 </div>
               </div>
 
-              {/* Unit detail panel */}
-              <div className="w-full lg:w-56 lg:shrink-0 space-y-3">
-                {replay.selectedUnitId && replay.selectedUnitSnap && replay.unitMeta[replay.selectedUnitId] && (
-                  <div className="bg-[#111827] rounded-xl border border-gray-800 p-3 space-y-2">
-                    <UnitToken
-                      championName={replay.unitMeta[replay.selectedUnitId].championName}
-                      championApiName={replay.unitMeta[replay.selectedUnitId].championApiName}
-                      cost={replay.unitMeta[replay.selectedUnitId].cost}
-                      currentHp={replay.selectedUnitSnap.currentHp}
-                      maxHp={replay.unitMeta[replay.selectedUnitId].maxHp}
-                      currentMana={replay.selectedUnitSnap.currentMana}
-                      maxMana={replay.unitMeta[replay.selectedUnitId].maxMana}
-                      starLevel={replay.unitMeta[replay.selectedUnitId].starLevel}
-                      items={replay.unitMeta[replay.selectedUnitId].items}
-                      statusEffects={replay.selectedUnitSnap.statusEffects}
-                      isAlive={replay.selectedUnitSnap.isAlive}
-                      team={replay.unitMeta[replay.selectedUnitId].team}
-                      shield={replay.selectedUnitSnap.shield}
-                      isSelected
-                      size="md"
-                    />
-                    <div className="text-[10px] text-gray-400 space-y-0.5">
-                      <div className="flex justify-between">
-                        <span>HP</span>
-                        <span className="text-green-400">{Math.round(replay.selectedUnitSnap.currentHp)} / {Math.round(replay.unitMeta[replay.selectedUnitId].maxHp)}</span>
-                      </div>
-                      {replay.selectedUnitSnap.shield > 0 && (
-                        <div className="flex justify-between">
-                          <span>보호막</span>
-                          <span className="text-gray-200">{Math.round(replay.selectedUnitSnap.shield)}</span>
-                        </div>
-                      )}
-                      <div className="flex justify-between">
-                        <span>Mana</span>
-                        <span className="text-blue-400">{Math.round(replay.selectedUnitSnap.currentMana)} / {replay.unitMeta[replay.selectedUnitId].maxMana}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>위치</span>
-                        <span className="text-gray-300">
-                          ({(() => { const off = axialToOffset(replay.selectedUnitSnap.position as { q: number; r: number }); return `${off.row}, ${off.col}`; })()})
-                        </span>
-                      </div>
-                      {replay.selectedUnitSnap.statusEffects.length > 0 && (
-                        <div className="pt-1 border-t border-gray-700">
-                          <span className="text-yellow-400">상태이상:</span>
-                          {replay.selectedUnitSnap.statusEffects.map((e, i) => (
-                            <div key={i} className="text-yellow-300 pl-2">
-                              {e.type} ({e.remainingTicks}t)
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
+              {/* Damage Sidebar */}
+              <DamageSidebar
+                combatResult={replay.combatResult}
+                currentSnapshot={replay.currentSnapshot}
+                selectedUnitId={replay.selectedUnitId}
+                onUnitClick={replay.setSelectedUnitId}
+              />
+            </div>
 
-                {/* All units list */}
-                <div className="bg-[#111827] rounded-xl border border-gray-800 p-2 space-y-1 max-h-[400px] overflow-y-auto">
-                  <div className="text-[9px] font-bold text-blue-400 px-1">TEAM A</div>
-                  {replay.combatResult.playerUnits.map((u) => {
-                    const snap = replay.currentSnapshot?.units[u.id];
-                    if (!snap) return null;
-                    return (
-                      <div
-                        key={u.id}
-                        onClick={() => replay.setSelectedUnitId(u.id)}
-                        className={`flex items-center gap-1.5 px-1 py-0.5 rounded cursor-pointer transition-colors ${
-                          replay.selectedUnitId === u.id ? 'bg-blue-900/30' : 'hover:bg-[#1f2937]'
-                        } ${!snap.isAlive ? 'opacity-30' : ''}`}
-                      >
-                        <UnitToken
-                          championName={u.champion.name}
-                          championApiName={u.champion.apiName}
-                          cost={u.champion.cost}
-                          currentHp={snap.currentHp}
-                          maxHp={u.maxHp}
-                          currentMana={snap.currentMana}
-                          maxMana={u.maxMana}
-                          starLevel={u.starLevel}
-                          items={u.items.map(it => ({ apiName: it.apiName }))}
-                          statusEffects={snap.statusEffects}
-                          isAlive={snap.isAlive}
-                          team="player"
-                          shield={snap.shield}
-                          size="sm"
-                        />
-                      </div>
-                    );
-                  })}
-                  <div className="text-[9px] font-bold text-red-400 px-1 pt-1">TEAM B</div>
-                  {replay.combatResult.enemyUnits.map((u) => {
-                    const snap = replay.currentSnapshot?.units[u.id];
-                    if (!snap) return null;
-                    return (
-                      <div
-                        key={u.id}
-                        onClick={() => replay.setSelectedUnitId(u.id)}
-                        className={`flex items-center gap-1.5 px-1 py-0.5 rounded cursor-pointer transition-colors ${
-                          replay.selectedUnitId === u.id ? 'bg-red-900/30' : 'hover:bg-[#1f2937]'
-                        } ${!snap.isAlive ? 'opacity-30' : ''}`}
-                      >
-                        <UnitToken
-                          championName={u.champion.name}
-                          championApiName={u.champion.apiName}
-                          cost={u.champion.cost}
-                          currentHp={snap.currentHp}
-                          maxHp={u.maxHp}
-                          currentMana={snap.currentMana}
-                          maxMana={u.maxMana}
-                          starLevel={u.starLevel}
-                          items={u.items.map(it => ({ apiName: it.apiName }))}
-                          statusEffects={snap.statusEffects}
-                          isAlive={snap.isAlive}
-                          team="enemy"
-                          shield={snap.shield}
-                          size="sm"
-                        />
-                      </div>
-                    );
-                  })}
-                </div>
+            {/* Unit Detail Panel — 챔피언 클릭 시 보드 하단에 표시 */}
+            {replay.selectedUnitId && replay.selectedUnitSnap && replay.unitMeta[replay.selectedUnitId] && (
+              <UnitDetailPanel
+                unitSnapshot={replay.selectedUnitSnap}
+                meta={replay.unitMeta[replay.selectedUnitId]}
+                onClose={() => replay.setSelectedUnitId(null)}
+              />
+            )}
+
+            {/* Tick events — 고정 높이로 깜빡임 방지 */}
+            <div className="bg-[#111827] rounded-lg border border-gray-800 p-2" style={{ minHeight: 60 }}>
+              <div className="text-[10px] font-bold text-gray-500 mb-1">현재 틱 이벤트</div>
+              <div className="space-y-0.5 font-mono text-[10px] h-[60px] overflow-y-auto">
+                {replay.tickEvents.length > 0 ? replay.tickEvents.map((e, i) => (
+                  <div key={`${e.tick}-${i}`} className={
+                    e.type === 'death' ? 'text-red-400' :
+                    e.type === 'ability' ? 'text-purple-400' :
+                    e.type === 'move' ? 'text-gray-600' : 'text-gray-400'
+                  }>
+                    {e.message}
+                  </div>
+                )) : (
+                  <div className="text-gray-600 text-[10px]">대기 중...</div>
+                )}
               </div>
             </div>
 
-            {/* Tick events */}
-            {replay.tickEvents.length > 0 && (
-              <div className="bg-[#111827] rounded-lg border border-gray-800 p-2">
-                <div className="text-[10px] font-bold text-gray-500 mb-1">현재 틱 이벤트</div>
-                <div className="space-y-0.5 font-mono text-[10px] max-h-[80px] overflow-y-auto">
-                  {replay.tickEvents.map((e, i) => (
-                    <div key={i} className={
-                      e.type === 'death' ? 'text-red-400' :
-                      e.type === 'ability' ? 'text-purple-400' :
-                      e.type === 'move' ? 'text-gray-600' : 'text-gray-400'
-                    }>
-                      {e.message}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Full battle log */}
-            <div className="p-4 bg-[#111827] rounded-xl border border-gray-800">
+            {/* Full battle log — 고정 높이 컨테이너 */}
+            <div className="p-4 bg-[#111827] rounded-xl border border-gray-800" style={{ minHeight: 280 }}>
               <div className="flex items-center gap-2 mb-3">
                 <h4 className="text-sm font-bold text-gray-300">전투 로그</h4>
                 <div className="flex gap-1 ml-auto">
@@ -755,10 +697,13 @@ export default function SimulatorPage() {
                   ))}
                 </div>
               </div>
-              <div className="max-h-[200px] overflow-y-auto space-y-0.5 font-mono text-xs">
+              <div
+                className="h-[200px] overflow-y-auto space-y-0.5 font-mono text-xs"
+                ref={(el) => { if (el) el.scrollTop = el.scrollHeight; }}
+              >
                 {filteredLogs.map((log, i) => (
                   <div
-                    key={i}
+                    key={`${log.tick}-${i}`}
                     className={`py-0.5 px-2 rounded ${
                       log.type === 'death' ? 'bg-red-900/20 text-red-400' :
                       log.type === 'ability' ? 'text-purple-400' :
@@ -800,6 +745,17 @@ export default function SimulatorPage() {
             </div>
           </div>
         )}
+
+        {/* MF mode selection popup */}
+        <MfModeSelector
+          isOpen={tm.pendingMfPlacement !== null}
+          onSelect={(mode) => {
+            if (tm.pendingMfPlacement) {
+              tm.handleMfModeChange(tm.pendingMfPlacement.team, tm.pendingMfPlacement.index, mode);
+            }
+          }}
+          onClose={() => tm.setPendingMfPlacement(null)}
+        />
 
         {/* Champion picker modal (for cell click) */}
         <Modal isOpen={tm.showPicker} onClose={() => tm.setShowPicker(false)} title="챔피언 선택">
@@ -854,6 +810,12 @@ export default function SimulatorPage() {
           )}
         </DragOverlay>
       </div>
+
+      {/* Footer */}
+      <footer className="mt-8 py-4 border-t border-gray-800 text-center text-xs text-gray-600">
+        <p>TFT Combat Simulator &mdash; Set 17: Space Gods</p>
+        <p className="mt-1">Data from CommunityDragon &middot; Not affiliated with Riot Games</p>
+      </footer>
     </DndContext>
   );
 }

@@ -44,11 +44,16 @@ export function getItemEffects(items: RawItem[]): ItemEffect {
 const TRAIT_STAT_MAP: Record<string, Record<string, string>> = {
   TFT16_Vanquisher: { BaseCritChance: 'critChance', CritDmg: 'critDamage' },
   TFT16_Slayer: { BonusAD: 'ad', BonusOmnivamp: 'omnivamp' },
-  TFT16_Rapidfire: { MinBonusAS: 'as' },
-  TFT16_Sorcerer: { BonusAP: 'ap', AllyAP: 'ap' },
+  TFT16_Rapidfire: { MinBonusAS: 'as', TeamwideAS: 'as' },
+  TFT16_Sorcerer: { AllyAP: 'ap' },
   TFT16_Brawler: { TeamFlatHealth: 'hp', BonusPercentHealth: 'hpPercent' },
-  TFT16_Defender: { BonusArmorMR: 'armor', TeamwideArmorMR: 'armor' },
+  TFT16_Defender: { TeamwideArmorMR: 'armorMR' },
   TFT16_Warden: { PercentHealthShield: 'shield' },
+  TFT16_Demacia: { ArmorMR: 'armorMR' },
+  TFT16_Yordle: { BonusHealth: 'hp', AS: 'as' },
+  TFT16_Shurima: { ArmorMR: 'armorMR', BonusHealth: 'hpPercent', ASPerSecond: 'as' },
+  TFT16_ShadowIsles: { ADAP: 'adap' },
+  TFT16_Invoker: { TeamBonusMana: 'manaRegen' },
 };
 
 export interface ExtendedTraitEffect extends ItemEffect {
@@ -56,6 +61,7 @@ export interface ExtendedTraitEffect extends ItemEffect {
   damageAmp?: number;
   hpPercent?: number;
   shield?: number;
+  manaRegen?: number;
 }
 
 export function getTraitBonuses(activeTraits: ActiveTrait[]): ExtendedTraitEffect {
@@ -78,7 +84,15 @@ export function getTraitBonuses(activeTraits: ActiveTrait[]): ExtendedTraitEffec
       for (const [varKey, statKey] of Object.entries(traitMap)) {
         const val = vars[varKey];
         if (typeof val === 'number') {
-          (result as Record<string, number>)[statKey] = ((result as Record<string, number>)[statKey] || 0) + val;
+          if (statKey === 'armorMR') {
+            result.armor = (result.armor || 0) + val;
+            result.magicResist = (result.magicResist || 0) + val;
+          } else if (statKey === 'adap') {
+            result.ad = (result.ad || 0) + val;
+            result.ap = (result.ap || 0) + val * 100;
+          } else {
+            (result as Record<string, number>)[statKey] = ((result as Record<string, number>)[statKey] || 0) + val;
+          }
         }
       }
     }
@@ -107,23 +121,26 @@ export function calculateStats(
   const itemFx = getItemEffects(items);
   const traitFx = getTraitBonuses(activeTraits);
 
+  // 공허 돌연변이 ADAP (AD% + AP 동시 증가)
+  const adapBonus = (itemFx as Record<string, number>)['adap'] || 0;
+
   const baseAd = champion.stats.damage;
   const adBreakdown: StatBreakdown = {
     base: baseAd,
     starScaling: baseAd * star - baseAd,
-    items: baseAd * star * (itemFx.ad || 0),
+    items: baseAd * star * ((itemFx.ad || 0) + adapBonus),
     traits: baseAd * star * (traitFx.ad || 0),
     augments: baseAd * star * (augmentEffects.ad || 0),
-    total: baseAd * star * (1 + (itemFx.ad || 0) + (traitFx.ad || 0) + (augmentEffects.ad || 0)),
+    total: baseAd * star * (1 + (itemFx.ad || 0) + adapBonus + (traitFx.ad || 0) + (augmentEffects.ad || 0)),
   };
 
   const apBreakdown: StatBreakdown = {
     base: 0,
     starScaling: 0,
-    items: itemFx.ap || 0,
+    items: (itemFx.ap || 0) + adapBonus * 100,
     traits: traitFx.ap || 0,
     augments: augmentEffects.ap || 0,
-    total: (itemFx.ap || 0) + (traitFx.ap || 0) + (augmentEffects.ap || 0),
+    total: (itemFx.ap || 0) + adapBonus * 100 + (traitFx.ap || 0) + (augmentEffects.ap || 0),
   };
 
   const baseAs = champion.stats.attackSpeed;
@@ -137,8 +154,13 @@ export function calculateStats(
   };
 
   const baseHp = champion.stats.hp;
+  // 공허 거대 껍질: BonusPercentHP → hpPercent로 변환
+  const voidHpPercent = items.reduce((sum, item) => {
+    const bph = item.effects['BonusPercentHP'];
+    return sum + (typeof bph === 'number' ? bph : 0);
+  }, 0);
   const flatHp = baseHp * star + (itemFx.hp || 0) + (traitFx.hp || 0) + (augmentEffects.hp || 0);
-  const hpPercentBonus = (traitFx.hpPercent || 0) + ((augmentEffects as Record<string, number>)['hpPercent'] || 0);
+  const hpPercentBonus = (traitFx.hpPercent || 0) + ((augmentEffects as Record<string, number>)['hpPercent'] || 0) + voidHpPercent;
   const hpBreakdown: StatBreakdown = {
     base: baseHp,
     starScaling: baseHp * star - baseHp,

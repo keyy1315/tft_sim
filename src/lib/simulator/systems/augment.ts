@@ -194,6 +194,36 @@ export function resolveAugmentEffects(augments: AugmentWithStacks[]): ItemEffect
       result.ad = (result.ad ?? 0) + bonusStat;
       result.ap = (result.ap ?? 0) + bonusStat;
     }
+
+    // === Set 17 specific buff augments ===
+
+    // 소라카의 은총: 잃은 체력당 아군 HP (stacks = 잃은 전략가 체력)
+    if (augment.apiName === 'TFT17_Augment_SorakaGodAugment') {
+      const heal = ef(e, 'Heal');
+      if (heal != null) result.hp = (result.hp ?? 0) + heal * stacks;
+    }
+
+    // 아리의 은총: 레벨당 AD/AP +2% (stacks = 레벨)
+    if (augment.apiName === 'TFT17_Augment_AhriGodAugment') {
+      const xpPct = ef(e, '{048fe876}');
+      if (xpPct != null) {
+        const pct = (xpPct / 100) * stacks;
+        result.ad = (result.ad ?? 0) + pct;
+        result.ap = (result.ap ?? 0) + pct;
+      }
+    }
+
+    // 은하계 여행: 여행자 HP/AD/AP + 새 상대마다 +10% (stacks = 새 상대 수)
+    if (augment.apiName === 'TFT17_Augment_TourOfTheGalaxy') {
+      const baseAD = ef(e, 'AD');
+      const baseAP = ef(e, 'AP');
+      const baseHP = ef(e, 'HP');
+      const incPct = ef(e, '{aa49f69c}') ?? 0.1;
+      const mult = 1 + incPct * stacks;
+      if (baseAD != null) result.ad = (result.ad ?? 0) + baseAD * mult;
+      if (baseAP != null) result.ap = (result.ap ?? 0) + baseAP * mult;
+      if (baseHP != null) result.hp = (result.hp ?? 0) + baseHP * mult;
+    }
   }
 
   return result;
@@ -207,7 +237,7 @@ export function resolvePerUnitMods(
 ): PerUnitAugmentMod {
   const mod = { ...EMPTY_MOD };
 
-  for (const { augment } of augments) {
+  for (const { augment, stackCount } of augments) {
     const e = augment.effects;
 
     // Champion-specific: only apply if champion matches
@@ -299,6 +329,25 @@ export function resolvePerUnitMods(
     // HealthIncrease → % HP bonus
     const healthIncrease = ef(e, 'HealthIncrease');
     if (healthIncrease != null) mod.hpMultiplier *= (1 + (healthIncrease > 1 ? healthIncrease / 100 : healthIncrease));
+
+    // === Set 17 specific buff augments ===
+
+    // 이블린의 은총: 내구력 (Durability → damageReduction)
+    const durability = ef(e, 'Durability');
+    if (durability != null && augment.apiName.includes('EvelynnGodAugment')) {
+      mod.damageReduction += durability;
+    }
+
+    // 저격수의 은신처: 같은 칸 유지 라운드 수 × DamageAmp (stacks로 입력)
+    if (augment.apiName === 'TFT17_Augment_SnipersNest') {
+      const amp = ef(e, 'DamageAmp');
+      const maxAmp = ef(e, 'MaxAmp');
+      if (amp != null) {
+        const totalAmp = amp * stackCount;
+        const capped = maxAmp != null ? Math.min(totalAmp, maxAmp) : totalAmp;
+        mod.damageAmp += capped / 100;
+      }
+    }
   }
 
   return mod;

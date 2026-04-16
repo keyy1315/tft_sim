@@ -3,11 +3,19 @@ const CHAMPION_IMAGE_ALIASES: Record<string, string> = {
   'TFT16_NoxusAtakhan': 'TFT16_Atakhan',
 };
 
-// Maps apiName to image path
+// Maps apiName to image path — auto-detects set from TFT{N}_ prefix
 export function getChampionImage(apiName: string): string {
   const resolved = CHAMPION_IMAGE_ALIASES[apiName] ?? apiName;
-  const name = resolved.replace('TFT16_', 'tft16_').replace('TFT_', 'tft_').toLowerCase();
-  return `/data/images/tft_set16_champions/${name}_square.tft_set16.png`;
+  const setMatch = resolved.match(/^TFT(\d+)_/);
+  const setNum = setMatch ? parseInt(setMatch[1]) : 17;
+  if (setNum === 16) {
+    // Set 16 images moved to /data/set16/images/
+    const name = resolved.replace(`TFT${setNum}_`, `tft${setNum}_`).replace('TFT_', 'tft_').toLowerCase();
+    return `/data/set16/images/tft_set16_champions/${name}_square.tft_set16.png`;
+  }
+  // Set 17+: TFT17_Aatrox → aatrox (strip prefix)
+  const name = resolved.replace(`TFT${setNum}_`, '').replace('TFT_', '').toLowerCase();
+  return `/data/images/tft_set${setNum}_champions/${name}_square.tft_set${setNum}.png`;
 }
 
 /**
@@ -33,29 +41,58 @@ function resolveItemPath(apiName: string, iconFilename: string): string {
     return `/data/images/emblems/${iconFilename}`;
   }
 
-  // Radiant (Corrupted + Radiant_) items
+  // Radiant (Corrupted + Radiant_) items → common/images/radiant/
   if (apiName.includes('Corrupted') || apiName.includes('Radiant_')) {
-    return `/data/images/radiant/${iconFilename}`;
+    return `/data/common/images/radiant/${iconFilename}`;
   }
 
-  // Piltover items
+  // Artifact / Ornn / Shimmerscale items → common/images/artifacts/
+  if (apiName.includes('Artifact') || apiName.includes('Ornn') || apiName.includes('Shimmerscale')) {
+    return `/data/common/images/artifacts/${iconFilename}`;
+  }
+
+  // Piltover items (Set 16 — moved to set16/)
   if (apiName.includes('TFT16_Item_Piltover_')) {
-    return `/data/images/tft_set16_piltover/${iconFilename}`;
+    return `/data/set16/images/tft_set16_piltover/${iconFilename}`;
   }
 
-  // Bilgewater items — some use shared icons from artifacts/
+  // Bilgewater items (Set 16 — moved to set16/)
   if (apiName.includes('TFT16_Item_Bilgewater_')) {
     if (iconFilename.startsWith('tft16_') || iconFilename.startsWith('tt16_')) {
-      return `/data/images/tft_set16_bilgewater/${iconFilename}`;
+      return `/data/set16/images/tft_set16_bilgewater/${iconFilename}`;
     }
     return `/data/images/artifacts/${iconFilename}`;
   }
 
-  // All other items → try artifacts/ first, items/ for legacy names
-  // Items with short names (no tft_ prefix) likely live in items/
+  // Consumables, armory keys, and other set-specific utility items → items/
+  if (iconFilename.startsWith('tft_consumable_') ||
+      iconFilename.startsWith('tft_armorykey') ||
+      iconFilename.startsWith('tft5_') ||
+      iconFilename.startsWith('tft14_') ||
+      iconFilename.startsWith('tft6_') ||
+      iconFilename.startsWith('profileicon')) {
+    return `/data/images/items/${iconFilename}`;
+  }
+
+  // Set 17 specific items (PsyOps, AnimaSquad, carousel market, emblems) → artifacts/
+  if (iconFilename.startsWith('tft17_')) {
+    // Emblems have their own directory
+    if (iconFilename.startsWith('tft17_emblem_')) {
+      return `/data/images/emblems/${iconFilename}`;
+    }
+    return `/data/images/artifacts/${iconFilename}`;
+  }
+
+  // Items with non-tft prefix (doubleup_, assist*, s_*, missing-*) → items/
   if (!iconFilename.startsWith('tft') && !iconFilename.startsWith('ct_') && !iconFilename.startsWith('crest_') && !iconFilename.startsWith('realmwrap') && !iconFilename.startsWith('namir')) {
     return `/data/images/items/${iconFilename}`;
   }
+
+  // Base components & combined items → common/images/
+  if (iconFilename.startsWith('tft_item_')) {
+    return `/data/common/images/combined/${iconFilename}`;
+  }
+
   return `/data/images/artifacts/${iconFilename}`;
 }
 
@@ -69,32 +106,25 @@ export function getItemImage(apiName: string): string {
 }
 
 function deriveItemPath(apiName: string): string {
-  // Piltover special items
+  // Set 16 specific items — moved to set16/
   if (apiName.includes('TFT16_Item_Piltover_')) {
-    return `/data/images/tft_set16_piltover/${apiName.toLowerCase()}.tft_set16.png`;
+    return `/data/set16/images/tft_set16_piltover/${apiName.toLowerCase()}.tft_set16.png`;
   }
-
-  // Bilgewater special items
   if (apiName.includes('TFT16_Item_Bilgewater_')) {
-    // Stat tier items: ArmorMRTier2 → tft16_bilgewater_armormr_tier2
     const statTierMatch = apiName.match(/TFT16_Item_Bilgewater_(ArmorMR|AS|ADAP|AD|AP|Health)Tier(\d)/);
     if (statTierMatch) {
       const stat = statTierMatch[1].toLowerCase();
       const tier = statTierMatch[2];
-      return `/data/images/tft_set16_bilgewater/tft16_bilgewater_${stat}_tier${tier}.tft_set16.png`;
+      return `/data/set16/images/tft_set16_bilgewater/tft16_bilgewater_${stat}_tier${tier}.tft_set16.png`;
     }
-    // Named bilgewater items
     const name = apiName.replace('TFT16_Item_Bilgewater_', '').toLowerCase();
-    return `/data/images/tft_set16_bilgewater/tft16_item_bilgewater_${name}.tft_set16.png`;
+    return `/data/set16/images/tft_set16_bilgewater/tft16_item_bilgewater_${name}.tft_set16.png`;
+  }
+  if (apiName.includes('Artifact') || apiName.includes('Ornn') || apiName.includes('Shimmerscale')) {
+    return `/data/common/images/artifacts/${apiName.toLowerCase()}.tft_set13.png`;
   }
 
-  // TFT16 artifacts
-  if (apiName.includes('TFT16_Artifact_')) {
-    return `/data/images/artifacts/${apiName.toLowerCase()}.tft_set16.png`;
-  }
-
-  // Standard items & artifacts: try artifacts/ with lowercased apiName
-  // TFT_Item_X → tft_item_x
+  // Standard items & artifacts
   const normalized = apiName.toLowerCase();
   return `/data/images/artifacts/${normalized}.tft_set13.png`;
 }
@@ -105,8 +135,12 @@ const traitImageCache = new Map<string, string>();
 export function registerTraitImages(traits: { apiName: string; icon: string }[]): void {
   for (const t of traits) {
     const parts = t.icon.split('/');
-    const filename = parts[parts.length - 1].toLowerCase();
-    traitImageCache.set(t.apiName, `/data/images/traits/${filename}`);
+    const filename = parts[parts.length - 1].toLowerCase().replace('.tex', '.png');
+    // Set 16 전용 특성(TFT16_ apiName)만 set16/ 경로 사용
+    // 다른 세트 아이콘을 재사용하는 Set 17 특성은 images/traits/에서 로드
+    const isSet16Trait = t.apiName.startsWith('TFT16_');
+    const base = isSet16Trait ? '/data/set16/images/traits' : '/data/images/traits';
+    traitImageCache.set(t.apiName, `${base}/${filename}`);
   }
 }
 

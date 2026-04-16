@@ -1,0 +1,906 @@
+{
+  "meta": {
+    "set": 17,
+    "source": "CommunityDragon TFT ko_kr.json",
+    "extractedAt": "2026-04-15T05:04:01.035Z",
+    "totalItems": 57,
+    "baseComponents": 0,
+    "combinedItems": 0,
+    "tft17Special": 70,
+    "artifacts": 0,
+    "supportItems": 0
+  },
+  "items": [
+    {
+      "name": "악성코드 매트릭스",
+      "apiName": "TFT17_Item_PsyOps_ChemicalCapacitorMod_Radiant",
+      "composition": [],
+      "effects": {
+        "AD": 0.15000000596046448,
+        "AS": 15,
+        "CleaveDamage": 75,
+        "Cooldown": 0.75,
+        "NumAttacks": 3,
+        "StatOmnivamp": 0.10000000149011612,
+        "{b9c681e9}": 2
+      },
+      "desc": "적에게 물리 피해를 입힐 경우 대상 방어력 @ResistReduce@ 감소 (스킬 피해 재사용 대기시간: @Cooldown@초)<br><br><TFTRadiantItemBonus>(4) 초능력: 장착 유닛이 초능력일 경우, 기본 공격 @NumAttacks@회마다 주변 적을 베어 <physicalDamage>@CleaveDamage@(%i:scaleAD%)</physicalDamage>의 물리 피해를 입힘</TFTRadiantItemBonus><br><br><rules>추천 사용자: 마스터 이, 파이크</rules>",
+      "icon": "tft17_psyops_mod_chemicalcapacitormod.tft_set17.png"
+    },
+    {
+      "name": "드론 업링크",
+      "apiName": "TFT17_Item_PsyOps_DroneMod_Radiant",
+      "composition": [],
+      "effects": {
+        "AP": 25,
+        "DamageRepeat": 20,
+        "Interval": 3,
+        "{0c37f8cb}": 0.20000000298023224
+      },
+      "desc": "드론이 @Interval@초마다 장착 유닛의 기본 공격 및 스킬 피해량의 <magicDamage>@DamageRepeat@%</magicDamage>를 동일한 대상에게 입힘<br><br><TFTRadiantItemBonus>(4) 초능력: 장착 유닛이 초능력일 경우, 피해량의 @SecondDroneDamageRepeat*100@%를 반복하는 추가 미니 드론 획득</TFTRadiantItemBonus><br><br><rules>추천 사용자: 소나, 빅토르</rules>",
+      "icon": "tft17_psyops_mod_dronemod.tft_set17.png"
+    },
+    {
+      "name": "악성코드 매트릭스",
+      "apiName": "TFT17_Item_PsyOps_ChemicalCapacitorMod",
+      "composition": [],
+      "effects": {
+        "AD": 0.15000000596046448,
+        "AS": 15,
+        "CleaveDamage": null,
+        "Cooldown": 0.75,
+        "StatOmnivamp": 0.10000000149011612,
+        "{b9c681e9}": 2
+      },
+      "desc": "적에게 물리 피해를 입힐 경우 대상 방어력 @ResistReduce@ 감소 (스킬 피해 재사용 대기시간: @Cooldown@초)<br><br><rules>추천 사용자: 마스터 이, 파이크</rules>",
+      "icon": "tft17_psyops_mod_chemicalcapacitormod.tft_set17.png"
+    },
+    {
+      "name": "표적 고정 광학 장치",
+      "apiName": "TFT17_Item_PsyOps_TargetlockMod",
+      "composition": [],
+      "effects": {
+        "AD": 0.15000000596046448,
+        "AS": 35,
+        "HealPct": null,
+        "{e09f9b18}": 150
+      },
+      "desc": "장착 유닛이 각 적에게 가하는 첫 공격이 <physicalDamage>@AttackPct@(%i:scaleAD%)</physicalDamage>의 추가 피해를 입힘<br><br><rules>추천 사용자: 파이크, 마스터 이</rules>",
+      "icon": "tft17_psyops_mod_targetlockmod.tft_set17.png"
+    },
+    {
+      "name": "반도체",
+      "apiName": "TFT17_Item_PsyOps_SemiconductorMod_Radiant",
+      "composition": [],
+      "effects": {
+        "Health": 300,
+        "NumEnemies": 3,
+        "{73e0ce64}": 12,
+        "{9354daf0}": 4,
+        "{cd951938}": 0.30000001192092896,
+        "{daa56df3}": 0.07500000298023224
+      },
+      "desc": "기본 공격 @AttacksToLaunch@회마다 및 @AttacksToReceive@회 공격받을 때마다 가까운 적 @NumEnemies@명을 감전시켜 적 체력의 <magicDamage>@PctHealthDamage*100@%</magicDamage>에 해당하는 마법 피해를 입힘<br><br><rules>추천 사용자: 그라가스, 마스터 이</rules>",
+      "icon": "tft17_psyops_mod_semiconductormod.tft_set17.png"
+    },
+    {
+      "name": "표적 고정 광학 장치",
+      "apiName": "TFT17_Item_PsyOps_TargetlockMod_Radiant",
+      "composition": [],
+      "effects": {
+        "AD": 0.15000000596046448,
+        "AS": 35,
+        "HealPct": 0.15000000596046448,
+        "{e09f9b18}": 150
+      },
+      "desc": "장착 유닛이 각 적에게 가하는 첫 공격이 <physicalDamage>@AttackPct@(%i:scaleAD%)</physicalDamage>의 추가 피해를 입힘<br><br><TFTRadiantItemBonus>(4) 초능력: 장착 유닛이 초능력일 경우, 대상이 사망할 때마다 최대 체력의 <scaleHealth>@HealPct*100@%</scaleHealth>만큼 체력 회복</TFTRadiantItemBonus><br><br><rules>추천 사용자: 파이크, 마스터 이</rules>",
+      "icon": "tft17_psyops_mod_targetlockmod.tft_set17.png"
+    },
+    {
+      "name": "유기물 보존기",
+      "apiName": "TFT17_Item_PsyOps_GrenadeMod_Radiant",
+      "composition": [],
+      "effects": {
+        "HealPct": 0.18000000715255737,
+        "Health": 400,
+        "IncreasedHealing": 0.2199999988079071,
+        "Interval": 8,
+        "{79b909d6}": 0.05000000074505806,
+        "{9b321d50}": 3
+      },
+      "desc": "최대 체력 @PctMaxHP*100%@% 획득 및 생명의 구슬 @NumGrenades@개 배치. 전투 시 @Interval@초마다 구슬이 떨어져 장착 유닛의 잃은 체력을 <scaleHealth>@HealPct*100@%</scaleHealth>만큼 회복시킴<br><br><TFTRadiantItemBonus>(4) 초능력: 장착 유닛이 초능력일 경우, 모든 요소로부터 받는 체력 회복량 @IncreasedHealing*100@% 증가</TFTRadiantItemBonus><br><br><rules>추천 사용자: 그라가스</rules>",
+      "icon": "tft17_psyops_mod_grenademod.tft_set17.png"
+    },
+    {
+      "name": "드론 업링크",
+      "apiName": "TFT17_Item_PsyOps_DroneMod",
+      "composition": [],
+      "effects": {
+        "AP": 25,
+        "DamageRepeat": 20,
+        "Interval": 3,
+        "{0c37f8cb}": null
+      },
+      "desc": "드론이 @Interval@초마다 장착 유닛의 기본 공격 및 스킬 피해량의 <magicDamage>@DamageRepeat@%</magicDamage>를 동일한 대상에게 입힘<br><br><rules>추천 사용자: 소나, 빅토르</rules>",
+      "icon": "tft17_psyops_mod_dronemod.tft_set17.png"
+    },
+    {
+      "name": "반도체",
+      "apiName": "TFT17_Item_PsyOps_SemiconductorMod",
+      "composition": [],
+      "effects": {
+        "Health": 200,
+        "NumEnemies": 3,
+        "{73e0ce64}": 8,
+        "{9354daf0}": 4,
+        "{cd951938}": 0.10000000149011612,
+        "{daa56df3}": 0.07000000029802322
+      },
+      "desc": "기본 공격 @AttacksToLaunch@회마다 및 @AttacksToReceive@회 공격받을 때마다 가까운 적 @NumEnemies@명을 감전시켜 적 체력의 <magicDamage>@PctHealthDamage*100@%</magicDamage>에 해당하는 마법 피해를 입힘<br><br><rules>추천 사용자: 그라가스, 마스터 이</rules>",
+      "icon": "tft17_psyops_mod_semiconductormod.tft_set17.png"
+    },
+    {
+      "name": "공감 임플란트",
+      "apiName": "TFT17_Item_PsyOps_SympatheticImplantMod",
+      "composition": [],
+      "effects": {
+        "AP": 20,
+        "Interval": 5,
+        "ManaRegen": 2,
+        "{13855298}": null,
+        "{41565f08}": 1
+      },
+      "desc": "@Interval@초마다 추가 마나 재생 @ManaRegenOverTime@ 획득<br><br><rules>추천 사용자: 소나, 빅토르</rules>",
+      "icon": "tft17_psyops_mod_sympatheticimplantmod.tft_set17.png"
+    },
+    {
+      "name": "공감 임플란트",
+      "apiName": "TFT17_Item_PsyOps_SympatheticImplantMod_Radiant",
+      "composition": [],
+      "effects": {
+        "AP": 20,
+        "Interval": 5,
+        "ManaRegen": 2,
+        "{13855298}": 0.20000000298023224,
+        "{41565f08}": 1
+      },
+      "desc": "@Interval@초마다 추가 초당 마나 @ManaRegenOverTime@ 획득<br><br><TFTRadiantItemBonus>(4) 초능력: 장착 유닛이 초능력일 경우, 스킬 피해량의 <scaleLevel>@TrueDamageConversion*100@%</scaleLevel>를 고정 피해로 입힘</TFTRadiantItemBonus><br><br><rules>추천 사용자: 소나, 빅토르</rules>",
+      "icon": "tft17_psyops_mod_sympatheticimplantmod.tft_set17.png"
+    },
+    {
+      "name": "유기물 보존기",
+      "apiName": "TFT17_Item_PsyOps_GrenadeMod",
+      "composition": [],
+      "effects": {
+        "HealPct": 0.18000000715255737,
+        "Health": 250,
+        "IncreasedHealing": null,
+        "Interval": 8,
+        "{79b909d6}": 0.05000000074505806,
+        "{9b321d50}": 3
+      },
+      "desc": "최대 체력 @PctMaxHP*100%@% 획득 및 생명의 구슬 @NumGrenades@개 배치. 전투 시 @Interval@초마다 구슬이 떨어져 장착 유닛의 잃은 체력을 <scaleHealth>@HealPct*100@%</scaleHealth>만큼 회복시킴<br><br><rules>추천 사용자: 그라가스</rules>",
+      "icon": "tft17_psyops_mod_grenademod.tft_set17.png"
+    },
+    {
+      "name": "사자의 비가",
+      "apiName": "TFT17_AnimaSquadItem_Tier2_LionessLament",
+      "composition": [],
+      "effects": {
+        "Armor": 30,
+        "Health": 200,
+        "MagicResist": 30,
+        "ResistPercent": 0.5,
+        "{4182176a}": 0.15000000596046448,
+        "{cf4ea7aa}": 4
+      },
+      "desc": "최대 체력의 @HealthPerMissile*100@%를 잃을 때마다 일직선으로 초승달 투사체를 발사해 장착 유닛 방어력 및 마법 저항력의 @ResistPercent*100@%에 해당하는 물리 피해를 입힘. 적중한 모든 적의 방어력 및 마법 저항력 @ResistSteal@ 강탈<br><br><rules>추천 역할군: 공격력 또는 주문력 탱커</rules>",
+      "icon": "tft17_animasquaditem_lionesslament_t2.tft_set17.png"
+    },
+    {
+      "name": "포악한 절단검",
+      "apiName": "TFT17_AnimaSquadItem_Tier1_SavageSlicer",
+      "composition": [],
+      "effects": {
+        "AD": 0.10000000149011612,
+        "HexRange": 1,
+        "SplashDamage": 0.30000001192092896,
+        "StatOmnivamp": 0.10000000149011612,
+        "{d04291ba}": 1.5,
+        "{f30854d3}": 6
+      },
+      "desc": "기본 공격 시 대상 및 인접한 모든 적에게 기본 공격 피해량의 @SplashDamage*100@%에 해당하는 피해를 입힘. 이 피해량에는 모든 피해 흡혈 @OmnivampEffectiveness*100@% 적용<br><br><TFTGuildActive enabled=TFT17_AnimaSquad_Tier1Item_IsEnhanced alternate=TFTGuildInactive>브라이어 추가 효과: 브라이어가 이 아이템을 장착할 경우 스킬 사용 시 이 효과가 @BriarHitsOnCast@회 발동</TFTGuildActive>",
+      "icon": "tft17_animasquaditem_savageslicer_t1.tft_set17.png"
+    },
+    {
+      "name": "귀여운 발사기",
+      "apiName": "TFT17_AnimaSquadItem_Tier2_UwuBlaster",
+      "composition": [],
+      "effects": {
+        "AD": 0.15000000596046448,
+        "ADDamage": 0.4000000059604645,
+        "AS": 45,
+        "NumAttacks": 1,
+        "{db69f625}": 3
+      },
+      "desc": "기본 공격마다 사거리 내 무작위 대상에게 레이저 @NumUwUBlasts@개를 발사하여 장착 유닛 공격력의 @ADDamage*100@%에 해당하는 물리 피해를 입힘<br><br><rules>추천 역할군: 공격력 원거리 딜러</rules>",
+      "icon": "tft17_animasquaditem_uwublaster_t2.tft_set17.png"
+    },
+    {
+      "name": "타오르는 단궁",
+      "apiName": "TFT17_AnimaSquadItem_Tier2_SearingShortbow",
+      "composition": [],
+      "effects": {
+        "AD": 0.10000000149011612,
+        "AP": 40,
+        "APScalar": 0.75,
+        "BurnDuration": 3,
+        "BurnPercent": 1,
+        "GrievousWoundsPercent": 33,
+        "ManaRegen": 4,
+        "{a43b74b6}": 20,
+        "{e0780137}": null
+      },
+      "desc": "마나를 @ManaPerProjectile@ 소모할 때마다 주변 적에게 투사체를 날려 <magicDamage>@ProjectileDamage@+장착 유닛 주문력의 @APScalar*100@%</magicDamage>에 해당하는 마법 피해를 입히고 @BurnDuration@초 동안 @BurnPercent@% <TFTKeyword>화상</TFTKeyword> 및 @GrievousWoundsPercent@% <TFTKeyword>상처</TFTKeyword> 적용<br><br><tftitemrules>스테이지에 따라 피해량 증가<br><tftbold>화상</tftbold>: 매초 대상 최대 체력의 일정 비율만큼 고정 피해<br><tftbold>상처</tftbold>: 체력 회복량 감소</tftitemrules><br><rules>추천 역할군: 주문력 마법사</rules>",
+      "icon": "tft17_animasquaditem_searingshortbow_t2.tft_set17.png"
+    },
+    {
+      "name": "완전 빙결",
+      "apiName": "TFT17_AnimaSquadItem_Tier3_IceblastArmor",
+      "composition": [],
+      "effects": {
+        "Armor": 30,
+        "Health": 550,
+        "HealthThreshold1": 0.8999999761581421,
+        "HealthThreshold2": 0.6000000238418579,
+        "HexRange": 2,
+        "MagicResist": 30,
+        "MaxHealthDamage": 0.15000000596046448,
+        "ShieldDuration": 4,
+        "ShieldPercent": 0.20000000298023224,
+        "StunDuration": 2,
+        "{c9e44d3b}": 0.4000000059604645,
+        "{cee4551a}": 0.20000000298023224,
+        "{e4358bca}": 1
+      },
+      "desc": "체력이 처음 @HealthThreshold1*100@%, @HealthThreshold2*100@%, <TFTRadiantItemBonus>@HealthThreshold3*100@%, @HealthThreshold4*100@%</TFTRadiantItemBonus> 아래로 떨어지면 @ShieldDuration@초 동안 최대 체력의 @ShieldPercent*100@%에 해당하는 보호막 획득. 이 효과 발동 시 서리 폭발을 일으켜 @HexRange@칸 내 적을 @StunDuration@초 동안 기절시키고 <TFTRadiantItemBonus>대상 최대 체력의 @MaxHealthDamage*100@%에 해당하는 마법 피해를 입힘</TFTRadiantItemBonus><br><br><TFTRadiantItemBonus>서리 폭발이 발생할 때마다 반경 @HexRangeIncreasePerProc@ 증가</TFTRadiantItemBonus><br><br><rules>추천 역할군: 공격력 또는 주문력 탱커</rules>",
+      "icon": "tft17_animasquaditem_iceblastarmor_t3.tft_set17.png"
+    },
+    {
+      "name": "동물의 종말",
+      "apiName": "TFT17_AnimaSquadItem_Tier3_Annihilator",
+      "composition": [],
+      "effects": {
+        "AD": 0.30000001192092896,
+        "AP": 30,
+        "Delay": 6,
+        "ManaRegen": 5,
+        "{349f2a01}": 0.20000000298023224,
+        "{eb6c4a6c}": 0.05000000074505806
+      },
+      "desc": "입힌 피해량의 <TFTRadiantItemBonus>@DamageStore*100@%</TFTRadiantItemBonus> 저장. <TFTRadiantItemBonus>@Delay@초마다</TFTRadiantItemBonus> 및 사망 시, 모든 적에게 저장된 피해량만큼 고정 피해를 입힘. 피해량은 중심으로부터 1칸 멀어질 때마다 <TFTRadiantItemBonus>@HexFalloff*100@%</TFTRadiantItemBonus> 감소<br><br><rules>추천 역할군: 공격력 또는 주문력 마법사</rules>",
+      "icon": "tft17_animasquaditem_annihilator_t3.tft_set17.png"
+    },
+    {
+      "name": "인도의 저주",
+      "apiName": "TFT17_AnimaSquadItem_Tier1_GuidingHex",
+      "composition": [],
+      "effects": {
+        "AP": 15,
+        "Frequency": 3,
+        "{1543aa48}": 0.10000000149011612,
+        "{4472effe}": 9,
+        "{e0780137}": null
+      },
+      "desc": "@Frequency@초마다 공격 사거리 내 무작위 적 1명에게 투사체를 발사해 @ProjectileDamage@의 마법 피해를 입힘<br><br><TFTGuildActive enabled=TFT17_AnimaSquad_Tier1Item_IsEnhanced alternate=TFTGuildInactive>오로라 추가 효과: 오로라가 이 아이템을 장착할 경우, 투사체 적중 시 주문력 @AuroraAPOnHit@ 획득</TFTGuildActive><br><br><rules>스테이지에 비례해 피해량 증가</rules>",
+      "icon": "tft17_animsquaditem_guidinghex_t1.tft_set17.png"
+    },
+    {
+      "name": "일식",
+      "apiName": "TFT17_AnimaSquadItem_Tier3_RadiantField",
+      "composition": [],
+      "effects": {
+        "Health": 800,
+        "HealthPercent": 0.18000000715255737,
+        "HealthRatio": 0.05000000074505806,
+        "HexRadiusBase": 2,
+        "Period": 6,
+        "{52d3e690}": 1,
+        "{6d738b4b}": 0.20000000298023224
+      },
+      "desc": "최대 체력 <TFTRadiantItemBonus>@HealthPercent*100@%</TFTRadiantItemBonus> 획득. 매초 반경 <TFTRadiantItemBonus>@HexRadiusBase@</TFTRadiantItemBonus>칸에 장착 유닛 최대 체력의 @HealthRatio*100@%에 해당하는 마법 피해를 입히고 <TFTRadiantItemBonus>입힌 피해량의 @DamageToHealthConversion*100@%에 해당하는 최대 체력 획득.</TFTRadiantItemBonus> @Period@초마다 반경 증가<br><br><rules>추천 역할군: 공격력 또는 주문력 탱커</rules>",
+      "icon": "tft17_animasquaditem_radiantfield_t3.tft_set17.png"
+    },
+    {
+      "name": "광휘 역장",
+      "apiName": "TFT17_AnimaSquadItem_Tier2_RadiantField",
+      "composition": [],
+      "effects": {
+        "Health": 400,
+        "HealthPercent": 0.20000000298023224,
+        "HealthRatio": 0.029999999329447746,
+        "HexRadiusBase": 1,
+        "Period": 6,
+        "{52d3e690}": 1
+      },
+      "desc": "최대 체력 @HealthPercent*100@% 획득. 매초 반경 @HexRadiusBase@칸에 장착 유닛 최대 체력의 @HealthRatio*100@%에 해당하는 마법 피해를 입힘. @Period@초마다 반경 증가<br><br><rules>추천 역할군: 공격력 또는 주문력 탱커</rules>",
+      "icon": "tft17_animasquaditem_radiantfield_t2.tft_set17.png"
+    },
+    {
+      "name": "로켓 연사",
+      "apiName": "TFT17_AnimaSquadItem_Tier1_RocketSwarm",
+      "composition": [],
+      "effects": {
+        "AD": 0.10000000149011612,
+        "ManaRegen": 3,
+        "ManaThreshold": 30,
+        "NumRockets": 4,
+        "{b911f943}": 0.44999998807907104,
+        "{cdacc6a1}": 0.30000001192092896
+      },
+      "desc": "마나를 @ManaThreshold@ 소모할 때마다 대상에게 로켓 @NumRockets@개를 발사해 각각 @RocketDamagePercent*100@%%i:TFTBaseAD%의 물리 피해를 입힘<br><br><TFTGuildActive enabled=TFT17_AnimaSquad_Tier1Item_IsEnhanced alternate=TFTGuildInactive>징크스 추가 효과: 징크스가 이 아이템을 장착할 경우 모든 스킬 탄환이 로켓으로 변경되고 <TFTBonus>@JinxPercentIncrease*100@%</TFTBonus> 증가한 피해를 입힘</TFTGuildActive>",
+      "icon": "tft17_animasquaditem_rocketswarm_t1.tft_set17.png"
+    },
+    {
+      "name": "메아리치는 박쥐칼날",
+      "apiName": "TFT17_AnimaSquadItem_Tier2_EchoingBatblades",
+      "composition": [],
+      "effects": {
+        "AD": 0.30000001192092896,
+        "AS": 20,
+        "NumArrows": 10,
+        "NumAttacks": 3,
+        "{2de85c50}": 0.5
+      },
+      "desc": "기본 공격 @NumAttacks@회마다 가장 가까운 적 3명에게 박쥐칼날 @NumArrows@개 나누어 발사. 각 칼날은 <physicalDamage>@ArrowDamagePercent*100@%</physicalDamage>%i:TFTBaseAD%의 물리 피해를 입힘<br><br><rules>추천 역할군: 공격력 원거리 딜러</rules>",
+      "icon": "tft17_animasquaditem_echoingbatblades_t2.tft_set17.png"
+    },
+    {
+      "name": "베인의 크로마칼날",
+      "apiName": "TFT17_AnimaSquadItem_Tier3_EchoingBatblades",
+      "composition": [],
+      "effects": {
+        "AD": 0.30000001192092896,
+        "AS": 50,
+        "NumArrows": 30,
+        "NumAttacks": 5,
+        "{2de85c50}": 0.5
+      },
+      "desc": "기본 공격 <TFTRadiantItemBonus>@NumAttacks@</TFTRadiantItemBonus>회마다 모든 적에게 크로마칼날 <TFTRadiantItemBonus>@NumArrows@</TFTRadiantItemBonus>개 나누어 발사. 각 칼날은 <physicalDamage>@ArrowDamagePercent*100@%</physicalDamage>%i:TFTBaseAD%의 물리 피해를 입힘<br><br><rules>추천 역할군: 공격력 원거리 딜러</rules>",
+      "icon": "tft17_animasquaditem_echoingbatblades_t3.tft_set17.png"
+    },
+    {
+      "name": "전투 토끼 석궁",
+      "apiName": "TFT17_AnimaSquadItem_Tier2_BattleBunnyCrossbow",
+      "composition": [],
+      "effects": {
+        "AD": 0.20000000298023224,
+        "AS": 25,
+        "CritChance": 35,
+        "NumArrows": 5,
+        "{2de85c50}": 0.800000011920929,
+        "{6c51a842}": 3,
+        "{9f070bad}": 4
+      },
+      "desc": "<TFTKeyword>정밀</TFTKeyword> 획득<br><br>치명타가 @NumCritsNeeded@회 발동될 때마다 대상을 향해 치명타가 적용되는 관통 화살 @NumArrows@개 발사. 화살은 각각 @ArrowDamagePercent*100@%%i:TFTBaseAD%의 물리 피해를 입힘<br><br>{{TFT_Keyword_Precision}}<br><rules>스킬 사용당 최대 @MaxPerSpell@중첩 획득</rules><br><rules>추천 역할군: 공격력 원거리 딜러 또는 전사</rules>",
+      "icon": "tft17_animasquaditem_battlebunnycrossbow_t2.tft_set17.png"
+    },
+    {
+      "name": "얼음작렬 갑옷",
+      "apiName": "TFT17_AnimaSquadItem_Tier2_IceblastArmor",
+      "composition": [],
+      "effects": {
+        "Armor": 30,
+        "Health": 250,
+        "HealthThreshold1": 0.699999988079071,
+        "HealthThreshold2": 0.3499999940395355,
+        "HexRange": 3,
+        "MagicResist": 30,
+        "ShieldDuration": 4,
+        "ShieldPercent": 0.25,
+        "StunDuration": 2
+      },
+      "desc": "체력이 처음 @HealthThreshold1*100@%, @HealthThreshold2*100@% 아래로 떨어지면 @ShieldDuration@초 동안 최대 체력의 @ShieldPercent*100@%에 해당하는 보호막 획득 및 서리 폭발을 방출해 @HexRange@칸 내 적을 @StunDuration@초 동안 기절시킴<br><br><rules>추천 역할군: 공격력 또는 주문력 탱커</rules>",
+      "icon": "tft17_animasquaditem_iceblastarmor_t2.tft_set17.png"
+    },
+    {
+      "name": "망가진 시제품",
+      "apiName": "TFT17_AnimaSquadItem_Tier0_ClunkyPrototype",
+      "composition": [],
+      "effects": {
+        "Health": 100,
+        "Shield": 0.15000000596046448
+      },
+      "desc": "전투 시작: 최대 체력의 @Shield*100@%에 해당하는 보호막 획득",
+      "icon": "tft17_animasquaditem_clunkyprototype_t0.tft_set17.png"
+    },
+    {
+      "name": "엉성한 시제품",
+      "apiName": "TFT17_AnimaSquadItem_Tier0_LeakyPrototype",
+      "composition": [],
+      "effects": {
+        "AP": 15,
+        "Interval": 5,
+        "{45b457e3}": 3,
+        "{a7fb4465}": 1
+      },
+      "desc": "@Interval@초마다 이 아이템의 주문력이 @APLoss@ 감소하고 마나 재생이 @ManaRegenPerLoss@ 증가",
+      "icon": "tft17_animasquaditem_leakyprototype_t0.tft_set17.png"
+    },
+    {
+      "name": "토끼 프라임 거대 석궁",
+      "apiName": "TFT17_AnimaSquadItem_Tier3_BattleBunnyCrossbow",
+      "composition": [],
+      "effects": {
+        "AD": 0.30000001192092896,
+        "AS": 50,
+        "CritChance": 50,
+        "NumArrows": 6,
+        "{2de85c50}": 1,
+        "{6c51a842}": 3,
+        "{9f070bad}": 3,
+        "{cf2eba51}": 12
+      },
+      "desc": "<TFTKeyword>정밀</TFTKeyword> 획득<br><br>치명타가 <TFTRadiantItemBonus>@NumCritsNeeded@</TFTRadiantItemBonus>회 발동될 때마다 대상을 향해 치명타가 적용되는 관통 화살 <TFTRadiantItemBonus>@NumArrows@</TFTRadiantItemBonus>개 발사. 화살은 각각 @ArrowDamagePercent*100@%%i:TFTBaseAD%의 물리 피해를 입힘<br><br><TFTRadiantItemBonus>처치 관여 시 대상으로부터 화살 @ArrowsOnTakedown@개 발사 </TFTRadiantItemBonus><br><br>{{TFT_Keyword_Precision}}<br><rules>스킬 사용당 최대 @MaxPerSpell@중첩 획득</rules><br><rules>추천 역할군: 공격력 원거리 딜러 또는 전사</rules>",
+      "icon": "tft17_animasquaditem_battlebunnycrossbow_t2.tft_set17.png"
+    },
+    {
+      "name": "불꽃 튀는 시제품",
+      "apiName": "TFT17_AnimaSquadItem_Tier0_SparkingPrototype",
+      "composition": [],
+      "effects": {
+        "AD": 0.10000000149011612,
+        "AttackSpeed": 0.30000001192092896,
+        "Duration": 4,
+        "Interval": 4
+      },
+      "desc": "@Interval@초마다 @Duration@초 동안 공격 속도 @AttackSpeed*100@% 획득",
+      "icon": "tft17_animasquaditem_sparkingprototype_t0.tft_set17.png"
+    },
+    {
+      "name": "그치지 않는 폭풍",
+      "apiName": "TFT17_AnimaSquadItem_Tier3_CyclonicSlicers",
+      "composition": [],
+      "effects": {
+        "AD": 0.30000001192092896,
+        "AP": 30,
+        "Armor": 40,
+        "Damage": null,
+        "DamageIncrease": 0.30000001192092896,
+        "MagicResist": 40,
+        "ShredDuration": 60
+      },
+      "desc": "선회 칼날 <TFTRadiantItemBonus>6</TFTRadiantItemBonus>개 획득. 칼날은 적에게 <trueDamage>@Damage@</trueDamage>의 <TFTRadiantItemBonus>고정 피해</TFTRadiantItemBonus>를 입히고, <TFTRadiantItemBonus>전투가 끝날 때까지</TFTRadiantItemBonus> 파쇄 및 파열 30% 적용. 파쇄 또는 파열 적용된 적에게 입히는 피해량 <TFTRadiantItemBonus>@DamageIncrease*100@%</TFTRadiantItemBonus> 증가<br><br><rules>스테이지에 비례해 피해량 증가</rules><br><rules>추천 역할군: 공격력 또는 주문력 전사</rules>",
+      "icon": "tft17_animasquaditem_cyclonicslicers_t3.tft_set17.png"
+    },
+    {
+      "name": "촉수 후려치기",
+      "apiName": "TFT17_AnimaSquadItem_Tier1_TentacleSlam",
+      "composition": [],
+      "effects": {
+        "Durability": 0.10000000149011612,
+        "Frequency": 5,
+        "Heal": 0.11999999731779099,
+        "Health": 150,
+        "SlamDamage": null,
+        "{21310147}": 0.3499999940395355
+      },
+      "desc": "@Frequency@초마다 촉수 소환. 촉수는 대상을 후려쳐 <physicalDamage>@SlamDamage@</physicalDamage>의 물리 피해를 입히고 장착 유닛을 최대 체력의 @Heal*100@%만큼 회복시킴<br><br><TFTGuildActive enabled=TFT17_AnimaSquad_Tier1Item_IsEnhanced alternate=TFTGuildInactive>일라오이 추가 효과: 일라오이가 이 아이템을 장착할 경우 촉수가 일라오이 스킬로 체력을 흡수한 대상을 추가로 후려쳐 @IllaoiEffectiveness*100@%의 피해를 입힘 </TFTGuildActive><br><br><rules>스테이지에 비례해 피해량 증가</rules>",
+      "icon": "tft17_animasquaditem_tentacleslam_t1.tft_set17.png"
+    },
+    {
+      "name": "절멸자",
+      "apiName": "TFT17_AnimaSquadItem_Tier2_Annihilator",
+      "composition": [],
+      "effects": {
+        "AD": 0.20000000298023224,
+        "AP": 30,
+        "Delay": 18,
+        "ManaRegen": 3,
+        "{349f2a01}": 0.20000000298023224,
+        "{eb6c4a6c}": 0.15000000596046448
+      },
+      "desc": "입힌 피해량의 @DamageStore*100@% 저장. 사망 시 또는 전투 시작 @Delay@초 후 모든 적에게 저장된 피해량만큼 고정 피해를 입힘. 피해량은 중심으로부터 1칸 멀어질 때마다 @HexFalloff*100@% 감소<br><br><rules>추천 역할군: 공격력 또는 주문력 마법사</rules>",
+      "icon": "tft17_animasquaditem_annihilator_t2.tft_set17.png"
+    },
+    {
+      "name": "만능 무기",
+      "apiName": "TFT17_AnimaSquadItem_Tier4_Omniweapon",
+      "composition": [],
+      "effects": {
+        "AD": 1,
+        "ADDamage": 0.3499999940395355,
+        "AP": 100,
+        "APScalar": 0.5,
+        "AS": 100,
+        "Armor": 100,
+        "BurnDuration": 3,
+        "CritChance": 75,
+        "Damage": null,
+        "DamageIncrease": 0.30000001192092896,
+        "Delay": 5,
+        "Health": 10000,
+        "HealthPercent": 0.11999999731779099,
+        "HealthRatio": 0.029999999329447746,
+        "HealthThreshold1": 0.8999999761581421,
+        "HealthThreshold2": 0.6000000238418579,
+        "HexRadiusBase": 2,
+        "HexRange": 6,
+        "MagicResist": 100,
+        "ManaRegen": 10,
+        "MaxHealthDamage": 0.25,
+        "NumArrows": 40,
+        "NumAttacks": 1,
+        "Period": 6,
+        "ResistPercent": 1,
+        "ShieldDuration": 60,
+        "ShieldPercent": 1,
+        "ShredDuration": 60,
+        "StatOmnivamp": 1,
+        "StunDuration": 8,
+        "{1543aa48}": 1,
+        "{2de85c50}": 1,
+        "{349f2a01}": 0.4000000059604645,
+        "{4182176a}": 0.20000000298023224,
+        "{52d3e690}": 1,
+        "{5edecd8d}": null,
+        "{6d738b4b}": 1,
+        "{9f070bad}": 1,
+        "{a43b74b6}": 10,
+        "{c9e44d3b}": 0.4000000059604645,
+        "{cd951938}": 0.5,
+        "{cee4551a}": 0.20000000298023224,
+        "{cf2eba51}": 24,
+        "{cf4ea7aa}": 15,
+        "{db69f625}": 15,
+        "{e0780137}": null,
+        "{e4358bca}": 1,
+        "{eb6c4a6c}": 0.05000000074505806
+      },
+      "desc": "동물특공대 기술의 정점입니다.",
+      "icon": "tft17_animasquaditem_omniweapon_t4.tft_set17.png"
+    },
+    {
+      "name": "회오리 칼날",
+      "apiName": "TFT17_AnimaSquadItem_Tier2_CyclonicSlicers",
+      "composition": [],
+      "effects": {
+        "AD": 0.20000000298023224,
+        "AP": 20,
+        "Armor": 15,
+        "Damage": null,
+        "DamageIncrease": 0.10000000149011612,
+        "MagicResist": 15,
+        "ShredDuration": 4
+      },
+      "desc": "선회 칼날 3개 획득. 칼날은 적에게 <magicDamage>@Damage@</magicDamage>의 마법 피해를 입히고, @ShredDuration@초 동안 파쇄 및 파열 30% 적용. 파쇄 또는 파열 적용된 적에게 입히는 피해량 @DamageIncrease*100@% 증가<br><br><rules>스테이지에 비례해 피해량 증가</rules><br><rules>추천 역할군: 공격력 또는 주문력 전사</rules>",
+      "icon": "tft17_animasquaditem_cyclonicslicers_t2.tft_set17.png"
+    },
+    {
+      "name": "진화한 불꽃 사격",
+      "apiName": "TFT17_AnimaSquadItem_Tier3_SearingShortbow",
+      "composition": [],
+      "effects": {
+        "AD": 0.4000000059604645,
+        "AP": 40,
+        "APScalar": 0.5,
+        "BurnDuration": 10,
+        "BurnPercent": 1,
+        "GrievousWoundsPercent": 33,
+        "ManaRegen": 5,
+        "{5edecd8d}": null,
+        "{a43b74b6}": 15,
+        "{e0780137}": null
+      },
+      "desc": "마나를 <TFTRadiantItemBonus>@ManaPerProjectile@</TFTRadiantItemBonus> 소모할 때마다 주변 적에게 투사체를 날려 <magicDamage>@ProjectileDamage@+장착 유닛 주문력의 @APScalar*100@%</magicDamage>에 해당하는 마법 피해를 입히고 <TFTRadiantItemBonus>@BurnDuration@</TFTRadiantItemBonus>초 동안 @BurnPercent@% <TFTKeyword>화상</TFTKeyword> 및 @GrievousWoundsPercent@% <TFTKeyword>상처</TFTKeyword> 적용 <br><br><TFTRadiantItemBonus>각 투사체는 지속 피해 지역을 남겨 매초 적에게 <magicDamage>@FieldDamagePerSecond@</magicDamage>의 마법 피해를 입힘</TFTRadiantItemBonus><br><br><tftitemrules>스테이지에 따라 피해량 증가<br><tftbold>화상</tftbold>: 매초 대상 최대 체력의 일정 비율만큼 고정 피해<br><tftbold>상처</tftbold>: 체력 회복량 감소</tftitemrules><br><rules>추천 역할군: 주문력 마법사</rules>",
+      "icon": "tft17_animasquaditem_searingshortbow_t3.tft_set17.png"
+    },
+    {
+      "name": "왕 귀여운 발사기",
+      "apiName": "TFT17_AnimaSquadItem_Tier3_UwuBlaster",
+      "composition": [],
+      "effects": {
+        "AD": 0.3499999940395355,
+        "ADDamage": 0.4000000059604645,
+        "AS": 75,
+        "NumAttacks": 1,
+        "{db69f625}": 9
+      },
+      "desc": "기본 공격마다 사거리 내 무작위 대상에게 레이저 <TFTRadiantItemBonus>@NumUwUBlasts@</TFTRadiantItemBonus>개를 발사하여 장착 유닛 공격력의 @ADDamage*100@%에 해당하는 물리 피해를 입힘<br><br><rules>추천 역할군: 공격력 원거리 딜러</rules>",
+      "icon": "tft17_animasquaditem_uwublaster_t3.tft_set17.png"
+    },
+    {
+      "name": "사자의 비탄",
+      "apiName": "TFT17_AnimaSquadItem_Tier3_LionessLament",
+      "composition": [],
+      "effects": {
+        "Armor": 40,
+        "Health": 400,
+        "MagicResist": 40,
+        "ResistPercent": 0.5,
+        "{4182176a}": 0.15000000596046448,
+        "{cf4ea7aa}": 10,
+        "{fe04276d}": 3
+      },
+      "desc": "최대 체력의 @HealthPerMissile*100@%를 잃을 때마다 일직선 <TFTRadiantItemBonus>@PrismaticNumTargets@</TFTRadiantItemBonus>줄로 초승달 투사체를 발사해 장착 유닛 방어력 및 마법 저항력의 @ResistPercent*100@%에 해당하는 물리 피해를 입힘. 적중한 모든 적의 방어력 및 마법 저항력 <TFTRadiantItemBonus>@ResistSteal@</TFTRadiantItemBonus> 강탈<br><br><rules>추천 역할군: 공격력 또는 주문력 탱커</rules>",
+      "icon": "tft17_animasquaditem_lionesslament_t3.tft_set17.png"
+    },
+    {
+      "name": "중재자 상징",
+      "apiName": "TFT17_Item_FavoredEmblemItem",
+      "composition": [
+        "TFT_Item_Spatula",
+        "TFT_Item_NegatronCloak"
+      ],
+      "effects": {
+        "AS": 20,
+        "Armor": 20,
+        "MagicResist": 20
+      },
+      "desc": "장착 시 중재자자 특성 획득",
+      "icon": "tft17_emblem_arbiter.tft_set17.png"
+    },
+    {
+      "name": "저격수 상징",
+      "apiName": "TFT17_Item_RangedTraitEmblemItem",
+      "composition": [],
+      "effects": {
+        "AS": 20,
+        "HexRangeIncrease": 1
+      },
+      "desc": "장착 시 저격수 특성 및 공격 사거리 +@HexRangeIncrease@ 획득",
+      "icon": "tft17_emblem_sniper.tft_set17.png"
+    },
+    {
+      "name": "선봉대 상징",
+      "apiName": "TFT17_Item_ShieldTankEmblemItem",
+      "composition": [
+        "TFT_Item_FryingPan",
+        "TFT_Item_NegatronCloak"
+      ],
+      "effects": {
+        "APGain": 3,
+        "Armor": 20,
+        "Health": 150,
+        "MagicResist": 20
+      },
+      "desc": "장착 시 선봉대 특성 획득. 아군이 보호막을 얻을 때마다 주문력 @APGain@% 획득",
+      "icon": "tft17_emblem_vanguard.tft_set17.png"
+    },
+    {
+      "name": "동물특공대 상징",
+      "apiName": "TFT17_Item_AnimaSquadEmblemItem",
+      "composition": [],
+      "effects": {
+        "Health": 250
+      },
+      "desc": "장착 시 동물특공대 특성 획득",
+      "icon": "tft17_emblem_animatech.tft_set17.png"
+    },
+    {
+      "name": "시간 균열자 상징",
+      "apiName": "TFT17_Item_PulsefireEmblemItem",
+      "composition": [
+        "TFT_Item_Spatula",
+        "TFT_Item_RecurveBow"
+      ],
+      "effects": {
+        "AS": 15,
+        "Health": 300
+      },
+      "desc": "장착 시 시간 균열자 특성 획득",
+      "icon": "tft17_emblem_timebreaker.tft_set17.png"
+    },
+    {
+      "name": "N.O.V.A. 상징",
+      "apiName": "TFT17_Item_DRXEmblemItem",
+      "composition": [
+        "TFT_Item_Spatula",
+        "TFT_Item_SparringGloves"
+      ],
+      "effects": {
+        "CritChance": 20,
+        "Health": 300,
+        "{6b3a76bf}": 0.25,
+        "{7ab23dd5}": 10,
+        "{ca3af0c4}": 20,
+        "{d5e2fbc4}": 0.10000000149011612
+      },
+      "desc": "장착 시 N.O.V.A 특성 획득<br><br><ShowIf.TFT17_DRX_CapstoneActive><scaleLevel enabled=TFT17_DRX_isSelected alternate=TFTGuildInactive>N.O.V.A. 타격: 공격 속도 @ASStriker*100@%, 방어력 및 마법 저항력 @ArmorStriker@ 획득. 그 외 아군이 공격 속도 @ASTeam*100@%, 방어력 및 마법 저항력 @ArmorTeam@ 획득</scaleLevel></ShowIf.TFT17_DRX_CapstoneActive>",
+      "icon": "tft17_emblem_nova.tft_set17.png"
+    },
+    {
+      "name": "정령족 상징",
+      "apiName": "TFT17_Item_AstronautEmblemItem",
+      "composition": [
+        "TFT_Item_Spatula",
+        "TFT_Item_ChainVest"
+      ],
+      "effects": {
+        "Armor": 20,
+        "MagicResist": 20,
+        "ManaRegen": 2,
+        "{2ac93a55}": 1
+      },
+      "desc": "장착 시 정령족 특성 및 %i:set14AmpIcon%당 추가 마나 재생 @ManaRegenPerMeep@ 획득",
+      "icon": "tft17_emblem_meeple.tft_set17.png"
+    },
+    {
+      "name": "길잡이 상징",
+      "apiName": "TFT17_Item_SummonTraitEmblemItem",
+      "composition": [
+        "TFT_Item_FryingPan",
+        "TFT_Item_TearOfTheGoddess"
+      ],
+      "effects": {
+        "ManaRegen": 3,
+        "{fe7e694e}": 0.11999999731779099
+      },
+      "desc": "장착 시 길잡이 특성 획득. 스킬 사용 시 별의 결속에 최대 마나의 @ManaSharePercent*100@% 부여",
+      "icon": "tft17_emblem_sheperd.tft_set17.png"
+    },
+    {
+      "name": "초능력 상징",
+      "apiName": "TFT17_Item_PsyOpsEmblemItem",
+      "composition": [],
+      "effects": {
+        "AD": 0.20000000298023224,
+        "AP": 20,
+        "AS": 20,
+        "Health": 300
+      },
+      "desc": "장착 시 초능력 특성 획득",
+      "icon": "tft17_emblem_psyops.tft_set17.png"
+    },
+    {
+      "name": "싸움꾼 상징",
+      "apiName": "TFT17_Item_HPTankEmblemItem",
+      "composition": [
+        "TFT_Item_FryingPan",
+        "TFT_Item_GiantsBelt"
+      ],
+      "effects": {
+        "Health": 250,
+        "{ce701efe}": 0.029999999329447746
+      },
+      "desc": "장착 시 싸움꾼 특성 획득. 기본 공격 시 장착 유닛 최대 체력의 @PercentHPAttack*100@%에 해당하는 마법 피해를 입힘",
+      "icon": "tft17_emblem_brawler.tft_set17.png"
+    },
+    {
+      "name": "불한당 상징",
+      "apiName": "TFT17_Item_AssassinTraitEmblemItem",
+      "composition": [
+        "TFT_Item_FryingPan",
+        "TFT_Item_SparringGloves"
+      ],
+      "effects": {
+        "BuffDuration": 5,
+        "CritChance": 20,
+        "HealthThreshold": 0.5,
+        "Omnivamp": 0.4000000059604645,
+        "{1543aa48}": 0.15000000596046448
+      },
+      "desc": "장착 시 불한당 특성 획득. 체력이 @HealthThreshold*100@%일 때 @BuffDuration@초 동안 모든 피해 흡혈 @Omnivamp*100@% 획득 및 군중 제어 효과에 면역",
+      "icon": "tft17_emblem_rogue.tft_set17.png"
+    },
+    {
+      "name": "도전자 상징",
+      "apiName": "TFT17_Item_ASTraitEmblemItem",
+      "composition": [
+        "TFT_Item_FryingPan",
+        "TFT_Item_RecurveBow"
+      ],
+      "effects": {
+        "AS": 30,
+        "NumAttacks": 3,
+        "PercentHealthHeal": 0.05000000074505806
+      },
+      "desc": "장착 시 도전자 특성 획득. 처치 관여 시 장착 유닛의 다음 @NumAttacks@회 기본 공격이 각각 최대 체력의 @PercentHealthHeal*100@%만큼 체력을 회복시킴",
+      "icon": "tft17_emblem_challenger.tft_set17.png"
+    },
+    {
+      "name": "암흑의 별 상징",
+      "apiName": "TFT17_Item_DarkStarEmblemItem",
+      "composition": [
+        "TFT_Item_Spatula",
+        "TFT_Item_BFSword"
+      ],
+      "effects": {
+        "AD": 0.25,
+        "AP": 25
+      },
+      "desc": "장착 시 암흑의 별 특성 획득",
+      "icon": "tft17_emblem_darkstar.tft_set17.png"
+    },
+    {
+      "name": "별돌보미 상징",
+      "apiName": "TFT17_Item_StargazerEmblemItem",
+      "composition": [
+        "TFT_Item_Spatula",
+        "TFT_Item_NeedlesslyLargeRod"
+      ],
+      "effects": {
+        "AD": 0.15000000596046448,
+        "AP": 15
+      },
+      "desc": "장착 시 별돌보미 특성 획득",
+      "icon": "tft17_emblem_stargazer.tft_set17.png"
+    },
+    {
+      "name": "습격자 상징",
+      "apiName": "TFT17_Item_MeleeTraitEmblemItem",
+      "composition": [
+        "TFT_Item_FryingPan",
+        "TFT_Item_BFSword"
+      ],
+      "effects": {
+        "AD": 0.20000000298023224,
+        "GoldAmount": 1,
+        "GoldDropChance": 33,
+        "StatOmnivamp": 0.10000000149011612
+      },
+      "desc": "장착 시 습격자 특성 획득 및 처치 시 @GoldDropChance@% 확률로 @GoldAmount@골드를 떨어뜨림<br><br><tftitemrules>이번 게임에서 획득한 골드: @TFTUnitProperty.item:TFT_Item_GoldGenerated@</tftitemrules>",
+      "icon": "tft17_emblem_marauder.tft_set17.png"
+    },
+    {
+      "name": "우주 그루브 상징",
+      "apiName": "TFT17_Item_SpaceGrooveEmblemItem",
+      "composition": [
+        "TFT_Item_Spatula",
+        "TFT_Item_TearOfTheGoddess"
+      ],
+      "effects": {
+        "ManaRegen": 3,
+        "{4410ebcf}": 3
+      },
+      "desc": "장착 시 우주 그루브 특성 획득. 스킬 사용 시 장착 유닛이 @GrooveDuration@초 동안 {{TFT17_SpaceGroove_TheGroove}} 상태가 됨",
+      "icon": "tft17_emblem_spacegroove.tft_set17.png"
+    },
+    {
+      "name": "요새 상징",
+      "apiName": "TFT17_Item_ResistTankEmblemItem",
+      "composition": [
+        "TFT_Item_FryingPan",
+        "TFT_Item_ChainVest"
+      ],
+      "effects": {
+        "Armor": 30,
+        "AttackSpeed": 0.699999988079071,
+        "Delay": 10,
+        "MagicResist": 30
+      },
+      "desc": "장착 시 요새 특성 획득. 전투 시작 @Delay@초 후 장착 유닛이 공격 속도 @AttackSpeed*100@% 획득",
+      "icon": "tft17_emblem_bastion.tft_set17.png"
+    },
+    {
+      "name": "여행자 상징",
+      "apiName": "TFT17_Item_FlexTraitEmblemItem",
+      "composition": [
+        "TFT_Item_FryingPan",
+        "TFT_Item_NeedlesslyLargeRod"
+      ],
+      "effects": {
+        "AD": 0.20000000298023224,
+        "AP": 20,
+        "BonusArmorMR": 20,
+        "BonusAttackSpeed": 0.15000000596046448,
+        "BonusOmnivamp": 0.18000000715255737
+      },
+      "desc": "TFT17_Item_StrategistEmblemItem_Desc",
+      "icon": "tft17_emblem_voyager.tft_set17.png"
+    },
+    {
+      "name": "태고족 상징",
+      "apiName": "TFT17_Item_PrimordianEmblemItem",
+      "composition": [
+        "TFT_Item_Spatula",
+        "TFT_Item_GiantsBelt"
+      ],
+      "effects": {
+        "Health": 450
+      },
+      "desc": "장착 시 태고족 특성 획득",
+      "icon": "tft17_emblem_primordian.tft_set17.png"
+    }
+  ]
+}

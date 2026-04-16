@@ -69,3 +69,62 @@ export function sumBilgewaterEffects(
   }
   return totals;
 }
+
+// === 아이오니아 시너지 길 ===
+export type IoniaPathType = 'blades' | 'enlightenment' | 'transcendence' | 'generosity' | 'spirit';
+
+export const IONIA_PATH_NAMES: Record<IoniaPathType, string> = {
+  blades: '검의 길',
+  enlightenment: '깨달음의 길',
+  transcendence: '초월의 길',
+  generosity: '번영의 길',
+  spirit: '영혼의 길',
+};
+
+/** 길별 간단 설명 (드롭다운 옵션용) */
+export const IONIA_PATH_DESCRIPTIONS: Record<IoniaPathType, string> = {
+  blades: '기본 공격 시 추가 물리 피해',
+  enlightenment: 'AD+AP 증가, 레벨당 추가 AD+AP',
+  transcendence: '체력 증가 + 마법 피해 증폭, 3성 강화',
+  generosity: 'AD+AP 증가, 보유 골드당 추가 증가',
+  spirit: 'AD+AP + 최대 체력 증가',
+};
+
+/** 길별 효과를 trait variables에서 읽어 상세 포맷 문자열 반환 */
+export function getIoniaPathEffectText(
+  pathType: IoniaPathType,
+  variables: Record<string, unknown>,
+): string {
+  switch (pathType) {
+    case 'blades': {
+      const chance = (variables['BladesPercentChance'] ?? 30) as number;
+      const flat = variables['BladesFlatDamage'] as number | null;
+      let text = `기본 공격 시 ${chance}% 확률로 추가 물리 피해`;
+      if (flat != null && flat > 0) text += ` (+${flat} 고정 피해)`;
+      return text;
+    }
+    case 'enlightenment': {
+      const adap = (variables['EnlightenmentADAP'] ?? 10) as number;
+      const perLvl = variables['EnlightenmentADAPPerLevel'] as number | null;
+      let text = `AD+AP +${adap}`;
+      if (perLvl != null && perLvl > 0) text += `, 레벨당 AD+AP +${perLvl} 추가`;
+      return text;
+    }
+    case 'transcendence': {
+      const hp = (variables['TranscendenceHealth'] ?? 0.10) as number;
+      const magic = (variables['TranscendenceMagicDamage'] ?? 0.20) as number;
+      const starBuff = (variables['Transcendence3StarBuff'] ?? 1.3) as number;
+      return `체력 +${Math.round(hp * 100)}%, 마법 피해 +${Math.round(magic * 100)}% 증폭. 3성 유닛 수치 ${Math.round(starBuff * 100)}% 증가`;
+    }
+    case 'generosity': {
+      const adap = (variables['GenerosityADAP'] ?? 10) as number;
+      const perGold = (variables['GenerosityIncreasePerGold'] ?? 0.02) as number;
+      return `AD+AP +${adap}. 보유 골드당 수치 ${Math.round(perGold * 100)}% 추가 증가`;
+    }
+    case 'spirit': {
+      const adap = (variables['SpiritADAP'] ?? 3) as number;
+      const hp = (variables['SpiritHealth'] ?? 0.25) as number;
+      return `AD+AP +${adap}, 최대 체력 +${Math.round(hp * 100)}%`;
+    }
+  }
+}

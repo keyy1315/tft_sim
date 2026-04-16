@@ -1,7 +1,8 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { Suspense, useMemo, useState } from 'react';
 import { useGameData } from '@/hooks/useGameData';
+import { useActiveSet } from '@/hooks/useActiveSet';
 import { useUiStore } from '@/store/uiSlice';
 import { calculateDamage } from '@/lib/simulator/systems/attack';
 import ChampionGrid from '@/components/builder/ChampionGrid';
@@ -13,7 +14,16 @@ import DamageResultPanel from '@/components/analysis/DamageResultPanel';
 import Modal from '@/components/ui/Modal';
 
 export default function CalculatorPage() {
-  const { champions, items, loading } = useGameData();
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center h-[60vh] text-gray-500">로딩 중...</div>}>
+      <CalculatorContent />
+    </Suspense>
+  );
+}
+
+function CalculatorContent() {
+  const activeSet = useActiveSet();
+  const { champions, items, loading } = useGameData(activeSet);
   const store = useUiStore();
   const [showItemPicker, setShowItemPicker] = useState(false);
 

@@ -52,6 +52,17 @@ export default function ItemGrid({ items, onSelect, activeTraits, champion }: It
     return cat === tab;
   });
 
+  // 활성 시너지 전용 아이템을 상단에 배치 (빌지워터, 공허)
+  const sorted = [...filtered].sort((a, b) => {
+    const catA = getItemCategory(a);
+    const catB = getItemCategory(b);
+    const aIsActive = (catA === 'bilgewater' && bilgewaterActive) || (catA === 'void' && voidActive);
+    const bIsActive = (catB === 'bilgewater' && bilgewaterActive) || (catB === 'void' && voidActive);
+    if (aIsActive && !bIsActive) return -1;
+    if (!aIsActive && bIsActive) return 1;
+    return 0;
+  });
+
   const tabs: { key: ItemTab; label: string }[] = [
     { key: 'all', label: '전체' },
     { key: 'combined', label: '완성템' },
@@ -77,7 +88,7 @@ export default function ItemGrid({ items, onSelect, activeTraits, champion }: It
         ))}
       </div>
       <div className="grid grid-cols-5 sm:grid-cols-6 lg:grid-cols-8 gap-1.5 max-h-[300px] overflow-y-auto p-1">
-        {filtered.map((item) => {
+        {sorted.map((item) => {
           const validation = activeTraits && champion
             ? canEquipItem(item, champion, activeTraits)
             : { canEquip: true };

@@ -7,20 +7,21 @@ export async function GET() {
   try {
     const dataDir = path.join(process.cwd(), 'public', 'data');
 
-    const championsRaw = fs.readFileSync(path.join(dataDir, 'tft_set16_champions.json'), 'utf-8');
-    const champions: RawChampion[] = JSON.parse(championsRaw);
+    const championsRaw = fs.readFileSync(path.join(dataDir, 'tft_set17_champions.json'), 'utf-8');
+    const data = JSON.parse(championsRaw);
+    const champions: RawChampion[] = Array.isArray(data) ? data : data.champions ?? [];
 
-    const itemsRaw = fs.readFileSync(path.join(dataDir, 'tft_set16_items.json'), 'utf-8');
+    const itemsRaw = fs.readFileSync(path.join(dataDir, 'tft_set17_items.json'), 'utf-8');
     const items: RawItemsData = JSON.parse(itemsRaw);
 
-    const traitsRaw = fs.readFileSync(path.join(dataDir, 'tft_set16_traits.json'), 'utf-8');
+    const traitsRaw = fs.readFileSync(path.join(dataDir, 'tft_set17_traits.json'), 'utf-8');
     const traits: RawTraitsData = JSON.parse(traitsRaw);
 
-    const augmentsRaw = fs.readFileSync(path.join(dataDir, 'tft_set16_augments.json'), 'utf-8');
+    const augmentsRaw = fs.readFileSync(path.join(dataDir, 'tft_set17_augments.json'), 'utf-8');
     const augments: RawAugmentsData = JSON.parse(augmentsRaw);
 
     return NextResponse.json({
-      patchVersion: 'Set 16',
+      patchVersion: 'Set 17',
       champions: {
         total: champions.length,
         names: champions.map(c => c.name),

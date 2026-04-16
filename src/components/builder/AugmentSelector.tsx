@@ -80,6 +80,7 @@ export default function AugmentSelector({ augments, onSelect, selectedApiNames }
 
   return (
     <div className="space-y-3">
+      <p className="text-[11px] text-gray-500">능력치에 변동이 있거나 훈련봇을 획득하는 증강만 표시됩니다.</p>
       <SearchBar value={search} onChange={setSearch} placeholder="증강 검색..." />
       <div className="flex gap-1">
         {TIER_FILTERS.map((f) => (

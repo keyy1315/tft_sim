@@ -10,6 +10,7 @@ interface UseDndHandlersArgs {
   updatePlayerTeam: (action: PlacedChampion[] | ((prev: PlacedChampion[]) => PlacedChampion[])) => void;
   updateEnemyTeam: (action: PlacedChampion[] | ((prev: PlacedChampion[]) => PlacedChampion[])) => void;
   handleEquipItem: (team: 'player' | 'enemy', index: number, item: RawItem) => void;
+  onChampionPlaced?: (team: 'player' | 'enemy', index: number, champion: PlacedChampion['champion']) => void;
 }
 
 export function useDndHandlers({
@@ -18,6 +19,7 @@ export function useDndHandlers({
   updatePlayerTeam,
   updateEnemyTeam,
   handleEquipItem,
+  onChampionPlaced,
 }: UseDndHandlersArgs) {
   const [activeDragData, setActiveDragData] = useState<DragData | null>(null);
 
@@ -51,7 +53,16 @@ export function useDndHandlers({
 
     if (dragData.type === 'champion') {
       if (existingIdx >= 0) return;
-      setTeam(prev => [...prev, { champion: dragData.champion, position: pos, starLevel: DEFAULT_STAR_LEVEL, items: [] }]);
+      const isMf = dragData.champion.apiName === 'TFT17_MissFortune';
+      const newIndex = teamArr.length;
+      setTeam(prev => [...prev, {
+        champion: dragData.champion,
+        position: pos,
+        starLevel: DEFAULT_STAR_LEVEL,
+        items: [],
+        ...(isMf ? { mfMode: null } : {}),
+      }]);
+      if (onChampionPlaced) onChampionPlaced(team, newIndex, dragData.champion);
     } else if (dragData.type === 'placed-unit') {
       if (dragData.team !== team) return;
       const srcIdx = teamArr.findIndex(p => {

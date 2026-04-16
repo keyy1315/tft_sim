@@ -26,6 +26,11 @@ export function captureSnapshot(
         remainingTicks: e.remainingTicks,
         value: e.value,
       })),
+      totalDamageDealt: u.totalDamageDealt,
+      stats: { ...u.stats },
+      damageAmp: u.damageAmp,
+      omnivamp: u.omnivamp,
+      damageReduction: u.damageReduction,
     };
   }
   return { tick, units: unitMap, events: tickEvents };

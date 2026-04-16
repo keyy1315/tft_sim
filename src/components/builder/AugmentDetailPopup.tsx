@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { RawAugment } from '@/types';
 import { getAugmentImage, TIER_BORDER_COLORS } from '@/data/imageMap';
 import { getAugmentTier, isStackable, getMaxStacks } from '@/lib/simulator/systems/augment';
+import { CARRY_AUGMENTS } from '@/data/carryAugments';
 import Modal from '@/components/ui/Modal';
 
 interface AugmentDetailPopupProps {
@@ -65,6 +66,36 @@ export default function AugmentDetailPopup({ augment, stacks, onStacksChange, on
 
         {/* Description */}
         <p className="text-sm text-gray-300 leading-relaxed">{desc}</p>
+
+        {/* Carry augment scaling input */}
+        {(() => {
+          const carry = CARRY_AUGMENTS.find(ca => ca.augmentApiName === augment.apiName);
+          if (!carry?.scalingInput) return null;
+          const si = carry.scalingInput;
+          // Reuse stacks mechanism for carry scaling
+          return (
+            <div className="bg-[#1f2937] rounded-lg p-4 space-y-3">
+              <div className="text-sm font-medium text-gray-200">{si.label}</div>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => onStacksChange(Math.max(0, stacks - 1))}
+                  disabled={stacks <= 0}
+                  className="w-8 h-8 rounded-lg bg-[#374151] text-gray-300 hover:bg-[#4b5563] disabled:opacity-30 font-bold"
+                >-</button>
+                <span className="text-xl font-bold text-yellow-400 w-12 text-center">{stacks}</span>
+                <button
+                  onClick={() => onStacksChange(Math.min(si.max, stacks + 1))}
+                  disabled={stacks >= si.max}
+                  className="w-8 h-8 rounded-lg bg-[#374151] text-gray-300 hover:bg-[#4b5563] disabled:opacity-30 font-bold"
+                >+</button>
+                <span className="text-xs text-gray-500">{si.unit} (최대 {si.max})</span>
+              </div>
+              <div className="text-xs text-cyan-400">
+                {si.effectPerStack} x {stacks} = {si.effectPerStack.replace(/\d+/, String(parseInt(si.effectPerStack.match(/\d+/)?.[0] ?? '0') * stacks))}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Stack selector */}
         {stackable && (

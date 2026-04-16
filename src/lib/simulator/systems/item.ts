@@ -91,6 +91,11 @@ export function getItemCategory(item: RawItem): ItemCategory {
   return 'special';
 }
 
+/** 공허 돌연변이 아이템 여부 */
+export function isVoidMutation(item: RawItem): boolean {
+  return getItemCategory(item) === 'void';
+}
+
 /** 챔피언에 아이템 장착 가능 여부 검증 */
 export function canEquipItem(
   item: RawItem,
@@ -109,12 +114,19 @@ export function canEquipItem(
     return { canEquip: false, reason: '필트오버 모듈은 팀 모듈 슬롯에 배치해야 합니다' };
   }
 
-  // 공허 돌연변이 → 공허 시너지 활성 시에만 장착
+  // 공허 돌연변이 → 별도 슬롯, 아이템 칸 미차지
   if (category === 'void') {
     const voidTrait = activeTraits.find(t => t.trait.apiName === 'TFT16_Void');
     if (!voidTrait || !voidTrait.activeEffect) {
       return { canEquip: false, reason: '공허 시너지가 활성화되어야 합니다' };
     }
+    if (!champion.champion.traits.includes('공허')) {
+      return { canEquip: false, reason: '공허 챔피언만 돌연변이를 장착할 수 있습니다' };
+    }
+    if (champion.voidItem) {
+      return { canEquip: false, reason: '돌연변이는 챔피언당 1개만 장착 가능합니다' };
+    }
+    return { canEquip: true };
   }
 
   // 다르킨 → 챔피언당 1개만 장착

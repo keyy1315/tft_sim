@@ -1,6 +1,7 @@
 'use client';
 
-import { PlacedChampion, RawItem, ActiveTrait } from '@/types';
+import { PlacedChampion, RawItem, ActiveTrait, MfMode, MF_MODE_CONFIG, PERMANENT_STACK_CONFIG } from '@/types';
+import Image from 'next/image';
 import ChampionCard from './ChampionCard';
 import StarSelector from './StarSelector';
 import ItemIcon from './ItemIcon';
@@ -18,7 +19,10 @@ interface SelectedUnitPanelProps {
   onStarChange: (level: number) => void;
   onEquipItem: (item: RawItem) => void;
   onRemoveItem: (itemIdx: number) => void;
+  onRemoveVoidItem?: () => void;
   onRemoveUnit: () => void;
+  onMfModeChange?: (mode: MfMode) => void;
+  onPermanentStackChange?: (value: number) => void;
 }
 
 export default function SelectedUnitPanel({
@@ -29,7 +33,10 @@ export default function SelectedUnitPanel({
   onStarChange,
   onEquipItem,
   onRemoveItem,
+  onRemoveVoidItem,
   onRemoveUnit,
+  onMfModeChange,
+  onPermanentStackChange,
 }: SelectedUnitPanelProps) {
   const [showItemPicker, setShowItemPicker] = useState(false);
   const teamColor = team === 'player' ? 'border-blue-600/30' : 'border-red-600/30';
@@ -60,6 +67,68 @@ export default function SelectedUnitPanel({
 
       <StarSelector starLevel={placed.starLevel} onChange={onStarChange} />
 
+      {placed.champion.apiName === 'TFT17_MissFortune' && onMfModeChange && (
+        <div>
+          <div className="text-xs text-gray-400 mb-1.5">모드 선택</div>
+          <div className="flex gap-1.5">
+            {(['replicator', 'channeler', 'challenger'] as MfMode[]).map(mode => {
+              const cfg = MF_MODE_CONFIG[mode];
+              const isActive = placed.mfMode === mode;
+              return (
+                <button
+                  key={mode}
+                  onClick={() => onMfModeChange(mode)}
+                  className={`flex items-center gap-1.5 px-2 py-1 rounded border text-[11px] transition-colors ${
+                    isActive
+                      ? 'border-yellow-500 bg-yellow-500/20 text-yellow-300'
+                      : 'border-gray-700 bg-gray-800/50 text-gray-400 hover:border-gray-500'
+                  }`}
+                >
+                  <Image src={cfg.icon} alt={cfg.name} width={16} height={16} unoptimized />
+                  {cfg.name.replace(' 모드', '')}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {(() => {
+        const stackConfig = PERMANENT_STACK_CONFIG[placed.champion.apiName];
+        if (!stackConfig || !onPermanentStackChange) return null;
+        const currentValue = placed.permanentStacks?.value ?? 0;
+        const previewText = stackConfig.preview(currentValue, placed.starLevel);
+        return (
+          <div>
+            <div className="text-xs text-gray-400 mb-1.5">{stackConfig.label}</div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => onPermanentStackChange(Math.max(0, currentValue - 1))}
+                disabled={currentValue <= 0}
+                className="w-7 h-7 rounded bg-gray-700 text-gray-300 hover:bg-gray-600 disabled:opacity-30 font-bold text-sm"
+              >-</button>
+              <input
+                type="number"
+                value={currentValue}
+                onChange={e => onPermanentStackChange(Math.max(0, Math.min(stackConfig.max, parseInt(e.target.value) || 0)))}
+                className="w-16 h-7 bg-gray-800 border border-gray-600 rounded text-center text-sm text-yellow-400 font-bold"
+                min={0}
+                max={stackConfig.max}
+              />
+              <button
+                onClick={() => onPermanentStackChange(Math.min(stackConfig.max, currentValue + 1))}
+                disabled={currentValue >= stackConfig.max}
+                className="w-7 h-7 rounded bg-gray-700 text-gray-300 hover:bg-gray-600 disabled:opacity-30 font-bold text-sm"
+              >+</button>
+              {stackConfig.unit && <span className="text-[10px] text-gray-500">{stackConfig.unit}</span>}
+            </div>
+            {previewText && (
+              <div className="text-[10px] text-cyan-400 mt-1">{previewText}</div>
+            )}
+          </div>
+        );
+      })()}
+
       <div>
         <div className="text-xs text-gray-400 mb-1.5">
           아이템 ({placed.items.length}/3)
@@ -85,20 +154,62 @@ export default function SelectedUnitPanel({
         </div>
       </div>
 
-      <div className="text-[10px] text-gray-500 space-y-0.5">
-        <div>특성: {placed.champion.traits.join(', ')}</div>
-      </div>
-
-      {placed.champion.ability.name && (
-        <div className="border-t border-gray-700 pt-2">
-          <div className="text-xs text-cyan-400 font-bold">{placed.champion.ability.name}</div>
-          {placed.champion.ability.desc && (
-            <div className="text-[10px] text-gray-400 mt-0.5 leading-relaxed">
-              {resolveDescription(placed.champion.ability.desc, placed.champion.ability.variables, placed.starLevel)}
-            </div>
-          )}
+      {placed.champion.traits.includes('공허') && (
+        <div>
+          <div className="text-xs text-gray-400 mb-1.5">
+            돌연변이 ({placed.voidItem ? 1 : 0}/1)
+          </div>
+          <div className="flex gap-1.5 items-center">
+            {placed.voidItem ? (
+              <ItemIcon
+                item={placed.voidItem}
+                size={32}
+                onRemove={onRemoveVoidItem}
+              />
+            ) : (
+              <button
+                onClick={() => setShowItemPicker(true)}
+                className="w-8 h-8 rounded border border-dashed border-purple-600/50 text-purple-400 hover:border-purple-400 hover:text-purple-300 flex items-center justify-center text-sm"
+              >
+                +
+              </button>
+            )}
+          </div>
         </div>
       )}
+
+      <div className="text-[10px] text-gray-500 space-y-0.5">
+        <div>특성: {
+          placed.champion.apiName === 'TFT17_MissFortune' && placed.mfMode
+            ? placed.champion.traits.map(t => t === '특성 선택' ? MF_MODE_CONFIG[placed.mfMode!].name.replace(' 모드', '') : t).join(', ')
+            : placed.champion.traits.join(', ')
+        }</div>
+      </div>
+
+      {(() => {
+        const isMf = placed.champion.apiName === 'TFT17_MissFortune';
+        const modeAbility = isMf && placed.mfMode ? MF_MODE_CONFIG[placed.mfMode].ability : null;
+        const abilityName = modeAbility?.name ?? placed.champion.ability.name;
+        const abilityDesc = modeAbility
+          ? `${modeAbility.desc}\n\n피해량: ${modeAbility.damage[placed.starLevel - 1] ?? modeAbility.damage[0]}`
+          : placed.champion.ability.desc;
+        if (!abilityName) return null;
+        return (
+          <div className="border-t border-gray-700 pt-2">
+            <div className="text-xs text-cyan-400 font-bold">{abilityName}</div>
+            {abilityDesc && (
+              <div className="text-[10px] text-gray-400 mt-0.5 leading-relaxed whitespace-pre-line">
+                {modeAbility
+                  ? abilityDesc
+                  : resolveDescription(placed.champion.ability.desc, placed.champion.ability.variables, placed.starLevel)}
+              </div>
+            )}
+            {isMf && !placed.mfMode && (
+              <div className="text-[10px] text-yellow-400 mt-1">모드를 선택하세요</div>
+            )}
+          </div>
+        );
+      })()}
 
       <Modal isOpen={showItemPicker} onClose={() => setShowItemPicker(false)} title="아이템 선택">
         <ItemGrid

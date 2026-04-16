@@ -1,0 +1,126 @@
+{
+  "meta": {
+    "set": 17,
+    "patch": "25.S1.1",
+    "updatedAt": "2026-04-15",
+    "description": "전투 내 챔피언 스케일링 데이터. 패치마다 수치 변경 시 이 파일만 수정."
+  },
+  "champions": {
+    "TFT17_Briar": {
+      "trigger": "passive",
+      "desc": "잃은 체력 1%당 공격 속도 증가",
+      "effect": { "type": "attackSpeed" },
+      "asPerMissingHpPercent": [2, 2, 2, 2.5],
+      "apScaling": true
+    },
+    "TFT17_Jhin": {
+      "trigger": "passive",
+      "desc": "고정 AS, 추가 AS를 AD로 전환",
+      "effect": { "type": "asToAd" },
+      "fixedAS": [0, 0.9, 0.9, 1.4],
+      "convertRate": 0.75,
+      "convertPercent": 0.01
+    },
+    "TFT17_Gnar": {
+      "trigger": "onAttack",
+      "every": 5,
+      "desc": "기본공격 5회마다 부메랑 추가 물리 피해",
+      "effect": { "type": "extraDamage", "damageType": "physical", "scaling": "ad" },
+      "damageAD": [200, 225, 340, 525],
+      "damageAP": [30, 20, 30, 45],
+      "damageReductionPerHit": 0.75
+    },
+    "TFT17_MasterYi": {
+      "trigger": "onAttack",
+      "every": 3,
+      "desc": "기본공격 3회마다 연속 베기 추가 물리 피해",
+      "effect": { "type": "extraDamage", "damageType": "physical", "scaling": "ad" },
+      "passiveDamage": [60, 60, 90, 550]
+    },
+    "TFT17_Fiora": {
+      "trigger": "onAttack",
+      "every": 2,
+      "desc": "기본공격 2회마다 급소 돌진 → 고정 피해 + 15% 회복",
+      "effect": { "type": "trueDamage" },
+      "vitalDamage": [50, 40, 60, 777],
+      "healPercent": 0.15
+    },
+    "TFT17_Teemo": {
+      "trigger": "onAttack",
+      "every": 1,
+      "desc": "기본공격마다 추가 마법 피해 + 독 DOT",
+      "effect": { "type": "extraDamage", "damageType": "magic", "scaling": "ap" },
+      "hitDamage": [100, 30, 45, 100],
+      "poisonDamage": [60, 70, 105, 190],
+      "poisonDuration": 6,
+      "grooveStacks": 5
+    },
+    "TFT17_Kaisa": {
+      "trigger": "onKill",
+      "desc": "처치 관여 시 마나 획득",
+      "effect": { "type": "mana" },
+      "manaPerKill": 10
+    },
+    "TFT17_Shen": {
+      "trigger": "onCast",
+      "desc": "스킬 사용마다 기본공격 추가 마법 피해 중첩 (3회째부터 고정 피해)",
+      "effect": { "type": "stackingDamage", "damageType": "magic" },
+      "bonusDamagePerStack": [50, 40, 60, 777],
+      "convertToTrueAtCast": 3
+    },
+    "TFT17_Xayah": {
+      "trigger": "onCast",
+      "desc": "스킬 사용 시 공격 속도 버프",
+      "effect": { "type": "attackSpeed" },
+      "attackSpeedBuff": 0.75,
+      "buffDuration": 4,
+      "featherRecallTargets": 3,
+      "featherDamageAD": [40, 48, 72, 900]
+    },
+    "TFT17_Samira": {
+      "trigger": "onEnemyAirborne",
+      "desc": "적이 공중에 뜰 때 추가 물리 피해 + 그루브",
+      "effect": { "type": "extraDamage", "damageType": "physical" },
+      "passiveDamageAD": [60, 55, 80, 130],
+      "passiveDamageAP": [20, 10, 15, 25],
+      "grooveDuration": 3
+    }
+  },
+  "synergies": {
+    "TFT17_ASTrait": {
+      "name": "도전자",
+      "desc": "아군 AS + 도전자 추가 AS, 대상 사망 시 버스트",
+      "teamwideAS": [0, 0.1, 0.15, 0.2, 0.3],
+      "championAS": [0, 0.2, 0.35, 0.55, 0.9],
+      "burstDuration": 3,
+      "burstPercent": 0.5
+    },
+    "TFT17_MeleeTrait": {
+      "name": "습격자",
+      "desc": "아군 흡혈 + 습격자 AD/추가흡혈",
+      "teamwideOmnivamp": [0, 0.06, 0.1, 0.18],
+      "championOmnivamp": [0, 0.12, 0.2, 0.35],
+      "championAD": [0, 0.15, 0.3, 0.5],
+      "maxShieldPercent": 0.25
+    },
+    "TFT17_ManaTrait": {
+      "name": "전달자",
+      "desc": "아군 마나 재생 + 전달자 추가",
+      "teamManaRegen": [0, 2, 4, 8, 15],
+      "channelerManaRegen": [0, 5, 10, 18, 30],
+      "innateManaGain": 0.15
+    },
+    "TFT17_RhaastUniqueTrait": {
+      "name": "구원자",
+      "desc": "활성 특성당 AS/방어력/마저",
+      "offensiveStat": [0, 0.03, 0.05, 0.08],
+      "defensiveStat": [0, 3, 5, 8]
+    },
+    "TFT17_AssassinTrait": {
+      "name": "불한당",
+      "desc": "AD/AP 획득, 체력 50% 이하 시 은신",
+      "adap": [0, 15, 30, 45, 60],
+      "healthThreshold": 0.5
+    }
+  }
+}

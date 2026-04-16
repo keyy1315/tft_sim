@@ -22,8 +22,9 @@ export function resolveDescription(
 ): string {
   if (!template) return '';
 
-  // variables 정규화
+  // variables ��규화
   const vars: Record<string, number> = {};
+  if (!variables) return template;
   if (Array.isArray(variables)) {
     for (const v of variables) {
       if (!v.value) continue;

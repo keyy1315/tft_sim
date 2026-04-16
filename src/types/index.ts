@@ -123,6 +123,7 @@ export interface TraitEffect {
   minUnits: number;
   style: number; // 1=bronze, 3=silver, 4=gold, 5=prismatic
   variables: Record<string, number | null>;
+  tierDesc?: string;
 }
 
 export interface RawTrait {
@@ -226,11 +227,121 @@ export interface HexPos {
   col: number;
 }
 
+export type MfMode = 'replicator' | 'channeler' | 'challenger';
+
+export interface MfModeAbility {
+  name: string;
+  desc: string;
+  /** [star1, star2, star3] 피해량 */
+  damage: [number, number, number];
+}
+
+export interface MfModeData {
+  name: string;
+  trait: string;
+  icon: string;
+  ability: MfModeAbility;
+}
+
+export const MF_MODE_CONFIG: Record<MfMode, MfModeData> = {
+  channeler: {
+    name: '전달자 모드',
+    trait: 'TFT17_ManaTrait',
+    icon: '/data/images/artifacts/tft17_missfortuneunique_manatraiticon.tft_set17.png',
+    ability: {
+      name: '기동총격여신: 전달자',
+      desc: '가장 가까운 적 2명에게 2.5초 동안 탄환을 퍼부어 매초 물리 피해를 입힙니다.',
+      damage: [75, 115, 180],
+    },
+  },
+  challenger: {
+    name: '도전자 모드',
+    trait: 'TFT17_ASTrait',
+    icon: '/data/images/artifacts/tft17_missfortuneunique_astraiticon.tft_set17.png',
+    ability: {
+      name: '기동총격여신: 도전자',
+      desc: '대상에게 탄환을 발사해 물리 피해를 입힙니다. 탄환은 주변 적에게 튕기고 표식을 남깁니다. 표식이 남은 적에게 50% 증가한 피해를 입힙니다.',
+      damage: [132, 198, 320],
+    },
+  },
+  replicator: {
+    name: '복제자 모드',
+    trait: 'TFT17_APTrait',
+    icon: '/data/images/artifacts/tft17_missfortuneunique_flextraiticon.tft_set17.png',
+    ability: {
+      name: '기동총격여신: 복제자',
+      desc: '일직선상 적을 관통하는 탄환을 난사해 물리 피해를 입힙니다. 적중한 적 하나당 피해량이 30% 감소합니다.',
+      damage: [280, 420, 670],
+    },
+  },
+};
+
+export type PermanentStackType = 'ezreal_drones' | 'chogath_hp';
+
+export interface PermanentStack {
+  type: PermanentStackType;
+  value: number;
+}
+
+export interface PermanentStackConfig {
+  type: PermanentStackType;
+  label: string;
+  unit: string;
+  max: number;
+  preview: (value: number, starLevel: number) => string;
+}
+
+export const PERMANENT_STACK_CONFIG: Record<string, PermanentStackConfig> = {
+  TFT17_Ezreal: {
+    type: 'ezreal_drones',
+    label: '처치 관여',
+    unit: '회',
+    max: 30,
+    preview: (value, starLevel) => {
+      const drones = Math.floor(value / 8);
+      const droneDmg = [0, 25, 38, 60][starLevel] ?? 25;
+      return drones > 0 ? `드론 ${drones}개 (개당 ${droneDmg} 추가 피해)` : '드론 없음';
+    },
+  },
+  TFT17_Chogath: {
+    type: 'chogath_hp',
+    label: '획득한 체력',
+    unit: '',
+    max: 9999,
+    preview: (value) => value > 0 ? `최대 체력 +${value}` : '',
+  },
+};
+
 export interface PlacedChampion {
   champion: RawChampion;
   position: HexCoord;
   starLevel: number; // 1, 2, 3
   items: RawItem[];
+  voidItem?: RawItem | null;
+  mfMode?: MfMode | null;
+  permanentStacks?: PermanentStack | null;
+  isDummy?: boolean;
+}
+
+// === Hex Buff (칸 버프 증강) ===
+export interface HexBuffEffects {
+  hp?: number;
+  hpPercent?: number;
+  attackSpeed?: number;
+  damageAmp?: number;
+  armor?: number;
+  magicResist?: number;
+  ap?: number;
+  ad?: number;
+}
+
+export interface HexBuff {
+  augmentApiName: string;
+  positions: HexCoord[];
+  movable: boolean;
+  effects: HexBuffEffects;
+  color: string;
+  label: string;
 }
 
 export interface TeamComp {
@@ -333,6 +444,10 @@ export interface CombatUnit {
   totalDamageTaken: number;
   statusEffects: StatusEffect[];
   omnivamp: number;
+  // 전투 내 카운터
+  attackCount: number;
+  castCount: number;
+  killCount: number;
   damageAmp: number;
   damageReduction: number;
   shield: number;
@@ -342,6 +457,8 @@ export interface CombatUnit {
   augmentBurnPercent: number;
   /** 발명품 탱커 대상 추가 피해증폭 (ArmorNullifier) */
   inventionTankDamageAmp: number;
+  /** MF 특성 선택 등으로 치환된 실제 트레이트 목록 */
+  resolvedTraits?: string[];
 }
 
 export interface CombatLog {
@@ -374,17 +491,24 @@ export interface CombatResult {
   multiSim?: MultiSimResult;
 }
 
+export interface TickSnapshotUnit {
+  id: string;
+  currentHp: number;
+  currentMana: number;
+  position: HexCoord;
+  isAlive: boolean;
+  shield: number;
+  statusEffects: { type: string; remainingTicks: number; value?: number }[];
+  totalDamageDealt: number;
+  stats: ChampionStats;
+  damageAmp: number;
+  omnivamp: number;
+  damageReduction: number;
+}
+
 export interface TickSnapshot {
   tick: number;
-  units: Record<string, {
-    id: string;
-    currentHp: number;
-    currentMana: number;
-    position: HexCoord;
-    isAlive: boolean;
-    shield: number;
-    statusEffects: { type: string; remainingTicks: number; value?: number }[];
-  }>;
+  units: Record<string, TickSnapshotUnit>;
   events: CombatLog[];
 }
 
@@ -423,6 +547,7 @@ export const TRAIT_STYLE_COLORS: Record<number, string> = {
   3: '#c0c0c0', // silver
   4: '#ffd700', // gold
   5: '#e879f9', // prismatic
+  6: '#38bdf8', // unique (최고 티어 — 9~11 유닛)
 };
 
 // === Team Code Types ===

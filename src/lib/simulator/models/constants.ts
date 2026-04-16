@@ -12,6 +12,15 @@ export const MAX_TICKS = MAX_COMBAT_TIME * TICKS_PER_SECOND; // 1800 ticks
 // === 이동 ===
 export const MOVE_SPEED = 0.5; // seconds per hex
 
+// === 스킬 시전 ===
+export const CAST_TIME = 0.5; // 스킬 시전 후 행동 불가 시간 (초)
+export const CAST_TICKS = Math.round(CAST_TIME * TICKS_PER_SECOND); // 15틱
+export const SELF_BUFF_CAST_TIME = 0.25; // 자기 버프 스킬 시전 시간 (초)
+export const SELF_BUFF_CAST_TICKS = Math.round(SELF_BUFF_CAST_TIME * TICKS_PER_SECOND); // 7~8틱
+
+// === 전투 시작 ===
+export const INITIAL_ATTACK_DELAY = 0.3; // 전투 시작 시 최대 랜덤 딜레이 (초)
+
 // === 마나 (legacy 호환, Role별 마나는 mana.ts 사용) ===
 export const MANA_PER_ATTACK = 10;
 export const MANA_PER_DAMAGE_RATIO = 0.01;
@@ -42,6 +51,10 @@ export const ITEM_EFFECT_KEYS: Record<string, string> = {
   'BonusAS': 'as',
   'BonusAD': 'ad',
   'BonusAP': 'ap',
+  // 공허 돌연변이 키
+  'MaxHealth': 'hp',
+  'MaxHP': 'hp',
+  'ADAP': 'adap',
 };
 
 // === 스탯 이름 한글화 ===
