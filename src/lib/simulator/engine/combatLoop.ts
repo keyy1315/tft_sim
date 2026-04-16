@@ -1627,6 +1627,34 @@ export function simulateCombat(
           unit.state = 'attacking';
           unit.attackCount++;
 
+          // === 케이틀린: 15% 확률 헤드샷 추가 물리 피해 ===
+          if (unit.champion.apiName === 'TFT17_Caitlyn' && target.state !== 'dead') {
+            const procChance = (unit.champion.ability.variables?.find(v => v.name === 'ProcChance')?.value?.[unit.starLevel] ?? 15) / 100;
+            if (rng.next() < procChance) {
+              const hsVar = unit.champion.ability.variables?.find(v => v.name === 'Damage');
+              const hsDmg = hsVar?.value?.[unit.starLevel] ?? 170;
+              const hsFinal = applyResistance(hsDmg * (1 + unit.damageAmp), target.stats.armor, unit.stats.armorPen);
+              target.currentHp -= hsFinal;
+              target.totalDamageTaken += hsFinal;
+              unit.totalDamageDealt += hsFinal;
+            }
+          }
+
+          // === 킨드레드: 3표식 패시브 — 기본공격+스킬이 표식, 3표식 도달 시 추가 물리 피해 ===
+          if (unit.champion.apiName === 'TFT17_Kindred' && target.state !== 'dead') {
+            const marks = ((target as CombatUnit & { _kindredMarks?: number })._kindredMarks ?? 0) + 1;
+            (target as CombatUnit & { _kindredMarks?: number })._kindredMarks = marks;
+            if (marks >= 3) {
+              (target as CombatUnit & { _kindredMarks?: number })._kindredMarks = 0;
+              const markDmgVar = unit.champion.ability.variables?.find(v => v.name === 'SpellDamage');
+              const markDmg = markDmgVar?.value?.[unit.starLevel] ?? 60;
+              const markFinal = applyResistance(markDmg * (1 + unit.damageAmp), target.stats.armor, unit.stats.armorPen);
+              target.currentHp -= markFinal;
+              target.totalDamageTaken += markFinal;
+              unit.totalDamageDealt += markFinal;
+            }
+          }
+
           // === 챔피언 전투 내 스케일링 (onAttack) — JSON 기반 ===
           const atkSc = getChampionScaling(unit.champion.apiName);
           if (atkSc?.trigger === 'onAttack' && target.state !== 'dead') {
