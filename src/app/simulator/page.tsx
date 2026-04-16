@@ -368,8 +368,8 @@ function SimulatorContent() {
                           <div className="bg-[#1a1f2e] border border-gray-600 rounded-lg px-3 py-2 shadow-xl max-w-[240px]">
                             <div className="font-bold text-yellow-400 text-xs mb-1">
                               {hoverUnit.placed.champion.name}
-                              <span className="text-gray-500 ml-1 font-normal">
-                                {hoverUnit.placed.champion.ability.name}
+                              <span className="text-gray-500 ml-1 font-normal text-[10px]">
+                                {hoverUnit.placed.champion.traits.join(' · ')}
                               </span>
                             </div>
                             <div className="text-[10px] text-gray-300 leading-relaxed whitespace-pre-line">
