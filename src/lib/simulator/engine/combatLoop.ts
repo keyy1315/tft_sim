@@ -1764,6 +1764,25 @@ export function simulateCombat(
                   const pctHp = pctVar?.value?.[unit.starLevel] ?? 0.08;
                   baseDmg += t.maxHp * pctHp;
                 }
+                // 트위스티드 페이트: 랜덤 범위 피해 (DamageMin ~ DamageMax)
+                if (unit.champion.apiName === 'TFT17_TwistedFate') {
+                  const minVar = unit.champion.ability.variables?.find(v => v.name === 'DamageMin');
+                  const maxVar = unit.champion.ability.variables?.find(v => v.name === 'DamageMax');
+                  const minDmg = minVar?.value?.[unit.starLevel] ?? baseDmg;
+                  const maxDmg = maxVar?.value?.[unit.starLevel] ?? baseDmg;
+                  baseDmg = minDmg + rng.next() * (maxDmg - minDmg);
+                }
+                // 브라이어: 탱커 대상 50% 추가 피해
+                if (unit.champion.apiName === 'TFT17_Briar' && t.role === 'Tank') {
+                  const bonusPct = unit.champion.ability.variables?.find(v => v.name === 'PercentBonusDamage')?.value?.[unit.starLevel] ?? 0.5;
+                  baseDmg *= (1 + bonusPct);
+                }
+                // secondaryDamageVar: 2차 피해 합산 (리산드라 폭발, 베이가 미니유성 등)
+                if (config.secondaryDamageVar) {
+                  const secVar = unit.champion.ability.variables?.find(v => v.name === config.secondaryDamageVar);
+                  const secVal = secVar?.value?.[unit.starLevel] ?? 0;
+                  baseDmg += secVal;
+                }
                 let dmg = baseDmg * (1 + abilityDamageAmp);
                 if (config.damageDecay && ti > 0) {
                   dmg *= Math.pow(1 - config.damageDecay, ti);

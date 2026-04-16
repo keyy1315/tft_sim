@@ -48,6 +48,8 @@ export interface AbilityConfig {
   dot?: { duration: number };
   /** parseAbility 대신 사용할 피해 변수명 오버라이드 */
   damageVar?: string;
+  /** 2차 피해 변수명 (폭발, 추가 투사체 등) — 주 피해와 합산 */
+  secondaryDamageVar?: string;
 }
 
 /** 챔피언별 스킬 타게팅 패턴 매핑 */
@@ -165,17 +167,17 @@ export const CHAMPION_ABILITY_PATTERNS: Record<string, AbilityConfig> = {
   // === 1코스트 ===
   TFT17_Briar:       { pattern: 'single', selfBuff: { attackSpeed: 0.5, duration: 999 } },  // 잃은 체력당 AS + 단일 물리
   TFT17_Poppy:       { pattern: 'aoe_circle', radius: 2, selfBuff: { durability: 0.2, duration: 4 } },  // 보호막 + 아군 방어력 버프
-  TFT17_Veigar:      { pattern: 'aoe_circle', radius: 1 },  // 정령유성 + 주변 미니유성
+  TFT17_Veigar:      { pattern: 'aoe_circle', radius: 1, secondaryDamageVar: 'MiniDamage' },  // 정령유성 Damage + 미니유성 MiniDamage
   TFT17_Aatrox:      { pattern: 'single', heal: true },  // 회복 + 단일 물리
   TFT17_Caitlyn:     { pattern: 'single' },  // 패시브 헤드샷 (확률)
   TFT17_Teemo:       { pattern: 'self_buff', selfBuff: { attackSpeed: 0.5, duration: 3 } },  // 패시브 추가 마법 + AS 버프
-  TFT17_Nasus:       { pattern: 'aoe_circle', radius: 1, selfBuff: { durability: 0.2, duration: 6 } },  // 변신 + 주변 매초 피해
+  TFT17_Nasus:       { pattern: 'aoe_circle', radius: 1, selfBuff: { durability: 0.2, duration: 6 }, dot: { duration: 6 } },  // 변신 6초 + 주변 매초 DOT + 최대체력 +250
   TFT17_TwistedFate:  { pattern: 'single' },  // 카드 던지기 (단일 마법)
   TFT17_Talon:       { pattern: 'single', dash: 'to_target', dot: { duration: 18 } },  // 출혈 18초 DOT + 도약
   TFT17_Ezreal:      { pattern: 'single' },  // 파동 단일 물리
   TFT17_Leona:       { pattern: 'single', stun: 1.5, selfBuff: { durability: 0.3, duration: 4 } },  // 보호막 + 기절
   TFT17_Chogath:     { pattern: 'single', heal: true, damageVar: 'BonusDamage' },  // %최대체력 + 고정 추가 피해 (combatLoop 특수 처리)
-  TFT17_Lissandra:   { pattern: 'aoe_circle', radius: 1 },  // 단검 + 폭발 AOE
+  TFT17_Lissandra:   { pattern: 'aoe_circle', radius: 1, secondaryDamageVar: 'SecondaryDamage' },  // 단검 Damage + 폭발 SecondaryDamage
   TFT17_RekSai:      { pattern: 'aoe_circle', radius: 1, stun: 1.0, heal: true },  // 회복 + 인접 공중띄움
 
   // === 2코스트 ===
@@ -184,7 +186,7 @@ export const CHAMPION_ABILITY_PATTERNS: Record<string, AbilityConfig> = {
   TFT17_Jinx:        { pattern: 'cone', radius: 2 },  // 원뿔 로켓
   TFT17_Gnar:        { pattern: 'line', maxTargets: 3, damageDecay: 0.3 },  // 부메랑 관통 + 감소
   TFT17_Pyke:        { pattern: 'aoe_circle', radius: 1, dash: 'to_target' },  // 작살 끌기 + 텔레포트 베기
-  TFT17_Gragas:      { pattern: 'aoe_circle', radius: 1, heal: true },  // 회복 + 인접 피해 + 냉각
+  TFT17_Gragas:      { pattern: 'aoe_circle', radius: 1, heal: true, stun: 0.5 },  // 회복 + 인접 피해 + 냉각 2초 (stun 0.5초로 근사)
   TFT17_Gwen:        { pattern: 'cone', radius: 2, dash: 'to_lowest_hp' },  // 돌진 + 원뿔 가위질
   TFT17_Jax:         { pattern: 'aoe_circle', radius: 1, stun: 1.5, selfBuff: { durability: 0.3, duration: 3 } },  // 방어 태세 + 기절
   TFT17_Milio:       { pattern: 'bounce', maxTargets: 4 },  // 공 튕기기
@@ -195,7 +197,7 @@ export const CHAMPION_ABILITY_PATTERNS: Record<string, AbilityConfig> = {
 
   // === 3코스트 ===
   TFT17_MissFortune: { pattern: 'multi', maxTargets: 3 },  // 모드에 따라 다름 (기본)
-  TFT17_Illaoi:      { pattern: 'aoe_circle', radius: 2, heal: true },  // 보호막 + 체력흡수 + AOE
+  TFT17_Illaoi:      { pattern: 'aoe_circle', radius: 2, heal: true, dot: { duration: 3 } },  // 보호막 + 3초 체력흡수 DOT + AOE
   TFT17_Aurora:      { pattern: 'aoe_circle', radius: 2 },  // 균열 해킹 + 저장 피해
   TFT17_Fizz:        { pattern: 'line', dash: 'to_target' },  // 관통 돌진 + 정령 소환
   TFT17_Maokai:      { pattern: 'aoe_circle', radius: 2, stun: 1.5 },  // X자 덩굴 + 기절
@@ -212,11 +214,11 @@ export const CHAMPION_ABILITY_PATTERNS: Record<string, AbilityConfig> = {
   TFT17_Rammus:      { pattern: 'line', maxTargets: 3, selfBuff: { durability: 0.3, duration: 4 } },  // 보호막 + 직선 3칸
   TFT17_Corki:       { pattern: 'aoe_circle', radius: 2, dash: 'to_target', hitCount: 21, damageVar: 'MissileAD' },  // 저공비행 + 미사일 21개 AOE
   TFT17_Kindred:     { pattern: 'multi', maxTargets: 4, dash: 'to_farthest' },  // 도약 + 화살 다수
-  TFT17_Karma:       { pattern: 'multi', maxTargets: 4 },  // 블랙홀 분배 피해
+  TFT17_Karma:       { pattern: 'multi', maxTargets: 3, secondaryDamageVar: 'SecondaryDamage' },  // 블랙홀 3명 분배 + 대상 추가 SecondaryDamage
   TFT17_AurelionSol: { pattern: 'line', damageDecay: 0.15, dot: { duration: 3 } },  // 직선 광선 3초 DOT + 관통 감소
   TFT17_Galio:       { pattern: 'aoe_circle', radius: 2, heal: true, selfBuff: { durability: 0.3, duration: 4 } },  // 방어 태세 + 충격파
   TFT17_MasterYi:    { pattern: 'self_buff', selfBuff: { attackSpeed: 0.8, duration: 5 } },  // 초필살 AS + 흡혈
-  TFT17_Nami:        { pattern: 'aoe_circle', radius: 1 },  // 디스코 방울 + 작은 방울
+  TFT17_Nami:        { pattern: 'aoe_circle', radius: 1, secondaryDamageVar: 'FirstBounceDamage' },  // 디스코 방울 분배 + 작은 방울 3개 추가
   TFT17_Nunu:        { pattern: 'aoe_circle', radius: 2, stun: 1.75, damageVar: 'InitialDamage' },  // 보호막 + 2칸 AOE + 띄움 1.75초
   TFT17_Riven:       { pattern: 'aoe_circle', radius: 1, dash: 'to_target' },  // 돌진 + 베기, 3회째 직선 파동
   TFT17_Leblanc:     { pattern: 'multi', maxTargets: 3, damageVar: 'BoltDamage', hitCount: 5 },  // 분신 5명 투사체 (BoltDamage × 5)
@@ -232,7 +234,7 @@ export const CHAMPION_ABILITY_PATTERNS: Record<string, AbilityConfig> = {
   TFT17_Vex:         { pattern: 'aoe_circle', radius: 1, damageVar: 'ShadowHandMagicDamage', hitCount: 3 },  // 강화 타격 3회
   TFT17_Shen:        { pattern: 'aoe_circle', radius: 2, selfBuff: { attackSpeed: 0.3, duration: 999 } },  // 보호막 + 균열 AOE + AS둔화
   TFT17_Zed:         { pattern: 'self_buff' },  // 분신 소환 (복제)
-  TFT17_Graves:      { pattern: 'cone', radius: 2 },  // 원뿔 투사체 + 폭발 탄환
+  TFT17_Graves:      { pattern: 'cone', radius: 2, secondaryDamageVar: 'SecondaryDamageAD' },  // 원뿔 스킬 Damage + 인접 SecondaryDamageAD
   TFT17_Morgana:     { pattern: 'multi', maxTargets: 3, heal: true, dot: { duration: 5 } },  // 변신 + 사슬 3명 5초 DOT + 최종 폭발
 
   // === 미등록 챔피언 추가 (2차 — audit 검출분) ===
