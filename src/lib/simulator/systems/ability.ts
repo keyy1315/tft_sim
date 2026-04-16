@@ -42,6 +42,12 @@ export interface AbilityConfig {
     mrReduction?: number;
     duration?: number;
   };
+  /** 다회 타격 횟수 — 총 피해 = base × hitCount (벨베스 12, 아칼리 5 등) */
+  hitCount?: number;
+  /** DOT 지속 피해 — 스킬 피해를 duration초에 걸쳐 매초 적용 */
+  dot?: { duration: number };
+  /** parseAbility 대신 사용할 피해 변수명 오버라이드 */
+  damageVar?: string;
 }
 
 /** 챔피언별 스킬 타게팅 패턴 매핑 */
@@ -165,16 +171,16 @@ export const CHAMPION_ABILITY_PATTERNS: Record<string, AbilityConfig> = {
   TFT17_Teemo:       { pattern: 'self_buff', selfBuff: { attackSpeed: 0.5, duration: 3 } },  // 패시브 추가 마법 + AS 버프
   TFT17_Nasus:       { pattern: 'aoe_circle', radius: 1, selfBuff: { durability: 0.2, duration: 6 } },  // 변신 + 주변 매초 피해
   TFT17_TwistedFate:  { pattern: 'single' },  // 카드 던지기 (단일 마법)
-  TFT17_Talon:       { pattern: 'single', dash: 'to_target' },  // 출혈 + 도약
+  TFT17_Talon:       { pattern: 'single', dash: 'to_target', dot: { duration: 18 } },  // 출혈 18초 DOT + 도약
   TFT17_Ezreal:      { pattern: 'single' },  // 파동 단일 물리
   TFT17_Leona:       { pattern: 'single', stun: 1.5, selfBuff: { durability: 0.3, duration: 4 } },  // 보호막 + 기절
-  TFT17_Chogath:     { pattern: 'single', heal: true },  // 체력흡수 + 영구 최대체력
+  TFT17_Chogath:     { pattern: 'single', heal: true, damageVar: 'BonusDamage' },  // %최대체력 + 고정 추가 피해 (combatLoop 특수 처리)
   TFT17_Lissandra:   { pattern: 'aoe_circle', radius: 1 },  // 단검 + 폭발 AOE
   TFT17_RekSai:      { pattern: 'aoe_circle', radius: 1, stun: 1.0, heal: true },  // 회복 + 인접 공중띄움
 
   // === 2코스트 ===
-  TFT17_Belveth:     { pattern: 'single' },  // 연속 베기
-  TFT17_Akali:       { pattern: 'line', maxTargets: 3, dash: 'to_target', debuff: { armorReduction: 15, duration: 4 } },  // 관통 단검 + 방어력 감소
+  TFT17_Belveth:     { pattern: 'single', hitCount: 12 },  // 연속 12회 베기
+  TFT17_Akali:       { pattern: 'line', maxTargets: 3, dash: 'to_target', debuff: { armorReduction: 15, duration: 4 }, hitCount: 5 },  // 단검 5개 관통 + 방어력 감소
   TFT17_Jinx:        { pattern: 'cone', radius: 2 },  // 원뿔 로켓
   TFT17_Gnar:        { pattern: 'line', maxTargets: 3, damageDecay: 0.3 },  // 부메랑 관통 + 감소
   TFT17_Pyke:        { pattern: 'aoe_circle', radius: 1, dash: 'to_target' },  // 작살 끌기 + 텔레포트 베기
@@ -184,8 +190,8 @@ export const CHAMPION_ABILITY_PATTERNS: Record<string, AbilityConfig> = {
   TFT17_Milio:       { pattern: 'bounce', maxTargets: 4 },  // 공 튕기기
   TFT17_Zoe:         { pattern: 'line', maxTargets: 4 },  // 통통별 관통 + 방향전환
   TFT17_IvernMinion: { pattern: 'aoe_circle', radius: 1, stun: 1.0, heal: true },  // 회복 + 강타 + 열 피해
-  TFT17_Mordekaiser: { pattern: 'aoe_circle', radius: 1, heal: true },  // 보호막 + 주변 매초 피해
-  TFT17_Pantheon:    { pattern: 'cone', radius: 2, selfBuff: { durability: 0.3, duration: 4 } },  // 보호막 + 원뿔 매초 피해
+  TFT17_Mordekaiser: { pattern: 'aoe_circle', radius: 1, heal: true, dot: { duration: 4 } },  // 보호막 + 주변 매초 피해 4초
+  TFT17_Pantheon:    { pattern: 'cone', radius: 2, selfBuff: { durability: 0.15, duration: 4 }, dot: { duration: 4 } },  // 보호막+내구력 + 원뿔 매초 고정 피해 4초
 
   // === 3코스트 ===
   TFT17_MissFortune: { pattern: 'multi', maxTargets: 3 },  // 모드에 따라 다름 (기본)
@@ -193,41 +199,41 @@ export const CHAMPION_ABILITY_PATTERNS: Record<string, AbilityConfig> = {
   TFT17_Aurora:      { pattern: 'aoe_circle', radius: 2 },  // 균열 해킹 + 저장 피해
   TFT17_Fizz:        { pattern: 'line', dash: 'to_target' },  // 관통 돌진 + 정령 소환
   TFT17_Maokai:      { pattern: 'aoe_circle', radius: 2, stun: 1.5 },  // X자 덩굴 + 기절
-  TFT17_Kaisa:       { pattern: 'aoe_circle', radius: 2, maxTargets: 16 },  // 미사일 16개 반경 2칸
-  TFT17_Urgot:       { pattern: 'cone', radius: 2, selfBuff: { durability: 0.2, duration: 4 } },  // 근접 폭발 원뿔 + 보호막
-  TFT17_Viktor:      { pattern: 'aoe_circle', radius: 1 },  // 초능력 폭풍 (커지는 AOE)
+  TFT17_Kaisa:       { pattern: 'aoe_circle', radius: 2, hitCount: 16 },  // 미사일 16개 반경 2칸 나누어 발사
+  TFT17_Urgot:       { pattern: 'cone', radius: 2, selfBuff: { durability: 0.2, duration: 3 }, damageVar: 'ShotgunDamage' },  // 보호막 + 원뿔 폭발 탄환
+  TFT17_Viktor:      { pattern: 'aoe_circle', radius: 1, dot: { duration: 4 } },  // 초능력 폭풍 4초 DOT (커지는 AOE)
   TFT17_Samira:      { pattern: 'single', stun: 1.0 },  // 탄환 + 공중띄움
   TFT17_Ornn:        { pattern: 'cone', radius: 2 },  // 보호막 + 원뿔 화염
   TFT17_Lulu:        { pattern: 'multi', maxTargets: 4 },  // 하늘에서 떨어뜨려 주변 적 타격
-  TFT17_Diana:       { pattern: 'aoe_circle', radius: 1, selfBuff: { attackSpeed: 0.5, duration: 4 } },  // 보호막 + 구체 회전
+  TFT17_Diana:       { pattern: 'aoe_circle', radius: 1, selfBuff: { attackSpeed: 0.5, duration: 4 }, damageVar: 'CleaveDamage', dot: { duration: 3 } },  // 보호막 + 3초 구체 회전 DOT
   TFT17_Rhaast:      { pattern: 'line', stun: 1.0, heal: true, selfBuff: { durability: 0.3, duration: 4 } },  // 내구력 + 회복 + 직선 베기
 
   // === 4코스트 ===
   TFT17_Rammus:      { pattern: 'line', maxTargets: 3, selfBuff: { durability: 0.3, duration: 4 } },  // 보호막 + 직선 3칸
-  TFT17_Corki:       { pattern: 'aoe_circle', radius: 2, dash: 'to_target' },  // 저공비행 + 미사일 AOE
+  TFT17_Corki:       { pattern: 'aoe_circle', radius: 2, dash: 'to_target', hitCount: 21, damageVar: 'MissileAD' },  // 저공비행 + 미사일 21개 AOE
   TFT17_Kindred:     { pattern: 'multi', maxTargets: 4, dash: 'to_farthest' },  // 도약 + 화살 다수
   TFT17_Karma:       { pattern: 'multi', maxTargets: 4 },  // 블랙홀 분배 피해
-  TFT17_AurelionSol: { pattern: 'line', damageDecay: 0.15 },  // 직선 광선 + 관통 감소
+  TFT17_AurelionSol: { pattern: 'line', damageDecay: 0.15, dot: { duration: 3 } },  // 직선 광선 3초 DOT + 관통 감소
   TFT17_Galio:       { pattern: 'aoe_circle', radius: 2, heal: true, selfBuff: { durability: 0.3, duration: 4 } },  // 방어 태세 + 충격파
   TFT17_MasterYi:    { pattern: 'self_buff', selfBuff: { attackSpeed: 0.8, duration: 5 } },  // 초필살 AS + 흡혈
   TFT17_Nami:        { pattern: 'aoe_circle', radius: 1 },  // 디스코 방울 + 작은 방울
-  TFT17_Nunu:        { pattern: 'aoe_circle', radius: 2, stun: 1.5 },  // 보호막 + 아스트롤라베 AOE + 띄움
+  TFT17_Nunu:        { pattern: 'aoe_circle', radius: 2, stun: 1.75, damageVar: 'InitialDamage' },  // 보호막 + 2칸 AOE + 띄움 1.75초
   TFT17_Riven:       { pattern: 'aoe_circle', radius: 1, dash: 'to_target' },  // 돌진 + 베기, 3회째 직선 파동
-  TFT17_Leblanc:     { pattern: 'multi', maxTargets: 3 },  // 분신 소환 + 투사체
+  TFT17_Leblanc:     { pattern: 'multi', maxTargets: 3, damageVar: 'BoltDamage', hitCount: 5 },  // 분신 5명 투사체 (BoltDamage × 5)
   TFT17_Xayah:       { pattern: 'multi', maxTargets: 4, selfBuff: { attackSpeed: 0.6, duration: 4 } },  // 튕기기 + AS버프 + 깃털 회수
   TFT17_TahmKench:   { pattern: 'aoe_circle', radius: 2, heal: true },  // 회복 + 2칸 혀 채찍
 
   // === 5코스트 ===
-  TFT17_Bard:        { pattern: 'aoe_circle', radius: 1 },  // 비행접시 DOT + 주변 분배
+  TFT17_Bard:        { pattern: 'aoe_circle', radius: 1, dot: { duration: 4 } },  // 비행접시 4초 DOT + 주변 분배
   TFT17_Fiora:       { pattern: 'single', dash: 'to_target', heal: true },  // 급소 돌진 + 회복
   TFT17_Jhin:        { pattern: 'multi', maxTargets: 3, debuff: { armorReduction: 15, duration: 4 } },  // 잔상 손 + 관통 사격
-  TFT17_Blitzcrank:  { pattern: 'aoe_circle', radius: 3, stun: 1.5 },  // 디스코 볼 + 띄움 + 폭발
+  TFT17_Blitzcrank:  { pattern: 'aoe_circle', radius: 3, stun: 1.5, stunTargets: 1, damageVar: 'ExplosionDamage' },  // 띄움 1명 + 폭발 3칸
   TFT17_Sona:        { pattern: 'multi', maxTargets: 3, stun: 1.0 },  // 자성 파편 + 기절
-  TFT17_Vex:         { pattern: 'aoe_circle', radius: 1 },  // 그림자 패시브 + 강화타격
+  TFT17_Vex:         { pattern: 'aoe_circle', radius: 1, damageVar: 'ShadowHandMagicDamage', hitCount: 3 },  // 강화 타격 3회
   TFT17_Shen:        { pattern: 'aoe_circle', radius: 2, selfBuff: { attackSpeed: 0.3, duration: 999 } },  // 보호막 + 균열 AOE + AS둔화
   TFT17_Zed:         { pattern: 'self_buff' },  // 분신 소환 (복제)
   TFT17_Graves:      { pattern: 'cone', radius: 2 },  // 원뿔 투사체 + 폭발 탄환
-  TFT17_Morgana:     { pattern: 'multi', maxTargets: 4, heal: true },  // 변신 + 사슬 DOT + 최종 폭발
+  TFT17_Morgana:     { pattern: 'multi', maxTargets: 3, heal: true, dot: { duration: 5 } },  // 변신 + 사슬 3명 5초 DOT + 최종 폭발
 
   // === 미등록 챔피언 추가 (2차 — audit 검출분) ===
   TFT16_Blitzcrank:  { pattern: 'aoe_circle', radius: 2 },               // 보호막 + 주변 적 데미지
@@ -318,23 +324,71 @@ export function findAbilityTargets(
   }
 }
 
-export function parseAbility(champion: RawChampion): ParsedAbility {
+/** 피해 타입 판별 — 한글 desc 우선, HTML 태그 폴백 */
+function detectDamageType(desc: string): DamageType {
+  if (desc.includes('고정 피해')) return 'true';
+  if (desc.includes('물리 피해')) return 'physical';
+  if (desc.includes('마법 피해')) return 'magic';
+  if (desc.includes('<trueDamage>')) return 'true';
+  if (desc.includes('<physicalDamage>')) return 'physical';
+  return 'magic';
+}
+
+/** 스케일링 판별 — 변수명 접미사 + desc 폴백 */
+function detectScaling(varName: string | null, desc: string): 'ap' | 'ad' | 'none' {
+  if (varName) {
+    if (/AD/.test(varName) && !/DAm/.test(varName)) return 'ad';
+    if (/AP/.test(varName)) return 'ap';
+  }
+  if (desc.includes('scaleAD')) return 'ad';
+  if (desc.includes('scaleAP')) return 'ap';
+  if (desc.includes('물리 피해')) return 'ad';
+  if (desc.includes('마법 피해')) return 'ap';
+  return 'ap';
+}
+
+/** 피해 변수 탐색 우선순위 목록 */
+const DAMAGE_VAR_PRIORITY = [
+  'Damage', 'MagicDamage', 'PhysicalDamage', 'TotalDamage',
+  'ADDamage', 'APDamage', 'DamageAD', 'DamageAP',
+  'BonusDamage', 'DamagePerTick', 'DamagePerSecond', 'DamagePerProc',
+  'PassiveDamage', 'SpellDamage', 'InitialDamage',
+];
+
+/** 피해 변수 찾기 — 우선순위 매칭 → 이름에 'Damage'/'damage' 포함 → null */
+function findDamageVariable(variables: RawChampion['ability']['variables']): RawChampion['ability']['variables'][0] | null {
+  if (!variables || variables.length === 0) return null;
+
+  // 1순위: 정확 매칭
+  for (const name of DAMAGE_VAR_PRIORITY) {
+    const v = variables.find(vr => vr.name === name);
+    if (v) return v;
+  }
+
+  // 2순위: 이름에 'Damage' 포함 (대소문자 구분)
+  const fuzzy = variables.find(v => v.name.includes('Damage') || v.name.includes('damage'));
+  if (fuzzy) return fuzzy;
+
+  // 3순위: variables[0] 폴백 (피해 텍스트가 있지만 변수명에 Damage가 없는 경우)
+  return variables[0];
+}
+
+export function parseAbility(champion: RawChampion, damageVarOverride?: string): ParsedAbility {
   const desc = champion.ability.desc;
   const variables = champion.ability.variables;
 
-  let damageType: DamageType = 'magic';
-  if (desc.includes('<physicalDamage>')) damageType = 'physical';
-  else if (desc.includes('<trueDamage>')) damageType = 'true';
+  const damageType = detectDamageType(desc);
 
-  let scalingType: 'ap' | 'ad' | 'none' = 'none';
-  if (desc.includes('scaleAP')) scalingType = 'ap';
-  else if (desc.includes('scaleAD')) scalingType = 'ad';
-
-  const damageVarNames = ['Damage', 'MagicDamage', 'PhysicalDamage', 'TotalDamage', 'BonusDamage', 'DamagePerTick'];
-  let damageVar = variables.find(v => damageVarNames.includes(v.name));
-  if (!damageVar && variables.length > 0) {
-    damageVar = variables[0];
+  // damageVar 오버라이드: AbilityConfig.damageVar로 직접 지정된 경우
+  let damageVar: RawChampion['ability']['variables'][0] | null = null;
+  if (damageVarOverride) {
+    damageVar = variables.find(v => v.name === damageVarOverride) ?? null;
   }
+  if (!damageVar) {
+    damageVar = findDamageVariable(variables);
+  }
+
+  const scalingType = damageVar ? detectScaling(damageVar.name, desc) : 'none';
 
   return {
     damageType,
@@ -348,9 +402,10 @@ export function getAbilityDamage(
   champion: RawChampion,
   starLevel: number,
   ap: number,
-  bonusAdPercent: number = 0
+  bonusAdPercent: number = 0,
+  damageVarOverride?: string,
 ): { damage: number; type: DamageType } {
-  const parsed = parseAbility(champion);
+  const parsed = parseAbility(champion, damageVarOverride);
   const baseValue = parsed.damageValues[starLevel] ?? parsed.damageValues[1] ?? 0;
 
   let damage = baseValue;

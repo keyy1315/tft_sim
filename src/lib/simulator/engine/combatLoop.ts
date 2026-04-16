@@ -14,10 +14,10 @@ import { getHexesInRadius } from '@/lib/simulator/models/hex';
 import { TICK_DURATION, MAX_TICKS, TICKS_PER_SECOND, CAST_TICKS, SELF_BUFF_CAST_TICKS, INITIAL_ATTACK_DELAY } from '@/lib/simulator/models/constants';
 import { createRNG, SeededRNG } from '@/lib/simulator/engine/rng';
 import { captureSnapshot } from '@/lib/simulator/engine/replayEngine';
-import { findTarget, getTargetingWeight } from '@/lib/simulator/systems/targeting';
+import { findTarget } from '@/lib/simulator/systems/targeting';
 import { gainManaOnAttack, gainManaPerTick, gainManaOnDamageTaken } from '@/lib/simulator/systems/mana';
 import { EventBus } from '@/lib/simulator/events/eventBus';
-import { ROLE_OMNIVAMP } from '@/lib/simulator/models/unit';
+import { ROLE_OMNIVAMP, getFighterASBonus } from '@/lib/simulator/models/unit';
 import { resolveTraits } from '@/lib/simulator/systems/trait';
 import { resolveAugmentEffects, resolveInCombatAugmentEffects, resolvePerUnitMods, applyPerUnitMods, AugmentWithStacks } from '@/lib/simulator/systems/augment';
 import type { IoniaPathType } from '@/data/traitModules';
@@ -67,6 +67,8 @@ export interface SimulateOptions {
   /** 칸 버프 증강 */
   playerHexBuffs?: HexBuff[];
   enemyHexBuffs?: HexBuff[];
+  /** 현재 스테이지 번호 (전사 AS 패시브, 기본값 4) */
+  stageNumber?: number;
 }
 
 function createCombatUnit(
@@ -458,71 +460,6 @@ function applyIoniaPath(
 /** Fighter/Assassin 비타겟 피해 감소 비율 */
 const NON_TARGET_DAMAGE_REDUCTION = 0.15;
 
-/** 전투 시작 시 암살자 유닛을 적 후열로 점프시킴 */
-function applyAssassinJump(
-  teamUnits: CombatUnit[],
-  enemyUnits: CombatUnit[],
-  allUnits: CombatUnit[],
-  logs: CombatLog[],
-): void {
-  const assassins = teamUnits.filter(u => u.role === 'Assassin' && u.state !== 'dead');
-  if (assassins.length === 0) return;
-
-  const aliveEnemies = enemyUnits.filter(u => u.state !== 'dead');
-  if (aliveEnemies.length === 0) return;
-
-  const occupiedPositions = new Set(
-    allUnits.filter(u => u.state !== 'dead').map(u => coordKey(u.position))
-  );
-
-  for (const assassin of assassins) {
-    // 적 팀에서 가장 먼 유닛 찾기 (Marksman/Caster 우선)
-    let farthestDist = 0;
-    let farthestEnemy: CombatUnit | null = null;
-    for (const enemy of aliveEnemies) {
-      const dist = hexDistance(assassin.position, enemy.position);
-      if (dist > farthestDist) {
-        farthestDist = dist;
-        farthestEnemy = enemy;
-      } else if (dist === farthestDist && farthestEnemy) {
-        const enemyWeight = getTargetingWeight(enemy.role);
-        const currentWeight = getTargetingWeight(farthestEnemy.role);
-        if (enemyWeight < currentWeight) {
-          farthestEnemy = enemy;
-        }
-      }
-    }
-    if (!farthestEnemy) continue;
-
-    // 해당 유닛 인접 빈 칸 중 하나 선택
-    const neighbors = getNeighbors(farthestEnemy.position);
-    const freeNeighbors = neighbors.filter(n => !occupiedPositions.has(coordKey(n)));
-    if (freeNeighbors.length === 0) continue;
-
-    // 가장 가까운 빈 칸 선택 (적 딜러에 가장 가까운 칸)
-    let bestHex = freeNeighbors[0];
-    let bestDist = Infinity;
-    for (const hex of freeNeighbors) {
-      const dist = hexDistance(hex, farthestEnemy.position);
-      if (dist < bestDist) {
-        bestDist = dist;
-        bestHex = hex;
-      }
-    }
-
-    // 이전 위치 해제, 새 위치 점유
-    occupiedPositions.delete(coordKey(assassin.position));
-    assassin.position = bestHex;
-    occupiedPositions.add(coordKey(bestHex));
-
-    const log: CombatLog = {
-      tick: 0, time: 0, type: 'move',
-      sourceId: assassin.id,
-      message: `[역할군] ${assassin.champion.name}이(가) 적 후열로 점프!`,
-    };
-    logs.push(log);
-  }
-}
 
 function applyResistance(damage: number, resistance: number, penetration: number = 0): number {
   const effective = resistance * (1 - Math.min(penetration, 1));
@@ -1429,6 +1366,18 @@ export function simulateCombat(
   applySet17SynergyBuffs(playerActiveTraits, playerUnits);
   applySet17SynergyBuffs(enemyActiveTraits, enemies);
 
+  // === 전사 AS 패시브 (스테이지 비례 5~30%) ===
+  const stageNumber = options.stageNumber ?? 4;
+  const fighterASBonus = getFighterASBonus(stageNumber);
+  if (fighterASBonus > 0) {
+    for (const u of playerUnits) {
+      if (u.role === 'Fighter') u.stats.attackSpeed *= (1 + fighterASBonus);
+    }
+    for (const u of enemies) {
+      if (u.role === 'Fighter') u.stats.attackSpeed *= (1 + fighterASBonus);
+    }
+  }
+
   // === 칸 버프 증강 ===
   if (options.playerHexBuffs?.length) applyHexBuffs(playerUnits, options.playerHexBuffs);
   if (options.enemyHexBuffs?.length) applyHexBuffs(enemies, options.enemyHexBuffs);
@@ -1497,9 +1446,6 @@ export function simulateCombat(
   playerUnits.push(...playerTurrets);
   enemies.push(...enemyTurrets);
 
-  // 암살자 후열 점프 (전투 시작 직전)
-  applyAssassinJump(playerUnits, enemies, allUnits, logs);
-  applyAssassinJump(enemies, playerUnits, allUnits, logs);
 
   const snapshots: TickSnapshot[] = [];
   const moveTicks = getMoveTicks();
@@ -1738,9 +1684,12 @@ export function simulateCombat(
             // 스킬 시전 후 cast time — 이 시간 동안 공격 불가
             unit.attackCooldown = config.pattern === 'self_buff' ? SELF_BUFF_CAST_TICKS : CAST_TICKS;
 
-            const { damage: abilityDmg, type: dmgType } = getAbilityDamage(
-              unit.champion, unit.starLevel, unit.stats.ap
+            const { damage: rawAbilityDmg, type: dmgType } = getAbilityDamage(
+              unit.champion, unit.starLevel, unit.stats.ap, 0, config.damageVar
             );
+            // hitCount: single은 곱연산, AOE/multi는 총 피해를 타겟 수로 분배 (후술)
+            const hitCountTotal = config.hitCount ? rawAbilityDmg * config.hitCount : rawAbilityDmg;
+            const isSplitDamage = config.hitCount && config.pattern !== 'single';
             const opposingTeam = unit.team === 'player' ? enemies : playerUnits;
 
             // 대쉬 이동 (config.dash가 있으면 대상 인접 칸으로 이동)
@@ -1771,66 +1720,103 @@ export function simulateCombat(
 
             // 다중 타겟 피해 루프
             let totalAbilityDmg = 0;
-            for (let ti = 0; ti < abilityTargets.length; ti++) {
-              const t = abilityTargets[ti];
-              if (t.state === 'dead') continue;
+            const aliveTargets = abilityTargets.filter(t => t.state !== 'dead');
+            const abilityDmg = isSplitDamage && aliveTargets.length > 0
+              ? hitCountTotal / aliveTargets.length
+              : hitCountTotal;
 
-              let abilityDamageAmp = unit.damageAmp;
-              if (unit.inventionTankDamageAmp > 0 && t.role === 'Tank') {
-                abilityDamageAmp += unit.inventionTankDamageAmp;
+            // DOT 스킬: 즉발 대신 burn statusEffect로 지속 피해 적용
+            if (config.dot) {
+              const dotTicks = Math.round(config.dot.duration * TICKS_PER_SECOND);
+              for (const t of aliveTargets) {
+                // DOT도 방어력/피해감소 적용
+                const resistance = dmgType === 'magic' ? t.stats.magicResist : dmgType === 'physical' ? t.stats.armor : 0;
+                const pen = dmgType === 'magic' ? unit.stats.magicPen : dmgType === 'physical' ? unit.stats.armorPen : 0;
+                const mitigated = dmgType === 'true' ? abilityDmg * (1 + unit.damageAmp) : applyResistance(abilityDmg * (1 + unit.damageAmp), resistance, pen);
+                const perTickDmg = mitigated / config.dot.duration * TICK_DURATION;
+                t.statusEffects.push({
+                  type: 'burn', sourceId: unit.id,
+                  remainingTicks: dotTicks, value: perTickDmg,
+                });
               }
-              let dmg = abilityDmg * (1 + abilityDamageAmp);
-              if (config.damageDecay && ti > 0) {
-                dmg *= Math.pow(1 - config.damageDecay, ti);
-              }
-
-              const resistance = dmgType === 'magic' ? t.stats.magicResist
-                : dmgType === 'physical' ? t.stats.armor : 0;
-              const pen = dmgType === 'magic' ? unit.stats.magicPen
-                : dmgType === 'physical' ? unit.stats.armorPen : 0;
-              let effectiveDmg = applyResistance(dmg, resistance, pen);
-
-              if (t.damageReduction > 0) {
-                effectiveDmg *= (1 - t.damageReduction);
-              }
-
-              // Fighter/Assassin 비타겟 피해 감소 15%
-              if ((t.role === 'Fighter' || t.role === 'Assassin') && t.target !== unit.id) {
-                effectiveDmg *= (1 - NON_TARGET_DAMAGE_REDUCTION);
-              }
-
-              effectiveDmg = applyShield(t, effectiveDmg, eventBus, tick);
-              if (t.statusEffects.some(e => e.type === 'invulnerable')) {
-                effectiveDmg = 0;
-              }
-
-              t.currentHp -= effectiveDmg;
-              t.totalDamageTaken += effectiveDmg;
-              unit.totalDamageDealt += effectiveDmg;
-              totalAbilityDmg += effectiveDmg;
-
-              const abilityLog: CombatLog = {
+              const dotLog: CombatLog = {
                 tick, time, type: 'ability',
-                sourceId: unit.id, targetId: t.id,
-                value: Math.round(effectiveDmg),
-                message: `${unit.champion.name}이(가) ${unit.champion.ability.name} 시전! ${t.champion.name}에게 ${Math.round(effectiveDmg)} ${dmgType === 'magic' ? '마법' : dmgType === 'physical' ? '물리' : '트루'} 피해`,
+                sourceId: unit.id, targetId: abilityTarget.id,
+                value: Math.round(abilityDmg),
+                message: `${unit.champion.name}이(가) ${unit.champion.ability.name} 시전! ${config.dot.duration}초 동안 ${Math.round(abilityDmg)} ${dmgType === 'magic' ? '마법' : '물리'} 지속 피해`,
               };
-              logs.push(abilityLog);
-              tickLogs.push(abilityLog);
+              logs.push(dotLog);
+              tickLogs.push(dotLog);
+            } else {
+              // 즉발 피해
+              for (let ti = 0; ti < abilityTargets.length; ti++) {
+                const t = abilityTargets[ti];
+                if (t.state === 'dead') continue;
 
-              // 타겟 사망 처리
-              if (t.currentHp <= 0) {
-                t.currentHp = 0;
-                t.state = 'dead';
-                unit.killCount++;
-                const deathLog: CombatLog = {
-                  tick, time, type: 'death',
-                  sourceId: t.id,
-                  message: `${t.champion.name} 사망! (${unit.champion.name}의 ${unit.champion.ability.name})`,
+                let abilityDamageAmp = unit.damageAmp;
+                if (unit.inventionTankDamageAmp > 0 && t.role === 'Tank') {
+                  abilityDamageAmp += unit.inventionTankDamageAmp;
+                }
+                // 초가스: % 최대체력 피해 추가
+                let baseDmg = abilityDmg;
+                if (unit.champion.apiName === 'TFT17_Chogath') {
+                  const pctVar = unit.champion.ability.variables?.find(v => v.name === 'PercentMaximumHealthDamage');
+                  const pctHp = pctVar?.value?.[unit.starLevel] ?? 0.08;
+                  baseDmg += t.maxHp * pctHp;
+                }
+                let dmg = baseDmg * (1 + abilityDamageAmp);
+                if (config.damageDecay && ti > 0) {
+                  dmg *= Math.pow(1 - config.damageDecay, ti);
+                }
+
+                const resistance = dmgType === 'magic' ? t.stats.magicResist
+                  : dmgType === 'physical' ? t.stats.armor : 0;
+                const pen = dmgType === 'magic' ? unit.stats.magicPen
+                  : dmgType === 'physical' ? unit.stats.armorPen : 0;
+                let effectiveDmg = applyResistance(dmg, resistance, pen);
+
+                if (t.damageReduction > 0) {
+                  effectiveDmg *= (1 - t.damageReduction);
+                }
+
+                // Fighter/Assassin 비타겟 피해 감소 15%
+                if ((t.role === 'Fighter' || t.role === 'Assassin') && t.target !== unit.id) {
+                  effectiveDmg *= (1 - NON_TARGET_DAMAGE_REDUCTION);
+                }
+
+                effectiveDmg = applyShield(t, effectiveDmg, eventBus, tick);
+                if (t.statusEffects.some(e => e.type === 'invulnerable')) {
+                  effectiveDmg = 0;
+                }
+
+                t.currentHp -= effectiveDmg;
+                t.totalDamageTaken += effectiveDmg;
+                unit.totalDamageDealt += effectiveDmg;
+                totalAbilityDmg += effectiveDmg;
+
+                const abilityLog: CombatLog = {
+                  tick, time, type: 'ability',
+                  sourceId: unit.id, targetId: t.id,
+                  value: Math.round(effectiveDmg),
+                  message: `${unit.champion.name}이(가) ${unit.champion.ability.name} 시전! ${t.champion.name}에게 ${Math.round(effectiveDmg)} ${dmgType === 'magic' ? '마법' : dmgType === 'physical' ? '물리' : '트루'} 피해`,
                 };
-                logs.push(deathLog);
-                tickLogs.push(deathLog);
-                eventBus.emit('on_death', { sourceId: t.id, tick });
+                logs.push(abilityLog);
+                tickLogs.push(abilityLog);
+
+                // 타겟 사망 처리
+                if (t.currentHp <= 0) {
+                  t.currentHp = 0;
+                  t.state = 'dead';
+                  unit.killCount++;
+                  const deathLog: CombatLog = {
+                    tick, time, type: 'death',
+                    sourceId: t.id,
+                    message: `${t.champion.name} 사망! (${unit.champion.name}의 ${unit.champion.ability.name})`,
+                  };
+                  logs.push(deathLog);
+                  tickLogs.push(deathLog);
+                  eventBus.emit('on_death', { sourceId: t.id, tick });
+                }
               }
             }
 
@@ -1946,9 +1932,11 @@ export function simulateCombat(
           unit.castCount++;
           unit.attackCooldown = outOfRangeConfig.pattern === 'self_buff' ? SELF_BUFF_CAST_TICKS : CAST_TICKS;
 
-          const { damage: abilityDmg, type: dmgType } = getAbilityDamage(
-            unit.champion, unit.starLevel, unit.stats.ap
+          const { damage: rawOORDmg, type: dmgType } = getAbilityDamage(
+            unit.champion, unit.starLevel, unit.stats.ap, 0, outOfRangeConfig.damageVar
           );
+          const oorHitTotal = outOfRangeConfig.hitCount ? rawOORDmg * outOfRangeConfig.hitCount : rawOORDmg;
+          const oorIsSplit = outOfRangeConfig.hitCount && outOfRangeConfig.pattern !== 'single';
           const opposingTeam = unit.team === 'player' ? enemies : playerUnits;
 
           let abilityTarget = target;
@@ -1980,34 +1968,51 @@ export function simulateCombat(
 
           // 피해 적용
           let totalAbilityDmg = 0;
-          for (const t of abilityTargets) {
-            if (t.state === 'dead') continue;
-            const resistance = dmgType === 'magic' ? t.stats.magicResist : t.stats.armor;
-            const pen = dmgType === 'magic' ? unit.stats.magicPen : unit.stats.armorPen;
-            let dmg = dmgType === 'true' ? abilityDmg * (1 + unit.damageAmp) : applyResistance(abilityDmg * (1 + unit.damageAmp), resistance, pen);
-            if (t.damageReduction > 0) dmg *= (1 - t.damageReduction);
-            dmg = applyShield(t, dmg, eventBus, tick);
-            if (t.statusEffects.some(e => e.type === 'invulnerable')) dmg = 0;
-            t.currentHp -= dmg;
-            t.totalDamageTaken += dmg;
-            unit.totalDamageDealt += dmg;
-            totalAbilityDmg += dmg;
+          const oorAlive = abilityTargets.filter(t => t.state !== 'dead');
+          const abilityDmg = oorIsSplit && oorAlive.length > 0
+            ? oorHitTotal / oorAlive.length
+            : oorHitTotal;
 
-            // 사망 처리
-            if (t.currentHp <= 0) {
-              t.state = 'dead';
-              t.currentHp = 0;
-              eventBus.emit('on_kill', { sourceId: unit.id, targetId: t.id, tick });
-              eventBus.emit('on_death', { sourceId: t.id, targetId: unit.id, tick });
-              logs.push({ tick, time, type: 'death', sourceId: t.id, message: `${t.champion.name} 사망!` });
+          if (outOfRangeConfig.dot) {
+            const dotTicks = Math.round(outOfRangeConfig.dot.duration * TICKS_PER_SECOND);
+            for (const t of oorAlive) {
+              const resistance = dmgType === 'magic' ? t.stats.magicResist : dmgType === 'physical' ? t.stats.armor : 0;
+              const pen = dmgType === 'magic' ? unit.stats.magicPen : dmgType === 'physical' ? unit.stats.armorPen : 0;
+              const mitigated = dmgType === 'true' ? abilityDmg * (1 + unit.damageAmp) : applyResistance(abilityDmg * (1 + unit.damageAmp), resistance, pen);
+              const perTickDmg = mitigated / outOfRangeConfig.dot.duration * TICK_DURATION;
+              t.statusEffects.push({
+                type: 'burn', sourceId: unit.id,
+                remainingTicks: dotTicks, value: perTickDmg,
+              });
             }
+          } else {
+            for (const t of abilityTargets) {
+              if (t.state === 'dead') continue;
+              const resistance = dmgType === 'magic' ? t.stats.magicResist : t.stats.armor;
+              const pen = dmgType === 'magic' ? unit.stats.magicPen : unit.stats.armorPen;
+              let dmg = dmgType === 'true' ? abilityDmg * (1 + unit.damageAmp) : applyResistance(abilityDmg * (1 + unit.damageAmp), resistance, pen);
+              if (t.damageReduction > 0) dmg *= (1 - t.damageReduction);
+              dmg = applyShield(t, dmg, eventBus, tick);
+              if (t.statusEffects.some(e => e.type === 'invulnerable')) dmg = 0;
+              t.currentHp -= dmg;
+              t.totalDamageTaken += dmg;
+              unit.totalDamageDealt += dmg;
+              totalAbilityDmg += dmg;
 
-            // 스턴 (살아있을 때만)
-            if (outOfRangeConfig.stun && outOfRangeConfig.stun > 0 && t.currentHp > 0) {
-              const stunTicks = Math.round(outOfRangeConfig.stun * TICKS_PER_SECOND);
-              t.statusEffects.push({ type: 'stun', sourceId: unit.id, remainingTicks: stunTicks });
-              t.state = 'idle';
-              t.attackCooldown = 0;
+              if (t.currentHp <= 0) {
+                t.state = 'dead';
+                t.currentHp = 0;
+                eventBus.emit('on_kill', { sourceId: unit.id, targetId: t.id, tick });
+                eventBus.emit('on_death', { sourceId: t.id, targetId: unit.id, tick });
+                logs.push({ tick, time, type: 'death', sourceId: t.id, message: `${t.champion.name} 사망!` });
+              }
+
+              if (outOfRangeConfig.stun && outOfRangeConfig.stun > 0 && t.currentHp > 0) {
+                const stunTicks = Math.round(outOfRangeConfig.stun * TICKS_PER_SECOND);
+                t.statusEffects.push({ type: 'stun', sourceId: unit.id, remainingTicks: stunTicks });
+                t.state = 'idle';
+                t.attackCooldown = 0;
+              }
             }
           }
 

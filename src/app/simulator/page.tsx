@@ -14,6 +14,8 @@ import { getItemCategory, isDisabledItem } from '@/lib/simulator/systems/item';
 import { isBilgewaterStatItem } from '@/data/traitModules';
 import { resolveBilgewaterStatEffects } from '@/lib/simulator/systems/stat';
 import { resolveHexBuffs } from '@/data/augmentHexBuffs';
+import { resolveDescription } from '@/lib/utils/text';
+import { hexCenter, HEX_R } from '@/components/battle/HexBoard';
 import ChampionGrid from '@/components/builder/ChampionGrid';
 import SetupBoard from '@/components/battle/SetupBoard';
 import DroppableHexCell from '@/components/battle/DroppableHexCell';
@@ -77,6 +79,8 @@ function SimulatorContent() {
   const [showTeamCode, setShowTeamCode] = useState(false);
   const [logFilter, setLogFilter] = useState<CombatLog['type'] | 'all'>('all');
   const [isRunning, setIsRunning] = useState(false);
+  const [stageNumber, setStageNumber] = useState(4);
+  const [hoverUnit, setHoverUnit] = useState<{ placed: PlacedChampion; row: number; col: number } | null>(null);
 
   // Filtered champions for pool
   const filteredChampions = useMemo(() => {
@@ -137,6 +141,7 @@ function SimulatorContent() {
         enemyGalio: tm.enemyGalio,
         playerHexBuffs,
         enemyHexBuffs,
+        stageNumber,
       });
       replay.setCombatResult(result);
       setIsRunning(false);
@@ -144,7 +149,7 @@ function SimulatorContent() {
       replay.setReplayTick(0);
       replay.setIsPlaying(true);
     }, 100);
-  }, [tm.playerTeam, tm.enemyTeam, traits, tm.playerAugments, tm.playerAugmentStacks, tm.enemyAugments, tm.enemyAugmentStacks, tm.playerBilgewaterStats, tm.enemyBilgewaterStats, tm.playerPiltoverModules, tm.enemyPiltoverModules, tm.playerIoniaPath, tm.enemyIoniaPath, tm.playerGalio, tm.enemyGalio, playerHexBuffs, enemyHexBuffs, items, toEightRowCoords, replay]);
+  }, [tm.playerTeam, tm.enemyTeam, traits, tm.playerAugments, tm.playerAugmentStacks, tm.enemyAugments, tm.enemyAugmentStacks, tm.playerBilgewaterStats, tm.enemyBilgewaterStats, tm.playerPiltoverModules, tm.enemyPiltoverModules, tm.playerIoniaPath, tm.enemyIoniaPath, tm.playerGalio, tm.enemyGalio, playerHexBuffs, enemyHexBuffs, stageNumber, items, toEightRowCoords, replay]);
 
   const runMultiple = useCallback(() => {
     if (tm.playerTeam.length === 0 || tm.enemyTeam.length === 0) return;
@@ -171,6 +176,7 @@ function SimulatorContent() {
           enemyGalio: tm.enemyGalio,
           playerHexBuffs,
           enemyHexBuffs,
+          stageNumber,
         });
         if (r.winner === 'player') playerWins++;
         else if (r.winner === 'enemy') enemyWins++;
@@ -185,7 +191,7 @@ function SimulatorContent() {
       replay.setViewMode('replay');
       replay.setReplayTick(lastResult ? lastResult.snapshots.length - 1 : 0);
     }, 100);
-  }, [tm.playerTeam, tm.enemyTeam, traits, tm.playerAugments, tm.playerAugmentStacks, tm.enemyAugments, tm.enemyAugmentStacks, tm.playerBilgewaterStats, tm.enemyBilgewaterStats, tm.playerPiltoverModules, tm.enemyPiltoverModules, tm.playerIoniaPath, tm.enemyIoniaPath, tm.playerGalio, tm.enemyGalio, playerHexBuffs, enemyHexBuffs, items, toEightRowCoords, replay]);
+  }, [tm.playerTeam, tm.enemyTeam, traits, tm.playerAugments, tm.playerAugmentStacks, tm.enemyAugments, tm.enemyAugmentStacks, tm.playerBilgewaterStats, tm.enemyBilgewaterStats, tm.playerPiltoverModules, tm.enemyPiltoverModules, tm.playerIoniaPath, tm.enemyIoniaPath, tm.playerGalio, tm.enemyGalio, playerHexBuffs, enemyHexBuffs, stageNumber, items, toEightRowCoords, replay]);
 
   const filteredLogs = useMemo(() => {
     if (!replay.combatResult) return [];
@@ -242,6 +248,17 @@ function SimulatorContent() {
             >
               팀 코드
             </button>
+            <select
+              value={stageNumber}
+              onChange={e => setStageNumber(Number(e.target.value))}
+              className="bg-[#1f2937] text-gray-300 text-[10px] lg:text-xs rounded-lg px-2 py-1.5 lg:px-2 lg:py-2 border border-gray-600"
+            >
+              {[1,2,3,4,5,6,7].map(s => (
+                <option key={s} value={s}>
+                  Stage {s}
+                </option>
+              ))}
+            </select>
             <button
               onClick={runSimulation}
               disabled={isRunning || tm.playerTeam.length === 0 || tm.enemyTeam.length === 0}
@@ -333,9 +350,38 @@ function SimulatorContent() {
                               placedUnit={placed ? { team, position: placed.position } : null}
                               onClick={cellClick}
                               onContextMenu={cellContextMenu}
+                              onMouseEnter={placed ? () => setHoverUnit({ placed, row, col }) : undefined}
+                              onMouseLeave={() => setHoverUnit(null)}
                             />
                           );
                         })
+                      )}
+                      {hoverUnit && (
+                        <div
+                          className="absolute pointer-events-none z-50"
+                          style={{
+                            left: hexCenter(hoverUnit.row, hoverUnit.col).cx,
+                            top: hexCenter(hoverUnit.row, hoverUnit.col).cy - HEX_R - 8,
+                            transform: 'translate(-50%, -100%)',
+                          }}
+                        >
+                          <div className="bg-[#1a1f2e] border border-gray-600 rounded-lg px-3 py-2 shadow-xl max-w-[240px]">
+                            <div className="font-bold text-yellow-400 text-xs mb-1">
+                              {hoverUnit.placed.champion.name}
+                              <span className="text-gray-500 ml-1 font-normal text-[10px]">
+                                {hoverUnit.placed.champion.traits.join(' · ')}
+                              </span>
+                            </div>
+                            <div className="text-[10px] text-gray-300 leading-relaxed whitespace-pre-line">
+                              {resolveDescription(
+                                hoverUnit.placed.champion.ability.desc,
+                                Object.fromEntries(
+                                  (hoverUnit.placed.champion.ability.variables ?? []).map(v => [v.name, v.value?.[hoverUnit.placed.starLevel] ?? 0])
+                                )
+                              )}
+                            </div>
+                          </div>
+                        </div>
                       )}
                       </div>
                     </div>
@@ -387,7 +433,7 @@ function SimulatorContent() {
 
               {/* Left: Both Synergy panels + Selected unit (desktop) */}
               <div className="order-3 lg:order-1 lg:w-52 lg:shrink-0 space-y-3">
-                <SynergyPanel activeTraits={tm.enemyTraits} team="enemy" items={items} piltoverModules={tm.enemyPiltoverModules} bilgewaterStats={tm.enemyBilgewaterStats} ioniaPath={tm.enemyIoniaPath} onIoniaPathChange={tm.setEnemyIoniaPath} />
+                <SynergyPanel activeTraits={tm.enemyTraits} team="enemy" items={items} champions={champions} piltoverModules={tm.enemyPiltoverModules} bilgewaterStats={tm.enemyBilgewaterStats} ioniaPath={tm.enemyIoniaPath} onIoniaPathChange={tm.setEnemyIoniaPath} />
                 <PiltoverModulePanel
                   modules={tm.enemyPiltoverModules}
                   allItems={items}
@@ -395,7 +441,7 @@ function SimulatorContent() {
                   onAddModule={(item) => tm.handleAddPiltoverModule('enemy', item)}
                   onRemoveModule={(idx) => tm.handleRemovePiltoverModule('enemy', idx)}
                 />
-                <SynergyPanel activeTraits={tm.playerTraits} team="player" items={items} piltoverModules={tm.playerPiltoverModules} bilgewaterStats={tm.playerBilgewaterStats} ioniaPath={tm.playerIoniaPath} onIoniaPathChange={tm.setPlayerIoniaPath} />
+                <SynergyPanel activeTraits={tm.playerTraits} team="player" items={items} champions={champions} piltoverModules={tm.playerPiltoverModules} bilgewaterStats={tm.playerBilgewaterStats} ioniaPath={tm.playerIoniaPath} onIoniaPathChange={tm.setPlayerIoniaPath} />
                 <PiltoverModulePanel
                   modules={tm.playerPiltoverModules}
                   allItems={items}
