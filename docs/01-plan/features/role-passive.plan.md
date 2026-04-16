@@ -1,120 +1,157 @@
-# Plan: 역할군 패시브 능력 구현
+# Plan: 역할군 패시브 능력 구현 (Set 17 업데이트)
 
 ## Executive Summary
 
-| 항목 | 내용 |
-|------|------|
-| Feature | 역할군 패시브 능력 구현 |
-| 작성일 | 2026-03-23 |
-| 상태 | Plan |
-
 | 관점 | 내용 |
 |------|------|
-| **Problem** | 역할군별 고유 패시브(암살자 후열 점프, 전사/암살자 비타겟 피해 감소 등)가 미구현. 타겟팅 가중치만 구현되어 실제 게임과 전투 양상이 다름 |
-| **Solution** | 각 역할군의 패시브 능력을 전투 엔진에 추가. 암살자 점프, 전사/암살자 피해 감소, 마법사 CC 마나 중단 등 |
-| **Function UX Effect** | 암살자가 전투 시작 시 적 후열로 이동하고, 전사/암살자가 비타겟에게 받는 피해가 감소하여 실제 게임과 동일한 전투 흐름 재현 |
-| **Core Value** | 역할군 특성이 전투에 반영되어 시뮬레이션 정확도가 대폭 향상. 조합별 시너지 분석의 신뢰도 증가 |
+| **Problem** | Set 17에서 AD/AP 역할 분화(12종) 도입 + 전사 공격속도 패시브(5~30%), 암살자 후열 점프가 미구현. lolchess.gg 역할군 설명과 시뮬레이션 결과가 불일치 |
+| **Solution** | 전사 스테이지별 AS 패시브 추가, 암살자 후열 점프 구현, AD/AP 역할 구분을 UI에 표시, 역할군 설명 데이터 정비 |
+| **Function UX Effect** | 전사가 실제 게임처럼 AS 보너스를 받고, 암살자가 후열로 점프하며, 역할군 설명이 정확히 일치 |
+| **Core Value** | lolchess.gg 공식 역할군 스펙과 시뮬레이션 완전 일치 → 전투 결과 신뢰도 확보 |
 
 ---
 
-## 1. 현재 구현 상태
+## 1. lolchess.gg 역할군 공식 스펙 (Set 17)
 
-### 1.1 구현 완료
+### 1.1 역할군별 마나 + 패시브
 
-| 역할군 | 항목 | 상태 |
-|--------|------|:----:|
-| **모든 역할군** | 타겟팅 가중치 Tank(3) > Fighter/Assassin(2) > Marksman/Caster/Specialist(1) | OK |
-| **Tank** | 피격 시 마나 획득 (HP 비율 비례, 최대 42.5) | OK |
-| **Fighter** | 12% 옴니뱀프 | OK |
-| **Caster** | 초당 마나 2 재생 | OK |
-| **Caster** | CC(스턴) 시 공격·마나 획득 중단 | OK |
+| 역할군 | 공격당 마나 | 초당 마나 | 피격 시 마나 | 패시브 |
+|--------|-----------|---------|------------|--------|
+| **탱커** (Tank) | 5 | 0 | ✅ | 대상 지정 확률 증가 |
+| **전사** (Fighter) | 10 | 0 | ❌ | AS 5~30% (스테이지 비례), 비타겟 피해 15% 감소 |
+| **원거리 딜러** (Carry) | 10 | 0 | ❌ | (없음) |
+| **마법사** (Caster) | 7 | 2 | ❌ | CC 시 마나 획득 중단 |
+| **암살자** (Reaper) | 10 | 0 | ❌ | 후열 점프, 비타겟 피해 15% 감소 |
+| **전문가** (Specialist) | 특수 | 특수 | 특수 | 고유 자원 생성 방식 |
+| **혼합 전사** (HFighter) | 10 | 0 | ❌ | 전사와 동일 |
 
-### 1.2 미구현
+### 1.2 AD/AP 분화
 
-| # | 역할군 | 패시브 | 설명 | 난이도 |
-|---|--------|--------|------|:------:|
-| 1 | **Assassin** | 후열 점프 | 전투 시작 시 적 후열(가장 먼 적 근처)로 순간이동 | 중 |
-| 2 | **Assassin** | 비타겟 피해 감소 15% | 현재 공격 대상이 아닌 적에게 받는 피해 15% 감소 | 중 |
-| 3 | **Fighter** | 비타겟 피해 감소 15% | 현재 공격 대상이 아닌 적에게 받는 피해 15% 감소 | 중 |
+Set 17에서는 각 역할이 AD/AP로 분화됨 (예: ADFighter, APFighter). **마나 수치와 패시브는 동일** — 차이는 스킬 피해 타입(물리/마법)과 추천 아이템뿐.
 
----
-
-## 2. 상세 규칙
-
-### 2.1 암살자 후열 점프
-
-**시점**: 전투 시작 직후 (tick 0)
-**동작**:
-- 아군 암살자 유닛이 적 후열의 빈 칸으로 순간이동
-- "후열"의 정의: 적 팀에서 가장 뒤(높은 row)에 있는 유닛 근처
-- 점프 목표: 적 팀의 가장 먼 유닛(Marksman/Caster 우선) 인접 빈 칸
-- 빈 칸이 없으면 이동하지 않음
-- 전투 로그에 `[역할군] {챔피언}이(가) 적 후열로 점프!` 기록
-
-### 2.2 비타겟 피해 감소 (Fighter, Assassin 공통)
-
-**대상**: Fighter, Assassin 역할군 유닛
-**조건**: 피해를 입힌 적이 이 유닛의 현재 `target`이 아닌 경우
-**효과**: 받는 피해 15% 감소
-**적용 위치**: 데미지 계산부에서 `target.damageReduction` 대신 별도 로직으로 처리
-- 일반 공격 피해 계산부 (combatLoop.ts)
-- 어빌리티 피해 계산부 (combatLoop.ts)
-
+데이터 내 GameRole 종류 (12개):
 ```
-if (target.role === 'Fighter' || target.role === 'Assassin') {
-  if (target.target !== unit.id) {
-    finalDamage *= 0.85; // 비타겟 15% 감소
+APTank(18), APCaster(13), ADFighter(10), ADTank(8), ADCarry(5),
+APFighter(4), ADCaster(4), APCarry(3), APReaper(2), ADSpecialist(2),
+ADReaper(2), HFighter(1)
+```
+
+---
+
+## 2. 현재 구현 상태
+
+### 2.1 구현 완료 ✅
+
+| 항목 | 위치 | 상태 |
+|------|------|------|
+| 마나 수치 (Tank 5, Fighter/Marksman/Assassin 10, Caster 7) | `mana.ts:22-28` | ✅ |
+| 마나 재생 (Caster 초당 2) | `mana.ts:51-60` | ✅ |
+| 탱커 피격 시 마나 획득 | `mana.ts:66-72` | ✅ |
+| Caster CC 시 마나 중단 | `mana.ts:40-41` | ✅ |
+| 타게팅 가중치 Tank(3) > Fighter/Assassin(2) > 나머지(1) | `unit.ts:18-26` | ✅ |
+| Fighter 옴니뱀프 12% | `unit.ts:9-16` | ✅ |
+| Fighter/Assassin 비타겟 피해 감소 15% | `combatLoop.ts:458-459` | ✅ |
+| GameRole → UnitRole 매핑 (AD/AP 구분 없이) | `types/index.ts:39-48` | ✅ |
+
+### 2.2 미구현 ❌
+
+| # | 항목 | 영향도 | 난이도 |
+|---|------|--------|--------|
+| 1 | **전사 AS 패시브 (5~30%, 스테이지 비례)** | 높음 — 전사 DPS 직결 | 낮음 |
+| 2 | **암살자 후열 점프 제거** | 높음 — Set 17에 없는 기능이 잘못 구현됨 | 낮음 |
+| 3 | **역할군 설명 UI** (역할군별 패시브 툴팁) | 낮음 — 표시용 | 낮음 |
+
+---
+
+## 3. 구현 범위
+
+### 3.1 전사 AS 패시브 (스테이지별 보너스)
+
+**규칙**: 전사(Fighter, HFighter) 역할군은 전투 시작 시 스테이지에 비례한 AS 보너스를 획득.
+
+| 스테이지 | AS 보너스 |
+|---------|----------|
+| 1 | 5% |
+| 2 | 10% |
+| 3 | 15% |
+| 4 | 20% |
+| 5 | 25% |
+| 6+ | 30% |
+
+**구현 위치**: `combatLoop.ts` — CombatUnit 생성 후, 시너지 버프 적용 전에 Fighter AS 보너스 적용.
+
+**스테이지 입력**: SimulateOptions에 `stageNumber?: number` 추가 (기본값 4). UI에서 스테이지 선택 드롭다운 추가.
+
+```typescript
+function applyFighterASBonus(units: CombatUnit[], stageNumber: number): void {
+  const asBonus = Math.min(0.30, 0.05 * stageNumber);
+  for (const unit of units) {
+    if (unit.role === 'Fighter') {
+      unit.stats.attackSpeed *= (1 + asBonus);
+    }
   }
 }
 ```
 
----
+### 3.2 암살자 후열 점프 제거
 
-## 3. 수정 파일
+**현황**: `applyAssassinJump` 함수가 combatLoop에 구현되어 있으나, Set 17 lolchess.gg 역할군 가이드에는 후열 점프 패시브가 없음. 이전 세트의 잔재이므로 제거.
 
-| 파일 | 변경 내용 |
-|------|----------|
-| `src/lib/simulator/engine/combatLoop.ts` | 전투 시작 시 암살자 점프 로직, 비타겟 피해 감소 로직 |
-| `src/lib/simulator/systems/movement.ts` | 점프 목표 칸 탐색 헬퍼 (필요 시) |
+- `applyAssassinJump` 함수 삭제
+- 호출부 2곳 삭제
+- 암살자는 배치 위치에서 전투 시작, 이동으로 접근
 
-### 변경하지 않는 것
+### 3.3 스테이지 입력 UI
 
-- `targeting.ts`: 타겟팅 가중치는 이미 수정 완료
-- `mana.ts`: 마나 규칙 이미 정상
-- `unit.ts`: 추가 필드 불필요 (기존 `target`, `role` 활용)
-
----
-
-## 4. 구현 순서
-
-| Step | 내용 |
-|------|------|
-| 1 | 암살자 후열 점프 — 전투 시작 직후 (메인 루프 진입 전) 암살자 유닛을 적 후열 빈 칸으로 이동 + 로그 |
-| 2 | 비타겟 피해 감소 — 일반 공격 데미지 계산부에 Fighter/Assassin 비타겟 15% 감소 추가 |
-| 3 | 비타겟 피해 감소 — 어빌리티 데미지 계산부에도 동일 적용 |
-| 4 | 빌드 검증 |
+SimulatorContent의 BattleControls 영역에 스테이지 선택 드롭다운 추가:
+- 기본값: Stage 4
+- 범위: 1~7
+- 전사 AS 보너스 미리보기 표시
 
 ---
 
-## 5. MVP 범위
+## 4. 수정 파일 목록
 
-### 포함
-
-- 암살자 후열 점프 (가장 먼 적 근처 빈 칸으로 이동)
-- Fighter/Assassin 비타겟 피해 감소 15%
-
-### 제외 (후순위)
-
-- Marksman 크리티컬 확률 보너스 (데이터 확인 필요)
-- Specialist 고유 패시브 (챔피언마다 다름)
-- 암살자 점프 애니메이션 (현재 순간이동으로 처리)
+| # | 파일 | 변경 |
+|---|------|------|
+| 1 | `src/lib/simulator/engine/combatLoop.ts` | `applyFighterASBonus`, `applyAssassinJump`, SimulateOptions.stageNumber |
+| 2 | `src/lib/simulator/models/unit.ts` | 전사 AS 보너스 상수 테이블 |
+| 3 | `src/app/simulator/page.tsx` | stageNumber 상태 + simulateCombat에 전달 |
+| 4 | `src/components/battle/BattleControls.tsx` | 스테이지 선택 드롭다운 |
 
 ---
 
-## 6. 수용 기준
+## 5. 구현 순서
 
-1. 암살자가 전투 시작 시 적 후열 빈 칸으로 이동하고, 전투 로그에 점프 이벤트 기록
-2. Fighter/Assassin이 비타겟에게 받는 피해가 15% 감소
-3. 기존 타겟팅·마나·옴니뱀프 동작에 영향 없음
-4. `pnpm lint && pnpm typecheck && pnpm build` 통과
-5. 결정론적 — 동일 시드에서 동일 결과
+### Phase 1: 전사 AS 패시브
+1. SimulateOptions에 `stageNumber` 추가
+2. `applyFighterASBonus` 함수 구현 (CombatUnit 생성 후 호출)
+3. page.tsx에서 stageNumber 상태 관리 + simulateCombat 전달
+
+### Phase 2: 암살자 후열 점프
+4. `applyAssassinJump` 함수 구현 (전투 시작 직후, tick 루프 전)
+5. 점프 로그 기록
+
+### Phase 3: UI
+6. BattleControls에 스테이지 선택 드롭다운
+7. 역할군 툴팁에 패시브 설명 표시 (후순위)
+
+---
+
+## 6. 검증 기준
+
+| 시나리오 | 예상 결과 |
+|---------|----------|
+| Stage 4 전사 시뮬레이션 | AS +20% 적용 |
+| Stage 1 전사 시뮬레이션 | AS +5% 적용 |
+| 암살자 전투 시작 | 적 후열 근처로 점프, 로그에 기록 |
+| 암살자 빈 칸 없음 | 점프 안 함, 제자리 |
+| 마법사 CC 중 | 마나 획득/재생 없음 (기존 동작 유지) |
+| 탱커 피격 | 피격 시 마나 획득 (기존 동작 유지) |
+| lolchess.gg 설명과 비교 | 모든 수치 일치 |
+
+---
+
+*Updated: 2026-04-16*
+*Feature: role-passive*
+*Phase: Plan*

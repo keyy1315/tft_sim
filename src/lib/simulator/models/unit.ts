@@ -15,6 +15,14 @@ export const ROLE_OMNIVAMP: Record<UnitRole, number> = {
   Specialist: 0,
 };
 
+/** 전사 스테이지별 AS 보너스 (lolchess.gg: 5~30%) */
+const FIGHTER_AS_BY_STAGE = [0, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.30];
+
+export function getFighterASBonus(stageNumber: number): number {
+  const clamped = Math.max(1, Math.min(stageNumber, 7));
+  return FIGHTER_AS_BY_STAGE[clamped];
+}
+
 /** Role별 타게팅 가중치 — Tank(3) > Fighter/Assassin(2) > Marksman/Caster/Specialist(1) */
 export const TARGETING_WEIGHT: Record<UnitRole, number> = {
   Tank: 3,

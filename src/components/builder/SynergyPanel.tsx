@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { ActiveTrait, TRAIT_STYLE_COLORS, RawItem } from '@/types';
-import { getTraitImage } from '@/data/imageMap';
+import { ActiveTrait, TRAIT_STYLE_COLORS, RawItem, RawChampion, COST_COLORS } from '@/types';
+import { getTraitImage, getChampionImage } from '@/data/imageMap';
 import { resolveDescription } from '@/lib/utils/text';
 import Tooltip from '@/components/ui/Tooltip';
 import Image from 'next/image';
@@ -47,15 +47,20 @@ interface SynergyPanelProps {
   activeTraits: ActiveTrait[];
   team: 'player' | 'enemy';
   items: RawItem[];
+  champions?: RawChampion[];
   piltoverModules?: RawItem[];
   bilgewaterStats?: Record<string, number>;
   ioniaPath?: IoniaPathType | null;
   onIoniaPathChange?: (path: IoniaPathType) => void;
 }
 
-function TraitTooltipContent({ at }: { at: ActiveTrait }) {
+function TraitTooltipContent({ at, champions = [] }: { at: ActiveTrait; champions?: RawChampion[] }) {
+  const traitChampions = champions
+    .filter(c => c.traits.includes(at.trait.name))
+    .sort((a, b) => a.cost - b.cost);
+
   return (
-    <div className="max-w-[260px]">
+    <div className="max-w-[280px]">
       <div className="font-bold text-yellow-400 mb-1">{at.trait.name}</div>
       {at.trait.desc && (
         <div className="text-xs text-gray-300 mb-2 leading-relaxed whitespace-pre-line">
@@ -90,6 +95,28 @@ function TraitTooltipContent({ at }: { at: ActiveTrait }) {
           );
         })}
       </div>
+      {traitChampions.length > 0 && (
+        <>
+          <div className="border-t border-gray-600 mt-2 pt-2">
+            <div className="flex flex-wrap gap-1.5">
+              {traitChampions.map(c => (
+                <div key={c.apiName} className="flex items-center gap-1">
+                  <Image
+                    src={getChampionImage(c.apiName)}
+                    alt={c.name}
+                    width={20}
+                    height={20}
+                    className="rounded-full shrink-0"
+                    style={{ border: `1.5px solid ${COST_COLORS[c.cost] ?? '#6b7280'}` }}
+                    unoptimized
+                  />
+                  <span className="text-[10px] text-gray-300">{c.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -143,7 +170,7 @@ function PiltoverModulesSummary({ modules }: { modules: RawItem[] }) {
   );
 }
 
-export default function SynergyPanel({ activeTraits, team, items, piltoverModules = [], bilgewaterStats = {}, ioniaPath, onIoniaPathChange }: SynergyPanelProps) {
+export default function SynergyPanel({ activeTraits, team, items, champions = [], piltoverModules = [], bilgewaterStats = {}, ioniaPath, onIoniaPathChange }: SynergyPanelProps) {
   const [collapsed, setCollapsed] = useState(false);
   const teamLabel = team === 'player' ? 'TEAM A' : 'TEAM B';
   const teamColor = team === 'player' ? 'text-blue-400' : 'text-red-400';
@@ -191,7 +218,7 @@ export default function SynergyPanel({ activeTraits, team, items, piltoverModule
 
           return (
             <div key={at.trait.apiName}>
-              <Tooltip content={<TraitTooltipContent at={at} />}>
+              <Tooltip content={<TraitTooltipContent at={at} champions={champions} />}>
                 <div
                   className={`flex items-center gap-2 px-2 py-1 rounded ${isActive ? '' : 'opacity-60'}`}
                   style={isActive ? { backgroundColor: `${color}20` } : { backgroundColor: '#111827' }}

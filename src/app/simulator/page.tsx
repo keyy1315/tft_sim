@@ -77,6 +77,7 @@ function SimulatorContent() {
   const [showTeamCode, setShowTeamCode] = useState(false);
   const [logFilter, setLogFilter] = useState<CombatLog['type'] | 'all'>('all');
   const [isRunning, setIsRunning] = useState(false);
+  const [stageNumber, setStageNumber] = useState(4);
 
   // Filtered champions for pool
   const filteredChampions = useMemo(() => {
@@ -137,6 +138,7 @@ function SimulatorContent() {
         enemyGalio: tm.enemyGalio,
         playerHexBuffs,
         enemyHexBuffs,
+        stageNumber,
       });
       replay.setCombatResult(result);
       setIsRunning(false);
@@ -144,7 +146,7 @@ function SimulatorContent() {
       replay.setReplayTick(0);
       replay.setIsPlaying(true);
     }, 100);
-  }, [tm.playerTeam, tm.enemyTeam, traits, tm.playerAugments, tm.playerAugmentStacks, tm.enemyAugments, tm.enemyAugmentStacks, tm.playerBilgewaterStats, tm.enemyBilgewaterStats, tm.playerPiltoverModules, tm.enemyPiltoverModules, tm.playerIoniaPath, tm.enemyIoniaPath, tm.playerGalio, tm.enemyGalio, playerHexBuffs, enemyHexBuffs, items, toEightRowCoords, replay]);
+  }, [tm.playerTeam, tm.enemyTeam, traits, tm.playerAugments, tm.playerAugmentStacks, tm.enemyAugments, tm.enemyAugmentStacks, tm.playerBilgewaterStats, tm.enemyBilgewaterStats, tm.playerPiltoverModules, tm.enemyPiltoverModules, tm.playerIoniaPath, tm.enemyIoniaPath, tm.playerGalio, tm.enemyGalio, playerHexBuffs, enemyHexBuffs, stageNumber, items, toEightRowCoords, replay]);
 
   const runMultiple = useCallback(() => {
     if (tm.playerTeam.length === 0 || tm.enemyTeam.length === 0) return;
@@ -171,6 +173,7 @@ function SimulatorContent() {
           enemyGalio: tm.enemyGalio,
           playerHexBuffs,
           enemyHexBuffs,
+          stageNumber,
         });
         if (r.winner === 'player') playerWins++;
         else if (r.winner === 'enemy') enemyWins++;
@@ -185,7 +188,7 @@ function SimulatorContent() {
       replay.setViewMode('replay');
       replay.setReplayTick(lastResult ? lastResult.snapshots.length - 1 : 0);
     }, 100);
-  }, [tm.playerTeam, tm.enemyTeam, traits, tm.playerAugments, tm.playerAugmentStacks, tm.enemyAugments, tm.enemyAugmentStacks, tm.playerBilgewaterStats, tm.enemyBilgewaterStats, tm.playerPiltoverModules, tm.enemyPiltoverModules, tm.playerIoniaPath, tm.enemyIoniaPath, tm.playerGalio, tm.enemyGalio, playerHexBuffs, enemyHexBuffs, items, toEightRowCoords, replay]);
+  }, [tm.playerTeam, tm.enemyTeam, traits, tm.playerAugments, tm.playerAugmentStacks, tm.enemyAugments, tm.enemyAugmentStacks, tm.playerBilgewaterStats, tm.enemyBilgewaterStats, tm.playerPiltoverModules, tm.enemyPiltoverModules, tm.playerIoniaPath, tm.enemyIoniaPath, tm.playerGalio, tm.enemyGalio, playerHexBuffs, enemyHexBuffs, stageNumber, items, toEightRowCoords, replay]);
 
   const filteredLogs = useMemo(() => {
     if (!replay.combatResult) return [];
@@ -242,6 +245,17 @@ function SimulatorContent() {
             >
               팀 코드
             </button>
+            <select
+              value={stageNumber}
+              onChange={e => setStageNumber(Number(e.target.value))}
+              className="bg-[#1f2937] text-gray-300 text-[10px] lg:text-xs rounded-lg px-2 py-1.5 lg:px-2 lg:py-2 border border-gray-600"
+            >
+              {[1,2,3,4,5,6,7].map(s => (
+                <option key={s} value={s}>
+                  Stage {s}
+                </option>
+              ))}
+            </select>
             <button
               onClick={runSimulation}
               disabled={isRunning || tm.playerTeam.length === 0 || tm.enemyTeam.length === 0}
@@ -387,7 +401,7 @@ function SimulatorContent() {
 
               {/* Left: Both Synergy panels + Selected unit (desktop) */}
               <div className="order-3 lg:order-1 lg:w-52 lg:shrink-0 space-y-3">
-                <SynergyPanel activeTraits={tm.enemyTraits} team="enemy" items={items} piltoverModules={tm.enemyPiltoverModules} bilgewaterStats={tm.enemyBilgewaterStats} ioniaPath={tm.enemyIoniaPath} onIoniaPathChange={tm.setEnemyIoniaPath} />
+                <SynergyPanel activeTraits={tm.enemyTraits} team="enemy" items={items} champions={champions} piltoverModules={tm.enemyPiltoverModules} bilgewaterStats={tm.enemyBilgewaterStats} ioniaPath={tm.enemyIoniaPath} onIoniaPathChange={tm.setEnemyIoniaPath} />
                 <PiltoverModulePanel
                   modules={tm.enemyPiltoverModules}
                   allItems={items}
@@ -395,7 +409,7 @@ function SimulatorContent() {
                   onAddModule={(item) => tm.handleAddPiltoverModule('enemy', item)}
                   onRemoveModule={(idx) => tm.handleRemovePiltoverModule('enemy', idx)}
                 />
-                <SynergyPanel activeTraits={tm.playerTraits} team="player" items={items} piltoverModules={tm.playerPiltoverModules} bilgewaterStats={tm.playerBilgewaterStats} ioniaPath={tm.playerIoniaPath} onIoniaPathChange={tm.setPlayerIoniaPath} />
+                <SynergyPanel activeTraits={tm.playerTraits} team="player" items={items} champions={champions} piltoverModules={tm.playerPiltoverModules} bilgewaterStats={tm.playerBilgewaterStats} ioniaPath={tm.playerIoniaPath} onIoniaPathChange={tm.setPlayerIoniaPath} />
                 <PiltoverModulePanel
                   modules={tm.playerPiltoverModules}
                   allItems={items}

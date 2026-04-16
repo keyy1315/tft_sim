@@ -1,158 +1,186 @@
-# Design: 역할군 패시브 능력 구현
+# Design: 역할군 패시브 능력 구현 (Set 17 업데이트)
 
-## Executive Summary
+## 1. 현재 구현 현황
 
-| 항목 | 내용 |
-|------|------|
-| Feature | 역할군 패시브 능력 구현 |
-| Plan 참조 | `docs/01-plan/features/role-passive.plan.md` |
-| 작성일 | 2026-03-23 |
-| 상태 | Design |
+| 항목 | 상태 | 위치 |
+|------|:----:|------|
+| Fighter/Assassin 비타겟 피해 감소 15% | ✅ | `combatLoop.ts:458-459, 1617-1619, 1797-1799` |
+| 마나 수치 6종 | ✅ | `mana.ts:22-28` |
+| Caster 초당 마나 2 재생 | ✅ | `mana.ts:51-60` |
+| Tank 피격 시 마나 / 타게팅 가중치 / Fighter 옴니뱀프 | ✅ | 각각 구현 완료 |
+| **암살자 후열 점프 — 잘못된 구현** | ⚠️ 제거 필요 | `combatLoop.ts:462-524` |
+| **전사 AS 패시브 (5~30%, 스테이지 비례)** | ❌ | — |
+| **스테이지 번호 입력 UI** | ❌ | — |
 
----
+### 1.1 잘못된 구현: 암살자 후열 점프
 
-## 1. 암살자 후열 점프
-
-### 1.1 시점
-
-`simulateCombat()` 내에서 메인 루프 진입 전, Warden 보호막/프렐요드 포탑 소환 이후.
-
-```typescript
-// combatLoop.ts — 기존 순서:
-// 1. CombatUnit 생성
-// 2. Trait 옴니뱀프/보호막 적용
-// 3. Freljord 포탑 소환
-// 4. ← 여기에 암살자 점프 삽입
-// 5. 메인 전투 루프 시작
-```
-
-### 1.2 점프 목표 결정 알고리즘
-
-```typescript
-function applyAssassinJump(
-  teamUnits: CombatUnit[],
-  enemyUnits: CombatUnit[],
-  allUnits: CombatUnit[],
-  logs: CombatLog[],
-): void
-```
-
-**각 암살자 유닛에 대해:**
-
-1. 적 팀에서 가장 먼 유닛(현재 암살자 위치 기준 `hexDistance` 최대) 찾기
-   - 동거리 시 Marksman/Caster 우선 (딜러/마법사를 노리는 것이 암살자의 본질)
-2. 해당 유닛의 인접 빈 칸(`getNeighbors()`) 중 하나 선택
-   - 빈 칸 판별: `allUnits`의 현재 위치를 `occupiedPositions` Set으로 관리
-   - 여러 빈 칸 중 적 딜러에 가장 가까운 칸 선택
-3. 빈 칸이 없으면 점프하지 않음 (로그도 남기지 않음)
-4. 점프 시 위치 업데이트: `unit.position = targetHex`
-5. 전투 로그: `[역할군] {챔피언}이(가) 적 후열로 점프!`
-
-### 1.3 호출 위치
-
-```typescript
-// combatLoop.ts — applyWardenShields 이후, 메인 루프 전
-applyWardenShields(playerActiveTraits, playerUnits);
-applyWardenShields(enemyActiveTraits, enemies);
-
-const allUnits = [...playerUnits, ...enemies];
-
-// Freljord 포탑 소환
-// ...
-
-// 암살자 후열 점프 (포탑 소환 후, 점유 위치가 확정된 시점)
-applyAssassinJump(playerUnits, enemies, allUnits, logs);
-applyAssassinJump(enemies, playerUnits, allUnits, logs);
-```
+`applyAssassinJump` (combatLoop.ts:462-524)는 Set 17 역할군 패시브에 존재하지 않는 기능.
+lolchess.gg 기준 암살자 패시브는 **비타겟 피해 감소 15%만** 해당.
+후열 점프는 이전 세트의 잔재이므로 **제거해야 함**.
 
 ---
 
-## 2. 비타겟 피해 감소 (Fighter/Assassin 15%)
+## 2. 전사 AS 패시브 구현
 
-### 2.1 로직
-
-피해를 받는 유닛이 Fighter 또는 Assassin이고, 피해를 입히는 적이 자신의 현재 `target`이 아닌 경우 → 받는 피해 15% 감소.
+### 2.1 상수 테이블 (`src/lib/simulator/models/unit.ts`)
 
 ```typescript
-const NON_TARGET_DAMAGE_REDUCTION = 0.15;
+/** 전사 스테이지별 AS 보너스 (lolchess.gg: 5~30%) */
+export const FIGHTER_AS_BY_STAGE: number[] = [
+  0,     // stage 0 (미사용)
+  0.05,  // stage 1: +5%
+  0.10,  // stage 2: +10%
+  0.15,  // stage 3: +15%
+  0.20,  // stage 4: +20%
+  0.25,  // stage 5: +25%
+  0.30,  // stage 6: +30%
+  0.30,  // stage 7: +30% (상한)
+];
 
-// damageReduction 적용 직후에 추가
-if ((target.role === 'Fighter' || target.role === 'Assassin') && target.target !== unit.id) {
-  finalDamage *= (1 - NON_TARGET_DAMAGE_REDUCTION);
+export function getFighterASBonus(stageNumber: number): number {
+  const clamped = Math.max(1, Math.min(stageNumber, 7));
+  return FIGHTER_AS_BY_STAGE[clamped];
 }
 ```
 
-### 2.2 적용 위치 (2곳)
-
-**일반 공격 데미지** — `combatLoop.ts` line ~842 (damageReduction 이후)
+### 2.2 SimulateOptions 확장 (`combatLoop.ts`)
 
 ```typescript
-// Apply target's damage reduction from augments
-if (target.damageReduction > 0) {
-  finalDamage *= (1 - target.damageReduction);
-}
-
-// Fighter/Assassin 비타겟 피해 감소 15%
-if ((target.role === 'Fighter' || target.role === 'Assassin') && target.target !== unit.id) {
-  finalDamage *= (1 - NON_TARGET_DAMAGE_REDUCTION);
+export interface SimulateOptions {
+  // 기존...
+  /** 현재 스테이지 번호 (전사 AS 패시브, 기본값 4) */
+  stageNumber?: number;
 }
 ```
 
-**어빌리티 데미지** — `combatLoop.ts` line ~949 (damageReduction 이후)
+### 2.3 전투 시작 시 적용 함수 (`combatLoop.ts`)
 
 ```typescript
-if (t.damageReduction > 0) {
-  effectiveDmg *= (1 - t.damageReduction);
-}
+import { getFighterASBonus } from '@/lib/simulator/models/unit';
 
-// Fighter/Assassin 비타겟 피해 감소 15%
-if ((t.role === 'Fighter' || t.role === 'Assassin') && t.target !== unit.id) {
-  effectiveDmg *= (1 - NON_TARGET_DAMAGE_REDUCTION);
+function applyFighterASBonus(units: CombatUnit[], stageNumber: number): void {
+  const bonus = getFighterASBonus(stageNumber);
+  if (bonus <= 0) return;
+  for (const unit of units) {
+    if (unit.role === 'Fighter') {
+      unit.stats.attackSpeed *= (1 + bonus);
+    }
+  }
 }
 ```
 
-### 2.3 주의사항
+### 2.4 호출 위치
 
-- `target.target`은 피해를 받는 유닛의 현재 공격 대상 ID
-- `unit.id`는 피해를 입히는 유닛의 ID
-- `target.target !== unit.id` → "나를 타겟하지 않은 적에게 받는 피해" 감소
-- 전투 시작 전(target이 null인 경우)에는 모든 피해에 감소 적용 (null !== unit.id = true)
-  → 이건 의도적. 전투 초반 암살자가 점프한 직후 아직 타겟을 잡지 않은 상태에서 보호
+시너지 버프 적용 직후, 칸 버프 전 (현재 ~1431줄):
 
----
+```
+applySet17SynergyBuffs(playerActiveTraits, playerUnits);
+applySet17SynergyBuffs(enemyActiveTraits, enemies);
 
-## 3. 수정 파일
+const stageNumber = options.stageNumber ?? 4;          ← 추가
+applyFighterASBonus(playerUnits, stageNumber);          ← 추가
+applyFighterASBonus(enemies, stageNumber);              ← 추가
 
-| 파일 | 변경 내용 |
-|------|----------|
-| `src/lib/simulator/engine/combatLoop.ts` | `applyAssassinJump()` 함수 추가, 비타겟 피해 감소 로직 2곳 추가, 상수 `NON_TARGET_DAMAGE_REDUCTION` 추가 |
-
-### 변경하지 않는 것
-
-- `targeting.ts`: 가중치는 이미 수정 완료
-- `movement.ts`: `getNeighbors()`, `coordKey()` 이미 존재, 추가 불필요
-- `unit.ts`: 추가 필드 불필요
-- `mana.ts`: 이미 정상
+if (options.playerHexBuffs?.length) applyHexBuffs(...);
+```
 
 ---
 
-## 4. 구현 순서
+## 3. 스테이지 번호 입력 UI
 
-| Step | 내용 |
-|------|------|
-| 1 | `NON_TARGET_DAMAGE_REDUCTION` 상수 추가 |
-| 2 | `applyAssassinJump()` 함수 구현 |
-| 3 | `simulateCombat()` 내 암살자 점프 호출 추가 |
-| 4 | 일반 공격 데미지 계산부에 비타겟 피해 감소 추가 |
-| 5 | 어빌리티 데미지 계산부에 비타겟 피해 감소 추가 |
-| 6 | `pnpm lint && pnpm typecheck && pnpm build` 통과 확인 |
+### 3.1 page.tsx 상태
+
+```typescript
+const [stageNumber, setStageNumber] = useState(4);
+```
+
+### 3.2 simulateCombat에 전달
+
+두 곳 (runSimulation, runMultiple) 모두:
+```typescript
+simulateCombat(mappedPlayer, tm.enemyTeam, {
+  // 기존...
+  stageNumber,
+});
+```
+
+useCallback 의존성 배열에 `stageNumber` 추가.
+
+### 3.3 드롭다운 UI 위치
+
+시뮬레이션 버튼 영역(팀 설정 패널)에 배치:
+
+```tsx
+<div className="flex items-center gap-2">
+  <label className="text-xs text-gray-400">스테이지</label>
+  <select
+    value={stageNumber}
+    onChange={e => setStageNumber(Number(e.target.value))}
+    className="bg-[#1f2937] text-gray-200 text-sm rounded px-2 py-1 border border-gray-600"
+  >
+    {[1,2,3,4,5,6,7].map(s => (
+      <option key={s} value={s}>
+        Stage {s} (전사 AS +{s <= 6 ? s * 5 : 30}%)
+      </option>
+    ))}
+  </select>
+</div>
+```
 
 ---
 
-## 5. 수용 기준
+## 4. 암살자 후열 점프 제거
 
-1. 암살자가 전투 시작 시 적 후열 빈 칸으로 이동, 로그에 `[역할군]` 점프 이벤트 기록
-2. Fighter/Assassin이 비타겟에게 받는 피해 15% 감소 (일반 공격 + 어빌리티 모두)
-3. 기존 타겟팅·마나·옴니뱀프 동작에 영향 없음
-4. 결정론적 — 동일 시드에서 동일 결과
-5. 빌드 통과
+### 4.1 제거 대상
+
+- `applyAssassinJump` 함수 (combatLoop.ts:462-524)
+- 호출부 2곳 (combatLoop.ts:1501-1502)
+
+### 4.2 주의사항
+
+- 함수 제거 후 `getTargetingWeight` import가 이 함수에서만 사용되는지 확인
+- 제거 후 암살자는 일반 유닛과 동일하게 배치 위치에서 전투 시작 (이동으로 접근)
+
+---
+
+## 5. 수정 파일 목록
+
+| # | 파일 | 변경 |
+|---|------|------|
+| 1 | `src/lib/simulator/models/unit.ts` | `FIGHTER_AS_BY_STAGE` 배열, `getFighterASBonus` 함수 추가 |
+| 2 | `src/lib/simulator/engine/combatLoop.ts` | `applyAssassinJump` 제거, `SimulateOptions.stageNumber`, `applyFighterASBonus` 추가 |
+| 3 | `src/app/simulator/page.tsx` | `stageNumber` 상태, simulateCombat 전달, 드롭다운 UI |
+
+---
+
+## 6. 구현 순서
+
+### Phase 1: 잘못된 구현 제거
+1. `combatLoop.ts` — `applyAssassinJump` 함수 + 호출부 제거
+
+### Phase 2: 전사 AS 패시브 (엔진)
+2. `unit.ts` — `FIGHTER_AS_BY_STAGE` + `getFighterASBonus`
+3. `combatLoop.ts` — `SimulateOptions.stageNumber` + `applyFighterASBonus` + 호출
+
+### Phase 3: UI
+4. `page.tsx` — `stageNumber` 상태 + simulateCombat 전달 + 드롭다운
+
+---
+
+## 7. 테스트 체크리스트
+
+- [ ] 암살자 전투 시작 → 후열 점프 없음 (배치 위치에서 시작)
+- [ ] Stage 1 전사 → AS × 1.05
+- [ ] Stage 4 전사 (기본값) → AS × 1.20
+- [ ] Stage 7 전사 → AS × 1.30 (상한)
+- [ ] 비전사 유닛 → AS 보너스 없음
+- [ ] stageNumber 미입력 → 기본값 4 적용
+- [ ] 100전 시뮬 → stageNumber 일관 적용
+- [ ] 비타겟 피해 감소 → 기존 동작 유지
+
+---
+
+*Updated: 2026-04-16*
+*Feature: role-passive*
+*Phase: Design*
+*References: role-passive.plan.md*

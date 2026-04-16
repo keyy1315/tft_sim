@@ -14,10 +14,10 @@ import { getHexesInRadius } from '@/lib/simulator/models/hex';
 import { TICK_DURATION, MAX_TICKS, TICKS_PER_SECOND, CAST_TICKS, SELF_BUFF_CAST_TICKS, INITIAL_ATTACK_DELAY } from '@/lib/simulator/models/constants';
 import { createRNG, SeededRNG } from '@/lib/simulator/engine/rng';
 import { captureSnapshot } from '@/lib/simulator/engine/replayEngine';
-import { findTarget, getTargetingWeight } from '@/lib/simulator/systems/targeting';
+import { findTarget } from '@/lib/simulator/systems/targeting';
 import { gainManaOnAttack, gainManaPerTick, gainManaOnDamageTaken } from '@/lib/simulator/systems/mana';
 import { EventBus } from '@/lib/simulator/events/eventBus';
-import { ROLE_OMNIVAMP } from '@/lib/simulator/models/unit';
+import { ROLE_OMNIVAMP, getFighterASBonus } from '@/lib/simulator/models/unit';
 import { resolveTraits } from '@/lib/simulator/systems/trait';
 import { resolveAugmentEffects, resolveInCombatAugmentEffects, resolvePerUnitMods, applyPerUnitMods, AugmentWithStacks } from '@/lib/simulator/systems/augment';
 import type { IoniaPathType } from '@/data/traitModules';
@@ -67,6 +67,8 @@ export interface SimulateOptions {
   /** 칸 버프 증강 */
   playerHexBuffs?: HexBuff[];
   enemyHexBuffs?: HexBuff[];
+  /** 현재 스테이지 번호 (전사 AS 패시브, 기본값 4) */
+  stageNumber?: number;
 }
 
 function createCombatUnit(
@@ -458,71 +460,6 @@ function applyIoniaPath(
 /** Fighter/Assassin 비타겟 피해 감소 비율 */
 const NON_TARGET_DAMAGE_REDUCTION = 0.15;
 
-/** 전투 시작 시 암살자 유닛을 적 후열로 점프시킴 */
-function applyAssassinJump(
-  teamUnits: CombatUnit[],
-  enemyUnits: CombatUnit[],
-  allUnits: CombatUnit[],
-  logs: CombatLog[],
-): void {
-  const assassins = teamUnits.filter(u => u.role === 'Assassin' && u.state !== 'dead');
-  if (assassins.length === 0) return;
-
-  const aliveEnemies = enemyUnits.filter(u => u.state !== 'dead');
-  if (aliveEnemies.length === 0) return;
-
-  const occupiedPositions = new Set(
-    allUnits.filter(u => u.state !== 'dead').map(u => coordKey(u.position))
-  );
-
-  for (const assassin of assassins) {
-    // 적 팀에서 가장 먼 유닛 찾기 (Marksman/Caster 우선)
-    let farthestDist = 0;
-    let farthestEnemy: CombatUnit | null = null;
-    for (const enemy of aliveEnemies) {
-      const dist = hexDistance(assassin.position, enemy.position);
-      if (dist > farthestDist) {
-        farthestDist = dist;
-        farthestEnemy = enemy;
-      } else if (dist === farthestDist && farthestEnemy) {
-        const enemyWeight = getTargetingWeight(enemy.role);
-        const currentWeight = getTargetingWeight(farthestEnemy.role);
-        if (enemyWeight < currentWeight) {
-          farthestEnemy = enemy;
-        }
-      }
-    }
-    if (!farthestEnemy) continue;
-
-    // 해당 유닛 인접 빈 칸 중 하나 선택
-    const neighbors = getNeighbors(farthestEnemy.position);
-    const freeNeighbors = neighbors.filter(n => !occupiedPositions.has(coordKey(n)));
-    if (freeNeighbors.length === 0) continue;
-
-    // 가장 가까운 빈 칸 선택 (적 딜러에 가장 가까운 칸)
-    let bestHex = freeNeighbors[0];
-    let bestDist = Infinity;
-    for (const hex of freeNeighbors) {
-      const dist = hexDistance(hex, farthestEnemy.position);
-      if (dist < bestDist) {
-        bestDist = dist;
-        bestHex = hex;
-      }
-    }
-
-    // 이전 위치 해제, 새 위치 점유
-    occupiedPositions.delete(coordKey(assassin.position));
-    assassin.position = bestHex;
-    occupiedPositions.add(coordKey(bestHex));
-
-    const log: CombatLog = {
-      tick: 0, time: 0, type: 'move',
-      sourceId: assassin.id,
-      message: `[역할군] ${assassin.champion.name}이(가) 적 후열로 점프!`,
-    };
-    logs.push(log);
-  }
-}
 
 function applyResistance(damage: number, resistance: number, penetration: number = 0): number {
   const effective = resistance * (1 - Math.min(penetration, 1));
@@ -1429,6 +1366,18 @@ export function simulateCombat(
   applySet17SynergyBuffs(playerActiveTraits, playerUnits);
   applySet17SynergyBuffs(enemyActiveTraits, enemies);
 
+  // === 전사 AS 패시브 (스테이지 비례 5~30%) ===
+  const stageNumber = options.stageNumber ?? 4;
+  const fighterASBonus = getFighterASBonus(stageNumber);
+  if (fighterASBonus > 0) {
+    for (const u of playerUnits) {
+      if (u.role === 'Fighter') u.stats.attackSpeed *= (1 + fighterASBonus);
+    }
+    for (const u of enemies) {
+      if (u.role === 'Fighter') u.stats.attackSpeed *= (1 + fighterASBonus);
+    }
+  }
+
   // === 칸 버프 증강 ===
   if (options.playerHexBuffs?.length) applyHexBuffs(playerUnits, options.playerHexBuffs);
   if (options.enemyHexBuffs?.length) applyHexBuffs(enemies, options.enemyHexBuffs);
@@ -1497,9 +1446,6 @@ export function simulateCombat(
   playerUnits.push(...playerTurrets);
   enemies.push(...enemyTurrets);
 
-  // 암살자 후열 점프 (전투 시작 직전)
-  applyAssassinJump(playerUnits, enemies, allUnits, logs);
-  applyAssassinJump(enemies, playerUnits, allUnits, logs);
 
   const snapshots: TickSnapshot[] = [];
   const moveTicks = getMoveTicks();
