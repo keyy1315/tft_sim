@@ -64,7 +64,7 @@ export function decodeTeamCode(
 
     result.champions.push({
       champion,
-      starLevel: starLevel || 2,
+      starLevel: starLevel === 0 ? 1 : starLevel,
     });
   }
 

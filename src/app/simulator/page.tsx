@@ -13,6 +13,7 @@ import { useDndHandlers } from '@/hooks/useDndHandlers';
 import { getItemCategory, isDisabledItem } from '@/lib/simulator/systems/item';
 import { isBilgewaterStatItem } from '@/data/traitModules';
 import { resolveBilgewaterStatEffects } from '@/lib/simulator/systems/stat';
+import { resolveHexBuffs } from '@/data/augmentHexBuffs';
 import ChampionGrid from '@/components/builder/ChampionGrid';
 import SetupBoard from '@/components/battle/SetupBoard';
 import DroppableHexCell from '@/components/battle/DroppableHexCell';
@@ -103,6 +104,16 @@ function SimulatorContent() {
     });
   }, []);
 
+  // 칸 버프 계산 (증강 + 팀 구성 변경 시 재계산)
+  const playerHexBuffs = useMemo(() =>
+    resolveHexBuffs(tm.playerAugments.map(a => a.apiName), tm.playerTeam),
+    [tm.playerAugments, tm.playerTeam]
+  );
+  const enemyHexBuffs = useMemo(() =>
+    resolveHexBuffs(tm.enemyAugments.map(a => a.apiName), tm.enemyTeam),
+    [tm.enemyAugments, tm.enemyTeam]
+  );
+
   const runSimulation = useCallback(() => {
     if (tm.playerTeam.length === 0 || tm.enemyTeam.length === 0) return;
     setIsRunning(true);
@@ -124,6 +135,8 @@ function SimulatorContent() {
         enemyIoniaPath: tm.enemyIoniaPath ?? undefined,
         playerGalio: tm.playerGalio,
         enemyGalio: tm.enemyGalio,
+        playerHexBuffs,
+        enemyHexBuffs,
       });
       replay.setCombatResult(result);
       setIsRunning(false);
@@ -131,7 +144,7 @@ function SimulatorContent() {
       replay.setReplayTick(0);
       replay.setIsPlaying(true);
     }, 100);
-  }, [tm.playerTeam, tm.enemyTeam, traits, tm.playerAugments, tm.playerAugmentStacks, tm.enemyAugments, tm.enemyAugmentStacks, tm.playerBilgewaterStats, tm.enemyBilgewaterStats, tm.playerPiltoverModules, tm.enemyPiltoverModules, tm.playerIoniaPath, tm.enemyIoniaPath, tm.playerGalio, tm.enemyGalio, items, toEightRowCoords, replay]);
+  }, [tm.playerTeam, tm.enemyTeam, traits, tm.playerAugments, tm.playerAugmentStacks, tm.enemyAugments, tm.enemyAugmentStacks, tm.playerBilgewaterStats, tm.enemyBilgewaterStats, tm.playerPiltoverModules, tm.enemyPiltoverModules, tm.playerIoniaPath, tm.enemyIoniaPath, tm.playerGalio, tm.enemyGalio, playerHexBuffs, enemyHexBuffs, items, toEightRowCoords, replay]);
 
   const runMultiple = useCallback(() => {
     if (tm.playerTeam.length === 0 || tm.enemyTeam.length === 0) return;
@@ -156,6 +169,8 @@ function SimulatorContent() {
           enemyIoniaPath: tm.enemyIoniaPath ?? undefined,
           playerGalio: tm.playerGalio,
           enemyGalio: tm.enemyGalio,
+          playerHexBuffs,
+          enemyHexBuffs,
         });
         if (r.winner === 'player') playerWins++;
         else if (r.winner === 'enemy') enemyWins++;
@@ -170,7 +185,7 @@ function SimulatorContent() {
       replay.setViewMode('replay');
       replay.setReplayTick(lastResult ? lastResult.snapshots.length - 1 : 0);
     }, 100);
-  }, [tm.playerTeam, tm.enemyTeam, traits, tm.playerAugments, tm.playerAugmentStacks, tm.enemyAugments, tm.enemyAugmentStacks, tm.playerBilgewaterStats, tm.enemyBilgewaterStats, tm.playerPiltoverModules, tm.enemyPiltoverModules, tm.playerIoniaPath, tm.enemyIoniaPath, tm.playerGalio, tm.enemyGalio, items, toEightRowCoords, replay]);
+  }, [tm.playerTeam, tm.enemyTeam, traits, tm.playerAugments, tm.playerAugmentStacks, tm.enemyAugments, tm.enemyAugmentStacks, tm.playerBilgewaterStats, tm.enemyBilgewaterStats, tm.playerPiltoverModules, tm.enemyPiltoverModules, tm.playerIoniaPath, tm.enemyIoniaPath, tm.playerGalio, tm.enemyGalio, playerHexBuffs, enemyHexBuffs, items, toEightRowCoords, replay]);
 
   const filteredLogs = useMemo(() => {
     if (!replay.combatResult) return [];
@@ -278,6 +293,8 @@ function SimulatorContent() {
                       onUnitCycleStars={tm.handleCycleStars}
                       selectedCell={tm.selectedCell}
                       selectedUnit={tm.selectedUnit}
+                      playerHexBuffs={playerHexBuffs}
+                      enemyHexBuffs={enemyHexBuffs}
                     />
                     {/* Droppable overlay */}
                     <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>

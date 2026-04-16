@@ -1,6 +1,6 @@
 'use client';
 
-import { PlacedChampion, HexCoord, axialToOffset, offsetToAxial, COST_COLORS, MF_MODE_CONFIG } from '@/types';
+import { PlacedChampion, HexCoord, HexBuff, axialToOffset, offsetToAxial, COST_COLORS, MF_MODE_CONFIG } from '@/types';
 import { getChampionImage, getItemImage } from '@/data/imageMap';
 import { BOARD_COLS } from '@/lib/simulator/models/constants';
 import { hexPoints, hexCenter, HEX_R, HEX_W, HEX_H, PAD } from './HexBoard';
@@ -14,6 +14,8 @@ interface SetupBoardProps {
   onUnitCycleStars?: (team: 'player' | 'enemy', index: number) => void;
   selectedCell?: HexCoord | null;
   selectedUnit?: { team: 'player' | 'enemy'; index: number } | null;
+  playerHexBuffs?: HexBuff[];
+  enemyHexBuffs?: HexBuff[];
 }
 
 const ROWS = 8;
@@ -115,6 +117,8 @@ export default function SetupBoard({
   onUnitCycleStars,
   selectedCell,
   selectedUnit,
+  playerHexBuffs = [],
+  enemyHexBuffs = [],
 }: SetupBoardProps) {
   const cols = BOARD_COLS;
   const width = cols * (HEX_W + PAD) + HEX_W / 2 + 40;
@@ -122,6 +126,22 @@ export default function SetupBoard({
 
   // 프렐요드 포탑 효과 범위
   const turretZones = getTurretEffectZones(playerChampions, enemyChampions);
+
+  // 칸 버프 → display row/col 기준 Set 생성
+  const hexBuffMap = new Map<string, { color: string; label: string; movable: boolean }>();
+  for (const buff of playerHexBuffs) {
+    for (const pos of buff.positions) {
+      const off = axialToOffset(pos);
+      const displayRow = off.row + 4;
+      hexBuffMap.set(`${displayRow}-${off.col}`, { color: buff.color, label: buff.label, movable: buff.movable });
+    }
+  }
+  for (const buff of enemyHexBuffs) {
+    for (const pos of buff.positions) {
+      const off = axialToOffset(pos);
+      hexBuffMap.set(`${off.row}-${off.col}`, { color: buff.color, label: buff.label, movable: buff.movable });
+    }
+  }
 
   const selectedOffset = selectedCell ? axialToOffset(selectedCell) : null;
 
@@ -198,7 +218,8 @@ export default function SetupBoard({
           const zoneKey = `${row}-${col}`;
           const isFrontZone = turretZones.front.has(zoneKey);
           const isBackZone = turretZones.back.has(zoneKey);
-          const bgTint = isFrontZone ? '#152515' : isBackZone ? '#251a15' : team === 'enemy' ? '#1c1018' : '#101820';
+          const hexBuffInfo = hexBuffMap.get(zoneKey);
+          const bgTint = hexBuffInfo ? `${hexBuffInfo.color}18` : isFrontZone ? '#152515' : isBackZone ? '#251a15' : team === 'enemy' ? '#1c1018' : '#101820';
           const costColor = result ? COST_COLORS[result.placed.champion.cost] : undefined;
           const teamHighlight = team === 'player' ? '#3b82f6' : '#ef4444';
 
@@ -235,9 +256,15 @@ export default function SetupBoard({
               <polygon
                 points={hexPoints(cx, cy, HEX_R)}
                 fill={result ? `url(#setup-img-${row}-${col})` : bgTint}
-                stroke={unitSel ? '#f59e0b' : sel ? teamHighlight : result ? costColor : isFrontZone ? '#22c55e40' : isBackZone ? '#f59e0b40' : '#2d3548'}
-                strokeWidth={unitSel ? 2.5 : sel ? 2.5 : result ? 2 : (isFrontZone || isBackZone) ? 1.5 : 1}
+                stroke={unitSel ? '#f59e0b' : sel ? teamHighlight : result ? costColor : hexBuffInfo ? `${hexBuffInfo.color}90` : isFrontZone ? '#22c55e40' : isBackZone ? '#f59e0b40' : '#2d3548'}
+                strokeWidth={unitSel ? 2.5 : sel ? 2.5 : result ? 2 : hexBuffInfo ? 2 : (isFrontZone || isBackZone) ? 1.5 : 1}
+                strokeDasharray={hexBuffInfo?.movable ? '4 2' : undefined}
               />
+              {hexBuffInfo && !result && (
+                <text x={cx} y={cy + 4} textAnchor="middle" fill={hexBuffInfo.color} fontSize="8" fontWeight="bold" opacity={0.7}>
+                  {hexBuffInfo.label}
+                </text>
+              )}
               {result && result.placed.starLevel > 0 && (
                 <text x={cx} y={cy - HEX_R + 14} textAnchor="middle" fill="#f59e0b" fontSize="14" fontWeight="bold"
                   stroke="#fff" strokeWidth={2} paintOrder="stroke">

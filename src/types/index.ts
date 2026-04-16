@@ -320,6 +320,28 @@ export interface PlacedChampion {
   voidItem?: RawItem | null;
   mfMode?: MfMode | null;
   permanentStacks?: PermanentStack | null;
+  isDummy?: boolean;
+}
+
+// === Hex Buff (칸 버프 증강) ===
+export interface HexBuffEffects {
+  hp?: number;
+  hpPercent?: number;
+  attackSpeed?: number;
+  damageAmp?: number;
+  armor?: number;
+  magicResist?: number;
+  ap?: number;
+  ad?: number;
+}
+
+export interface HexBuff {
+  augmentApiName: string;
+  positions: HexCoord[];
+  movable: boolean;
+  effects: HexBuffEffects;
+  color: string;
+  label: string;
 }
 
 export interface TeamComp {
@@ -435,6 +457,8 @@ export interface CombatUnit {
   augmentBurnPercent: number;
   /** 발명품 탱커 대상 추가 피해증폭 (ArmorNullifier) */
   inventionTankDamageAmp: number;
+  /** MF 특성 선택 등으로 치환된 실제 트레이트 목록 */
+  resolvedTraits?: string[];
 }
 
 export interface CombatLog {
