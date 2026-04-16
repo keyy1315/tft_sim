@@ -13,9 +13,11 @@ interface DroppableHexCellProps {
   onClick?: () => void;
   onDoubleClick?: () => void;
   onContextMenu?: (e: MouseEvent) => void;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
 }
 
-export default function DroppableHexCell({ id, row, col, placedUnit, onClick, onDoubleClick, onContextMenu }: DroppableHexCellProps) {
+export default function DroppableHexCell({ id, row, col, placedUnit, onClick, onDoubleClick, onContextMenu, onMouseEnter, onMouseLeave }: DroppableHexCellProps) {
   const { isOver, setNodeRef: setDropRef } = useDroppable({ id });
   const dragData: DragData | undefined = placedUnit
     ? { type: 'placed-unit', team: placedUnit.team, position: placedUnit.position }
@@ -39,6 +41,8 @@ export default function DroppableHexCell({ id, row, col, placedUnit, onClick, on
       onClick={onClick}
       onDoubleClick={onDoubleClick}
       onContextMenu={onContextMenu}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
       style={{
         position: 'absolute',
         left: cx - size / 2,

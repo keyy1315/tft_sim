@@ -14,6 +14,8 @@ import { getItemCategory, isDisabledItem } from '@/lib/simulator/systems/item';
 import { isBilgewaterStatItem } from '@/data/traitModules';
 import { resolveBilgewaterStatEffects } from '@/lib/simulator/systems/stat';
 import { resolveHexBuffs } from '@/data/augmentHexBuffs';
+import { resolveDescription } from '@/lib/utils/text';
+import { hexCenter, HEX_R } from '@/components/battle/HexBoard';
 import ChampionGrid from '@/components/builder/ChampionGrid';
 import SetupBoard from '@/components/battle/SetupBoard';
 import DroppableHexCell from '@/components/battle/DroppableHexCell';
@@ -78,6 +80,7 @@ function SimulatorContent() {
   const [logFilter, setLogFilter] = useState<CombatLog['type'] | 'all'>('all');
   const [isRunning, setIsRunning] = useState(false);
   const [stageNumber, setStageNumber] = useState(4);
+  const [hoverUnit, setHoverUnit] = useState<{ placed: PlacedChampion; row: number; col: number } | null>(null);
 
   // Filtered champions for pool
   const filteredChampions = useMemo(() => {
@@ -347,9 +350,38 @@ function SimulatorContent() {
                               placedUnit={placed ? { team, position: placed.position } : null}
                               onClick={cellClick}
                               onContextMenu={cellContextMenu}
+                              onMouseEnter={placed ? () => setHoverUnit({ placed, row, col }) : undefined}
+                              onMouseLeave={() => setHoverUnit(null)}
                             />
                           );
                         })
+                      )}
+                      {hoverUnit && (
+                        <div
+                          className="absolute pointer-events-none z-50"
+                          style={{
+                            left: hexCenter(hoverUnit.row, hoverUnit.col).cx,
+                            top: hexCenter(hoverUnit.row, hoverUnit.col).cy - HEX_R - 8,
+                            transform: 'translate(-50%, -100%)',
+                          }}
+                        >
+                          <div className="bg-[#1a1f2e] border border-gray-600 rounded-lg px-3 py-2 shadow-xl max-w-[240px]">
+                            <div className="font-bold text-yellow-400 text-xs mb-1">
+                              {hoverUnit.placed.champion.name}
+                              <span className="text-gray-500 ml-1 font-normal">
+                                {hoverUnit.placed.champion.ability.name}
+                              </span>
+                            </div>
+                            <div className="text-[10px] text-gray-300 leading-relaxed whitespace-pre-line">
+                              {resolveDescription(
+                                hoverUnit.placed.champion.ability.desc,
+                                Object.fromEntries(
+                                  (hoverUnit.placed.champion.ability.variables ?? []).map(v => [v.name, v.value?.[hoverUnit.placed.starLevel] ?? 0])
+                                )
+                              )}
+                            </div>
+                          </div>
+                        </div>
                       )}
                       </div>
                     </div>
