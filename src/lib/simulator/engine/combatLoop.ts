@@ -1687,7 +1687,9 @@ export function simulateCombat(
             const { damage: rawAbilityDmg, type: dmgType } = getAbilityDamage(
               unit.champion, unit.starLevel, unit.stats.ap, 0, config.damageVar
             );
-            const abilityDmg = config.hitCount ? rawAbilityDmg * config.hitCount : rawAbilityDmg;
+            // hitCount: single은 곱연산, AOE/multi는 총 피해를 타겟 수로 분배 (후술)
+            const hitCountTotal = config.hitCount ? rawAbilityDmg * config.hitCount : rawAbilityDmg;
+            const isSplitDamage = config.hitCount && config.pattern !== 'single';
             const opposingTeam = unit.team === 'player' ? enemies : playerUnits;
 
             // 대쉬 이동 (config.dash가 있으면 대상 인접 칸으로 이동)
@@ -1718,16 +1720,23 @@ export function simulateCombat(
 
             // 다중 타겟 피해 루프
             let totalAbilityDmg = 0;
+            const aliveTargets = abilityTargets.filter(t => t.state !== 'dead');
+            const abilityDmg = isSplitDamage && aliveTargets.length > 0
+              ? hitCountTotal / aliveTargets.length
+              : hitCountTotal;
 
             // DOT 스킬: 즉발 대신 burn statusEffect로 지속 피해 적용
             if (config.dot) {
               const dotTicks = Math.round(config.dot.duration * TICKS_PER_SECOND);
-              const dotDmgPerTick = abilityDmg / config.dot.duration * TICK_DURATION;
-              for (const t of abilityTargets) {
-                if (t.state === 'dead') continue;
+              for (const t of aliveTargets) {
+                // DOT도 방어력/피해감소 적용
+                const resistance = dmgType === 'magic' ? t.stats.magicResist : dmgType === 'physical' ? t.stats.armor : 0;
+                const pen = dmgType === 'magic' ? unit.stats.magicPen : dmgType === 'physical' ? unit.stats.armorPen : 0;
+                const mitigated = dmgType === 'true' ? abilityDmg * (1 + unit.damageAmp) : applyResistance(abilityDmg * (1 + unit.damageAmp), resistance, pen);
+                const perTickDmg = mitigated / config.dot.duration * TICK_DURATION;
                 t.statusEffects.push({
                   type: 'burn', sourceId: unit.id,
-                  remainingTicks: dotTicks, value: dotDmgPerTick * (1 + unit.damageAmp),
+                  remainingTicks: dotTicks, value: perTickDmg,
                 });
               }
               const dotLog: CombatLog = {
@@ -1926,7 +1935,8 @@ export function simulateCombat(
           const { damage: rawOORDmg, type: dmgType } = getAbilityDamage(
             unit.champion, unit.starLevel, unit.stats.ap, 0, outOfRangeConfig.damageVar
           );
-          const abilityDmg = outOfRangeConfig.hitCount ? rawOORDmg * outOfRangeConfig.hitCount : rawOORDmg;
+          const oorHitTotal = outOfRangeConfig.hitCount ? rawOORDmg * outOfRangeConfig.hitCount : rawOORDmg;
+          const oorIsSplit = outOfRangeConfig.hitCount && outOfRangeConfig.pattern !== 'single';
           const opposingTeam = unit.team === 'player' ? enemies : playerUnits;
 
           let abilityTarget = target;
@@ -1958,16 +1968,21 @@ export function simulateCombat(
 
           // 피해 적용
           let totalAbilityDmg = 0;
+          const oorAlive = abilityTargets.filter(t => t.state !== 'dead');
+          const abilityDmg = oorIsSplit && oorAlive.length > 0
+            ? oorHitTotal / oorAlive.length
+            : oorHitTotal;
 
           if (outOfRangeConfig.dot) {
-            // DOT: burn statusEffect
             const dotTicks = Math.round(outOfRangeConfig.dot.duration * TICKS_PER_SECOND);
-            const dotDmgPerTick = abilityDmg / outOfRangeConfig.dot.duration * TICK_DURATION;
-            for (const t of abilityTargets) {
-              if (t.state === 'dead') continue;
+            for (const t of oorAlive) {
+              const resistance = dmgType === 'magic' ? t.stats.magicResist : dmgType === 'physical' ? t.stats.armor : 0;
+              const pen = dmgType === 'magic' ? unit.stats.magicPen : dmgType === 'physical' ? unit.stats.armorPen : 0;
+              const mitigated = dmgType === 'true' ? abilityDmg * (1 + unit.damageAmp) : applyResistance(abilityDmg * (1 + unit.damageAmp), resistance, pen);
+              const perTickDmg = mitigated / outOfRangeConfig.dot.duration * TICK_DURATION;
               t.statusEffects.push({
                 type: 'burn', sourceId: unit.id,
-                remainingTicks: dotTicks, value: dotDmgPerTick * (1 + unit.damageAmp),
+                remainingTicks: dotTicks, value: perTickDmg,
               });
             }
           } else {

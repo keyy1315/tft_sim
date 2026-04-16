@@ -369,8 +369,8 @@ function findDamageVariable(variables: RawChampion['ability']['variables']): Raw
   const fuzzy = variables.find(v => v.name.includes('Damage') || v.name.includes('damage'));
   if (fuzzy) return fuzzy;
 
-  // 피해 변수 없음 (보호막/유틸 스킬)
-  return null;
+  // 3순위: variables[0] 폴백 (피해 텍스트가 있지만 변수명에 Damage가 없는 경우)
+  return variables[0];
 }
 
 export function parseAbility(champion: RawChampion, damageVarOverride?: string): ParsedAbility {
