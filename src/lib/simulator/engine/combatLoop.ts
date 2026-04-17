@@ -1867,6 +1867,8 @@ export function simulateCombat(
                   t.currentHp = 0;
                   t.state = 'dead';
                   unit.killCount++;
+                  if (unit.team === 'player') playerArbiterState.enemyDeathCount++;
+                  else enemyArbiterState.enemyDeathCount++;
                   const deathLog: CombatLog = {
                     tick, time, type: 'death',
                     sourceId: t.id,
@@ -2063,6 +2065,9 @@ export function simulateCombat(
               if (t.currentHp <= 0) {
                 t.state = 'dead';
                 t.currentHp = 0;
+                unit.killCount++;
+                if (unit.team === 'player') playerArbiterState.enemyDeathCount++;
+                else enemyArbiterState.enemyDeathCount++;
                 eventBus.emit('on_kill', { sourceId: unit.id, targetId: t.id, tick });
                 eventBus.emit('on_death', { sourceId: t.id, targetId: unit.id, tick });
                 logs.push({ tick, time, type: 'death', sourceId: t.id, message: `${t.champion.name} 사망!` });
