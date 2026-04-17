@@ -268,7 +268,7 @@ export default function SynergyPanel({ activeTraits, team, items, champions = []
                   )}
                 </div>
               )}
-              {isActive && at.trait.apiName === 'TFT17_Arbiter' && onArbiterLawChange && (
+              {isActive && at.trait.apiName === 'TFT17_ADMIN' && onArbiterLawChange && (
                 <ArbiterLawPanel
                   law={arbiterLaw ?? null}
                   onChange={onArbiterLawChange}

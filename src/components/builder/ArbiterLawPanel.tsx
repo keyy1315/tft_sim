@@ -37,6 +37,12 @@ const MVP_EXCLUDED_TRIGGERS = new Set([
   'on_combat_start_if_refreshed',
 ]);
 
+const MVP_EXCLUDED_EFFECTS = new Set([
+  'free_reroll',
+  'leona_drop',
+  'gold_drop',
+]);
+
 interface ArbiterLawPanelProps {
   law: ArbiterLaw | null;
   onChange: (law: ArbiterLaw) => void;
@@ -63,8 +69,8 @@ export default function ArbiterLawPanel({ law, onChange, tier }: ArbiterLawPanel
 
   const handleTriggerChange = (triggerId: string) => {
     const effects = data.laws[triggerId] ?? [];
-    const firstEffect = effects[0]?.effect ?? '';
-    onChange({ triggerId, effectId: firstEffect });
+    const firstEnabled = effects.find(e => !MVP_EXCLUDED_EFFECTS.has(e.effect));
+    onChange({ triggerId, effectId: firstEnabled?.effect ?? effects[0]?.effect ?? '' });
   };
 
   const handleEffectChange = (effectId: string) => {
@@ -101,9 +107,10 @@ export default function ArbiterLawPanel({ law, onChange, tier }: ArbiterLawPanel
           {availableEffects.map(entry => {
             const eDef = data.effects.find(e => e.id === entry.effect);
             const val = entry[tier];
+            const excluded = MVP_EXCLUDED_EFFECTS.has(entry.effect);
             return (
-              <option key={entry.effect} value={entry.effect}>
-                {eDef?.name ?? entry.effect} +{val}
+              <option key={entry.effect} value={entry.effect} disabled={excluded}>
+                {eDef?.name ?? entry.effect} +{val}{entry.effect === 'shield' || entry.effect === 'attack_speed' ? '%' : ''}{excluded ? ' (추후)' : ''}
               </option>
             );
           })}
@@ -111,7 +118,7 @@ export default function ArbiterLawPanel({ law, onChange, tier }: ArbiterLawPanel
       )}
       {tierValue != null && effectDef && (
         <div className="text-[9px] text-cyan-400 bg-gray-900 rounded px-1.5 py-0.5 border border-gray-700">
-          {effectDef.name}: +{tierValue}
+          {effectDef.name}: +{tierValue}{selectedEffect === 'shield' || selectedEffect === 'attack_speed' ? '%' : ''}
         </div>
       )}
     </div>
