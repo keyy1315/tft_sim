@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { ActiveTrait, TRAIT_STYLE_COLORS, RawItem, RawChampion, COST_COLORS } from '@/types';
+import { ActiveTrait, TRAIT_STYLE_COLORS, RawItem, RawChampion, COST_COLORS, ArbiterLaw } from '@/types';
+import ArbiterLawPanel from './ArbiterLawPanel';
 import { getTraitImage, getChampionImage } from '@/data/imageMap';
 import { resolveDescription } from '@/lib/utils/text';
 import Tooltip from '@/components/ui/Tooltip';
@@ -52,6 +53,8 @@ interface SynergyPanelProps {
   bilgewaterStats?: Record<string, number>;
   ioniaPath?: IoniaPathType | null;
   onIoniaPathChange?: (path: IoniaPathType) => void;
+  arbiterLaw?: ArbiterLaw | null;
+  onArbiterLawChange?: (law: ArbiterLaw) => void;
 }
 
 function TraitTooltipContent({ at, champions = [] }: { at: ActiveTrait; champions?: RawChampion[] }) {
@@ -170,7 +173,7 @@ function PiltoverModulesSummary({ modules }: { modules: RawItem[] }) {
   );
 }
 
-export default function SynergyPanel({ activeTraits, team, items, champions = [], piltoverModules = [], bilgewaterStats = {}, ioniaPath, onIoniaPathChange }: SynergyPanelProps) {
+export default function SynergyPanel({ activeTraits, team, items, champions = [], piltoverModules = [], bilgewaterStats = {}, ioniaPath, onIoniaPathChange, arbiterLaw, onArbiterLawChange }: SynergyPanelProps) {
   const [collapsed, setCollapsed] = useState(false);
   const teamLabel = team === 'player' ? 'TEAM A' : 'TEAM B';
   const teamColor = team === 'player' ? 'text-blue-400' : 'text-red-400';
@@ -264,6 +267,13 @@ export default function SynergyPanel({ activeTraits, team, items, champions = []
                     </div>
                   )}
                 </div>
+              )}
+              {isActive && at.trait.apiName === 'TFT17_ADMIN' && onArbiterLawChange && (
+                <ArbiterLawPanel
+                  law={arbiterLaw ?? null}
+                  onChange={onArbiterLawChange}
+                  tier={at.style >= 3 ? 'gold' : 'silver'}
+                />
               )}
             </div>
           );

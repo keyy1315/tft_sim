@@ -32,10 +32,21 @@ export const AZIR_SOLDIER_CHAMPION: RawChampion = {
 
 export const AZIR_MAX_SOLDIERS = 2;
 
+export const VOYAGER_SUMMON_CHAMPION: RawChampion = {
+  name: '비아와 바이엔',
+  apiName: 'TFT17_Summon',
+  cost: 11,
+  traits: [],
+  role: 'APTank' as RawChampion['role'],
+  stats: { armor: 0, attackSpeed: 0.6, critChance: 0.25, critMultiplier: 1.4, damage: 20, hp: 320, initialMana: 0, magicResist: 0, mana: 50, range: 1 },
+  ability: { name: '울음소리', desc: 'AA 추가 마법 피해 + 보호막 + 아군 AP 버프', icon: '', variables: [] },
+};
+
 export const AUTO_UNIT_API_NAMES = [
   'TFT16_AnnieTibbers',
   'TFT16_FreljordTurret',
   'TFT16_AzirSoldier',
+  'TFT17_Summon',
 ] as const;
 
 export function isAutoUnit(apiName: string): boolean {

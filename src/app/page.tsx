@@ -67,6 +67,15 @@ function HomeContent() {
           borderColor: 'border-yellow-500/30',
           disabled: false,
         },
+        {
+          title: '전적검색',
+          desc: '소환사명으로 최근 TFT 매치 기록 조회',
+          href: '/lookup',
+          icon: '🔍',
+          color: 'from-emerald-600/20 to-teal-600/20',
+          borderColor: 'border-emerald-500/30',
+          disabled: false,
+        },
       ];
 
   return (

@@ -5,7 +5,7 @@ import { DndContext, DragOverlay, PointerSensor, useSensor, useSensors } from '@
 import { useGameData } from '@/hooks/useGameData';
 import { useActiveSet } from '@/hooks/useActiveSet';
 import { simulateCombat } from '@/lib/simulator/engine/combatLoop';
-import { PlacedChampion, axialToOffset, offsetToAxial, CombatResult, CombatLog } from '@/types';
+import { PlacedChampion, HexCoord, axialToOffset, offsetToAxial, CombatResult, CombatLog } from '@/types';
 import { TICKS_PER_SECOND, BOARD_COLS } from '@/lib/simulator/models/constants';
 import { useTeamManagement } from '@/hooks/useTeamManagement';
 import { useReplayControls } from '@/hooks/useReplayControls';
@@ -81,6 +81,8 @@ function SimulatorContent() {
   const [isRunning, setIsRunning] = useState(false);
   const [stageNumber, setStageNumber] = useState(4);
   const [hoverUnit, setHoverUnit] = useState<{ placed: PlacedChampion; row: number; col: number } | null>(null);
+  const [hexBuffOverrides, setHexBuffOverrides] = useState<Record<string, Record<string, HexCoord>>>({ player: {}, enemy: {} });
+  const [movingHexBuff, setMovingHexBuff] = useState<{ team: 'player' | 'enemy'; apiName: string } | null>(null);
 
   // Filtered champions for pool
   const filteredChampions = useMemo(() => {
@@ -110,12 +112,12 @@ function SimulatorContent() {
 
   // 칸 버프 계산 (증강 + 팀 구성 변경 시 재계산)
   const playerHexBuffs = useMemo(() =>
-    resolveHexBuffs(tm.playerAugments.map(a => a.apiName), tm.playerTeam),
-    [tm.playerAugments, tm.playerTeam]
+    resolveHexBuffs(tm.playerAugments.map(a => a.apiName), tm.playerTeam, hexBuffOverrides.player),
+    [tm.playerAugments, tm.playerTeam, hexBuffOverrides.player]
   );
   const enemyHexBuffs = useMemo(() =>
-    resolveHexBuffs(tm.enemyAugments.map(a => a.apiName), tm.enemyTeam),
-    [tm.enemyAugments, tm.enemyTeam]
+    resolveHexBuffs(tm.enemyAugments.map(a => a.apiName), tm.enemyTeam, hexBuffOverrides.enemy),
+    [tm.enemyAugments, tm.enemyTeam, hexBuffOverrides.enemy]
   );
 
   const runSimulation = useCallback(() => {
@@ -142,6 +144,8 @@ function SimulatorContent() {
         playerHexBuffs,
         enemyHexBuffs,
         stageNumber,
+        playerArbiterLaw: tm.playerArbiterLaw ?? undefined,
+        enemyArbiterLaw: tm.enemyArbiterLaw ?? undefined,
       });
       replay.setCombatResult(result);
       setIsRunning(false);
@@ -312,6 +316,7 @@ function SimulatorContent() {
                       selectedUnit={tm.selectedUnit}
                       playerHexBuffs={playerHexBuffs}
                       enemyHexBuffs={enemyHexBuffs}
+                      movingHexBuffApiName={movingHexBuff?.apiName}
                     />
                     {/* Droppable overlay */}
                     <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
@@ -327,6 +332,25 @@ function SimulatorContent() {
                           const placed = placedIdx >= 0 ? teamArr[placedIdx] : null;
 
                           const cellClick = () => {
+                            // movable 칸 이동 처리
+                            if (movingHexBuff) {
+                              const pos = offsetToAxial({ row: dataRow, col });
+                              setHexBuffOverrides(prev => ({
+                                ...prev,
+                                [movingHexBuff.team]: { ...prev[movingHexBuff.team], [movingHexBuff.apiName]: pos },
+                              }));
+                              setMovingHexBuff(null);
+                              return;
+                            }
+                            // movable 칸 클릭 → 이동 모드 진입
+                            const hexBuffs = team === 'player' ? playerHexBuffs : enemyHexBuffs;
+                            const movableBuff = hexBuffs.find(b => b.movable && b.positions.some(
+                              p => { const off = axialToOffset(p); return off.row === dataRow && off.col === col; }
+                            ));
+                            if (movableBuff && !placed) {
+                              setMovingHexBuff({ team, apiName: movableBuff.augmentApiName });
+                              return;
+                            }
                             if (placed && placedIdx >= 0) {
                               tm.handleUnitClick(team, placedIdx);
                             } else {
@@ -355,6 +379,19 @@ function SimulatorContent() {
                             />
                           );
                         })
+                      )}
+                      {movingHexBuff && (
+                        <div className="absolute inset-0 z-40 flex items-start justify-center pt-2 pointer-events-none">
+                          <div className="bg-yellow-600/90 text-black text-xs font-bold px-4 py-2 rounded-lg shadow-lg pointer-events-auto">
+                            이동할 칸을 클릭하세요
+                            <button
+                              className="ml-3 text-[10px] bg-black/30 text-white px-2 py-0.5 rounded"
+                              onClick={() => setMovingHexBuff(null)}
+                            >
+                              취소
+                            </button>
+                          </div>
+                        </div>
                       )}
                       {hoverUnit && (
                         <div
@@ -433,7 +470,7 @@ function SimulatorContent() {
 
               {/* Left: Both Synergy panels + Selected unit (desktop) */}
               <div className="order-3 lg:order-1 lg:w-52 lg:shrink-0 space-y-3">
-                <SynergyPanel activeTraits={tm.enemyTraits} team="enemy" items={items} champions={champions} piltoverModules={tm.enemyPiltoverModules} bilgewaterStats={tm.enemyBilgewaterStats} ioniaPath={tm.enemyIoniaPath} onIoniaPathChange={tm.setEnemyIoniaPath} />
+                <SynergyPanel activeTraits={tm.enemyTraits} team="enemy" items={items} champions={champions} piltoverModules={tm.enemyPiltoverModules} bilgewaterStats={tm.enemyBilgewaterStats} ioniaPath={tm.enemyIoniaPath} onIoniaPathChange={tm.setEnemyIoniaPath} arbiterLaw={tm.enemyArbiterLaw} onArbiterLawChange={tm.setEnemyArbiterLaw} />
                 <PiltoverModulePanel
                   modules={tm.enemyPiltoverModules}
                   allItems={items}
@@ -441,7 +478,7 @@ function SimulatorContent() {
                   onAddModule={(item) => tm.handleAddPiltoverModule('enemy', item)}
                   onRemoveModule={(idx) => tm.handleRemovePiltoverModule('enemy', idx)}
                 />
-                <SynergyPanel activeTraits={tm.playerTraits} team="player" items={items} champions={champions} piltoverModules={tm.playerPiltoverModules} bilgewaterStats={tm.playerBilgewaterStats} ioniaPath={tm.playerIoniaPath} onIoniaPathChange={tm.setPlayerIoniaPath} />
+                <SynergyPanel activeTraits={tm.playerTraits} team="player" items={items} champions={champions} piltoverModules={tm.playerPiltoverModules} bilgewaterStats={tm.playerBilgewaterStats} ioniaPath={tm.playerIoniaPath} onIoniaPathChange={tm.setPlayerIoniaPath} arbiterLaw={tm.playerArbiterLaw} onArbiterLawChange={tm.setPlayerArbiterLaw} />
                 <PiltoverModulePanel
                   modules={tm.playerPiltoverModules}
                   allItems={items}

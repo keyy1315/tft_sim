@@ -137,11 +137,18 @@ export const HEX_BUFF_AUGMENTS: Record<string, HexBuffResolver> = {
 export function resolveHexBuffs(
   augmentApiNames: string[],
   team: PlacedChampion[],
+  positionOverrides?: Record<string, HexCoord>,
 ): HexBuff[] {
   const buffs: HexBuff[] = [];
   for (const apiName of augmentApiNames) {
     const resolver = HEX_BUFF_AUGMENTS[apiName];
-    if (resolver) buffs.push(resolver(team));
+    if (!resolver) continue;
+    const buff = resolver(team);
+    // movable 버프의 위치 오버라이드
+    if (buff.movable && positionOverrides?.[apiName]) {
+      buff.positions = [positionOverrides[apiName]];
+    }
+    buffs.push(buff);
   }
   return buffs;
 }
