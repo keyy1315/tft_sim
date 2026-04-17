@@ -321,6 +321,13 @@ export interface PlacedChampion {
   mfMode?: MfMode | null;
   permanentStacks?: PermanentStack | null;
   isDummy?: boolean;
+  isSummon?: boolean;
+}
+
+// === Arbiter Law (중재자 법률) ===
+export interface ArbiterLaw {
+  triggerId: string;
+  effectId: string;
 }
 
 // === Hex Buff (칸 버프 증강) ===

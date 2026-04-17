@@ -1,10 +1,10 @@
 import { useState, useMemo } from 'react';
-import { PlacedChampion, HexCoord, RawChampion, RawItem, RawAugment, MfMode, PERMANENT_STACK_CONFIG } from '@/types';
+import { PlacedChampion, HexCoord, RawChampion, RawItem, RawAugment, MfMode, PERMANENT_STACK_CONFIG, ArbiterLaw } from '@/types';
 import { BOARD_COLS, DEFAULT_STAR_LEVEL } from '@/lib/simulator/models/constants';
 import { resolveTraits } from '@/lib/simulator/systems/trait';
 import { canEquipItem, canAddPiltoverModule, isVoidMutation } from '@/lib/simulator/systems/item';
 import { getDefaultStacks } from '@/lib/simulator/systems/augment';
-import { FRELJORD_TURRET, TIBBERS_CHAMPION, AZIR_SOLDIER_CHAMPION, AZIR_MAX_SOLDIERS, isAutoUnit } from '@/data/specialUnits';
+import { FRELJORD_TURRET, TIBBERS_CHAMPION, AZIR_SOLDIER_CHAMPION, AZIR_MAX_SOLDIERS, VOYAGER_SUMMON_CHAMPION, isAutoUnit } from '@/data/specialUnits';
 import type { IoniaPathType } from '@/data/traitModules';
 import { RawTrait } from '@/types';
 
@@ -132,8 +132,34 @@ function syncAzirSoldiersInTeam(team: PlacedChampion[]): PlacedChampion[] {
   return result;
 }
 
+function syncVoyagerSummonInTeam(team: PlacedChampion[]): PlacedChampion[] {
+  const voyagerCount = team.filter(p =>
+    p.champion.traits.includes('길잡이') && p.champion.apiName !== 'TFT17_Summon'
+  ).length;
+  const hasSummon = team.some(p => p.champion.apiName === 'TFT17_Summon');
+
+  if (voyagerCount >= 3 && !hasSummon) {
+    const occupied = new Set(team.map(p => `${p.position.q},${p.position.r}`));
+    const pos = findEmptyAdjacentHex({ q: 2, r: 2 }, occupied, 3);
+    if (!pos) return team;
+    return [...team, {
+      champion: VOYAGER_SUMMON_CHAMPION,
+      position: pos,
+      starLevel: 1,
+      items: [],
+      isSummon: true,
+    }];
+  }
+
+  if (voyagerCount < 3 && hasSummon) {
+    return team.filter(p => p.champion.apiName !== 'TFT17_Summon');
+  }
+
+  return team;
+}
+
 function syncTeam(team: PlacedChampion[]): PlacedChampion[] {
-  return syncFreljordTurretsInTeam(syncAzirSoldiersInTeam(syncTibbersInTeam(team)));
+  return syncVoyagerSummonInTeam(syncFreljordTurretsInTeam(syncAzirSoldiersInTeam(syncTibbersInTeam(team))));
 }
 
 // === Exported helpers used by DnD ===
@@ -181,6 +207,10 @@ export function useTeamManagement({ traits }: UseTeamManagementArgs) {
   // Ionia path selection
   const [playerIoniaPath, setPlayerIoniaPath] = useState<IoniaPathType | null>(null);
   const [enemyIoniaPath, setEnemyIoniaPath] = useState<IoniaPathType | null>(null);
+
+  // Arbiter law selection
+  const [playerArbiterLaw, setPlayerArbiterLaw] = useState<ArbiterLaw | null>(null);
+  const [enemyArbiterLaw, setEnemyArbiterLaw] = useState<ArbiterLaw | null>(null);
 
   // Galio bench (Hero synergy)
   const [playerGalio, setPlayerGalio] = useState<{ champion: RawChampion; starLevel: number } | null>(null);
@@ -439,6 +469,12 @@ export function useTeamManagement({ traits }: UseTeamManagementArgs) {
     setPlayerIoniaPath,
     enemyIoniaPath,
     setEnemyIoniaPath,
+
+    // Arbiter law
+    playerArbiterLaw,
+    setPlayerArbiterLaw,
+    enemyArbiterLaw,
+    setEnemyArbiterLaw,
 
     // Galio bench
     playerGalio,

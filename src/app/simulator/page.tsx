@@ -144,6 +144,8 @@ function SimulatorContent() {
         playerHexBuffs,
         enemyHexBuffs,
         stageNumber,
+        playerArbiterLaw: tm.playerArbiterLaw ?? undefined,
+        enemyArbiterLaw: tm.enemyArbiterLaw ?? undefined,
       });
       replay.setCombatResult(result);
       setIsRunning(false);
@@ -468,7 +470,7 @@ function SimulatorContent() {
 
               {/* Left: Both Synergy panels + Selected unit (desktop) */}
               <div className="order-3 lg:order-1 lg:w-52 lg:shrink-0 space-y-3">
-                <SynergyPanel activeTraits={tm.enemyTraits} team="enemy" items={items} champions={champions} piltoverModules={tm.enemyPiltoverModules} bilgewaterStats={tm.enemyBilgewaterStats} ioniaPath={tm.enemyIoniaPath} onIoniaPathChange={tm.setEnemyIoniaPath} />
+                <SynergyPanel activeTraits={tm.enemyTraits} team="enemy" items={items} champions={champions} piltoverModules={tm.enemyPiltoverModules} bilgewaterStats={tm.enemyBilgewaterStats} ioniaPath={tm.enemyIoniaPath} onIoniaPathChange={tm.setEnemyIoniaPath} arbiterLaw={tm.enemyArbiterLaw} onArbiterLawChange={tm.setEnemyArbiterLaw} />
                 <PiltoverModulePanel
                   modules={tm.enemyPiltoverModules}
                   allItems={items}
@@ -476,7 +478,7 @@ function SimulatorContent() {
                   onAddModule={(item) => tm.handleAddPiltoverModule('enemy', item)}
                   onRemoveModule={(idx) => tm.handleRemovePiltoverModule('enemy', idx)}
                 />
-                <SynergyPanel activeTraits={tm.playerTraits} team="player" items={items} champions={champions} piltoverModules={tm.playerPiltoverModules} bilgewaterStats={tm.playerBilgewaterStats} ioniaPath={tm.playerIoniaPath} onIoniaPathChange={tm.setPlayerIoniaPath} />
+                <SynergyPanel activeTraits={tm.playerTraits} team="player" items={items} champions={champions} piltoverModules={tm.playerPiltoverModules} bilgewaterStats={tm.playerBilgewaterStats} ioniaPath={tm.playerIoniaPath} onIoniaPathChange={tm.setPlayerIoniaPath} arbiterLaw={tm.playerArbiterLaw} onArbiterLawChange={tm.setPlayerArbiterLaw} />
                 <PiltoverModulePanel
                   modules={tm.playerPiltoverModules}
                   allItems={items}

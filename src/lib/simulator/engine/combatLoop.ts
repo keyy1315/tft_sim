@@ -2,7 +2,7 @@ import {
   CombatUnit, CombatResult, CombatLog, PlacedChampion,
   HexCoord, HexBuff, TickSnapshot, mapGameRole,
   RawTrait, RawAugment, RawItem, RawChampion, ActiveTrait, ItemEffect,
-  MF_MODE_CONFIG,
+  MF_MODE_CONFIG, ArbiterLaw,
 } from '@/types';
 import { findCarryAugment } from '@/data/carryAugments';
 import type { StatusEffectType } from '@/types';
@@ -69,6 +69,9 @@ export interface SimulateOptions {
   enemyHexBuffs?: HexBuff[];
   /** 현재 스테이지 번호 (전사 AS 패시브, 기본값 4) */
   stageNumber?: number;
+  /** 중재자 법률 */
+  playerArbiterLaw?: ArbiterLaw;
+  enemyArbiterLaw?: ArbiterLaw;
 }
 
 function createCombatUnit(
@@ -695,127 +698,6 @@ function spawnFreljordTurrets(
   return turrets;
 }
 
-/** 녹서스 아타칸 소환 — 적 팀 HP가 일정 비율 이하로 떨어지면 소환 */
-function trySpawnNoxusAtakhan(
-  activeTraits: ActiveTrait[],
-  team: 'player' | 'enemy',
-  teamUnits: CombatUnit[],
-  opposingUnits: CombatUnit[],
-  allUnits: CombatUnit[],
-  rng: SeededRNG,
-  tick: number,
-  time: number,
-  logs: CombatLog[],
-  tickLogs: CombatLog[],
-  spawnedFlag: { spawned: boolean },
-): CombatUnit | null {
-  if (spawnedFlag.spawned) return null;
-
-  const noxus = activeTraits.find(t => t.trait.apiName === 'TFT16_Noxus' && t.activeEffect);
-  if (!noxus || !noxus.activeEffect) return null;
-
-  const vars = noxus.activeEffect.variables;
-  const hpTrigger = (vars['HPLostTrigger'] ?? 0.15) as number;
-
-  // 적 팀 총 HP 비율 계산
-  const aliveOpposing = opposingUnits.filter(u => u.state !== 'dead');
-  const totalMaxHp = opposingUnits.reduce((sum, u) => sum + u.maxHp, 0);
-  const totalCurrentHp = aliveOpposing.reduce((sum, u) => sum + u.currentHp, 0);
-  if (totalMaxHp === 0) return null;
-
-  const hpLostRatio = 1 - (totalCurrentHp / totalMaxHp);
-  if (hpLostRatio < hpTrigger) return null;
-
-  // 소환 트리거!
-  spawnedFlag.spawned = true;
-
-  // 녹서스 챔피언 별레벨 합산 → 아타칸 위력
-  const noxusChamps = teamUnits.filter(u =>
-    u.champion.traits.includes('녹서스') && u.state !== 'dead'
-  );
-  const totalStarPower = noxusChamps.reduce((sum, u) => sum + u.starLevel, 0);
-  const baseDamage = 80 + totalStarPower * 30;
-  const baseHp = 1500 + totalStarPower * 200;
-
-  // 빈 위치 찾기
-  const occupiedPositions = new Set(
-    allUnits.filter(u => u.state !== 'dead').map(u => `${u.position.q},${u.position.r}`)
-  );
-  const startRow = team === 'player' ? 4 : 0;
-  const endRow = team === 'player' ? 6 : 2;
-  let spawnPos: { q: number; r: number } | null = null;
-  for (let r = startRow; r <= endRow && !spawnPos; r++) {
-    for (const col of [3, 2, 4, 1, 5, 0, 6]) {
-      const q = col - Math.floor(r / 2);
-      if (!occupiedPositions.has(`${q},${r}`)) {
-        spawnPos = { q, r };
-        break;
-      }
-    }
-  }
-  if (!spawnPos) return null;
-
-  const atakhanId = `${team}-atakhan`;
-  const atakhan: CombatUnit = {
-    id: atakhanId,
-    champion: {
-      name: '아타칸',
-      apiName: 'TFT16_NoxusAtakhan',
-      cost: 0,
-      traits: ['녹서스'],
-      role: null,
-      stats: { armor: 60, attackSpeed: 0.7, critChance: 0.25, critMultiplier: 1.4, damage: baseDamage, hp: baseHp, initialMana: 0, magicResist: 60, mana: 100, range: 1 },
-      ability: { name: '파멸의 일격', desc: '', icon: '', variables: [] },
-    },
-    team,
-    position: spawnPos,
-    starLevel: Math.min(3, Math.max(1, Math.floor(totalStarPower / 3))) as 1 | 2 | 3,
-    role: 'Fighter',
-    items: [],
-    currentHp: baseHp,
-    maxHp: baseHp,
-    currentMana: 0,
-    maxMana: 100,
-    state: 'idle',
-    target: null,
-    stats: {
-      hp: baseHp, armor: 60, magicResist: 60,
-      damage: baseDamage, attackSpeed: 0.7,
-      critChance: 0.25, critMultiplier: 1.4,
-      ap: 0, mana: 0, maxMana: 100, range: 1,
-      armorPen: 0, magicPen: 0,
-    },
-    attackCooldown: 0,
-    moveCooldown: 0,
-    totalDamageDealt: 0,
-    totalDamageTaken: 0,
-    statusEffects: [],
-    omnivamp: 0,
-    damageAmp: 0,
-    damageReduction: 0,
-    shield: 0,
-    augmentManaRegen: 0,
-    augmentGrievousWounds: 0,
-    augmentExecuteThreshold: 0,
-    augmentBurnPercent: 0,
-    inventionTankDamageAmp: 0,
-    attackCount: 0,
-    castCount: 0,
-    killCount: 0,
-  };
-
-  const logEntry: CombatLog = {
-    tick, time,
-    type: 'ability',
-    sourceId: atakhanId,
-    message: `아타칸 소환! (녹서스 별레벨 합: ${totalStarPower}, 공격력: ${baseDamage}, 체력: ${baseHp})`,
-  };
-  logs.push(logEntry);
-  tickLogs.push(logEntry);
-
-  return atakhan;
-}
-
 /** 갈리오 영웅 소환 — 데마시아 결집 시 대기석 갈리오가 전투에 합류 */
 function trySpawnGalio(
   activeTraits: ActiveTrait[],
@@ -1268,6 +1150,72 @@ function applyPiltoverInvention(
   }
 }
 
+/* ─── Arbiter Law helpers ─── */
+
+import arbiterLawsData from '../../../../public/data/arbiter_laws.json';
+
+interface ArbiterTriggerState {
+  hitCount: number;
+  attackCount: number;
+  manaSpent: number;
+  enemyDiedThisTick: boolean;
+  hpTriggered: Set<string>;
+}
+
+function createArbiterTriggerState(): ArbiterTriggerState {
+  return { hitCount: 0, attackCount: 0, manaSpent: 0, enemyDiedThisTick: false, hpTriggered: new Set() };
+}
+
+function resolveArbiterValue(law: ArbiterLaw, arbiterCount: number): { value: number; triggerType: string; threshold?: number; intervalSeconds?: number; hpPercent?: number } | null {
+  const tier = arbiterCount >= 3 ? 'gold' : 'silver';
+  const triggerDef = arbiterLawsData.triggers.find((t: { id: string }) => t.id === law.triggerId);
+  if (!triggerDef) return null;
+  const lawEntries = (arbiterLawsData.laws as Record<string, Array<{ effect: string; silver: number; gold: number }>>)[law.triggerId];
+  if (!lawEntries) return null;
+  const entry = lawEntries.find(e => e.effect === law.effectId);
+  if (!entry) return null;
+  return {
+    value: entry[tier],
+    triggerType: triggerDef.type,
+    threshold: (triggerDef as Record<string, unknown>).threshold as number | undefined,
+    intervalSeconds: (triggerDef as Record<string, unknown>).intervalSeconds as number | undefined,
+    hpPercent: (triggerDef as Record<string, unknown>).hpPercent as number | undefined,
+  };
+}
+
+function applyArbiterEffect(effectId: string, value: number, units: CombatUnit[], tick: number, time: number, logs: CombatLog[], tickLogs: CombatLog[]) {
+  const alive = units.filter(u => u.state !== 'dead');
+  if (alive.length === 0) return;
+  for (const u of alive) {
+    switch (effectId) {
+      case 'mana':
+        u.currentMana = Math.min(u.maxMana, u.currentMana + value);
+        break;
+      case 'ap':
+        u.stats.ap += value;
+        break;
+      case 'armor_mr':
+        u.stats.armor += value;
+        u.stats.magicResist += value;
+        break;
+      case 'attack_speed':
+        u.stats.attackSpeed *= (1 + value / 100);
+        break;
+      case 'permanent_hp':
+        u.maxHp += value;
+        u.currentHp += value;
+        break;
+      case 'shield':
+        u.shield += u.maxHp * value / 100;
+        break;
+    }
+  }
+  const effectName = arbiterLawsData.effects.find((e: { id: string }) => e.id === effectId)?.name ?? effectId;
+  const log: CombatLog = { tick, time, type: 'ability', sourceId: 'arbiter-law', message: `중재자 법률 발동: ${effectName} +${value}` };
+  logs.push(log);
+  tickLogs.push(log);
+}
+
 export function simulateCombat(
   allyTeam: PlacedChampion[],
   enemyTeam: PlacedChampion[],
@@ -1450,13 +1398,29 @@ export function simulateCombat(
   const snapshots: TickSnapshot[] = [];
   const moveTicks = getMoveTicks();
 
-  // 녹서스 아타칸 소환 플래그
-  const playerAtakhanFlag = { spawned: false };
-  const enemyAtakhanFlag = { spawned: false };
-
   // 갈리오 영웅 소환 플래그
   const playerGalioFlag = { spawned: false };
   const enemyGalioFlag = { spawned: false };
+
+  // 중재자 법률 런타임
+  const playerArbiterUnits = playerUnits.filter(u => u.champion.traits.includes('중재자'));
+  const enemyArbiterUnits = enemies.filter(u => u.champion.traits.includes('중재자'));
+  const playerLawResolved = options.playerArbiterLaw && playerArbiterUnits.length >= 2
+    ? resolveArbiterValue(options.playerArbiterLaw, playerArbiterUnits.length) : null;
+  const enemyLawResolved = options.enemyArbiterLaw && enemyArbiterUnits.length >= 2
+    ? resolveArbiterValue(options.enemyArbiterLaw, enemyArbiterUnits.length) : null;
+  const playerArbiterState = createArbiterTriggerState();
+  const enemyArbiterState = createArbiterTriggerState();
+
+  // combat_start_per_star 즉시 적용
+  if (playerLawResolved?.triggerType === 'combat_start_per_star' && options.playerArbiterLaw) {
+    const totalStars = playerArbiterUnits.reduce((s, u) => s + u.starLevel, 0);
+    applyArbiterEffect(options.playerArbiterLaw.effectId, playerLawResolved.value * totalStars, playerArbiterUnits, 0, 0, logs, []);
+  }
+  if (enemyLawResolved?.triggerType === 'combat_start_per_star' && options.enemyArbiterLaw) {
+    const totalStars = enemyArbiterUnits.reduce((s, u) => s + u.starLevel, 0);
+    applyArbiterEffect(options.enemyArbiterLaw.effectId, enemyLawResolved.value * totalStars, enemyArbiterUnits, 0, 0, logs, []);
+  }
 
   eventBus.emit('on_combat_start', { sourceId: '', tick: 0 });
 
@@ -1468,18 +1432,51 @@ export function simulateCombat(
 
     if (alivePlayers.length === 0 || aliveEnemies.length === 0) break;
 
-    // 녹서스 아타칸 소환 체크 (매초)
+    // 갈리오 영웅 소환 체크 (매초)
     if (tick > 0 && tick % TICKS_PER_SECOND === 0) {
-      const playerAtakhan = trySpawnNoxusAtakhan(playerActiveTraits, 'player', playerUnits, enemies, allUnits, rng, tick, time, logs, tickLogs, playerAtakhanFlag);
-      if (playerAtakhan) { allUnits.push(playerAtakhan); playerUnits.push(playerAtakhan); }
-      const enemyAtakhan = trySpawnNoxusAtakhan(enemyActiveTraits, 'enemy', enemies, playerUnits, allUnits, rng, tick, time, logs, tickLogs, enemyAtakhanFlag);
-      if (enemyAtakhan) { allUnits.push(enemyAtakhan); enemies.push(enemyAtakhan); }
-
-      // 갈리오 영웅 소환 체크
       const playerGalio = trySpawnGalio(playerActiveTraits, 'player', playerUnits, enemies, allUnits, effectivePlayerGalio, tick, time, logs, tickLogs, playerGalioFlag);
       if (playerGalio) { allUnits.push(playerGalio); playerUnits.push(playerGalio); }
       const enemyGalio = trySpawnGalio(enemyActiveTraits, 'enemy', enemies, playerUnits, allUnits, effectiveEnemyGalio, tick, time, logs, tickLogs, enemyGalioFlag);
       if (enemyGalio) { allUnits.push(enemyGalio); enemies.push(enemyGalio); }
+    }
+
+    // 중재자 법률 periodic trigger (매초 체크)
+    if (tick > 0 && tick % TICKS_PER_SECOND === 0) {
+      const checkLaw = (resolved: typeof playerLawResolved, law: ArbiterLaw | undefined, state: ArbiterTriggerState, units: CombatUnit[]) => {
+        if (!resolved || !law) return;
+        let fired = false;
+        switch (resolved.triggerType) {
+          case 'periodic':
+            if (tick % ((resolved.intervalSeconds ?? 4) * TICKS_PER_SECOND) === 0) fired = true;
+            break;
+          case 'on_hit_count':
+            if (state.hitCount >= (resolved.threshold ?? 10)) { fired = true; state.hitCount = 0; }
+            break;
+          case 'on_attack_count':
+            if (state.attackCount >= (resolved.threshold ?? 3)) { fired = true; state.attackCount = 0; }
+            break;
+          case 'on_mana_spent':
+            if (state.manaSpent >= (resolved.threshold ?? 50)) { fired = true; state.manaSpent -= (resolved.threshold ?? 50); }
+            break;
+          case 'on_enemy_death':
+            if (state.enemyDiedThisTick) fired = true;
+            break;
+          case 'on_hp_threshold': {
+            const alive = units.filter(u => u.state !== 'dead');
+            for (const u of alive) {
+              if (!state.hpTriggered.has(u.id) && u.currentHp / u.maxHp < (resolved.hpPercent ?? 40) / 100) {
+                state.hpTriggered.add(u.id);
+                fired = true;
+              }
+            }
+            break;
+          }
+        }
+        if (fired) applyArbiterEffect(law.effectId, resolved.value, units, tick, time, logs, tickLogs);
+        state.enemyDiedThisTick = false;
+      };
+      checkLaw(playerLawResolved, options.playerArbiterLaw, playerArbiterState, playerArbiterUnits);
+      checkLaw(enemyLawResolved, options.enemyArbiterLaw, enemyArbiterState, enemyArbiterUnits);
     }
 
     // In-combat augment effects (apply every second = every 30 ticks)
@@ -1587,6 +1584,9 @@ export function simulateCombat(
             target.currentHp = 0;
             target.state = 'dead';
             unit.killCount++;
+            // 중재자 on_enemy_death 플래그
+            if (unit.team === 'player') enemyArbiterState.enemyDiedThisTick = true;
+            else playerArbiterState.enemyDiedThisTick = true;
             const deathLog: CombatLog = { tick, time, type: 'death', sourceId: target.id, message: `${target.champion.name} 사망! (${unit.champion.name}의 기본 공격)` };
             logs.push(deathLog); tickLogs.push(deathLog);
             eventBus.emit('on_death', { sourceId: target.id, tick });
@@ -1626,6 +1626,13 @@ export function simulateCombat(
 
           unit.state = 'attacking';
           unit.attackCount++;
+
+          // 중재자 법률 카운터 업데이트
+          if (unit.champion.traits.includes('중재자')) {
+            const arbState = unit.team === 'player' ? playerArbiterState : enemyArbiterState;
+            arbState.hitCount++;
+            arbState.attackCount++;
+          }
 
           // === 케이틀린: 15% 확률 헤드샷 추가 물리 피해 ===
           if (unit.champion.apiName === 'TFT17_Caitlyn' && target.state !== 'dead') {
@@ -1705,6 +1712,9 @@ export function simulateCombat(
             unit.currentMana = 0;
             unit.state = 'casting';
             unit.castCount++;
+            if (unit.champion.traits.includes('중재자')) {
+              (unit.team === 'player' ? playerArbiterState : enemyArbiterState).manaSpent += unit.maxMana;
+            }
 
             const augNames = unit.team === 'player' ? playerAugApiNames : enemyAugApiNames;
             const config: AbilityConfig = getAbilityConfigForUnit(unit, augNames);
@@ -1952,6 +1962,8 @@ export function simulateCombat(
           if ((target.currentHp <= 0 || shouldExecute) && target.state !== 'dead') {
             target.state = 'dead';
             target.currentHp = 0;
+            if (unit.team === 'player') enemyArbiterState.enemyDiedThisTick = true;
+            else playerArbiterState.enemyDiedThisTick = true;
             eventBus.emit('on_kill', { sourceId: unit.id, targetId: target.id, tick });
             eventBus.emit('on_death', { sourceId: target.id, targetId: unit.id, tick });
             const deathLog: CombatLog = {

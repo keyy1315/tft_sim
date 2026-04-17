@@ -1,0 +1,216 @@
+{
+  "meta": {
+    "trait": "TFT17_Arbiter",
+    "traitName": "중재자",
+    "source": "lolchess.gg/synergies/set17",
+    "extractedAt": "2026-04-17"
+  },
+  "triggers": [
+    {
+      "id": "on_deal_10_hits",
+      "name": "중재자가 피해를 10번 입히면",
+      "type": "on_hit_count",
+      "threshold": 10
+    },
+    {
+      "id": "on_combat_start_per_interest",
+      "name": "전투 시작: 획득하는 이자 1골드당 추가로",
+      "type": "combat_start_per_interest"
+    },
+    {
+      "id": "on_3_basic_attacks",
+      "name": "중재자가 3회 기본 공격하면",
+      "type": "on_attack_count",
+      "threshold": 3
+    },
+    {
+      "id": "on_combat_start_if_refreshed",
+      "name": "전투 시작: 이전 준비 단계 동안 새로고침한 경우",
+      "type": "combat_start_if_refreshed"
+    },
+    {
+      "id": "every_4_seconds",
+      "name": "4초마다",
+      "type": "periodic",
+      "intervalSeconds": 4
+    },
+    {
+      "id": "on_hp_below_40",
+      "name": "각 중재자의 체력이 처음 40% 아래로 떨어지면",
+      "type": "on_hp_threshold",
+      "hpPercent": 40,
+      "once": true
+    },
+    {
+      "id": "on_spend_50_mana",
+      "name": "중재자가 마나를 50 소모하면",
+      "type": "on_mana_spent",
+      "threshold": 50
+    },
+    {
+      "id": "on_combat_start_per_star",
+      "name": "전투 시작: 각 중재자 별 레벨당",
+      "type": "combat_start_per_star_level"
+    },
+    {
+      "id": "on_enemy_death",
+      "name": "적이 사망하면",
+      "type": "on_enemy_death"
+    }
+  ],
+  "effects": [
+    {
+      "id": "mana",
+      "name": "마나 획득",
+      "stat": "mana",
+      "target": "all_arbiters"
+    },
+    {
+      "id": "ap",
+      "name": "주문력 획득",
+      "stat": "ap",
+      "target": "all_arbiters"
+    },
+    {
+      "id": "armor_mr",
+      "name": "방어력 및 마법 저항력 획득",
+      "stat": "armor_mr",
+      "target": "all_arbiters"
+    },
+    {
+      "id": "attack_speed",
+      "name": "공격 속도 획득",
+      "stat": "attackSpeed",
+      "target": "all_arbiters",
+      "isPercent": true
+    },
+    {
+      "id": "permanent_hp",
+      "name": "영구적으로 최대 체력 획득",
+      "stat": "maxHp",
+      "target": "all_arbiters",
+      "permanent": true
+    },
+    {
+      "id": "shield",
+      "name": "4초 동안 최대 체력의 X%에 해당하는 보호막 획득",
+      "stat": "shield",
+      "target": "all_arbiters",
+      "duration": 4,
+      "isPercentMaxHp": true
+    },
+    {
+      "id": "free_reroll",
+      "name": "전투 종료 시 X% 확률로 무료 새로고침 1회 획득",
+      "stat": "freeReroll",
+      "target": "player",
+      "isChance": true
+    },
+    {
+      "id": "leona_drop",
+      "name": "전투 종료 시 X% 확률로 레오나 획득",
+      "stat": "leonaDrop",
+      "target": "player",
+      "isChance": true
+    },
+    {
+      "id": "gold_drop",
+      "name": "전투 종료 시 X% 확률로 골드 획득",
+      "stat": "goldDrop",
+      "target": "player",
+      "isChance": true
+    }
+  ],
+  "laws": {
+    "on_deal_10_hits": [
+      { "effect": "mana",          "silver": 10,  "gold": 15 },
+      { "effect": "ap",            "silver": 8,   "gold": 12 },
+      { "effect": "armor_mr",      "silver": 16,  "gold": 24 },
+      { "effect": "attack_speed",  "silver": 5,   "gold": 8 },
+      { "effect": "permanent_hp",  "silver": 11,  "gold": 17 },
+      { "effect": "shield",        "silver": 10,  "gold": 15 },
+      { "effect": "free_reroll",   "silver": 10,  "gold": 15 }
+    ],
+    "on_combat_start_per_interest": [
+      { "effect": "ap",            "silver": 8,   "gold": 12 },
+      { "effect": "armor_mr",      "silver": 12,  "gold": 18 },
+      { "effect": "leona_drop",    "silver": 20,  "gold": 30 },
+      { "effect": "attack_speed",  "silver": 8,   "gold": 12 },
+      { "effect": "permanent_hp",  "silver": 12,  "gold": 18 },
+      { "effect": "free_reroll",   "silver": 20,  "gold": 30 },
+      { "effect": "shield",        "silver": 10,  "gold": 15 },
+      { "effect": "gold_drop",     "silver": 9,   "gold": 9,  "silverGold": 2, "goldGold": 3 }
+    ],
+    "on_3_basic_attacks": [
+      { "effect": "mana",          "silver": 7,   "gold": 10 },
+      { "effect": "ap",            "silver": 6,   "gold": 9 },
+      { "effect": "permanent_hp",  "silver": 8,   "gold": 12 },
+      { "effect": "attack_speed",  "silver": 3,   "gold": 5 },
+      { "effect": "shield",        "silver": 7,   "gold": 10 },
+      { "effect": "free_reroll",   "silver": 6,   "gold": 8 }
+    ],
+    "on_combat_start_if_refreshed": [
+      { "effect": "ap",            "silver": 30,  "gold": 45 },
+      { "effect": "armor_mr",      "silver": 45,  "gold": 70 },
+      { "effect": "leona_drop",    "silver": 50,  "gold": 100 },
+      { "effect": "attack_speed",  "silver": 30,  "gold": 45 },
+      { "effect": "permanent_hp",  "silver": 50,  "gold": 75 },
+      { "effect": "shield",        "silver": 40,  "gold": 60 },
+      { "effect": "gold_drop",     "silver": 22,  "gold": 22, "silverGold": 2, "goldGold": 4 }
+    ],
+    "every_4_seconds": [
+      { "effect": "mana",          "silver": 8,   "gold": 12 },
+      { "effect": "ap",            "silver": 10,  "gold": 15 },
+      { "effect": "armor_mr",      "silver": 16,  "gold": 24 },
+      { "effect": "leona_drop",    "silver": 18,  "gold": 25 },
+      { "effect": "attack_speed",  "silver": 11,  "gold": 17 },
+      { "effect": "permanent_hp",  "silver": 14,  "gold": 21 },
+      { "effect": "free_reroll",   "silver": 18,  "gold": 25 },
+      { "effect": "shield",        "silver": 12,  "gold": 18 },
+      { "effect": "gold_drop",     "silver": 8,   "gold": 8,  "silverGold": 2, "goldGold": 3 }
+    ],
+    "on_hp_below_40": [
+      { "effect": "mana",          "silver": 50,  "gold": 80 },
+      { "effect": "ap",            "silver": 70,  "gold": 100 },
+      { "effect": "armor_mr",      "silver": 75,  "gold": 115 },
+      { "effect": "leona_drop",    "silver": 25,  "gold": 50 },
+      { "effect": "permanent_hp",  "silver": 55,  "gold": 85 },
+      { "effect": "free_reroll",   "silver": 25,  "gold": 50 },
+      { "effect": "shield",        "silver": 55,  "gold": 85 },
+      { "effect": "gold_drop",     "silver": 11,  "gold": 11, "silverGold": 2, "goldGold": 4 },
+      { "effect": "attack_speed",  "silver": 70,  "gold": 100 }
+    ],
+    "on_spend_50_mana": [
+      { "effect": "mana",          "silver": 10,  "gold": 15 },
+      { "effect": "ap",            "silver": 16,  "gold": 24 },
+      { "effect": "armor_mr",      "silver": 26,  "gold": 39 },
+      { "effect": "leona_drop",    "silver": 12,  "gold": 20 },
+      { "effect": "attack_speed",  "silver": 12,  "gold": 18 },
+      { "effect": "free_reroll",   "silver": 12,  "gold": 20 },
+      { "effect": "shield",        "silver": 8,   "gold": 12 },
+      { "effect": "gold_drop",     "silver": 4,   "gold": 4,  "silverGold": 2, "goldGold": 4 },
+      { "effect": "permanent_hp",  "silver": 24,  "gold": 36 }
+    ],
+    "on_combat_start_per_star": [
+      { "effect": "ap",            "silver": 7,   "gold": 7 },
+      { "effect": "armor_mr",      "silver": 10,  "gold": 10 },
+      { "effect": "leona_drop",    "silver": 12,  "gold": 12 },
+      { "effect": "attack_speed",  "silver": 7,   "gold": 7 },
+      { "effect": "permanent_hp",  "silver": 10,  "gold": 10 },
+      { "effect": "free_reroll",   "silver": 12,  "gold": 12 },
+      { "effect": "shield",        "silver": 7,   "gold": 7 },
+      { "effect": "gold_drop",     "silver": 5,   "gold": 5,  "silverGold": 2, "goldGold": 2 }
+    ],
+    "on_enemy_death": [
+      { "effect": "mana",          "silver": 8,   "gold": 12 },
+      { "effect": "ap",            "silver": 8,   "gold": 12 },
+      { "effect": "leona_drop",    "silver": 18,  "gold": 25 },
+      { "effect": "attack_speed",  "silver": 8,   "gold": 12 },
+      { "effect": "permanent_hp",  "silver": 10,  "gold": 15 },
+      { "effect": "free_reroll",   "silver": 18,  "gold": 25 },
+      { "effect": "shield",        "silver": 12,  "gold": 18 },
+      { "effect": "gold_drop",     "silver": 8,   "gold": 8,  "silverGold": 2, "goldGold": 3 },
+      { "effect": "armor_mr",      "silver": 18,  "gold": 27 }
+    ]
+  }
+}

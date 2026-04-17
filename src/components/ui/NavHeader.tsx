@@ -45,6 +45,12 @@ export default function NavHeader() {
         >
           {cfg.status === 'pbe' ? '팀 빌더' : '전투 시뮬'}
         </Link>
+        <Link
+          href="/lookup"
+          className="px-2 py-1.5 lg:px-4 lg:py-2 rounded-lg text-xs lg:text-sm text-gray-300 hover:text-white hover:bg-[#1f2937] transition-colors"
+        >
+          전적검색
+        </Link>
       </div>
     </div>
   );
