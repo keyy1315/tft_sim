@@ -1,8 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { getChampionImage } from '@/data/imageMap';
 import Tooltip from '@/components/ui/Tooltip';
+import { useMatchAnalysis } from '@/hooks/useMatchAnalysis';
+import ItemDiagnosis from '@/components/analysis/ItemDiagnosis';
+import type { ItemAnalysisResult } from '@/types/analysis';
 
 /* ─── Types ─── */
 
@@ -345,11 +348,15 @@ function MatchCard({
   result,
   searchedPuuid,
   onSearchPlayer,
+  itemResult,
+  isFirstPlace,
 }: {
   match: MatchData;
   result: LookupResult;
   searchedPuuid: string;
   onSearchPlayer: (name: string) => void;
+  itemResult?: ItemAnalysisResult | null;
+  isFirstPlace?: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [participants, setParticipants] = useState<ParticipantData[] | null>(null);
@@ -419,6 +426,24 @@ function MatchCard({
               />
             ))}
           </div>
+
+          {/* Analysis (Phase 1) */}
+          {isFirstPlace && (
+            <div className="mt-2 p-2 rounded bg-yellow-500/10 border border-yellow-500/30 text-xs text-yellow-300">
+              1등 축하합니다! 완벽한 플레이였어요.
+            </div>
+          )}
+          {!isFirstPlace && itemResult && <ItemDiagnosis result={itemResult} />}
+
+          {/* 가상 대전 분석 버튼 (Set 17만) */}
+          {(match.set_id ?? 'set17') === 'set17' && !isFirstPlace && (
+            <a
+              href={`/lookup/${encodeURIComponent(match.match_id)}/analysis?puuid=${encodeURIComponent(searchedPuuid)}`}
+              className="mt-2 inline-block px-3 py-1.5 rounded text-xs font-medium bg-blue-600/20 border border-blue-500/30 text-blue-300 hover:bg-blue-600/30 transition-colors"
+            >
+              가상 대전 분석
+            </a>
+          )}
         </div>
 
         {/* Expand toggle (right edge) */}
@@ -463,6 +488,7 @@ export default function LookupPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [activeSet, setActiveSet] = useState('set17');
+  const { results: analysisResults, analyze } = useMatchAnalysis();
 
   const handleSearch = async (searchInput?: string) => {
     const trimmed = (searchInput ?? input).trim();
@@ -509,6 +535,20 @@ export default function LookupPage() {
   const allMatches = result?.matches ?? [];
   const availableSets = [...new Set(allMatches.map((m) => m.set_id ?? 'set17'))].sort().reverse();
   const filteredMatches = allMatches.filter((m) => (m.set_id ?? 'set17') === activeSet);
+
+  // Set 17 매치에 대해 자동 분석 실행
+  useEffect(() => {
+    for (const m of filteredMatches) {
+      if ((m.set_id ?? 'set17') === 'set17' && !analysisResults.has(m.match_id)) {
+        analyze(m.match_id, {
+          setId: m.set_id,
+          placement: m.placement,
+          champions: m.champions,
+          traits: m.traits,
+        });
+      }
+    }
+  }, [filteredMatches, analysisResults, analyze]);
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
@@ -579,6 +619,8 @@ export default function LookupPage() {
                 result={result}
                 searchedPuuid={result.summoner.puuid}
                 onSearchPlayer={(name) => handleSearch(name)}
+                itemResult={analysisResults.get(m.match_id)?.items}
+                isFirstPlace={analysisResults.get(m.match_id)?.isFirstPlace}
               />
             ))}
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState, useMemo, useCallback } from 'react';
+import { Suspense, useState, useMemo, useCallback, useEffect } from 'react';
 import { DndContext, DragOverlay, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { useGameData } from '@/hooks/useGameData';
 import { useActiveSet } from '@/hooks/useActiveSet';
@@ -57,6 +57,22 @@ function SimulatorContent() {
 
   const tm = useTeamManagement({ traits });
   const replay = useReplayControls();
+
+  // 분석 페이지에서 넘어온 팀 데이터 로드
+  useEffect(() => {
+    const stored = sessionStorage.getItem('analysis_team');
+    if (!stored) return;
+    sessionStorage.removeItem('analysis_team');
+    try {
+      const { playerTeam, enemyTeam } = JSON.parse(stored) as {
+        playerTeam: PlacedChampion[];
+        enemyTeam: PlacedChampion[];
+      };
+      if (playerTeam.length > 0) tm.updatePlayerTeam(playerTeam);
+      if (enemyTeam.length > 0) tm.updateEnemyTeam(enemyTeam);
+    } catch { /* ignore */ }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const dnd = useDndHandlers({
     playerTeam: tm.playerTeam,
     enemyTeam: tm.enemyTeam,
