@@ -4,6 +4,7 @@ import {
   RawTrait, RawAugment, RawItem, RawChampion, ActiveTrait, ItemEffect,
   MF_MODE_CONFIG, ArbiterLaw,
 } from '@/types';
+import arbiterLawsData from '../../../../public/data/arbiter_laws.json';
 import { findCarryAugment } from '@/data/carryAugments';
 import type { StatusEffectType } from '@/types';
 import { calculateStats } from '@/lib/simulator/systems/stat';
@@ -1152,18 +1153,16 @@ function applyPiltoverInvention(
 
 /* ─── Arbiter Law helpers ─── */
 
-import arbiterLawsData from '../../../../public/data/arbiter_laws.json';
-
 interface ArbiterTriggerState {
   hitCount: number;
   attackCount: number;
   manaSpent: number;
-  enemyDiedThisTick: boolean;
+  enemyDeathCount: number;
   hpTriggered: Set<string>;
 }
 
 function createArbiterTriggerState(): ArbiterTriggerState {
-  return { hitCount: 0, attackCount: 0, manaSpent: 0, enemyDiedThisTick: false, hpTriggered: new Set() };
+  return { hitCount: 0, attackCount: 0, manaSpent: 0, enemyDeathCount: 0, hpTriggered: new Set() };
 }
 
 function resolveArbiterValue(law: ArbiterLaw, arbiterCount: number): { value: number; triggerType: string; threshold?: number; intervalSeconds?: number; hpPercent?: number } | null {
@@ -1459,8 +1458,11 @@ export function simulateCombat(
             if (state.manaSpent >= (resolved.threshold ?? 50)) { fired = true; state.manaSpent -= (resolved.threshold ?? 50); }
             break;
           case 'on_enemy_death':
-            if (state.enemyDiedThisTick) fired = true;
-            break;
+            for (let d = 0; d < state.enemyDeathCount; d++) {
+              applyArbiterEffect(law.effectId, resolved.value, units, tick, time, logs, tickLogs);
+            }
+            state.enemyDeathCount = 0;
+            return;
           case 'on_hp_threshold': {
             const alive = units.filter(u => u.state !== 'dead');
             for (const u of alive) {
@@ -1473,7 +1475,7 @@ export function simulateCombat(
           }
         }
         if (fired) applyArbiterEffect(law.effectId, resolved.value, units, tick, time, logs, tickLogs);
-        state.enemyDiedThisTick = false;
+        state.enemyDeathCount = 0;
       };
       checkLaw(playerLawResolved, options.playerArbiterLaw, playerArbiterState, playerArbiterUnits);
       checkLaw(enemyLawResolved, options.enemyArbiterLaw, enemyArbiterState, enemyArbiterUnits);
@@ -1585,8 +1587,8 @@ export function simulateCombat(
             target.state = 'dead';
             unit.killCount++;
             // 중재자 on_enemy_death 플래그
-            if (unit.team === 'player') enemyArbiterState.enemyDiedThisTick = true;
-            else playerArbiterState.enemyDiedThisTick = true;
+            if (unit.team === 'player') playerArbiterState.enemyDeathCount++;
+            else enemyArbiterState.enemyDeathCount++;
             const deathLog: CombatLog = { tick, time, type: 'death', sourceId: target.id, message: `${target.champion.name} 사망! (${unit.champion.name}의 기본 공격)` };
             logs.push(deathLog); tickLogs.push(deathLog);
             eventBus.emit('on_death', { sourceId: target.id, tick });
@@ -1962,8 +1964,8 @@ export function simulateCombat(
           if ((target.currentHp <= 0 || shouldExecute) && target.state !== 'dead') {
             target.state = 'dead';
             target.currentHp = 0;
-            if (unit.team === 'player') enemyArbiterState.enemyDiedThisTick = true;
-            else playerArbiterState.enemyDiedThisTick = true;
+            if (unit.team === 'player') playerArbiterState.enemyDeathCount++;
+            else enemyArbiterState.enemyDeathCount++;
             eventBus.emit('on_kill', { sourceId: unit.id, targetId: target.id, tick });
             eventBus.emit('on_death', { sourceId: target.id, targetId: unit.id, tick });
             const deathLog: CombatLog = {

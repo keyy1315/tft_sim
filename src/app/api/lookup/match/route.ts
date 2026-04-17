@@ -2,13 +2,24 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getMatchDetail, getAccountByPuuid, parseAllParticipants } from '@/lib/riot';
 import type { ParsedParticipant } from '@/lib/riot';
 
+const MAX_CACHE_SIZE = 200;
 const matchCache = new Map<string, ParsedParticipant[]>();
+
+function cacheSet(key: string, value: ParsedParticipant[]) {
+  if (matchCache.size >= MAX_CACHE_SIZE) {
+    const oldest = matchCache.keys().next().value;
+    if (oldest !== undefined) matchCache.delete(oldest);
+  }
+  matchCache.set(key, value);
+}
+
+const MATCH_ID_RE = /^[A-Z]{2,4}_\d+$/;
 
 export async function POST(req: NextRequest) {
   const { matchId } = (await req.json()) as { matchId: string };
 
-  if (!matchId) {
-    return NextResponse.json({ error: 'matchId 필요' }, { status: 400 });
+  if (!matchId || !MATCH_ID_RE.test(matchId)) {
+    return NextResponse.json({ error: 'matchId 형식 오류' }, { status: 400 });
   }
 
   try {
@@ -31,7 +42,7 @@ export async function POST(req: NextRequest) {
       })
     );
 
-    matchCache.set(matchId, withNames);
+    cacheSet(matchId, withNames);
 
     return NextResponse.json({ participants: withNames });
   } catch (err) {

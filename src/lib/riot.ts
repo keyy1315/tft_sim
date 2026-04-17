@@ -58,19 +58,19 @@ export async function getAccountByRiotId(gameName: string, tagLine: string): Pro
 
 export async function getAccountByPuuid(puuid: string): Promise<RiotAccount> {
   return riotFetch<RiotAccount>(
-    `${ASIA_BASE}/riot/account/v1/accounts/by-puuid/${puuid}`
+    `${ASIA_BASE}/riot/account/v1/accounts/by-puuid/${encodeURIComponent(puuid)}`
   );
 }
 
 export async function getMatchIds(puuid: string, count = 20): Promise<string[]> {
   return riotFetch<string[]>(
-    `${ASIA_BASE}/tft/match/v1/matches/by-puuid/${puuid}/ids?count=${count}`
+    `${ASIA_BASE}/tft/match/v1/matches/by-puuid/${encodeURIComponent(puuid)}/ids?count=${count}`
   );
 }
 
 export async function getMatchDetail(matchId: string): Promise<TftMatchDetail> {
   return riotFetch<TftMatchDetail>(
-    `${ASIA_BASE}/tft/match/v1/matches/${matchId}`
+    `${ASIA_BASE}/tft/match/v1/matches/${encodeURIComponent(matchId)}`
   );
 }
 
