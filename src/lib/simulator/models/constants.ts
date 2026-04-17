@@ -55,6 +55,9 @@ export const ITEM_EFFECT_KEYS: Record<string, string> = {
   'MaxHealth': 'hp',
   'MaxHP': 'hp',
   'ADAP': 'adap',
+  // 유물/찬란한/시너지 전용 아이템의 기본 스탯 키
+  'AttackSpeed': 'as',
+  'CritDamageBonusPercent': 'critDamage',
 };
 
 // === 스탯 이름 한글화 ===
