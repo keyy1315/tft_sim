@@ -182,7 +182,9 @@ export class ItemEffectRuntime {
     if (!this.deps) return;
     // Trigger는 "이 유닛이 장착한 아이템이 이 유닛 관련 이벤트에만 반응"이 기본.
     // on_hit_taken (피격): sourceId=피격자, on_attack/on_hit/on_cast: sourceId=공격자.
-    if (payload.sourceId !== unit.id) return;
+    // on_combat_start/end 는 broadcast 이벤트 — 모든 유닛 trigger 발동.
+    const isBroadcast = d.event === 'on_combat_start' || d.event === 'on_combat_end';
+    if (!isBroadcast && payload.sourceId !== unit.id) return;
     if (unit.state === 'dead') return;
 
     const state = this.states.get(stateKey(unit.id, apiName));

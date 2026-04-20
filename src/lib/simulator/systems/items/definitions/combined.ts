@@ -32,6 +32,10 @@ const statPatch = (stats: {
 /**
  * 조합 아이템 정의. 각 apiName 에 대해 StatPatch 하나 (+ Phase 3 이후 trigger 추가 예정).
  */
+/**
+ * 순수 StatPatch 아이템 (trigger 없음).
+ * Stacking/damageAmp trigger 아이템은 definitions/stacking.ts 로 분리.
+ */
 export const COMBINED_ITEMS: Record<string, ItemEffectDescriptor[]> = {
   // 무한의 대검: AD 35%, CritChance 35
   'TFT_Item_InfinityEdge': [statPatch({ ad: 0.35, critChance: 35 })],
@@ -39,27 +43,15 @@ export const COMBINED_ITEMS: Record<string, ItemEffectDescriptor[]> = {
   // 보석 건틀릿: AP 35, CritChance 35
   'TFT_Item_JeweledGauntlet': [statPatch({ ap: 35, critChance: 35 })],
 
-  // 라바돈의 죽음모자: AP 55 (BonusDamage 15% → Phase 3 Trigger)
-  'TFT_Item_RabadonsDeathcap': [statPatch({ ap: 55 })],
-
-  // 피바라기: AD 15%, AP 15, MR 20 (StatOmnivamp / Shield → Phase 3+)
+  // 피바라기: AD 15%, AP 15, MR 20 (StatOmnivamp / Shield → Phase 4+)
   'TFT_Item_Bloodthirster': [statPatch({ ad: 0.15, ap: 15, magicResist: 20 })],
-
-  // 죽음의 검: AD 55% (BonusDamage → Phase 3 Trigger)
-  'TFT_Item_Deathblade': [statPatch({ ad: 0.55 })],
-
-  // 구인수의 격노검: AP 10, AS 10 (AttackSpeedPerStack → Phase 3 Trigger)
-  'TFT_Item_GuinsoosRageblade': [statPatch({ ap: 10, as: 10 })],
-
-  // 거인의 결의: AS 10, Armor 20 (Stacking AD/SP/Cap → Phase 3 Trigger)
-  'TFT_Item_TitansResolve': [statPatch({ as: 10, armor: 20 })],
 
   // 쇼진의 창: AD 15%, AP 15 (ManaRegen/FlatManaRestore → 추후 별도)
   'TFT_Item_SpearOfShojin': [statPatch({ ad: 0.15, ap: 15 })],
 
-  // 대천사의 지팡이: AP 30 (APPerInterval/ManaRegen → Phase 3 Timer)
+  // 대천사의 지팡이: AP 30 (APPerInterval/ManaRegen → Phase 3 Timer 확장 예정)
   'TFT_Item_ArchangelsStaff': [statPatch({ ap: 30 })],
 
-  // 덤불 조끼: Armor 50 (AutoDamageReduction/PercentMaxHP/AoE reflect → Phase 3+)
+  // 덤불 조끼: Armor 50 (AutoDamageReduction/PercentMaxHP/AoE reflect → Phase 4+)
   'TFT_Item_BrambleVest': [statPatch({ armor: 50 })],
 };
