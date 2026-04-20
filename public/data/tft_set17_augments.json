@@ -2,7 +2,7 @@
   "meta": {
     "set": 17,
     "source": "CommunityDragon TFT ko_kr.json",
-    "extractedAt": "2026-04-20T01:03:25.986Z",
+    "extractedAt": "2026-04-20T01:34:33.410Z",
     "totalAugments": 429
   },
   "augments": [
@@ -11,7 +11,7 @@
       "apiName": "TFT17_Augment_EkkoGodAugment",
       "desc": "이상 현상을 획득합니다. 역할군에 따라 유닛을 강력하게 진화시키는 아이템입니다. 자석 제거기 @NumRemovers_TOOLTIPONLY@개를 획득합니다.",
       "effects": {
-        "{eac8451e}": 2
+        "NumRemovers_TOOLTIPONLY": 2
       },
       "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/GodAugmentEkko_II.TFT_Set17.tex",
       "associatedTraits": [],
@@ -25,7 +25,7 @@
       "desc": "잃은 플레이어 체력당 아군이 체력을 @HealthPerTacHealth@ 얻습니다. 각 플레이어 대상 전투 시작 시 추가로 플레이어 체력을 @Heal@ 얻습니다.",
       "effects": {
         "Heal": 1,
-        "{c2bf87c0}": 2
+        "HealthPerTacHealth": 2
       },
       "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/GodAugmentSoraka_II.TFT_Set17.tex",
       "associatedTraits": [],
@@ -76,11 +76,11 @@
       "apiName": "TFT17_Augment_AurelionSolGodAugment",
       "desc": "퀘스트 @NumQuestOptions_TOOLTIPONLY@개 중 하나를 선택하고 아우렐리온 솔에게 자격을 증명하세요.<br><br>선택한 퀘스트: @TFTUnitProperty.item:TFT17_Augment_AurelionSolGodAugment@",
       "effects": {
-        "{19119d64}": 3,
-        "{36d140ff}": 22,
-        "{7032621d}": 3,
-        "{8631cdf7}": 8,
-        "{ba4ddbfa}": 15
+        "LargeQuestRounds": 8,
+        "MedQuestGold": 22,
+        "MedQuestRounds": 3,
+        "NumQuestOptions_TOOLTIPONLY": 3,
+        "SmallQuestADAP": 15
       },
       "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/GodAugmentAurelionSol_II.TFT_Set17.tex",
       "associatedTraits": [],
@@ -93,7 +93,7 @@
       "apiName": "TFT17_Augment_AurelionSolGodAugment_SmallQuest",
       "desc": "아군이 공격력 및 주문력을 @SmallQuestADAP@ 얻습니다.",
       "effects": {
-        "{ba4ddbfa}": 15
+        "SmallQuestADAP": 15
       },
       "icon": "ASSETS/Maps/TFT/Icons/Augments/ChoiceUI/ADMIN_Armorery_Icon.tex",
       "associatedTraits": [],
@@ -106,8 +106,8 @@
       "apiName": "TFT17_Augment_AurelionSolGodAugment_MediumQuest",
       "desc": "",
       "effects": {
-        "{19119d64}": 3,
-        "{36d140ff}": 22,
+        "MedQuestGold": 22,
+        "MedQuestRounds": 3,
         "{7c96bf44}": 1
       },
       "icon": "ASSETS/Maps/TFT/Icons/Augments/ChoiceUI/ADMIN_Armorery_Icon.tex",
@@ -121,7 +121,7 @@
       "apiName": "TFT17_Augment_AurelionSolGodAugment_LargeQuest",
       "desc": "",
       "effects": {
-        "{8631cdf7}": 8
+        "LargeQuestRounds": 8
       },
       "icon": "ASSETS/Maps/TFT/Icons/Augments/ChoiceUI/ADMIN_Armorery_Icon.tex",
       "associatedTraits": [],
@@ -169,8 +169,8 @@
       "apiName": "TFT17_Augment_AhriGodAugment",
       "desc": "아군이 레벨당 공격력 및 주문력을 @ADAPPerLevel@% 얻습니다. 게임이 끝날 때까지 라운드마다 경험치를 @XP@ 얻습니다.",
       "effects": {
-        "XP": 2,
-        "{048fe876}": 2
+        "ADAPPerLevel": 2,
+        "XP": 2
       },
       "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/GodAugmentAhri_II.TFT_Set17.tex",
       "associatedTraits": [],
@@ -227,7 +227,7 @@
       "apiName": "TFT17_Augment_YasuoGodAugment_MoreHexes",
       "desc": "야스오의 칸이 인접한 유닛에게도 @Effectiveness*100@%의 효과를 적용합니다.",
       "effects": {
-        "{c65f6279}": 1
+        "Effectiveness": 1
       },
       "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/ShareSpotlight2.tex",
       "associatedTraits": [],
@@ -403,10 +403,10 @@
       "apiName": "TFT17_Augment_TourOfTheGalaxy",
       "desc": "여행자가 체력을 @HP@, 공격력을 @AD*100@%, 주문력을 @AP@% 얻습니다. 이 수치는 새로운 플레이어와 전투할 때마다 @IncPercent*100@% 증가합니다. 최근 상대하지 않은 플레이어를 우선해 전투를 치릅니다.",
       "effects": {
-        "AD": 0.11999999731779099,
-        "AP": 12,
-        "HP": 120,
-        "{aa49f69c}": 0.10000000149011612
+        "AD": 0.12999999523162842,
+        "AP": 13,
+        "HP": 130,
+        "IncPercent": 0.10000000149011612
       },
       "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Missing-T2.tex",
       "associatedTraits": [
@@ -441,7 +441,13 @@
       "name": "케일의 은총",
       "apiName": "TFT17_Augment_KayleGodAugment",
       "desc": "무작위 완성 아이템 1개를 찬란한 아이템으로 업그레이드합니다.",
-      "effects": {},
+      "effects": {
+        "AD": 0.009999999776482582,
+        "AP": 1,
+        "BaseHP": null,
+        "Health": 15,
+        "MaxCap": 99
+      },
       "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/GodAugmentKayle_II.TFT_Set17.tex",
       "associatedTraits": [],
       "tags": [
@@ -453,8 +459,8 @@
       "apiName": "TFT17_Augment_YasuoGodAugment_PaintedPower",
       "desc": "야스오의 칸 위력이 @Effectiveness*100@% 증가합니다. 칸이 2개뿐이라면 @GoldIfTwo@골드를 획득합니다.",
       "effects": {
-        "{095bae32}": 12,
-        "{c65f6279}": 0.5
+        "Effectiveness": 0.5,
+        "GoldIfTwo": 12
       },
       "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/GodAugmentYasuo_II.TFT_Set17.tex",
       "associatedTraits": [],
@@ -507,7 +513,7 @@
     {
       "name": "피의 대가",
       "apiName": "TFT17_Augment_EvelynnGodAugment_BloodPrice",
-      "desc": "TFT17_MarketOffering_LongDesc_BloodPrice",
+      "desc": "전략가 체력을 @Health@ 얻습니다. 상점 가장 오른쪽 슬롯이 골드 대신 전략가 체력을 소모합니다.",
       "effects": {
         "Health": 25
       },
@@ -542,10 +548,10 @@
     {
       "name": "군체의 심장",
       "apiName": "TFT17_Augment_PrimordianPrismaticAugment",
-      "desc": "TFT17_Augment_PrimordianAugment_Description",
+      "desc": "이제 모든 3성 유닛이 군체 유충 위력 계산에 포함됩니다. @LevelRequirement@레벨에서 서로 다른 3성 유닛 @Num3StarUnits@명을 배치하면 태고족이 태고족 우두머리를 소환합니다. 브라이어, 벨베스, 렉사이를 획득합니다.<br>서로 다른 3성 유닛 배치: @TFTUnitProperty.item:TFT17_Augment_PrimordianPrismaticAugment_TotalStarredUnits@ / @Num3StarUnits@<br>레벨: @TFTUnitProperty.item:TFT17_Augment_PrimordianPrismaticAugment_TotalLevel@ / @LevelRequirement@",
       "effects": {
-        "{378d6080}": 9,
-        "{6ed83867}": 6
+        "LevelRequirement": 9,
+        "Num3StarUnits": 6
       },
       "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Missing-T3.tex",
       "associatedTraits": [],
@@ -765,7 +771,7 @@
         "SecondStunSeconds": 18,
         "StunDuration": 1.5
       },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/ArcaneViktory_II.TFT_Set16_ChampionAugments.tex",
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/ArcaneViktory_II.tex",
       "associatedTraits": [],
       "tags": [
         "{ce1fd21c}",
@@ -799,7 +805,7 @@
       "effects": {
         "NumRerolls": 20
       },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/EpicRolldown_II.TFT_Set16_ChampionAugments.tex",
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/EpicRolldown_II.tex",
       "associatedTraits": [],
       "tags": [
         "{ce1fd21c}",
@@ -812,18 +818,20 @@
     {
       "name": "극대화 빌드",
       "apiName": "TFT_Augment_MaxBuild",
-      "desc": "무료 상점 새로고침을 @RerollCount@회 얻습니다. 스테이지 4-5 및 6-2에서 챔피언 복제기 1개를 획득합니다.<br><br><tftitemrules>2020 갤럭시 챔피언십</tftitemrules>",
+      "desc": "TFT_Augment_MaxBuild_desc",
       "effects": {
-        "RerollCount": 8
+        "Gold": 4,
+        "{831bb748}": 1
       },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/MaxBuild_II.TFT_Set16_ChampionAugments.tex",
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/MaxBuild_II.tex",
       "associatedTraits": [],
       "tags": [
         "{ce1fd21c}",
         "{b72bd3bf}",
         "{d12ae4b6}",
         "{d02ae323}",
-        "{ef273b4c}"
+        "{ef273b4c}",
+        "{d22ae649}"
       ]
     },
     {
@@ -1264,9 +1272,9 @@
       "apiName": "TFT_Augment_Dummify",
       "desc": "전장 및 대기석에 있는 모든 챔피언을 잃습니다. 잃은 챔피언 체력 총합의 @HealthPercent@%를 지닌 훈련 봇을 획득합니다. 훈련 봇이 스테이지마다 체력을 @HPPerStage@ 얻습니다. @ChampCost@단계 2성 비탱커 챔피언 1명을 획득합니다.",
       "effects": {
+        "ChampCost": 2,
         "HPPerStage": 1000,
-        "HealthPercent": 60,
-        "{161b0c75}": 2
+        "HealthPercent": 60
       },
       "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Dummify_I.TFT_Set13.tex",
       "associatedTraits": [],
@@ -1319,8 +1327,9 @@
       "apiName": "TFT_Augment_PatienceIsAVirtue",
       "desc": "라운드마다, 지난 라운드에서 챔피언을 구매하지 않았다면 무료 새로고침을 @FreeRerolls@회 얻습니다.",
       "effects": {
-        "FreeRerolls": 2,
-        "{4293de94}": null
+        "FreeRerolls": 1,
+        "{4293de94}": null,
+        "{a4a3332a}": 4
       },
       "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/PatienceIsAVirtue_I.TFT_Set12.tex",
       "associatedTraits": [],
@@ -1409,7 +1418,7 @@
       "apiName": "TFT_Augment_EndlessConflagration",
       "desc": "화상 아이템을 선택합니다. 이제 화상 효과가 중첩되어 기존 화상 피해량이 @BurnIncreasePerStack*100@% 증가합니다.",
       "effects": {
-        "{3b682659}": 0.11999999731779099
+        "BurnIncreasePerStack": 0.11999999731779099
       },
       "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/EndlessConflagration_II.TFT_Set17.tex",
       "associatedTraits": [],
@@ -1431,7 +1440,7 @@
         "BaseDamage": 25,
         "EndSeconds": 10,
         "ProjectileCount": 2,
-        "{6fe0d49c}": null
+        "StartSeconds": null
       },
       "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/FoodfightTactics_II.TFT_Set15.tex",
       "associatedTraits": [],
@@ -1449,8 +1458,8 @@
       "desc": "무작위 탱커 아이템 1개를 획득합니다. 전투 시작 @StartSeconds@초 후, 아군이 전투가 끝날 때까지 매초 추가 공격력 및 주문력을 @Stats@% 얻습니다.<br><br><tftitemrules>2025 전략적 팀 전투 파리 오픈</tftitemrules>",
       "effects": {
         "IntervalSeconds": 1,
-        "Stats": 5,
-        "{6fe0d49c}": 8
+        "StartSeconds": 8,
+        "Stats": 5
       },
       "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/TheBaronsLair_III.TFT_16_4.tex",
       "associatedTraits": [],
@@ -1652,7 +1661,7 @@
         "IncPerPlayerCombat": 1,
         "NumADAP": 4
       },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/EarlyLearning_II.TFT_Set16_ChampionAugments.tex",
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/EarlyLearning_II.tex",
       "associatedTraits": [],
       "tags": [
         "{ce1fd21c}",
@@ -2624,8 +2633,8 @@
       "apiName": "TFT_Augment_Expedition",
       "desc": "라운드가 시작될 때마다 대기석 가장 오른쪽에 있는 챔피언을 잃습니다. 이 방식으로 @CashoutCost@골드 가치에 해당하는 챔피언을 잃으면 강력한 보상을 획득합니다. 즉시 3단계 챔피언 1명을 획득합니다. @TFTUnitProperty.item:TFT_Augment_Expedition_Tooltip@",
       "effects": {
-        "{b763af5c}": 1,
-        "{dcc93397}": 33
+        "CashoutCost": 33,
+        "{b763af5c}": 1
       },
       "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Expedition_I.TFT_Set17.tex",
       "associatedTraits": [],
@@ -3423,7 +3432,7 @@
       "desc": "즉시 @InstantGold@골드를 획득하고, 이후 매 스테이지 시작 시 @StageGold@골드를 획득합니다. 골드를 획득하면 전략가 크기가 커집니다.",
       "effects": {
         "InstantGold": 16,
-        "{da47f05b}": 7
+        "StageGold": 7
       },
       "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/MoneyHungry2_II.TFT_Set17.tex",
       "associatedTraits": [],
@@ -3483,8 +3492,8 @@
       "apiName": "TFT_Augment_GoldenGamble",
       "desc": "@gold@골드를 획득하고 동전을 던집니다. 앞면이 나오면 찬란한 행운의 아이템 상자를 획득합니다. 뒷면이 나오면 완성 아이템 모루 @CompletedAnvils@개를 획득합니다.<br><br>@TFTUnitProperty.item:TFT_Augment_GoldenGamble_Tooltip@",
       "effects": {
-        "Gold": 1,
-        "{584f0395}": 2
+        "CompletedAnvils": 2,
+        "Gold": 1
       },
       "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/GoldenGamble_III.TFT_Set17.tex",
       "associatedTraits": [],
@@ -3754,7 +3763,7 @@
       "desc": "아군이 피해 증폭을 @DamageAmp@% 얻습니다. 대상 처치 후 남는 피해량의 @OverkillPercent*100@%를 가장 가까운 적에게 마법 피해로 입힙니다.",
       "effects": {
         "DamageAmp": 5,
-        "{7940e694}": 0.5
+        "OverkillPercent": 0.5
       },
       "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/ChargeTransfer1_I.TFT_Set17.tex",
       "associatedTraits": [],
@@ -3821,7 +3830,7 @@
       "desc": "아군이 피해 증폭을 @DamageAmp@% 얻습니다. 대상 처치 후 남는 피해량의 @OverkillPercent*100@%를 가장 가까운 적에게 마법 피해로 입힙니다.",
       "effects": {
         "DamageAmp": 8,
-        "{7940e694}": 0.800000011920929
+        "OverkillPercent": 0.800000011920929
       },
       "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/ChargeTransfer2_II.TFT_Set17.tex",
       "associatedTraits": [],
@@ -3987,8 +3996,8 @@
       "apiName": "TFT_Augment_CosmicRestart",
       "desc": "신들의 힘을 빌려 전장 및 대기석에 있는 모든 유닛을 판매합니다. 무작위 상징 @Emblems@개 및 무료 상점 새로고침 @Rerolls@회를 획득합니다.",
       "effects": {
-        "Rerolls": 11,
-        "{526bbbf8}": 2
+        "Emblems": 2,
+        "Rerolls": 11
       },
       "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/CosmicRestart_II.TFT_Set17.tex",
       "associatedTraits": [],
@@ -4339,7 +4348,7 @@
       "effects": {
         "GoldAmount": 40
       },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/SpeedyDoubleKill_II.TFT_Set16_ChampionAugments.tex",
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/SpeedyDoubleKill_II.tex",
       "associatedTraits": [],
       "tags": [
         "{ce1fd21c}",
@@ -4612,8 +4621,8 @@
       "apiName": "TFT_Augment_GoldenGamblePlus",
       "desc": "@gold@골드를 획득하고 동전을 던집니다. 앞면이 나오면 찬란한 행운의 아이템 상자를 획득합니다. 뒷면이 나오면 완성 아이템 모루 @CompletedAnvils@개를 획득합니다.<br><br>@TFTUnitProperty.item:TFT_Augment_GoldenGamble_Tooltip@",
       "effects": {
-        "Gold": 4,
-        "{584f0395}": 2
+        "CompletedAnvils": 2,
+        "Gold": 4
       },
       "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/GoldenGamble_III.TFT_Set17.tex",
       "associatedTraits": [],
@@ -4669,7 +4678,7 @@
       "desc": "@BaseGold@골드를 획득하고 동전을 던집니다. 앞면이 나오면 @GoldForHeads@골드를 추가로 획득합니다.<br><br>@TFTUnitProperty.item:TFT_Augment_FeelingLucky_Tooltip@",
       "effects": {
         "BaseGold": 12,
-        "{ee845d69}": 4
+        "GoldForHeads": 4
       },
       "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/FeelingLucky_I.TFT_Set17.tex",
       "associatedTraits": [],
@@ -4705,7 +4714,7 @@
         "BonusHealth": 700,
         "DurabilityPct": 0.20000000298023224
       },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/TheGoldenDragon_II.TFT_Set16_ChampionAugments.tex",
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/TheGoldenDragon_II.tex",
       "associatedTraits": [],
       "tags": [
         "{ce1fd21c}",
@@ -4713,7 +4722,8 @@
         "{d02ae323}",
         "{d22ae649}",
         "{8fba48a3}",
-        "{807eed8a}"
+        "{807eed8a}",
+        "{d12ae4b6}"
       ]
     },
     {
@@ -4785,7 +4795,7 @@
         "GoldAmount": 3,
         "HealthPercent": 12
       },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/InfinityProtection_II.TFT_Set16_ChampionAugments.tex",
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/InfinityProtection_II.tex",
       "associatedTraits": [],
       "tags": [
         "{ce1fd21c}",
@@ -5067,7 +5077,7 @@
         "NumArtifacts": 1,
         "NumMoreArtifacts": 3
       },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/ForgedInStrength_III.TFT_Set16_ChampionAugments.tex",
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/ForgedInStrength_III.tex",
       "associatedTraits": [],
       "tags": [
         "{cf1fd3af}",
@@ -5218,7 +5228,7 @@
         "FirstLevelBreakpoint": 7,
         "SecondLevelBreakpoint": 9
       },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/BirthdayReunion_II.TFT_Set16_ChampionAugments.tex",
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/BirthdayReunion_II.tex",
       "associatedTraits": [],
       "tags": [
         "{ce1fd21c}",
@@ -5469,8 +5479,8 @@
       "apiName": "TFT_Augment_BoosterPack",
       "desc": "총 @TotalValue@골드 가치의 무작위 챔피언을 획득합니다. (@GuaranteedCost@단계 유닛 최소 1명 보장!)<br><br><rules>(각 챔피언은 낮은 확률로 홀로그램 버전으로 등장합니다!)</rules>",
       "effects": {
-        "{22f0b902}": 10,
-        "{e2e768ee}": 3
+        "GuaranteedCost": 3,
+        "TotalValue": 10
       },
       "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/BoosterPack1_II.TFT_Set17.tex",
       "associatedTraits": [],
@@ -5486,8 +5496,8 @@
       "apiName": "TFT_Augment_GoldenGamblePlusPlus",
       "desc": "@gold@골드를 획득하고 동전을 던집니다. 앞면이 나오면 찬란한 행운의 아이템 상자를 획득합니다. 뒷면이 나오면 완성 아이템 모루 @CompletedAnvils@개를 획득합니다.<br><br>@TFTUnitProperty.item:TFT_Augment_GoldenGamble_Tooltip@",
       "effects": {
-        "Gold": 12,
-        "{584f0395}": 2
+        "CompletedAnvils": 2,
+        "Gold": 12
       },
       "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/GoldenGamble_III.TFT_Set17.tex",
       "associatedTraits": [],
@@ -5788,9 +5798,9 @@
       "apiName": "TFT_Augment_SideEffects",
       "desc": "아군이 체력을 회복하면 대상에게 체력 회복량의 @HealConversionPct*100@%에 해당하는 마법 피해를 입힙니다. @HealInterval@초마다 아군이 최대 체력의 @HealPct*100@%만큼 체력을 회복합니다.",
       "effects": {
-        "HealPct": 0.03999999910593033,
-        "{350f1346}": 0.5,
-        "{ff22d532}": 5
+        "HealConversionPct": 0.5,
+        "HealInterval": 5,
+        "HealPct": 0.03999999910593033
       },
       "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/SideEffects_II.TFT_Set17.tex",
       "associatedTraits": [],
@@ -5862,7 +5872,7 @@
         "BaseResistGained": 10,
         "ResistsPerLevel": 2
       },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/BodyguardsTraining_II.TFT_Set16_ChampionAugments.tex",
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/BodyguardsTraining_II.tex",
       "associatedTraits": [],
       "tags": [
         "{ce1fd21c}",
@@ -5956,8 +5966,8 @@
       "desc": "체력이 증가한 거대 훈련 봇을 획득합니다. (체력은 스테이지에 따라 증가) 훈련 봇은 @ZapInterval@초마다 가장 가까운 적 @ZapCount@명에게 전기 충격을 가해 최대 체력의 @MaxHealthPct*100@%에 해당하는 고정 피해를 입힙니다.",
       "effects": {
         "MaxHealthPct": 0.05000000074505806,
-        "{3c05b52d}": 4,
-        "{4e29a343}": 3
+        "ZapCount": 3,
+        "ZapInterval": 4
       },
       "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/TheTower_I.TFT_Set17.tex",
       "associatedTraits": [],
@@ -5973,7 +5983,7 @@
       "effects": {
         "ASPercent": 30
       },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/WeStickTogether_III.TFT_Set16_ChampionAugments.tex",
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/WeStickTogether_III.tex",
       "associatedTraits": [],
       "tags": [
         "{cf1fd3af}",
@@ -6215,9 +6225,9 @@
       "apiName": "TFT_Augment_TheFloorIsLava",
       "desc": "전투 중 모든 유닛에게 @BurnPctTooltip@% 화상 및 @GrievousWoundsPct@% 상처가 적용됩니다. 아군이 모든 피해 흡혈을 @Omnivamp*100@% 얻습니다.<br><br><tftitemrules><tftbold>화상</tftbold>: 매초 대상 최대 체력의 일정 비율만큼 고정 피해<br><tftbold>상처</tftbold>: 체력 회복량 감소</tftitemrules>",
       "effects": {
+        "BurnPctTooltip": 1,
         "GrievousWoundsPct": 33,
-        "Omnivamp": 0.20000000298023224,
-        "{109c496e}": 1
+        "Omnivamp": 0.20000000298023224
       },
       "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/TheFloorIsLava_II.TFT_Set17.tex",
       "associatedTraits": [],
@@ -6329,9 +6339,9 @@
       "desc": "전장 및 대기석에 있는 모든 챔피언을 잃습니다. 잃은 챔피언 체력 총합의 @HealthPercent@%, 공격력 총합의 @ADPercent@%를 지닌 골렘을 획득합니다. 골렘은 스테이지마다 체력을 @HPPerStage@ 얻습니다. @ChampCost@단계 2성 비탱커 챔피언 1명을 획득합니다.",
       "effects": {
         "ADPercent": 33,
+        "ChampCost": 2,
         "HPPerStage": 1200,
-        "HealthPercent": 60,
-        "{161b0c75}": 2
+        "HealthPercent": 60
       },
       "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Golemify_II.TFT_Set13.tex",
       "associatedTraits": [],
@@ -6511,7 +6521,7 @@
       "effects": {
         "HealthPerItem": 20
       },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/SweetTreats_III.TFT_Set16_ChampionAugments.tex",
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/SweetTreats_III.tex",
       "associatedTraits": [],
       "tags": [
         "{b72bd3bf}",
@@ -6677,7 +6687,7 @@
         "BonusHealth": 0.11999999731779099,
         "XPGain": 2
       },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/LateGameScaling_II.TFT_Set16_ChampionAugments.tex",
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/LateGameScaling_II.TFT_Set16.tex",
       "associatedTraits": [],
       "tags": [
         "{ce1fd21c}",
@@ -6732,7 +6742,7 @@
       "desc": "즉시 @InstantGold@골드를 획득하고, 이후 매 스테이지 시작 시 @StageGold@골드를 획득합니다. 골드를 획득하면 전략가 크기가 커집니다.",
       "effects": {
         "InstantGold": 7,
-        "{da47f05b}": 7
+        "StageGold": 7
       },
       "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/MoneyHungry1_II.TFT_Set17.tex",
       "associatedTraits": [],
@@ -7418,7 +7428,7 @@
         "AS": 0.11999999731779099,
         "HealthAmount": 150
       },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/LegionofThrees_II.TFT_Set16_ChampionAugments.tex",
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/LegionofThrees_II.tex",
       "associatedTraits": [],
       "tags": [
         "{ce1fd21c}",
@@ -7468,7 +7478,7 @@
       "apiName": "TFT_Augment_SizeMatters",
       "desc": "거인의 허리띠를 획득합니다. 챔피언이 @HealthRequired@ 이상의 최대 체력으로 전투를 시작하면 워모그의 갑옷을 획득합니다.",
       "effects": {
-        "{8b3ead1a}": null
+        "HealthRequired": null
       },
       "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/SizeMatters_I.TFT_Set17.tex",
       "associatedTraits": [],
@@ -7486,8 +7496,8 @@
       "apiName": "TFT_Augment_BoosterPackPlusPlus",
       "desc": "총 @TotalValue@골드 가치의 무작위 챔피언을 획득합니다. (@GuaranteedCost@단계 유닛 최소 1명 보장!)<br><br><rules>(각 챔피언은 낮은 확률로 홀로그램 버전으로 등장합니다!)</rules>",
       "effects": {
-        "{22f0b902}": 26,
-        "{e2e768ee}": 5
+        "GuaranteedCost": 5,
+        "TotalValue": 26
       },
       "icon": "ASSETS/Maps/TFT/Icons/Augments/ChoiceUI/BoosterPack1_II.TFT_Set17.tex",
       "associatedTraits": [],
@@ -7519,8 +7529,8 @@
       "apiName": "TFT_Augment_BoosterPackPlus",
       "desc": "총 @TotalValue@골드 가치의 무작위 챔피언을 획득합니다. (@GuaranteedCost@단계 유닛 최소 1명 보장!)<br><br><rules>(각 챔피언은 낮은 확률로 홀로그램 버전으로 등장합니다!)</rules>",
       "effects": {
-        "{22f0b902}": 18,
-        "{e2e768ee}": 4
+        "GuaranteedCost": 4,
+        "TotalValue": 18
       },
       "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/BoosterPack1_II.TFT_Set17.tex",
       "associatedTraits": [],
@@ -7676,7 +7686,7 @@
       "effects": {
         "NumItems": 3
       },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/CustomFitted_II.TFT_Set13_Evolved.tex",
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/CustomFitted_II.tex",
       "associatedTraits": [],
       "tags": [
         "{ce1fd21c}",
@@ -7690,12 +7700,12 @@
       "apiName": "TFT_Augment_CognitiveOverload",
       "desc": "@Gold@골드, 1단계 2성 챔피언 @OneCostCount@명, 2단계 챔피언 @TwoCostCount@명, 3단계 챔피언 @ThreeCostCount@명, 경험치 @XP@, 상점 새로고침 @FreeRolls@회를 획득합니다.",
       "effects": {
+        "FreeRolls": 1,
         "Gold": 7,
-        "XP": 1,
-        "{0152f185}": 1,
-        "{685fef51}": 2,
-        "{9bb1ca13}": 1,
-        "{b3994c55}": 1
+        "OneCostCount": 1,
+        "ThreeCostCount": 2,
+        "TwoCostCount": 1,
+        "XP": 1
       },
       "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/CognitiveOverload_II.TFT_Set17.tex",
       "associatedTraits": [],
@@ -7794,7 +7804,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{d12ae4b6}",
-        "{24d36c27}"
+        "{24d36c27}",
+        "{d22ae649}"
       ]
     },
     {

@@ -2,7 +2,7 @@
   "meta": {
     "set": 17,
     "source": "CommunityDragon TFT ko_kr.json",
-    "extractedAt": "2026-04-20T01:03:25.986Z",
+    "extractedAt": "2026-04-20T01:34:33.410Z",
     "totalTraits": 44
   },
   "traits": [
@@ -17,7 +17,7 @@
           "minUnits": 1,
           "style": 4,
           "variables": {
-            "{8c8f7de0}": 12
+            "ADAP1": 12
           }
         }
       ]
@@ -35,9 +35,9 @@
           "variables": {
             "AttackSpeedPercent": 0.15000000596046448,
             "BurstDuration": 2.5,
+            "BurstPercent": 0.5,
             "DamageReduction": null,
-            "TeamwideAS": 0.10000000149011612,
-            "{2f14988e}": 0.5
+            "TeamwideAS": 0.10000000149011612
           }
         },
         {
@@ -47,9 +47,9 @@
           "variables": {
             "AttackSpeedPercent": 0.2199999988079071,
             "BurstDuration": 2.5,
+            "BurstPercent": 0.5,
             "DamageReduction": null,
-            "TeamwideAS": 0.10000000149011612,
-            "{2f14988e}": 0.5
+            "TeamwideAS": 0.10000000149011612
           }
         },
         {
@@ -59,9 +59,9 @@
           "variables": {
             "AttackSpeedPercent": 0.36000001430511475,
             "BurstDuration": 2.5,
+            "BurstPercent": 0.5,
             "DamageReduction": null,
-            "TeamwideAS": 0.10000000149011612,
-            "{2f14988e}": 0.5
+            "TeamwideAS": 0.10000000149011612
           }
         },
         {
@@ -71,9 +71,9 @@
           "variables": {
             "AttackSpeedPercent": 0.47999998927116394,
             "BurstDuration": 2.5,
+            "BurstPercent": 0.5,
             "DamageReduction": null,
-            "TeamwideAS": 0.10000000149011612,
-            "{2f14988e}": 0.5
+            "TeamwideAS": 0.10000000149011612
           }
         }
       ]
@@ -96,10 +96,10 @@
           "minUnits": 3,
           "style": 1,
           "variables": {
-            "{131def33}": 0.07999999821186066,
-            "{9cf2d9c8}": 0.019999999552965164,
-            "{b1d6fee6}": 10,
-            "{cd978d30}": 1,
+            "Wolf_ADAP": 10,
+            "Wolf_Gold": 1,
+            "Wolf_Health": 0.019999999552965164,
+            "Wolf_Health_Teamwide": 0.07999999821186066,
             "{f5b00dd5}": 8
           }
         },
@@ -108,10 +108,10 @@
           "minUnits": 4,
           "style": 3,
           "variables": {
-            "{131def33}": 0.07999999821186066,
-            "{9cf2d9c8}": 0.07999999821186066,
-            "{b1d6fee6}": 15,
-            "{cd978d30}": 2,
+            "Wolf_ADAP": 15,
+            "Wolf_Gold": 2,
+            "Wolf_Health": 0.07999999821186066,
+            "Wolf_Health_Teamwide": 0.07999999821186066,
             "{f5b00dd5}": 8
           }
         },
@@ -120,10 +120,10 @@
           "minUnits": 5,
           "style": 3,
           "variables": {
-            "{131def33}": 0.07999999821186066,
-            "{9cf2d9c8}": 0.15000000596046448,
-            "{b1d6fee6}": 25,
-            "{cd978d30}": 4,
+            "Wolf_ADAP": 25,
+            "Wolf_Gold": 4,
+            "Wolf_Health": 0.15000000596046448,
+            "Wolf_Health_Teamwide": 0.07999999821186066,
             "{f5b00dd5}": 8
           }
         },
@@ -132,10 +132,10 @@
           "minUnits": 6,
           "style": 5,
           "variables": {
-            "{131def33}": 0.07999999821186066,
-            "{9cf2d9c8}": 0.2199999988079071,
-            "{b1d6fee6}": 30,
-            "{cd978d30}": 6,
+            "Wolf_ADAP": 30,
+            "Wolf_Gold": 6,
+            "Wolf_Health": 0.2199999988079071,
+            "Wolf_Health_Teamwide": 0.07999999821186066,
             "{f5b00dd5}": 8
           }
         }
@@ -152,7 +152,7 @@
           "minUnits": 2,
           "style": 1,
           "variables": {
-            "{c65f6279}": 0.2199999988079071
+            "Effectiveness": 0.2199999988079071
           }
         },
         {
@@ -160,7 +160,7 @@
           "minUnits": 4,
           "style": 5,
           "variables": {
-            "{c65f6279}": 0.44999998807907104
+            "Effectiveness": 0.44999998807907104
           }
         }
       ]
@@ -244,7 +244,7 @@
           "minUnits": 1,
           "style": 4,
           "variables": {
-            "{f14d7f53}": 0.10000000149011612
+            "PctResists": 0.10000000149011612
           }
         }
       ]
@@ -252,7 +252,7 @@
     {
       "name": "시간 균열자",
       "apiName": "TFT17_Timebreaker",
-      "desc": "<row>(@MinUnits@) 패배 시 무료 새로고침 획득. 승리 시 시간 코어에 경험치 저장 (스테이지에 비례)</row><br><row>(@MinUnits@) 또한 아군이 공격 속도 @AttackSpeed*100@% 획득</row><br><row>(@MinUnits@) 또한 시간 균열자가 추가로 공격 속도 @TimebreakerAdditionalAS*100@% 획득</row><br><br><rules>패배 시 새로고침: @TFTUnitProperty.:TFT17_Timebreaker_NumRerollsTooltip@<br>승리 시 경험치: @TFTUnitProperty.:TFT17_Timebreaker_NumXPTooltip@</rules>",
+      "desc": "tft_trait_description_TFT17_Pulsefire",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_17_Timebreaker.TFT_Set17.tex",
       "effects": [
         {
@@ -260,9 +260,9 @@
           "minUnits": 2,
           "style": 1,
           "variables": {
-            "AttackSpeed": null,
-            "{1e1f6d15}": null,
-            "{aaae13a0}": 1
+            "AttackSpeed": 0.15000000596046448,
+            "TimebreakerAdditionalAS": null,
+            "{aaae13a0}": null
           }
         },
         {
@@ -270,8 +270,8 @@
           "minUnits": 3,
           "style": 3,
           "variables": {
-            "AttackSpeed": 0.25,
-            "{1e1f6d15}": null,
+            "AttackSpeed": 0.15000000596046448,
+            "TimebreakerAdditionalAS": null,
             "{aaae13a0}": 1
           }
         },
@@ -280,8 +280,8 @@
           "minUnits": 4,
           "style": 5,
           "variables": {
-            "AttackSpeed": 0.25,
-            "{1e1f6d15}": 0.4000000059604645,
+            "AttackSpeed": 0.15000000596046448,
+            "TimebreakerAdditionalAS": 0.5,
             "{aaae13a0}": 1
           }
         }
@@ -301,8 +301,8 @@
             "AD": 0.20000000298023224,
             "MaxPercentHealthShield": 0.25,
             "Omnivamp": 0.05000000074505806,
-            "{86f7ce25}": null,
-            "{b44bae16}": 0.05000000074505806
+            "ShieldAD": null,
+            "TeamwideBonus": 0.05000000074505806
           }
         },
         {
@@ -313,8 +313,8 @@
             "AD": 0.4000000059604645,
             "MaxPercentHealthShield": 0.25,
             "Omnivamp": 0.07000000029802322,
-            "{86f7ce25}": null,
-            "{b44bae16}": 0.05000000074505806
+            "ShieldAD": null,
+            "TeamwideBonus": 0.05000000074505806
           }
         },
         {
@@ -325,8 +325,8 @@
             "AD": 0.6000000238418579,
             "MaxPercentHealthShield": 0.25,
             "Omnivamp": 0.10000000149011612,
-            "{86f7ce25}": 0.20000000298023224,
-            "{b44bae16}": 0.05000000074505806
+            "ShieldAD": 0.20000000298023224,
+            "TeamwideBonus": 0.05000000074505806
           }
         }
       ]
@@ -342,11 +342,11 @@
           "minUnits": 1,
           "style": 4,
           "variables": {
+            "Allies": 2,
             "DamageAmp": 0.009999999776482582,
             "FlatDamage": 100,
             "Mana": 2,
-            "NumAttacks": 3,
-            "{23e9891f}": 2
+            "NumAttacks": 3
           }
         }
       ]
@@ -362,15 +362,15 @@
           "minUnits": 3,
           "style": 1,
           "variables": {
-            "{14e25eda}": 15,
-            "{18a09431}": 0.5,
-            "{42629aca}": 100,
-            "{56d578e4}": 1,
-            "{a4fc089f}": 5,
-            "{af1c6fc0}": 20,
-            "{f12fb39b}": 5,
-            "{f45ba40a}": 20,
-            "{fb9b6210}": 2
+            "TechBreakpoint": 100,
+            "TechPerCombat": 20,
+            "TechPerCombat_DU": 15,
+            "TechPerDeath_PVE": 1,
+            "TechPerKill": 2,
+            "TechPerLoss": 5,
+            "TechPerLoss_DU": 5,
+            "TechPerRound_PVE": 20,
+            "{18a09431}": 0.5
           }
         },
         {
@@ -378,15 +378,15 @@
           "minUnits": 6,
           "style": 5,
           "variables": {
-            "{14e25eda}": 15,
-            "{18a09431}": 0.5,
-            "{42629aca}": 100,
-            "{56d578e4}": 1,
-            "{a4fc089f}": 5,
-            "{af1c6fc0}": 20,
-            "{f12fb39b}": 5,
-            "{f45ba40a}": 20,
-            "{fb9b6210}": 2
+            "TechBreakpoint": 100,
+            "TechPerCombat": 20,
+            "TechPerCombat_DU": 15,
+            "TechPerDeath_PVE": 1,
+            "TechPerKill": 2,
+            "TechPerLoss": 5,
+            "TechPerLoss_DU": 5,
+            "TechPerRound_PVE": 20,
+            "{18a09431}": 0.5
           }
         }
       ]
@@ -464,7 +464,7 @@
           "variables": {
             "AS": 0.15000000596046448,
             "HealthRatio": 0.15000000596046448,
-            "{0aa6b6fd}": 2
+            "RoundsPerMod": 2
           }
         }
       ]
@@ -480,11 +480,11 @@
           "minUnits": 3,
           "style": 5,
           "variables": {
+            "Medallion_DA": 12,
+            "Medallion_IncreasePer3Star": 6.5,
             "{37204635}": 10,
             "{3d49cc86}": 20,
-            "{3eb3e144}": 12,
-            "{c32af02f}": 0.05000000074505806,
-            "{c91721ff}": 6.5
+            "{c32af02f}": 0.05000000074505806
           }
         }
       ]
@@ -500,10 +500,10 @@
           "minUnits": 3,
           "style": 1,
           "variables": {
-            "{1124f5ef}": 3,
-            "{47ed491f}": 0.15000000596046448,
-            "{80c9d1be}": 0.10000000149011612,
-            "{cd6187f4}": 0.10000000149011612
+            "Huntress_AS": 0.10000000149011612,
+            "Huntress_AS_Teamwide": 0.15000000596046448,
+            "Huntress_Heal": 0.10000000149011612,
+            "NumMarks": 3
           }
         },
         {
@@ -511,10 +511,10 @@
           "minUnits": 5,
           "style": 3,
           "variables": {
-            "{1124f5ef}": 5,
-            "{47ed491f}": 0.15000000596046448,
-            "{80c9d1be}": 0.10000000149011612,
-            "{cd6187f4}": 0.30000001192092896
+            "Huntress_AS": 0.30000001192092896,
+            "Huntress_AS_Teamwide": 0.15000000596046448,
+            "Huntress_Heal": 0.10000000149011612,
+            "NumMarks": 5
           }
         },
         {
@@ -522,10 +522,10 @@
           "minUnits": 7,
           "style": 5,
           "variables": {
-            "{1124f5ef}": 7,
-            "{47ed491f}": 0.15000000596046448,
-            "{80c9d1be}": 0.10000000149011612,
-            "{cd6187f4}": 0.44999998807907104
+            "Huntress_AS": 0.44999998807907104,
+            "Huntress_AS_Teamwide": 0.15000000596046448,
+            "Huntress_Heal": 0.10000000149011612,
+            "NumMarks": 7
           }
         }
       ]
@@ -555,10 +555,10 @@
           "minUnits": 3,
           "style": 1,
           "variables": {
-            "{7adc6b6f}": 0.05000000074505806,
-            "{c46c064d}": 0.25,
-            "{cd767296}": 0.05000000074505806,
-            "{dc3fb039}": 3
+            "Serpent_DR": 0.05000000074505806,
+            "Serpent_DR_Teamwide": 0.05000000074505806,
+            "Serpent_Duration": 3,
+            "Serpent_Poison": 0.25
           }
         },
         {
@@ -566,10 +566,10 @@
           "minUnits": 5,
           "style": 3,
           "variables": {
-            "{7adc6b6f}": 0.10000000149011612,
-            "{c46c064d}": 0.4000000059604645,
-            "{cd767296}": 0.05000000074505806,
-            "{dc3fb039}": 3
+            "Serpent_DR": 0.10000000149011612,
+            "Serpent_DR_Teamwide": 0.05000000074505806,
+            "Serpent_Duration": 3,
+            "Serpent_Poison": 0.4000000059604645
           }
         },
         {
@@ -577,10 +577,10 @@
           "minUnits": 7,
           "style": 5,
           "variables": {
-            "{7adc6b6f}": 0.15000000596046448,
-            "{c46c064d}": 0.6000000238418579,
-            "{cd767296}": 0.05000000074505806,
-            "{dc3fb039}": 3
+            "Serpent_DR": 0.15000000596046448,
+            "Serpent_DR_Teamwide": 0.05000000074505806,
+            "Serpent_Duration": 3,
+            "Serpent_Poison": 0.6000000238418579
           }
         }
       ]
@@ -596,11 +596,11 @@
           "minUnits": 3,
           "style": 5,
           "variables": {
-            "{1cec9986}": 20,
-            "{3402840a}": 18,
-            "{49c8aff4}": 60,
-            "{9ce174de}": 8,
-            "{a51e73d8}": 8
+            "Shield_AS_Teamwide": 8,
+            "Shield_CashoutAS": 18,
+            "Shield_CashoutHP": 20,
+            "Shield_Health_Teamwide": 8,
+            "Shield_NumDeaths": 60
           }
         }
       ]
@@ -616,9 +616,9 @@
           "minUnits": 3,
           "style": 1,
           "variables": {
-            "{0923ca75}": 1,
-            "{c365dfc6}": 1,
-            "{f7e2b271}": 0.18000000715255737
+            "Fountain_HealPercent": 0.18000000715255737,
+            "Fountain_ManaRegen": 1,
+            "Fountain_ManaRegen_Teamwide": 1
           }
         },
         {
@@ -626,9 +626,9 @@
           "minUnits": 5,
           "style": 5,
           "variables": {
-            "{0923ca75}": 1,
-            "{c365dfc6}": 5,
-            "{f7e2b271}": 0.25
+            "Fountain_HealPercent": 0.25,
+            "Fountain_ManaRegen": 5,
+            "Fountain_ManaRegen_Teamwide": 1
           }
         }
       ]
@@ -697,9 +697,9 @@
           "style": 1,
           "variables": {
             "ADAP": 45,
+            "ExecuteHPPercent": 0.07999999821186066,
             "PercentHealth": 0.30000001192092896,
-            "{98560b2e}": 0.8500000238418579,
-            "{9f802af1}": 0.07999999821186066
+            "SupermassivePercentBonus": 0.8500000238418579
           }
         },
         {
@@ -708,9 +708,9 @@
           "style": 3,
           "variables": {
             "ADAP": 45,
+            "ExecuteHPPercent": 0.07999999821186066,
             "PercentHealth": 0.30000001192092896,
-            "{98560b2e}": 0.8500000238418579,
-            "{9f802af1}": 0.07999999821186066
+            "SupermassivePercentBonus": 0.8500000238418579
           }
         },
         {
@@ -719,9 +719,9 @@
           "style": 5,
           "variables": {
             "ADAP": 45,
+            "ExecuteHPPercent": 0.07999999821186066,
             "PercentHealth": 0.30000001192092896,
-            "{98560b2e}": 0.8500000238418579,
-            "{9f802af1}": 0.07999999821186066
+            "SupermassivePercentBonus": 0.8500000238418579
           }
         },
         {
@@ -730,9 +730,9 @@
           "style": 6,
           "variables": {
             "ADAP": 45,
+            "ExecuteHPPercent": 0.07999999821186066,
             "PercentHealth": 0.30000001192092896,
-            "{98560b2e}": 0.8500000238418579,
-            "{9f802af1}": 0.07999999821186066
+            "SupermassivePercentBonus": 0.8500000238418579
           }
         }
       ]
@@ -749,9 +749,9 @@
           "style": 1,
           "variables": {
             "DamageMultiplier": 1,
-            "{3ed71f24}": 6,
-            "{5376c82a}": 45,
-            "{ea763a6d}": 0.07999999821186066
+            "DamageTakenPercentModifier": 0.07999999821186066,
+            "PercentMoreSwarmlings": 45,
+            "{3ed71f24}": 6
           }
         },
         {
@@ -760,9 +760,9 @@
           "style": 5,
           "variables": {
             "DamageMultiplier": 1.4500000476837158,
-            "{3ed71f24}": 6,
-            "{5376c82a}": 45,
-            "{ea763a6d}": 0.07999999821186066
+            "DamageTakenPercentModifier": 0.07999999821186066,
+            "PercentMoreSwarmlings": 45,
+            "{3ed71f24}": 6
           }
         }
       ]
@@ -778,9 +778,9 @@
           "minUnits": 1,
           "style": 1,
           "variables": {
-            "{2277d14c}": null,
-            "{61769c42}": null,
-            "{805b18fb}": null
+            "ADAPPerSecond": null,
+            "EffectBonus": null,
+            "StartOfCombatDuration": null
           }
         },
         {
@@ -788,9 +788,9 @@
           "minUnits": 3,
           "style": 3,
           "variables": {
-            "{2277d14c}": null,
-            "{61769c42}": 3,
-            "{805b18fb}": null
+            "ADAPPerSecond": null,
+            "EffectBonus": null,
+            "StartOfCombatDuration": 3
           }
         },
         {
@@ -798,9 +798,9 @@
           "minUnits": 5,
           "style": 3,
           "variables": {
-            "{2277d14c}": 5,
-            "{61769c42}": 3,
-            "{805b18fb}": null
+            "ADAPPerSecond": 5,
+            "EffectBonus": null,
+            "StartOfCombatDuration": 3
           }
         },
         {
@@ -808,9 +808,9 @@
           "minUnits": 7,
           "style": 5,
           "variables": {
-            "{2277d14c}": 5,
-            "{61769c42}": 3,
-            "{805b18fb}": 10
+            "ADAPPerSecond": 5,
+            "EffectBonus": 10,
+            "StartOfCombatDuration": 3
           }
         },
         {
@@ -818,11 +818,11 @@
           "minUnits": 10,
           "style": 6,
           "variables": {
-            "{2277d14c}": 10,
+            "ADAPPerSecond": 10,
+            "EffectBonus": 500,
+            "StartOfCombatDuration": 60,
             "{32ed1fda}": 800,
-            "{3e46e556}": 1500,
-            "{61769c42}": 60,
-            "{805b18fb}": 500
+            "{3e46e556}": 1500
           }
         }
       ]
@@ -874,15 +874,15 @@
           "minUnits": 3,
           "style": 1,
           "variables": {
-            "{05ad6e71}": 0.11999999731779099,
+            "Mountain_ADAP": null,
+            "Mountain_AS": null,
+            "Mountain_DR": null,
+            "Mountain_Health": 0.11999999731779099,
+            "Mountain_Resists": null,
+            "Mountain_RoundsPerEmblem": 5,
+            "Mountain_StatIncrease": null,
             "{67e491c6}": 25000,
-            "{7f07bc73}": null,
-            "{8d74810f}": 5,
-            "{90011b71}": null,
-            "{94942665}": null,
-            "{9d012fe8}": null,
-            "{b4bde48b}": null,
-            "{d8eebfda}": null
+            "{9d012fe8}": null
           }
         },
         {
@@ -890,15 +890,15 @@
           "minUnits": 4,
           "style": 3,
           "variables": {
-            "{05ad6e71}": 0.11999999731779099,
+            "Mountain_ADAP": 0.11999999731779099,
+            "Mountain_AS": null,
+            "Mountain_DR": null,
+            "Mountain_Health": 0.11999999731779099,
+            "Mountain_Resists": null,
+            "Mountain_RoundsPerEmblem": 5,
+            "Mountain_StatIncrease": null,
             "{67e491c6}": 25000,
-            "{7f07bc73}": null,
-            "{8d74810f}": 5,
-            "{90011b71}": null,
-            "{94942665}": null,
-            "{9d012fe8}": null,
-            "{b4bde48b}": 0.11999999731779099,
-            "{d8eebfda}": null
+            "{9d012fe8}": null
           }
         },
         {
@@ -906,15 +906,15 @@
           "minUnits": 5,
           "style": 3,
           "variables": {
-            "{05ad6e71}": 0.11999999731779099,
+            "Mountain_ADAP": 0.11999999731779099,
+            "Mountain_AS": null,
+            "Mountain_DR": null,
+            "Mountain_Health": 0.11999999731779099,
+            "Mountain_Resists": 12,
+            "Mountain_RoundsPerEmblem": 5,
+            "Mountain_StatIncrease": null,
             "{67e491c6}": 25000,
-            "{7f07bc73}": null,
-            "{8d74810f}": 5,
-            "{90011b71}": null,
-            "{94942665}": null,
-            "{9d012fe8}": null,
-            "{b4bde48b}": 0.11999999731779099,
-            "{d8eebfda}": 12
+            "{9d012fe8}": null
           }
         },
         {
@@ -922,15 +922,15 @@
           "minUnits": 6,
           "style": 3,
           "variables": {
-            "{05ad6e71}": 0.11999999731779099,
+            "Mountain_ADAP": 0.11999999731779099,
+            "Mountain_AS": 0.11999999731779099,
+            "Mountain_DR": null,
+            "Mountain_Health": 0.11999999731779099,
+            "Mountain_Resists": 12,
+            "Mountain_RoundsPerEmblem": 5,
+            "Mountain_StatIncrease": null,
             "{67e491c6}": 25000,
-            "{7f07bc73}": 0.11999999731779099,
-            "{8d74810f}": 5,
-            "{90011b71}": null,
-            "{94942665}": null,
-            "{9d012fe8}": null,
-            "{b4bde48b}": 0.11999999731779099,
-            "{d8eebfda}": 12
+            "{9d012fe8}": null
           }
         },
         {
@@ -938,15 +938,15 @@
           "minUnits": 7,
           "style": 3,
           "variables": {
-            "{05ad6e71}": 0.11999999731779099,
+            "Mountain_ADAP": 0.11999999731779099,
+            "Mountain_AS": 0.11999999731779099,
+            "Mountain_DR": 0.05999999865889549,
+            "Mountain_Health": 0.11999999731779099,
+            "Mountain_Resists": 12,
+            "Mountain_RoundsPerEmblem": 5,
+            "Mountain_StatIncrease": null,
             "{67e491c6}": 25000,
-            "{7f07bc73}": 0.11999999731779099,
-            "{8d74810f}": 5,
-            "{90011b71}": 0.05999999865889549,
-            "{94942665}": null,
-            "{9d012fe8}": null,
-            "{b4bde48b}": 0.11999999731779099,
-            "{d8eebfda}": 12
+            "{9d012fe8}": null
           }
         },
         {
@@ -954,15 +954,15 @@
           "minUnits": 8,
           "style": 5,
           "variables": {
-            "{05ad6e71}": 0.11999999731779099,
+            "Mountain_ADAP": 0.11999999731779099,
+            "Mountain_AS": 0.11999999731779099,
+            "Mountain_DR": 0.05999999865889549,
+            "Mountain_Health": 0.11999999731779099,
+            "Mountain_Resists": 12,
+            "Mountain_RoundsPerEmblem": 5,
+            "Mountain_StatIncrease": 0.10000000149011612,
             "{67e491c6}": 25000,
-            "{7f07bc73}": 0.11999999731779099,
-            "{8d74810f}": 5,
-            "{90011b71}": 0.05999999865889549,
-            "{94942665}": 0.10000000149011612,
-            "{9d012fe8}": null,
-            "{b4bde48b}": 0.11999999731779099,
-            "{d8eebfda}": 12
+            "{9d012fe8}": null
           }
         },
         {
@@ -970,15 +970,15 @@
           "minUnits": 9,
           "style": 5,
           "variables": {
-            "{05ad6e71}": 0.11999999731779099,
+            "Mountain_ADAP": 0.11999999731779099,
+            "Mountain_AS": 0.11999999731779099,
+            "Mountain_DR": 0.05999999865889549,
+            "Mountain_Health": 0.11999999731779099,
+            "Mountain_Resists": 12,
+            "Mountain_RoundsPerEmblem": 5,
+            "Mountain_StatIncrease": 0.10000000149011612,
             "{67e491c6}": 25000,
-            "{7f07bc73}": 0.11999999731779099,
-            "{8d74810f}": 5,
-            "{90011b71}": 0.05999999865889549,
-            "{94942665}": 0.10000000149011612,
-            "{9d012fe8}": null,
-            "{b4bde48b}": 0.11999999731779099,
-            "{d8eebfda}": 12
+            "{9d012fe8}": null
           }
         },
         {
@@ -986,15 +986,15 @@
           "minUnits": 10,
           "style": 5,
           "variables": {
-            "{05ad6e71}": 0.11999999731779099,
+            "Mountain_ADAP": 0.11999999731779099,
+            "Mountain_AS": 0.11999999731779099,
+            "Mountain_DR": 0.05999999865889549,
+            "Mountain_Health": 0.11999999731779099,
+            "Mountain_Resists": 12,
+            "Mountain_RoundsPerEmblem": 5,
+            "Mountain_StatIncrease": 0.10000000149011612,
             "{67e491c6}": 25000,
-            "{7f07bc73}": 0.11999999731779099,
-            "{8d74810f}": 5,
-            "{90011b71}": 0.05999999865889549,
-            "{94942665}": 0.10000000149011612,
-            "{9d012fe8}": null,
-            "{b4bde48b}": 0.11999999731779099,
-            "{d8eebfda}": 12
+            "{9d012fe8}": null
           }
         },
         {
@@ -1002,15 +1002,15 @@
           "minUnits": 11,
           "style": 6,
           "variables": {
-            "{05ad6e71}": 0.11999999731779099,
+            "Mountain_ADAP": 0.11999999731779099,
+            "Mountain_AS": 0.11999999731779099,
+            "Mountain_DR": 0.05999999865889549,
+            "Mountain_Health": 0.11999999731779099,
+            "Mountain_Resists": 12,
+            "Mountain_RoundsPerEmblem": 5,
+            "Mountain_StatIncrease": 0.10000000149011612,
             "{67e491c6}": 25000,
-            "{7f07bc73}": 0.11999999731779099,
-            "{8d74810f}": 5,
-            "{90011b71}": 0.05999999865889549,
-            "{94942665}": 0.10000000149011612,
-            "{9d012fe8}": null,
-            "{b4bde48b}": 0.11999999731779099,
-            "{d8eebfda}": 12
+            "{9d012fe8}": null
           }
         }
       ]
@@ -1052,12 +1052,12 @@
           "minUnits": 1,
           "style": 4,
           "variables": {
-            "{e0901b10}": 3,
-            "{e1901ca3}": 2.5,
-            "{e2901e36}": 2,
-            "{e7ae6c08}": 0.019999999552965164,
-            "{e9ae6f2e}": 0.029999999329447746,
-            "{eaae70c1}": 0.02500000037252903
+            "BonusDefensiveStat1": 2,
+            "BonusDefensiveStat2": 2.5,
+            "BonusDefensiveStat3": 3,
+            "BonusOffensiveStat1": 0.019999999552965164,
+            "BonusOffensiveStat2": 0.02500000037252903,
+            "BonusOffensiveStat3": 0.029999999329447746
           }
         }
       ]
@@ -1074,7 +1074,7 @@
           "style": 1,
           "variables": {
             "HealthBonus": 0.20000000298023224,
-            "{b44bae16}": 0.05000000074505806
+            "TeamwideBonus": 0.05000000074505806
           }
         },
         {
@@ -1083,7 +1083,7 @@
           "style": 3,
           "variables": {
             "HealthBonus": 0.4000000059604645,
-            "{b44bae16}": 0.05000000074505806
+            "TeamwideBonus": 0.05000000074505806
           }
         },
         {
@@ -1092,7 +1092,7 @@
           "style": 5,
           "variables": {
             "HealthBonus": 0.6000000238418579,
-            "{b44bae16}": 0.05000000074505806
+            "TeamwideBonus": 0.05000000074505806
           }
         }
       ]
@@ -1156,7 +1156,7 @@
           "style": 1,
           "variables": {
             "BonusHealth": 100,
-            "{81f23603}": 2
+            "Meeps": 2
           }
         },
         {
@@ -1165,7 +1165,7 @@
           "style": 3,
           "variables": {
             "BonusHealth": 400,
-            "{81f23603}": 3
+            "Meeps": 3
           }
         },
         {
@@ -1174,7 +1174,7 @@
           "style": 5,
           "variables": {
             "BonusHealth": 400,
-            "{81f23603}": 4
+            "Meeps": 4
           }
         },
         {
@@ -1183,7 +1183,7 @@
           "style": 6,
           "variables": {
             "BonusHealth": 500,
-            "{81f23603}": 6
+            "Meeps": 6
           }
         }
       ]
@@ -1199,9 +1199,9 @@
           "minUnits": 2,
           "style": 1,
           "variables": {
-            "{446a27f8}": 1,
-            "{447adcc5}": 3,
-            "{c02c4568}": 0.20000000298023224
+            "ChannelerManaRegen": 3,
+            "InnateManaGain": 0.20000000298023224,
+            "TeamManaRegen": 1
           }
         },
         {
@@ -1209,9 +1209,9 @@
           "minUnits": 3,
           "style": 3,
           "variables": {
-            "{446a27f8}": 1,
-            "{447adcc5}": 5,
-            "{c02c4568}": 0.20000000298023224
+            "ChannelerManaRegen": 5,
+            "InnateManaGain": 0.20000000298023224,
+            "TeamManaRegen": 1
           }
         },
         {
@@ -1219,9 +1219,9 @@
           "minUnits": 4,
           "style": 3,
           "variables": {
-            "{446a27f8}": 2,
-            "{447adcc5}": 7,
-            "{c02c4568}": 0.20000000298023224
+            "ChannelerManaRegen": 7,
+            "InnateManaGain": 0.20000000298023224,
+            "TeamManaRegen": 2
           }
         },
         {
@@ -1229,9 +1229,9 @@
           "minUnits": 5,
           "style": 5,
           "variables": {
-            "{446a27f8}": 3,
-            "{447adcc5}": 9,
-            "{c02c4568}": 0.20000000298023224
+            "ChannelerManaRegen": 9,
+            "InnateManaGain": 0.20000000298023224,
+            "TeamManaRegen": 3
           }
         }
       ]
@@ -1250,7 +1250,7 @@
             "AD": 0.20000000298023224,
             "AP": 20,
             "TeamSize": 1,
-            "{3f11bdcd}": 0.5
+            "TransformedPercentHealth": 0.4000000059604645
           }
         },
         {
@@ -1261,7 +1261,7 @@
             "AD": 0.3499999940395355,
             "AP": 35,
             "TeamSize": 1,
-            "{3f11bdcd}": 0.5
+            "TransformedPercentHealth": 0.4000000059604645
           }
         },
         {
@@ -1272,7 +1272,7 @@
             "AD": 0.3499999940395355,
             "AP": 35,
             "TeamSize": 1,
-            "{3f11bdcd}": 0.5
+            "TransformedPercentHealth": 0.4000000059604645
           }
         }
       ]
@@ -1288,7 +1288,7 @@
           "minUnits": 1,
           "style": 4,
           "variables": {
-            "{05fe45bc}": 3
+            "NumberOfUpgradesBeforeRoundCostIncrease": 3
           }
         }
       ]
@@ -1304,49 +1304,49 @@
           "minUnits": 3,
           "style": 1,
           "variables": {
-            "{05ad6e71}": 0.20000000298023224,
-            "{0923ca75}": 1,
-            "{1124f5ef}": 3,
-            "{131def33}": 0.07999999821186066,
-            "{1cec9986}": 20,
+            "Family_BaseSharePercent": 0.10000000149011612,
+            "Family_HexesToReveal_TOOLTIPONLY": 3,
+            "Family_Stats": 10,
+            "Fountain_HealPercent": 0.18000000715255737,
+            "Fountain_ManaRegen": 3,
+            "Fountain_ManaRegen_Teamwide": 1,
+            "Huntress_AS": 0.30000001192092896,
+            "Huntress_AS_Teamwide": 0.15000000596046448,
+            "Huntress_Heal": 0.05000000074505806,
+            "Medallion_DA": 0.20000000298023224,
+            "Medallion_IncreasePer3Star": 20,
+            "Mountain_Health": 0.20000000298023224,
+            "Mountain_RoundsPerEmblem": 5,
+            "NumMarks": 3,
+            "Serpent_DR": 0.15000000596046448,
+            "Serpent_DR_Teamwide": 0.07999999821186066,
+            "Serpent_Duration": 3,
+            "Serpent_Poison": 0.30000001192092896,
+            "Shield_AS_Teamwide": 8,
+            "Shield_CashoutAS": 18,
+            "Shield_CashoutHP": 20,
+            "Shield_Duration": 10,
+            "Shield_Health_Teamwide": 8,
+            "Shield_NumDeaths": 60,
+            "Wolf_ADAP": 10,
+            "Wolf_Gold": 1,
+            "Wolf_Health": 0.019999999552965164,
+            "Wolf_Health_Teamwide": 0.07999999821186066,
             "{326db998}": 0.15000000596046448,
-            "{3402840a}": 18,
             "{37204635}": 10,
             "{3b1fef00}": 1,
             "{3d49cc86}": 20,
-            "{3eb3e144}": 0.20000000298023224,
             "{457fd35a}": 1,
-            "{47ed491f}": 0.15000000596046448,
-            "{49c8aff4}": 60,
             "{56df89e0}": 1000,
             "{57ccf261}": 0.25,
-            "{5d0d57f1}": 10,
-            "{63b8192f}": 0.10000000149011612,
-            "{698b2779}": 3,
             "{74ccce14}": 0.07999999821186066,
-            "{7adc6b6f}": 0.15000000596046448,
-            "{80c9d1be}": 0.05000000074505806,
-            "{8d74810f}": 5,
-            "{9ce174de}": 8,
-            "{9cf2d9c8}": 0.019999999552965164,
-            "{a51e73d8}": 8,
             "{a6419a0b}": 0.5,
             "{aa686d69}": 10,
             "{abed8603}": 1.2999999523162842,
-            "{b1d6fee6}": 10,
             "{b44d11c3}": 0.10000000149011612,
-            "{be79b595}": 10,
             "{c32af02f}": 0.05000000074505806,
-            "{c365dfc6}": 3,
-            "{c46c064d}": 0.30000001192092896,
-            "{c91721ff}": 20,
-            "{cd6187f4}": 0.30000001192092896,
-            "{cd767296}": 0.07999999821186066,
-            "{cd978d30}": 1,
-            "{dc3fb039}": 3,
             "{e5275a69}": 0.019999999552965164,
-            "{e8338a44}": 0.15000000596046448,
-            "{f7e2b271}": 0.18000000715255737
+            "{e8338a44}": 0.15000000596046448
           }
         },
         {
@@ -1354,48 +1354,48 @@
           "minUnits": 5,
           "style": 3,
           "variables": {
-            "{05ad6e71}": 0.30000001192092896,
-            "{0923ca75}": 1,
-            "{1124f5ef}": 5,
-            "{131def33}": 0.07999999821186066,
+            "Family_BaseSharePercent": 0.10000000149011612,
+            "Family_HexesToReveal_TOOLTIPONLY": 2,
+            "Family_Stats": 35,
+            "Fountain_HealPercent": 0.25,
+            "Fountain_ManaRegen": 4,
+            "Fountain_ManaRegen_Teamwide": 1,
+            "Huntress_AS": 0.44999998807907104,
+            "Huntress_AS_Teamwide": 0.15000000596046448,
+            "Huntress_Heal": 0.07999999821186066,
+            "Medallion_DA": 0.30000001192092896,
+            "Medallion_IncreasePer3Star": 20,
+            "Mountain_ADAP": 0.11999999731779099,
+            "Mountain_Health": 0.30000001192092896,
+            "Mountain_RoundsPerEmblem": 5,
+            "NumMarks": 5,
+            "Serpent_DR": 0.20000000298023224,
+            "Serpent_DR_Teamwide": 0.07999999821186066,
+            "Serpent_Duration": 3,
+            "Serpent_Poison": 0.44999998807907104,
+            "Shield_AS_Teamwide": 8,
+            "Shield_Duration": 10,
+            "Shield_Health_Teamwide": 8,
+            "Shield_NumDeaths": 60,
+            "Wolf_ADAP": 15,
+            "Wolf_Gold": 2,
+            "Wolf_Health": 0.07999999821186066,
+            "Wolf_Health_Teamwide": 0.07999999821186066,
             "{326db998}": 0.25,
             "{37204635}": 10,
             "{3b1fef00}": 1,
             "{3d49cc86}": 30,
-            "{3eb3e144}": 0.30000001192092896,
             "{457fd35a}": 2,
-            "{47ed491f}": 0.15000000596046448,
-            "{49c8aff4}": 60,
             "{56df89e0}": 1000,
             "{57ccf261}": 0.3499999940395355,
-            "{5d0d57f1}": 35,
-            "{63b8192f}": 0.10000000149011612,
-            "{698b2779}": 2,
             "{74ccce14}": 0.07999999821186066,
-            "{7adc6b6f}": 0.20000000298023224,
-            "{80c9d1be}": 0.07999999821186066,
-            "{8d74810f}": 5,
-            "{9ce174de}": 8,
-            "{9cf2d9c8}": 0.07999999821186066,
-            "{a51e73d8}": 8,
             "{a6419a0b}": 0.5,
             "{aa686d69}": 10,
             "{abed8603}": 1.5,
-            "{b1d6fee6}": 15,
             "{b44d11c3}": 0.10000000149011612,
-            "{b4bde48b}": 0.11999999731779099,
-            "{be79b595}": 10,
             "{c32af02f}": 0.05000000074505806,
-            "{c365dfc6}": 4,
-            "{c46c064d}": 0.44999998807907104,
-            "{c91721ff}": 20,
-            "{cd6187f4}": 0.44999998807907104,
-            "{cd767296}": 0.07999999821186066,
-            "{cd978d30}": 2,
-            "{dc3fb039}": 3,
             "{e5275a69}": 0.029999999329447746,
-            "{e8338a44}": 0.15000000596046448,
-            "{f7e2b271}": 0.25
+            "{e8338a44}": 0.15000000596046448
           }
         },
         {
@@ -1403,53 +1403,53 @@
           "minUnits": 7,
           "style": 5,
           "variables": {
-            "{05ad6e71}": 0.44999998807907104,
-            "{0923ca75}": 1,
-            "{1124f5ef}": 7,
-            "{131def33}": 0.07999999821186066,
+            "Family_BaseSharePercent": 0.10000000149011612,
+            "Family_EmpoweredSharePercent": 0.30000001192092896,
+            "Family_Stats": 35,
+            "Fountain_HealPercent": 0.20000000298023224,
+            "Fountain_ManaRegen": 5,
+            "Fountain_ManaRegen_Teamwide": 1,
+            "Huntress_AS": 0.6000000238418579,
+            "Huntress_AS_Teamwide": 0.15000000596046448,
+            "Huntress_Heal": 0.10000000149011612,
+            "Medallion_DA": 0.4000000059604645,
+            "Medallion_IncreasePer3Star": 20,
+            "Mountain_AS": null,
+            "Mountain_DR": null,
+            "Mountain_Health": 0.44999998807907104,
+            "Mountain_Resists": 12,
+            "Mountain_RoundsPerEmblem": 5,
+            "Mountain_StatIncrease": null,
+            "NumMarks": 7,
+            "Serpent_DR": 0.25,
+            "Serpent_DR_Teamwide": 0.07999999821186066,
+            "Serpent_Duration": 3,
+            "Serpent_Poison": 0.6000000238418579,
+            "Shield_AS_Teamwide": 8,
+            "Shield_Duration": 10,
+            "Shield_Health_Teamwide": 8,
+            "Shield_NumDeaths": 60,
+            "Wolf_ADAP": 25,
+            "Wolf_Gold": 4,
+            "Wolf_Health": 0.15000000596046448,
+            "Wolf_Health_Teamwide": 0.07999999821186066,
             "{326db998}": 0.3499999940395355,
             "{37204635}": 10,
             "{3b1fef00}": 1,
             "{3d49cc86}": 40,
-            "{3eb3e144}": 0.4000000059604645,
             "{457fd35a}": 3,
-            "{47ed491f}": 0.15000000596046448,
-            "{49c8aff4}": 60,
             "{4f055cc9}": 0.009999999776482582,
             "{56df89e0}": 1000,
             "{57ccf261}": 0.44999998807907104,
-            "{5d0d57f1}": 35,
-            "{63b8192f}": 0.10000000149011612,
             "{74ccce14}": 0.07999999821186066,
-            "{7adc6b6f}": 0.25,
-            "{7f07bc73}": null,
-            "{80c9d1be}": 0.10000000149011612,
-            "{8d74810f}": 5,
-            "{90011b71}": null,
-            "{94942665}": null,
-            "{9ce174de}": 8,
-            "{9cf2d9c8}": 0.15000000596046448,
-            "{a51e73d8}": 8,
             "{a6419a0b}": 0.5,
             "{aa686d69}": 10,
             "{abed8603}": 1.75,
-            "{b1d6fee6}": 25,
             "{b44d11c3}": 0.10000000149011612,
-            "{be79b595}": 10,
             "{c32af02f}": 0.05000000074505806,
-            "{c365dfc6}": 5,
-            "{c46c064d}": 0.6000000238418579,
             "{c4d51662}": 2,
-            "{c91721ff}": 20,
-            "{cd6187f4}": 0.6000000238418579,
-            "{cd767296}": 0.07999999821186066,
-            "{cd978d30}": 4,
-            "{d8eebfda}": 12,
-            "{dc3fb039}": 3,
             "{e5275a69}": 0.03999999910593033,
-            "{e65aca60}": 0.30000001192092896,
-            "{e8338a44}": 0.15000000596046448,
-            "{f7e2b271}": 0.20000000298023224
+            "{e8338a44}": 0.15000000596046448
           }
         },
         {
@@ -1457,37 +1457,37 @@
           "minUnits": 8,
           "style": 5,
           "variables": {
-            "{0923ca75}": 1,
-            "{1124f5ef}": 3,
-            "{131def33}": 0.07999999821186066,
-            "{1cec9986}": 20,
-            "{3402840a}": 18,
+            "Family_BaseSharePercent": 0.10000000149011612,
+            "Fountain_ManaRegen_Teamwide": 1,
+            "Huntress_AS_Teamwide": 0.15000000596046448,
+            "Medallion_IncreasePer3Star": 20,
+            "Mountain_ADAP": null,
+            "Mountain_AS": null,
+            "Mountain_DR": null,
+            "Mountain_Resists": null,
+            "Mountain_RoundsPerEmblem": 5,
+            "Mountain_StatIncrease": null,
+            "NumMarks": 3,
+            "Serpent_DR_Teamwide": 0.07999999821186066,
+            "Serpent_Duration": 3,
+            "Shield_AS_Teamwide": 8,
+            "Shield_CashoutAS": 18,
+            "Shield_CashoutHP": 20,
+            "Shield_Duration": 10,
+            "Shield_Health_Teamwide": 8,
+            "Shield_NumDeaths": 60,
+            "Wolf_ADAP": 10,
+            "Wolf_Gold": 1,
+            "Wolf_Health": 0.019999999552965164,
+            "Wolf_Health_Teamwide": 0.07999999821186066,
             "{37204635}": 10,
             "{3b1fef00}": 1,
-            "{47ed491f}": 0.15000000596046448,
-            "{49c8aff4}": 60,
             "{56df89e0}": 1000,
-            "{63b8192f}": 0.10000000149011612,
             "{74ccce14}": 0.07999999821186066,
-            "{7f07bc73}": null,
-            "{8d74810f}": 5,
-            "{90011b71}": null,
-            "{94942665}": null,
-            "{9ce174de}": 8,
-            "{9cf2d9c8}": 0.019999999552965164,
-            "{a51e73d8}": 8,
             "{a6419a0b}": 0.5,
             "{aa686d69}": 10,
-            "{b1d6fee6}": 10,
             "{b44d11c3}": 0.10000000149011612,
-            "{b4bde48b}": null,
-            "{be79b595}": 10,
             "{c32af02f}": 0.05000000074505806,
-            "{c91721ff}": 20,
-            "{cd767296}": 0.07999999821186066,
-            "{cd978d30}": 1,
-            "{d8eebfda}": null,
-            "{dc3fb039}": 3,
             "{e8338a44}": 0.15000000596046448
           }
         },
@@ -1496,32 +1496,32 @@
           "minUnits": 9,
           "style": 5,
           "variables": {
-            "{05ad6e71}": 0.11999999731779099,
-            "{0923ca75}": 1,
-            "{131def33}": 0.07999999821186066,
+            "Family_BaseSharePercent": 0.10000000149011612,
+            "Fountain_ManaRegen_Teamwide": 1,
+            "Huntress_AS_Teamwide": 0.15000000596046448,
+            "Medallion_IncreasePer3Star": 20,
+            "Mountain_ADAP": 0.11999999731779099,
+            "Mountain_AS": 0.11999999731779099,
+            "Mountain_DR": 0.05999999865889549,
+            "Mountain_Health": 0.11999999731779099,
+            "Mountain_Resists": 12,
+            "Mountain_RoundsPerEmblem": 5,
+            "Mountain_StatIncrease": null,
+            "Serpent_DR_Teamwide": 0.07999999821186066,
+            "Serpent_Duration": 3,
+            "Shield_AS_Teamwide": 8,
+            "Shield_Duration": 10,
+            "Shield_Health_Teamwide": 8,
+            "Shield_NumDeaths": 60,
+            "Wolf_Health_Teamwide": 0.07999999821186066,
             "{37204635}": 10,
             "{3b1fef00}": 1,
-            "{47ed491f}": 0.15000000596046448,
-            "{49c8aff4}": 60,
             "{56df89e0}": 1000,
-            "{63b8192f}": 0.10000000149011612,
             "{74ccce14}": 0.07999999821186066,
-            "{7f07bc73}": 0.11999999731779099,
-            "{8d74810f}": 5,
-            "{90011b71}": 0.05999999865889549,
-            "{94942665}": null,
-            "{9ce174de}": 8,
-            "{a51e73d8}": 8,
             "{a6419a0b}": 0.5,
             "{aa686d69}": 10,
             "{b44d11c3}": 0.10000000149011612,
-            "{b4bde48b}": 0.11999999731779099,
-            "{be79b595}": 10,
             "{c32af02f}": 0.05000000074505806,
-            "{c91721ff}": 20,
-            "{cd767296}": 0.07999999821186066,
-            "{d8eebfda}": 12,
-            "{dc3fb039}": 3,
             "{e8338a44}": 0.15000000596046448
           }
         },
@@ -1530,32 +1530,32 @@
           "minUnits": 10,
           "style": 5,
           "variables": {
-            "{05ad6e71}": 0.11999999731779099,
-            "{0923ca75}": 1,
-            "{131def33}": 0.07999999821186066,
+            "Family_BaseSharePercent": 0.10000000149011612,
+            "Fountain_ManaRegen_Teamwide": 1,
+            "Huntress_AS_Teamwide": 0.15000000596046448,
+            "Medallion_IncreasePer3Star": 20,
+            "Mountain_ADAP": 0.11999999731779099,
+            "Mountain_AS": 0.11999999731779099,
+            "Mountain_DR": 0.05999999865889549,
+            "Mountain_Health": 0.11999999731779099,
+            "Mountain_Resists": 12,
+            "Mountain_RoundsPerEmblem": 5,
+            "Mountain_StatIncrease": 0.10000000149011612,
+            "Serpent_DR_Teamwide": 0.07999999821186066,
+            "Serpent_Duration": 3,
+            "Shield_AS_Teamwide": 8,
+            "Shield_Duration": 10,
+            "Shield_Health_Teamwide": 8,
+            "Shield_NumDeaths": 60,
+            "Wolf_Health_Teamwide": 0.07999999821186066,
             "{37204635}": 10,
             "{3b1fef00}": 1,
-            "{47ed491f}": 0.15000000596046448,
-            "{49c8aff4}": 60,
             "{56df89e0}": 1000,
-            "{63b8192f}": 0.10000000149011612,
             "{74ccce14}": 0.07999999821186066,
-            "{7f07bc73}": 0.11999999731779099,
-            "{8d74810f}": 5,
-            "{90011b71}": 0.05999999865889549,
-            "{94942665}": 0.10000000149011612,
-            "{9ce174de}": 8,
-            "{a51e73d8}": 8,
             "{a6419a0b}": 0.5,
             "{aa686d69}": 10,
             "{b44d11c3}": 0.10000000149011612,
-            "{b4bde48b}": 0.11999999731779099,
-            "{be79b595}": 10,
             "{c32af02f}": 0.05000000074505806,
-            "{c91721ff}": 20,
-            "{cd767296}": 0.07999999821186066,
-            "{d8eebfda}": 12,
-            "{dc3fb039}": 3,
             "{e8338a44}": 0.15000000596046448
           }
         }
@@ -1656,8 +1656,8 @@
             "BonusTrueDamage": 0.10000000149011612,
             "Heal": 0.11999999731779099,
             "ShieldValue": 800,
-            "{32acce47}": 6,
-            "{bd4f38eb}": 0.30000001192092896
+            "ShredAndSunder": 0.30000001192092896,
+            "TeamAttackDelay": 6
           }
         },
         {
@@ -1669,8 +1669,8 @@
             "BonusTrueDamage": 0.10000000149011612,
             "Heal": 0.11999999731779099,
             "ShieldValue": 800,
-            "{32acce47}": 6,
-            "{bd4f38eb}": 0.30000001192092896
+            "ShredAndSunder": 0.30000001192092896,
+            "TeamAttackDelay": 6
           }
         }
       ]
@@ -1737,10 +1737,10 @@
           "minUnits": 1,
           "style": 4,
           "variables": {
-            "{39763872}": 1,
-            "{5475e5e1}": 0.15000000596046448,
-            "{882577b5}": 4,
-            "{9168f934}": 1
+            "DUHeal": 1,
+            "PVEHP": 1,
+            "PVENumWins": 4,
+            "PlayerOmnivamp": 0.15000000596046448
           }
         }
       ]
@@ -1756,8 +1756,8 @@
           "minUnits": 1,
           "style": 4,
           "variables": {
-            "{7f053e07}": 0.10000000149011612,
-            "{936f2bf0}": 0.05000000074505806
+            "TransformedAbilityDA": 0.10000000149011612,
+            "UntransformedAbilityDA": 0.05000000074505806
           }
         }
       ]

@@ -5,7 +5,7 @@
     "patch_version": "25.S1.1",
     "fetched_at": "2026-04-20",
     "source": "CommunityDragon TFT ko_kr.json",
-    "totalChampions": 82
+    "totalChampions": 83
   },
   "champions": [
     {
@@ -2461,8 +2461,8 @@
             "name": "SecondaryDamage",
             "value": [
               0,
-              120,
-              180,
+              150,
+              225,
               1000,
               1320,
               0,
@@ -2972,10 +2972,10 @@
             "name": "Damage",
             "value": [
               200,
-              220,
-              330,
-              545,
-              930,
+              200,
+              300,
+              530,
+              900,
               505,
               505
             ]
@@ -3897,8 +3897,8 @@
             "name": "DebrisDamage",
             "value": [
               300,
-              240,
-              360,
+              260,
+              390,
               999,
               999,
               2,
@@ -4178,7 +4178,7 @@
               0,
               400,
               500,
-              675,
+              625,
               850,
               0,
               0
@@ -4622,10 +4622,10 @@
               0.5,
               0.5,
               0.5,
-              9.989999771118164,
-              99,
-              99,
-              99
+              0.9900000095367432,
+              0.9900000095367432,
+              0.9900000095367432,
+              0.9900000095367432
             ]
           },
           {
@@ -5166,8 +5166,8 @@
             "name": "BasicAttackDamage",
             "value": [
               0,
-              64,
-              96,
+              57,
+              86,
               400,
               450,
               0,
@@ -5990,7 +5990,7 @@
         "critChance": 0.25,
         "critMultiplier": 1.399999976158142,
         "initialMana": 50,
-        "mana": 120
+        "mana": 110
       },
       "ability": {
         "name": "혀 채찍",
@@ -6547,7 +6547,7 @@
       "traits": [],
       "stats": {
         "hp": 0,
-        "armor": 0,
+        "armor": 20,
         "magicResist": 20,
         "damage": 0,
         "attackSpeed": 0.800000011920929,
@@ -6702,6 +6702,116 @@
         ]
       },
       "role": "APTank"
+    },
+    {
+      "name": "태고족 우두머리",
+      "apiName": "TFT17_Enemy_Aatrox",
+      "cost": 5,
+      "traits": [],
+      "stats": {
+        "hp": 2000,
+        "armor": 70,
+        "magicResist": 70,
+        "damage": 90,
+        "attackSpeed": 0.8999999761581421,
+        "range": 1,
+        "critChance": 0.25,
+        "critMultiplier": 1.399999976158142,
+        "initialMana": 50,
+        "mana": 100
+      },
+      "ability": {
+        "name": "종말의 선지자",
+        "desc": "기본 지속 효과: 검들이 격자 형태로 날아가 적중한 적에게 <physicalDamage>@TotalGridDamage@(%i:scaleAD%%i:scaleAP%)</physicalDamage>의 물리 피해를 입힙니다. <br><br>사용 시: 검 @NumSwords@개를 공중으로 날리고 내구력을 <TFTBonus>@Durability*100@%</TFTBonus> 얻습니다. 검은 착지하며 @HexRange@칸 내 적중한 적에게 <physicalDamage>@TotalSwordAoEDamage@(%i:scaleAD%%i:scaleAP%)</physicalDamage>의 물리 피해를 입힙니다.",
+        "icon": "ASSETS/Characters/TFT17_Enemy_Aatrox/HUD/Icons2D/TFT17_Enemy_Aatrox_R.TFT_Set17.tex",
+        "variables": [
+          {
+            "name": "GridADDamage",
+            "value": [
+              100,
+              100,
+              100,
+              100,
+              100,
+              100,
+              100
+            ]
+          },
+          {
+            "name": "GridAPDamage",
+            "value": [
+              100,
+              100,
+              100,
+              100,
+              100,
+              100,
+              100
+            ]
+          },
+          {
+            "name": "SwordAoEADDamage",
+            "value": [
+              300,
+              300,
+              300,
+              300,
+              300,
+              300,
+              300
+            ]
+          },
+          {
+            "name": "SwordAoEAPDamage",
+            "value": [
+              300,
+              300,
+              300,
+              300,
+              300,
+              300,
+              300
+            ]
+          },
+          {
+            "name": "NumSwords",
+            "value": [
+              20,
+              20,
+              20,
+              20,
+              20,
+              20,
+              20
+            ]
+          },
+          {
+            "name": "HexRange",
+            "value": [
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          {
+            "name": "Durability",
+            "value": [
+              0.75,
+              0.75,
+              0.75,
+              0.75,
+              0.75,
+              0.75,
+              0.75
+            ]
+          }
+        ]
+      },
+      "role": "ADTank"
     }
   ]
 }
