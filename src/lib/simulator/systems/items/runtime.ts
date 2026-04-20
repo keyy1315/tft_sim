@@ -9,12 +9,26 @@
 
 import type { CombatUnit } from '@/types';
 import type { EventBus, CombatEventType, CombatEventPayload } from '@/lib/simulator/events/eventBus';
-import type { ItemEffectDescriptor, UnitItemState, Trigger, Counter, IntervalTimer } from './primitives/types';
+import type {
+  ItemEffectDescriptor,
+  UnitItemState,
+  Trigger,
+  Counter,
+  IntervalTimer,
+} from './primitives/types';
+import type { ActionContext, ActionDeps } from './primitives/action';
+import { executeAction } from './primitives/action';
 import { ITEM_EFFECTS } from './registry';
 
 /** (unitId, itemApiName) → state */
 type StateKey = string;
 const stateKey = (unitId: string, apiName: string): StateKey => `${unitId}::${apiName}`;
+
+interface TimerEntry {
+  unitId: string;
+  apiName: string;
+  timer: IntervalTimer;
+}
 
 export class ItemEffectRuntime {
   private readonly bus: EventBus;
@@ -23,9 +37,13 @@ export class ItemEffectRuntime {
   /** (unit × item) 별 per-item state */
   private readonly states: Map<StateKey, UnitItemState> = new Map();
   /** 등록된 timer descriptor 목록 (onTick 에서 순회) */
-  private readonly timers: Array<{ unitId: string; apiName: string; timer: IntervalTimer }> = [];
+  private readonly timers: TimerEntry[] = [];
   /** 등록된 unit 참조 (이벤트 payload의 sourceId → unit 조회용) */
   private readonly unitsById: Map<string, CombatUnit> = new Map();
+  /** Action 실행 시점에 주입할 deps. install 에서 세팅. */
+  private deps: ActionDeps | null = null;
+  /** handler id 중복 방지용 일련번호 */
+  private handlerSeq = 0;
 
   constructor(bus: EventBus) {
     this.bus = bus;
@@ -35,13 +53,13 @@ export class ItemEffectRuntime {
    * 전투 시작 시 1회 호출.
    * 각 유닛의 아이템을 스캔해 descriptor를 bus에 구독/timer 등록.
    */
-  install(units: CombatUnit[]): void {
+  install(units: CombatUnit[], deps: ActionDeps): void {
+    this.deps = deps;
     for (const unit of units) {
       this.unitsById.set(unit.id, unit);
       for (const item of unit.items) {
         const descriptors = ITEM_EFFECTS[item.apiName];
         if (!descriptors) continue;
-        // state 초기화 (중복 아이템은 동일 state 공유 — stacking도 유닛당 1개로 취급)
         const key = stateKey(unit.id, item.apiName);
         if (!this.states.has(key)) {
           this.states.set(key, {
@@ -59,13 +77,45 @@ export class ItemEffectRuntime {
   }
 
   /**
-   * 매 tick 호출. Timer descriptor 의 interval 판정.
-   * Phase 1: stub — Phase 2에서 실제 dispatch 구현.
+   * 매 tick 호출. Timer descriptor 의 interval 판정 및 dispatch.
    */
   onTick(tick: number): void {
-    // Phase 1: 아직 Action executor 없음. Phase 2에서 구현.
-    void tick;
-    void this.timers;
+    if (!this.deps) return;
+    for (const entry of this.timers) {
+      const unit = this.unitsById.get(entry.unitId);
+      if (!unit || unit.state === 'dead') continue;
+
+      const key = stateKey(entry.unitId, entry.apiName);
+      const state = this.states.get(key);
+      if (!state) continue;
+
+      const timerKey = `timer::${entry.timer.intervalTicks}`;
+      const lastFire = state.timerLastTick.get(timerKey);
+      // 첫 tick (lastFire === undefined) 은 install 시점(=tick 0)을 기준으로 intervalTicks 대기.
+      // 최초 발동은 `tick >= intervalTicks` 시점.
+      const shouldFire = lastFire === undefined
+        ? tick >= entry.timer.intervalTicks
+        : tick - lastFire >= entry.timer.intervalTicks;
+
+      if (!shouldFire) continue;
+
+      if (entry.timer.maxRepeats !== undefined) {
+        const repeats = state.timerRepeats.get(timerKey) ?? 0;
+        if (repeats >= entry.timer.maxRepeats) continue;
+        state.timerRepeats.set(timerKey, repeats + 1);
+      }
+
+      state.timerLastTick.set(timerKey, tick);
+
+      const ctx: ActionContext = {
+        unit,
+        payload: undefined,
+        state,
+        tick,
+        deps: this.deps,
+      };
+      executeAction(entry.timer.action, ctx);
+    }
   }
 
   /**
@@ -79,6 +129,7 @@ export class ItemEffectRuntime {
     this.timers.length = 0;
     this.states.clear();
     this.unitsById.clear();
+    this.deps = null;
   }
 
   /* ──────────────── private ──────────────── */
@@ -102,21 +153,18 @@ export class ItemEffectRuntime {
   }
 
   private registerTrigger(unit: CombatUnit, apiName: string, d: Trigger): void {
-    const handlerId = `item::${unit.id}::${apiName}::trigger`;
+    const handlerId = `item::${unit.id}::${apiName}::trigger::${this.handlerSeq++}`;
     this.bus.on(d.event, handlerId, (payload) => {
-      // Phase 1: 실제 executor는 Phase 2에서 구현.
-      void payload;
-      void this.resolveContext(unit, apiName, payload);
+      this.dispatchTrigger(unit, apiName, d, payload);
     });
     this.registeredHandlers.push({ event: d.event, id: handlerId });
   }
 
   private registerCounter(unit: CombatUnit, apiName: string, d: Counter): void {
-    const handlerId = `item::${unit.id}::${apiName}::counter`;
+    const handlerId = `item::${unit.id}::${apiName}::counter::${this.handlerSeq++}`;
+    const counterKey = `counter::${d.event}::${d.n}`;
     this.bus.on(d.event, handlerId, (payload) => {
-      // Phase 1: 실제 executor는 Phase 2에서 구현.
-      void payload;
-      void this.resolveContext(unit, apiName, payload);
+      this.dispatchCounter(unit, apiName, counterKey, d, payload);
     });
     this.registeredHandlers.push({ event: d.event, id: handlerId });
   }
@@ -125,18 +173,68 @@ export class ItemEffectRuntime {
     this.timers.push({ unitId: unit.id, apiName, timer: d });
   }
 
-  /**
-   * 이벤트/timer 발생 시 TriggerContext 구성 (Action executor 용).
-   * Phase 1: stub.
-   */
-  private resolveContext(unit: CombatUnit, apiName: string, payload?: CombatEventPayload) {
+  private dispatchTrigger(
+    unit: CombatUnit,
+    apiName: string,
+    d: Trigger,
+    payload: CombatEventPayload,
+  ): void {
+    if (!this.deps) return;
+    // Trigger는 "이 유닛이 장착한 아이템이 이 유닛 관련 이벤트에만 반응"이 기본.
+    // on_hit_taken (피격): sourceId=피격자, on_attack/on_hit/on_cast: sourceId=공격자.
+    if (payload.sourceId !== unit.id) return;
+    if (unit.state === 'dead') return;
+
     const state = this.states.get(stateKey(unit.id, apiName));
-    if (!state) return null;
-    return {
+    if (!state) return;
+
+    const ctx: ActionContext = {
       unit,
       payload,
       state,
-      tick: payload?.tick ?? 0,
+      tick: payload.tick,
+      deps: this.deps,
     };
+    if (d.condition && !d.condition(ctx)) return;
+    executeAction(d.action, ctx);
+  }
+
+  private dispatchCounter(
+    unit: CombatUnit,
+    apiName: string,
+    counterKey: string,
+    d: Counter,
+    payload: CombatEventPayload,
+  ): void {
+    if (!this.deps) return;
+    if (payload.sourceId !== unit.id) return;
+    if (unit.state === 'dead') return;
+
+    const state = this.states.get(stateKey(unit.id, apiName));
+    if (!state) return;
+
+    const current = (state.counters.get(counterKey) ?? 0) + 1;
+    if (current < d.n) {
+      state.counters.set(counterKey, current);
+      return;
+    }
+
+    // 도달: action 실행
+    const ctx: ActionContext = {
+      unit,
+      payload,
+      state,
+      tick: payload.tick,
+      deps: this.deps,
+    };
+    executeAction(d.action, ctx);
+
+    // reset 처리
+    if (d.reset === 'never') {
+      // 1회성 — 이후 발동 안 되도록 불가능한 큰 값으로 고정
+      state.counters.set(counterKey, Number.POSITIVE_INFINITY);
+    } else {
+      state.counters.set(counterKey, 0);
+    }
   }
 }

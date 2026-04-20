@@ -1,0 +1,229 @@
+/**
+ * Action Executor
+ *
+ * Trigger/Counter/Timer에서 발동된 Action primitive를 실제 실행한다.
+ * 결정론 보장: rng는 주입된 SeededRNG만 사용, Math.random() 직접 호출 금지.
+ *
+ * 설계 문서: docs/02-design/features/item-effect-engine.design.md §4.5
+ */
+
+import type { CombatUnit, StatusEffect } from '@/types';
+import { hexDistance } from '@/types';
+import type { SeededRNG } from '@/lib/simulator/engine/rng';
+import type { EventBus } from '@/lib/simulator/events/eventBus';
+import type {
+  Action,
+  DamageAmount,
+  DamageType,
+  TargetSelector,
+  StatKey,
+  TriggerContext,
+} from './types';
+
+/**
+ * Action 실행 시점에 필요한 외부 의존성.
+ * Runtime이 combatLoop로부터 받아 보관하다가 주입한다.
+ *
+ * - allUnits: 타게팅을 위해 mutable reference (Galio 소환 등으로 증가 가능)
+ * - applyDamage: 저항/쉴드/HP 감소/피해 이벤트까지 포함한 고수준 헬퍼
+ */
+export interface ActionDeps {
+  allUnits: CombatUnit[];
+  rng: SeededRNG;
+  eventBus: EventBus;
+  applyDamage: (
+    target: CombatUnit,
+    amount: number,
+    type: DamageType,
+    source: CombatUnit,
+    tick: number,
+  ) => number;
+}
+
+export interface ActionContext extends TriggerContext {
+  deps: ActionDeps;
+}
+
+/** 최상위 실행 엔트리. chain/branch 재귀 포함. */
+export function executeAction(action: Action, ctx: ActionContext): void {
+  switch (action.kind) {
+    case 'dealDamage':
+      execDealDamage(action, ctx);
+      return;
+    case 'modifyStat':
+      execModifyStat(action, ctx);
+      return;
+    case 'applyDebuff':
+      execApplyDebuff(action, ctx);
+      return;
+    case 'addStack':
+      execAddStack(action, ctx);
+      return;
+    case 'chain':
+      for (const a of action.actions) executeAction(a, ctx);
+      return;
+    case 'branch':
+      if (action.condition(ctx)) executeAction(action.then, ctx);
+      else if (action.else) executeAction(action.else, ctx);
+      return;
+  }
+}
+
+/* ──────────────── Target Resolution ──────────────── */
+
+export function resolveTargets(selector: TargetSelector, ctx: ActionContext): CombatUnit[] {
+  const { unit, deps } = ctx;
+  const enemies = deps.allUnits.filter(u => u.team !== unit.team && u.state !== 'dead');
+  switch (selector) {
+    case 'self':
+      return [unit];
+    case 'attackTarget': {
+      if (!unit.target) return [];
+      const t = deps.allUnits.find(u => u.id === unit.target);
+      return t && t.state !== 'dead' ? [t] : [];
+    }
+    case 'nearestEnemy': {
+      if (enemies.length === 0) return [];
+      let nearest = enemies[0];
+      let minDist = hexDistance(unit.position, nearest.position);
+      for (let i = 1; i < enemies.length; i++) {
+        const d = hexDistance(unit.position, enemies[i].position);
+        if (d < minDist) {
+          minDist = d;
+          nearest = enemies[i];
+        }
+      }
+      return [nearest];
+    }
+    case 'randomEnemy': {
+      if (enemies.length === 0) return [];
+      const idx = Math.floor(deps.rng.next() * enemies.length);
+      return [enemies[idx]];
+    }
+    case 'allEnemies':
+      return enemies;
+    case 'adjacentEnemies':
+      return enemies.filter(e => hexDistance(unit.position, e.position) <= 1);
+  }
+}
+
+/* ──────────────── Damage Amount Resolution ──────────────── */
+
+function resolveDamageAmount(amount: DamageAmount, ctx: ActionContext, target: CombatUnit): number {
+  switch (amount.mode) {
+    case 'flat':
+      return amount.value;
+    case 'pctMaxHp':
+      return target.maxHp * amount.pct;
+    case 'pctAttackDamage':
+      return ctx.unit.stats.damage * amount.pct;
+    case 'pctAbilityPower':
+      return ctx.unit.stats.ap * amount.pct;
+    case 'pctDealt':
+      return (ctx.payload?.value ?? 0) * amount.pct;
+  }
+}
+
+/* ──────────────── Action Implementations ──────────────── */
+
+function execDealDamage(
+  action: Extract<Action, { kind: 'dealDamage' }>,
+  ctx: ActionContext,
+): void {
+  const targets = resolveTargets(action.target, ctx);
+  for (const target of targets) {
+    const amount = resolveDamageAmount(action.amount, ctx, target);
+    if (amount <= 0) continue;
+    ctx.deps.applyDamage(target, amount, action.type, ctx.unit, ctx.tick);
+  }
+}
+
+function execModifyStat(
+  action: Extract<Action, { kind: 'modifyStat' }>,
+  ctx: ActionContext,
+): void {
+  // Phase 1: durationTicks 미지원 (persistent만). 임시 버프 만료 큐는 후속 Phase에서.
+  applyStatDelta(ctx.unit, action.stat, action.delta);
+}
+
+/** 지정 stat에 delta 적용. StatKey 전범위 분기. */
+export function applyStatDelta(unit: CombatUnit, stat: StatKey, delta: number): void {
+  switch (stat) {
+    case 'ad':
+      unit.stats.damage += delta;
+      return;
+    case 'ap':
+      unit.stats.ap += delta;
+      return;
+    case 'as':
+      unit.stats.attackSpeed += delta;
+      return;
+    case 'hp': {
+      unit.maxHp += delta;
+      if (delta > 0) {
+        unit.currentHp = Math.min(unit.maxHp, unit.currentHp + delta);
+      } else {
+        unit.currentHp = Math.min(unit.currentHp, unit.maxHp);
+      }
+      return;
+    }
+    case 'armor':
+      unit.stats.armor += delta;
+      return;
+    case 'magicResist':
+      unit.stats.magicResist += delta;
+      return;
+    case 'critChance':
+      unit.stats.critChance += delta;
+      return;
+    case 'critDamage':
+      unit.stats.critMultiplier += delta;
+      return;
+    case 'mana':
+      unit.currentMana = Math.min(unit.maxMana, unit.currentMana + delta);
+      return;
+    case 'armorPen':
+      unit.stats.armorPen += delta;
+      return;
+    case 'magicPen':
+      unit.stats.magicPen += delta;
+      return;
+    case 'omnivamp':
+      unit.omnivamp += delta;
+      return;
+    case 'damageAmp':
+      unit.damageAmp += delta;
+      return;
+    case 'damageReduction':
+      unit.damageReduction += delta;
+      return;
+  }
+}
+
+function execApplyDebuff(
+  action: Extract<Action, { kind: 'applyDebuff' }>,
+  ctx: ActionContext,
+): void {
+  const targets = resolveTargets(action.target, ctx);
+  for (const target of targets) {
+    // Phase 1: DebuffSpec.type은 string (shred/wound/burn 등). StatusEffect['type']에 포함되는 값만
+    // StatusEffects에 push. 그 외(shred/wound)는 Phase 3/4에서 전용 처리 추가 예정.
+    const effectType = action.debuff.type as StatusEffect['type'];
+    target.statusEffects.push({
+      type: effectType,
+      sourceId: ctx.unit.id,
+      remainingTicks: action.durationTicks,
+      value: action.debuff.amount,
+    });
+  }
+}
+
+function execAddStack(
+  action: Extract<Action, { kind: 'addStack' }>,
+  ctx: ActionContext,
+): void {
+  const current = ctx.state.stacks.get(action.stack) ?? 0;
+  const inc = action.amount ?? 1;
+  const next = action.cap !== undefined ? Math.min(current + inc, action.cap) : current + inc;
+  ctx.state.stacks.set(action.stack, next);
+}

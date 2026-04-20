@@ -7,6 +7,8 @@
 
 export { ItemEffectRuntime } from './runtime';
 export { ITEM_EFFECTS, hasRegisteredEffects, getDescriptorsOfKind } from './registry';
+export { executeAction, resolveTargets, applyStatDelta } from './primitives/action';
+export type { ActionContext, ActionDeps } from './primitives/action';
 export type {
   ItemEffectDescriptor,
   StatPatch,

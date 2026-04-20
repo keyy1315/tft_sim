@@ -7,7 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:golden": "vitest run tests/golden"
   },
   "keywords": [],
   "author": "",
@@ -36,8 +39,10 @@
     "@eslint/js": "^10.0.1",
     "@next/eslint-plugin-next": "^16.2.0",
     "@types/react-dom": "^19.2.3",
+    "@vitest/ui": "^4.1.4",
     "eslint": "^10.0.3",
     "eslint-plugin-react-hooks": "^7.0.1",
-    "typescript-eslint": "^8.57.1"
+    "typescript-eslint": "^8.57.1",
+    "vitest": "^4.1.4"
   }
 }

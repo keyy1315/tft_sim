@@ -18,6 +18,8 @@ import { captureSnapshot } from '@/lib/simulator/engine/replayEngine';
 import { findTarget } from '@/lib/simulator/systems/targeting';
 import { gainManaOnAttack, gainManaPerTick, gainManaOnDamageTaken } from '@/lib/simulator/systems/mana';
 import { EventBus } from '@/lib/simulator/events/eventBus';
+import { ItemEffectRuntime } from '@/lib/simulator/systems/items';
+import type { ActionDeps, DamageType } from '@/lib/simulator/systems/items';
 import { ROLE_OMNIVAMP, getFighterASBonus } from '@/lib/simulator/models/unit';
 import { resolveTraits } from '@/lib/simulator/systems/trait';
 import { resolveAugmentEffects, resolveInCombatAugmentEffects, resolvePerUnitMods, applyPerUnitMods, AugmentWithStacks } from '@/lib/simulator/systems/augment';
@@ -1421,6 +1423,47 @@ export function simulateCombat(
     applyArbiterEffect(options.enemyArbiterLaw.effectId, enemyLawResolved.value * totalStars, enemyArbiterUnits, 0, 0, logs, []);
   }
 
+  // === Item Effect Runtime 설치 ===
+  // applyResistance/applyShield/HP 감소/on_damage emit 까지 캡슐화한 고수준 피해 헬퍼.
+  // Item Action 에서 발생하는 피해는 이 경로로만 적용 (중복 로직 방지).
+  const applyDamageForItem = (
+    target: CombatUnit,
+    amount: number,
+    type: DamageType,
+    source: CombatUnit,
+    tick: number,
+  ): number => {
+    const resistance = type === 'physical' ? target.stats.armor
+      : type === 'magic' ? target.stats.magicResist : 0;
+    const pen = type === 'physical' ? source.stats.armorPen
+      : type === 'magic' ? source.stats.magicPen : 0;
+    const amped = amount * (1 + source.damageAmp);
+    const reduced = target.damageReduction > 0 ? amped * (1 - target.damageReduction) : amped;
+    let dmg = type === 'true' ? reduced : applyResistance(reduced, resistance, pen);
+    dmg = applyShield(target, dmg, eventBus, 0);
+    if (dmg > 0) {
+      target.currentHp -= dmg;
+      target.totalDamageTaken += dmg;
+      source.totalDamageDealt += dmg;
+    }
+    eventBus.emit('on_damage', {
+      sourceId: target.id,
+      targetId: source.id,
+      value: dmg,
+      damageType: type,
+      tick,
+    });
+    return dmg;
+  };
+  const itemRuntime = new ItemEffectRuntime(eventBus);
+  const itemRuntimeDeps: ActionDeps = {
+    allUnits,
+    rng,
+    eventBus,
+    applyDamage: applyDamageForItem,
+  };
+  itemRuntime.install(allUnits, itemRuntimeDeps);
+
   eventBus.emit('on_combat_start', { sourceId: '', tick: 0 });
 
   for (let tick = 0; tick < MAX_TICKS; tick++) {
@@ -1430,6 +1473,9 @@ export function simulateCombat(
     const aliveEnemies = enemies.filter(u => u.state !== 'dead');
 
     if (alivePlayers.length === 0 || aliveEnemies.length === 0) break;
+
+    // 아이템 효과 runtime — interval timer dispatch
+    itemRuntime.onTick(tick);
 
     // 갈리오 영웅 소환 체크 (매초)
     if (tick > 0 && tick % TICKS_PER_SECOND === 0) {
@@ -1544,6 +1590,9 @@ export function simulateCombat(
         if (unit.attackCooldown <= 0 && canAutoAttack(unit)) {
           const attackInterval = Math.round(1 / (getEffectiveAttackSpeed(unit) * TICK_DURATION));
           unit.attackCooldown = attackInterval;
+
+          // 공격 windup 시작 — PsyOps AttackPct 등의 공격 직전 버프 창 훅
+          eventBus.emit('on_windup_start', { sourceId: unit.id, targetId: target.id, tick });
 
           const isCrit = rng.next() < unit.stats.critChance;
           const critMult = isCrit ? unit.stats.critMultiplier : 1;
@@ -1700,6 +1749,8 @@ export function simulateCombat(
           eventBus.emit('on_attack', { sourceId: unit.id, targetId: target.id, value: finalDamage, tick });
           eventBus.emit('on_hit', { sourceId: unit.id, targetId: target.id, value: finalDamage, damageType: 'physical', tick });
           eventBus.emit('on_damage', { sourceId: target.id, targetId: unit.id, value: finalDamage, damageType: 'physical', tick });
+          // 피격 방어자 관점 — 거인의 결의 / 반도체 카운터 등
+          eventBus.emit('on_hit_taken', { sourceId: target.id, targetId: unit.id, value: finalDamage, damageType: 'physical', tick });
 
           const log: CombatLog = {
             tick, time, type: 'attack',
@@ -1711,12 +1762,15 @@ export function simulateCombat(
           tickLogs.push(log);
 
           if (unit.currentMana >= unit.maxMana) {
+            const spentMana = unit.maxMana;
             unit.currentMana = 0;
             unit.state = 'casting';
             unit.castCount++;
             if (unit.champion.traits.includes('중재자')) {
               (unit.team === 'player' ? playerArbiterState : enemyArbiterState).manaSpent += unit.maxMana;
             }
+            // 마나 소모 시점 — PsyOps 공감 임플란트 등
+            eventBus.emit('on_mana_spent', { sourceId: unit.id, value: spentMana, tick });
 
             const augNames = unit.team === 'player' ? playerAugApiNames : enemyAugApiNames;
             const config: AbilityConfig = getAbilityConfigForUnit(unit, augNames);
@@ -1990,10 +2044,13 @@ export function simulateCombat(
           && (outOfRangeConfig.dash || outOfRangeConfig.pattern === 'self_buff');
 
         if (canDashCast) {
+          const spentManaOOR = unit.maxMana;
           unit.currentMana = 0;
           unit.state = 'casting';
           unit.castCount++;
           unit.attackCooldown = outOfRangeConfig.pattern === 'self_buff' ? SELF_BUFF_CAST_TICKS : CAST_TICKS;
+          // 마나 소모 시점 (사거리 밖 dash cast 경로)
+          eventBus.emit('on_mana_spent', { sourceId: unit.id, value: spentManaOOR, tick });
 
           const { damage: rawOORDmg, type: dmgType } = getAbilityDamage(
             unit.champion, unit.starLevel, unit.stats.ap, 0, outOfRangeConfig.damageVar
@@ -2138,6 +2195,7 @@ export function simulateCombat(
   const duration = lastLog ? lastLog.time : 0;
 
   eventBus.emit('on_combat_end', { sourceId: '', tick: MAX_TICKS, value: duration });
+  itemRuntime.dispose();
   eventBus.clear();
 
   return { winner, duration, logs, playerUnits, enemyUnits: enemies, snapshots };
