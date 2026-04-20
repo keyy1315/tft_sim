@@ -188,6 +188,53 @@ function buildChemicalCapacitor(
   ];
 }
 
+/**
+ * 표적 고정 광학 장치 (Targetlock Optic) — per-target first-hit bonus.
+ *
+ * 효과: "장착 유닛이 각 적에게 가하는 첫 공격이 @AttackPct@% AD 추가 피해"
+ *        (AttackPct=150 → +150% AD)
+ *
+ * 구현:
+ *  - on_hit trigger, condition: state.stacks[`targetlock_hit::{targetId}`] 가 0
+ *    (첫 공격 체크 — stack 템플릿 치환으로 per-target 누적)
+ *  - chain:
+ *    ① dealDamage pctAttackDamage 1.5 to attackTarget, physical
+ *    ② addStack 'targetlock_hit::{targetId}' = 1 (이 적에게 발동 표시)
+ *
+ * Radiant HealPct 0.15 (초능력 사망 시 15% maxHP 회복) 은 별도 on_kill trigger
+ * 필요 + 초능력 조건 처리 복잡 → Phase 5+ 로 이월.
+ */
+function buildTargetlockOptic(apiName: string): [string, ItemEffectDescriptor[]] {
+  return [
+    apiName,
+    [
+      statPatch({ ad: 0.15, as: 35 }),
+      {
+        kind: 'trigger',
+        event: 'on_hit',
+        condition: (ctx) => {
+          const tgt = ctx.payload?.targetId;
+          if (!tgt) return false;
+          const fired = ctx.state.stacks.get(`targetlock_hit::${tgt}`) ?? 0;
+          return fired === 0;
+        },
+        action: {
+          kind: 'chain',
+          actions: [
+            {
+              kind: 'dealDamage',
+              amount: { mode: 'pctAttackDamage', pct: 1.5 },
+              type: 'physical',
+              target: 'attackTarget',
+            },
+            { kind: 'addStack', stack: 'targetlock_hit::{targetId}', amount: 1 },
+          ],
+        },
+      },
+    ],
+  ];
+}
+
 export const PSYOPS_ITEMS: Record<string, ItemEffectDescriptor[]> = Object.fromEntries([
   // 드론 업링크 (Phase 3)
   buildDroneUplink('TFT17_Item_PsyOps_DroneMod', 25, 0.20),
@@ -202,4 +249,7 @@ export const PSYOPS_ITEMS: Record<string, ItemEffectDescriptor[]> = Object.fromE
   // 악성코드 매트릭스 (Phase 4 Part 2) — ResistReduce 2/초당 ICD 0.75s
   buildChemicalCapacitor('TFT17_Item_PsyOps_ChemicalCapacitorMod', 2),
   buildChemicalCapacitor('TFT17_Item_PsyOps_ChemicalCapacitorMod_Radiant', 2),
+  // 표적 고정 광학 장치 (Phase 4 Part 2) — per-target first-hit +150% AD
+  buildTargetlockOptic('TFT17_Item_PsyOps_TargetlockMod'),
+  buildTargetlockOptic('TFT17_Item_PsyOps_TargetlockMod_Radiant'),
 ]);

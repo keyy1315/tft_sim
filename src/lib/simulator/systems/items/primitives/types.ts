@@ -53,12 +53,17 @@ export type Action =
    * - number: 고정 증분 (default 1)
    * - 'payload.value': 현재 이벤트 payload.value 를 증분으로 사용 (trigger 전용,
    *   timer 에서는 payload undefined 이므로 0 증분)
+   *
+   * stack 은 `{targetId}` 템플릿 치환 지원 — payload.targetId 로 대체되어
+   * per-target 스택 생성 (예: 표적 고정 'targetlock_hit::{targetId}')
    */
   | { kind: 'addStack'; stack: string; amount?: number | 'payload.value'; cap?: number }
   /**
    * 스택을 특정 값으로 고정. value:
    * - number: 고정값 (window reset 0 등)
    * - 'tick': 현재 ctx.tick 값으로 설정 (ICD 타임스탬프 기록용)
+   *
+   * stack 템플릿 치환 지원 (addStack 과 동일)
    */
   | { kind: 'setStack'; stack: string; value: number | 'tick' }
   | { kind: 'chain'; actions: Action[] }

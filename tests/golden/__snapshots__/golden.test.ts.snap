@@ -860,6 +860,66 @@ exports[`golden — psyops (counter + timer) > Jinx+Semiconductor(Radiant) vs Ra
 }
 `;
 
+exports[`golden — psyops (counter + timer) > Jinx+Targetlock 2v2 (per-target first hit) 1`] = `
+{
+  "duration": 7,
+  "logCounts": {
+    "ability": 11,
+    "attack": 73,
+    "death": 2,
+    "move": 11,
+  },
+  "scenarioName": "Jinx+Targetlock 2v2 (per-target first hit)",
+  "seed": 7,
+  "snapshotCount": 211,
+  "units": [
+    {
+      "alive": true,
+      "attackCount": 67,
+      "castCount": 8,
+      "championApi": "TFT17_Jinx",
+      "finalHp": 387.5,
+      "id": "player-0",
+      "killCount": 2,
+      "maxHp": 990,
+      "starLevel": 2,
+      "team": "player",
+      "totalDamageDealt": 4355.76,
+      "totalDamageTaken": 602.5,
+    },
+    {
+      "alive": false,
+      "attackCount": 4,
+      "castCount": 1,
+      "championApi": "TFT17_Rammus",
+      "finalHp": 0,
+      "id": "enemy-0",
+      "killCount": 0,
+      "maxHp": 2340,
+      "starLevel": 2,
+      "team": "enemy",
+      "totalDamageDealt": 422.5,
+      "totalDamageTaken": 2355.49,
+    },
+    {
+      "alive": false,
+      "attackCount": 2,
+      "castCount": 0,
+      "championApi": "TFT17_Illaoi",
+      "finalHp": 0,
+      "id": "enemy-1",
+      "killCount": 0,
+      "maxHp": 1980,
+      "starLevel": 2,
+      "team": "enemy",
+      "totalDamageDealt": 180,
+      "totalDamageTaken": 2000.27,
+    },
+  ],
+  "winner": "player",
+}
+`;
+
 exports[`golden — psyops (counter + timer) > Rammus+Semiconductor vs Jinx (on_hit_taken counter) 1`] = `
 {
   "duration": 14.9333,

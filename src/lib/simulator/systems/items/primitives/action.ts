@@ -61,7 +61,7 @@ export function executeAction(action: Action, ctx: ActionContext): void {
       return;
     case 'setStack': {
       const v = action.value === 'tick' ? ctx.tick : action.value;
-      ctx.state.stacks.set(action.stack, v);
+      ctx.state.stacks.set(resolveStackKey(action.stack, ctx), v);
       return;
     }
     case 'chain':
@@ -255,11 +255,22 @@ function execAddStack(
   action: Extract<Action, { kind: 'addStack' }>,
   ctx: ActionContext,
 ): void {
-  const current = ctx.state.stacks.get(action.stack) ?? 0;
+  const stackKey = resolveStackKey(action.stack, ctx);
+  const current = ctx.state.stacks.get(stackKey) ?? 0;
   // 'payload.value': 현재 이벤트 payload 의 value (timer 에서는 undefined → 0)
   const inc = action.amount === 'payload.value'
     ? (ctx.payload?.value ?? 0)
     : (action.amount ?? 1);
   const next = action.cap !== undefined ? Math.min(current + inc, action.cap) : current + inc;
-  ctx.state.stacks.set(action.stack, next);
+  ctx.state.stacks.set(stackKey, next);
+}
+
+/**
+ * 스택 키 템플릿 치환 — `{targetId}` 를 payload.targetId 로 치환.
+ * Per-target 누적 (표적 고정 첫 공격 여부, 개별 적 shred 카운터 등) 에 사용.
+ * 치환값이 없으면 원본 키 반환.
+ */
+function resolveStackKey(template: string, ctx: ActionContext): string {
+  if (!template.includes('{targetId}')) return template;
+  return template.replace('{targetId}', ctx.payload?.targetId ?? 'unknown');
 }

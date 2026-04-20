@@ -67,6 +67,22 @@ export const AURORA_WITH_EMPATHIC: Scenario = {
   enemy: [{ apiName: 'TFT17_Rammus', position: { q: 0, r: 7 }, starLevel: 2 }],
 };
 
+/** 표적 고정 — Jinx 의 2v2 에서 각 적에게 첫 공격 +150% AD */
+export const JINX_WITH_TARGETLOCK_2V2: Scenario = {
+  name: 'Jinx+Targetlock 2v2 (per-target first hit)',
+  seed: 7,
+  player: [
+    {
+      apiName: 'TFT17_Jinx', position: { q: 0, r: 0 }, starLevel: 2,
+      items: ['TFT17_Item_PsyOps_TargetlockMod'],
+    },
+  ],
+  enemy: [
+    { apiName: 'TFT17_Rammus', position: { q: 0, r: 7 }, starLevel: 2 },
+    { apiName: 'TFT17_Illaoi', position: { q: 1, r: 7 }, starLevel: 2 },
+  ],
+};
+
 /** 악성코드 매트릭스 — Jinx on_hit 마다 Rammus armor -2 (ICD 0.75s) */
 export const JINX_WITH_CHEMICAL: Scenario = {
   name: 'Jinx+ChemicalCapacitor vs Rammus (armor shred)',
@@ -88,4 +104,5 @@ export const PSYOPS_SCENARIOS: Scenario[] = [
   RAMMUS_WITH_SEMICONDUCTOR,
   AURORA_WITH_EMPATHIC,
   JINX_WITH_CHEMICAL,
+  JINX_WITH_TARGETLOCK_2V2,
 ];
