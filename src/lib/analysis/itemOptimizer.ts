@@ -137,7 +137,7 @@ export function extractItemDpsModifiers(items: RawItem[]): ItemDpsModifiers {
     if (typeof e['APPerBonus'] === 'number') mods.apPerStack += e['APPerBonus'];
     if (typeof e['StackCap'] === 'number') mods.stackCap = e['StackCap'];
     if (typeof e['ProcAttackSpeed'] === 'number') mods.procAS += e['ProcAttackSpeed'];
-    if (typeof e['ASPerMissingHealthPercent'] === 'number') mods.procAS += e['ASPerMissingHealthPercent'] * 50;
+    if (typeof e['ASPerMissingHealthPercent'] === 'number') mods.procAS += e['ASPerMissingHealthPercent'] * DPS_CALIBRATION.AVG_MISSING_HP_PCT;
     // 처치 보너스 (평균 2킬 가정)
     if (typeof e['ADAPPerTakedown'] === 'number') mods.adapPerKill += e['ADAPPerTakedown'];
   }
@@ -151,6 +151,45 @@ function estimateAvgStacks(attackSpeed: number, combatDuration: number, stackCap
 }
 
 const AVG_COMBAT_DURATION = 15; // 평균 전투 시간 15초
+
+/**
+ * estimateDps 내부 계수 (이전 "매직 넘버" 6개) — Phase 6-B scaffold.
+ *
+ * 각 계수는 향후 시뮬 기반 역산으로 교체 예정. 현재는 원래 값 유지하되
+ * 의미/출처/역산 방법을 문서화하여 후속 calibration 작업의 entry point 제공.
+ *
+ * 역산 방법론 (Plan: estimateDps-magic-numbers.plan.md):
+ *   1) 해당 매직 넘버가 쓰이는 아이템 ON/OFF 로 여러 조합의 시뮬 DPS 측정
+ *   2) 측정값 / 시뮬레이션 기본 값 차이에서 실제 계수 역산
+ *   3) 최소 10개 조합 × 6개 아이템 = 60회 시뮬 필요
+ *
+ * TODO (Phase 6-B Part 2): scripts/calibrate-dps.ts 구현 후 실제 측정값으로 교체
+ */
+export const DPS_CALIBRATION = {
+  /** 루덴/악성코드 등 고정 피해 아이템의 초당 발동 확률 추정치.
+   *  근거: 실제 쿨다운은 아이템마다 다름 (루덴 2s, 악성코드 0.75s). 단일 평균치로 근사. */
+  FLAT_DAMAGE_PROC_RATE: 0.3,
+
+  /** 화상 DPS 계산용 "적 평균 체력" (BurnPercent × 이 값 / 100).
+   *  근거: 2성 3000+, 3성 5000+. 현재 값은 1성 기준 가깝고 후반전에서 과소평가. */
+  AVG_ENEMY_HP_FOR_BURN: 20 * 100, // 2000 (수식 호환을 위해 곱셈 유지)
+
+  /** 추가 공격 (야스오 검술) 의 DPS 기여율.
+   *  근거: 단일 평균치. 실제는 발동 주기와 공격속도에 따라 가변. */
+  BONUS_ATTACK_DPS_MULT: 0.3,
+
+  /** "잃은 체력 %당 공격속도" 의 가중치 — 전투 중 평균 missing HP% 추정.
+   *  근거: 초반 0% → 후반 80%+ 경과 평균 50% 가정. 탱커는 더 높고 딜러는 더 낮음. */
+  AVG_MISSING_HP_PCT: 50,
+
+  /** 마나 재생 효율 — mana regen × duration × 이 값 만큼 effectiveMana 감소.
+   *  근거: 임의 추정. 실제 캐스트 사이클과 baseline mana regen 고려 필요. */
+  MANA_REGEN_EFFICIENCY: 0.1,
+
+  /** 평균 처치 수 (ADAPPerTakedown 같은 on-kill 스케일링).
+   *  근거: 캐리 3~4, 탱커 0~1. 역할별 분리 필요. */
+  AVG_KILLS_PER_COMBAT: 2,
+} as const;
 
 /**
  * 챔피언의 예상 DPS 계산.
@@ -182,9 +221,9 @@ export function estimateDps(
   const stackAD = mods.adPerStack * halfStacks;
   const stackAP = mods.apPerStack * halfStacks;
 
-  // 처치 보너스 (평균 2킬 가정)
-  const killBonusAD = mods.adapPerKill * 2;
-  const killBonusAP = mods.adapPerKill * 2;
+  // 처치 보너스 (역할별 평균 킬 수)
+  const killBonusAD = mods.adapPerKill * DPS_CALIBRATION.AVG_KILLS_PER_COMBAT;
+  const killBonusAP = mods.adapPerKill * DPS_CALIBRATION.AVG_KILLS_PER_COMBAT;
 
   const totalAS = stats.attackSpeed * (1 + stackAS);
   const ampMul = 1 + mods.damageAmp;
@@ -192,16 +231,19 @@ export function estimateDps(
   const splashMul = 1 + mods.splashDamage;
 
   // 추가 공격 보너스 (야스오 검술: 일정 주기마다 추가 공격)
-  const bonusAttackMul = 1 + mods.bonusAttacks * 0.3; // 약 30% DPS 증가로 추정
+  const bonusAttackMul = 1 + mods.bonusAttacks * DPS_CALIBRATION.BONUS_ATTACK_DPS_MULT;
 
   // 고정 추가 피해 (루덴, 악성코드 등) — 초당 환산
-  const flatDpsBonus = mods.flatDamage * totalAS * 0.3; // 발동률 30% 추정
+  const flatDpsBonus = mods.flatDamage * totalAS * DPS_CALIBRATION.FLAT_DAMAGE_PROC_RATE;
   // 화상 피해 (초당 최대체력 %)
-  const burnDps = mods.burnPercent * 20; // 적 평균 체력 2000 기준
+  const burnDps = mods.burnPercent * (DPS_CALIBRATION.AVG_ENEMY_HP_FOR_BURN / 100);
 
   if (isAP) {
     const star = STAR_SCALING[starLevel] ?? 1;
-    const effectiveMana = Math.max(stats.maxMana - mods.manaRegen * AVG_COMBAT_DURATION * 0.1, 20);
+    const effectiveMana = Math.max(
+      stats.maxMana - mods.manaRegen * AVG_COMBAT_DURATION * DPS_CALIBRATION.MANA_REGEN_EFFICIENCY,
+      20,
+    );
     const castFreq = 100 / effectiveMana;
     const baseApDps = (100 + stats.ap + stackAP + killBonusAP) * star * totalAS * castFreq;
     const apScalarBonus = mods.apScalar > 0 ? (stats.ap + stackAP) * mods.apScalar * totalAS : 0;
