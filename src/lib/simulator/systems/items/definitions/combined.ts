@@ -56,4 +56,16 @@ export const COMBINED_ITEMS: Record<string, ItemEffectDescriptor[]> = {
 
   // 덤불 조끼: Armor 50 (AutoDamageReduction/PercentMaxHP/AoE reflect → Phase 4+)
   'TFT_Item_BrambleVest': [statPatch({ armor: 50 })],
+
+  // 도적의 장갑: CritChance 20, Health 150 (실게임은 랜덤 아이템 부여 기믹이지만 스탯만 반영)
+  'TFT_Item_ThiefsGloves': [statPatch({ critChance: 20, hp: 150 })],
+
+  // 공포의 낫 (CursedBlade): AS 15, MR 25 (공격 적중 시 적 성급 강등 효과는 엔진 미지원)
+  'TFT_Item_CursedBlade': [statPatch({ as: 15, magicResist: 25 })],
+
+  // 찬란 보석 건틀릿 — base 와 동일 스탯으로 시작 (Corrupted 보너스는 trigger 계열이 많아 이월)
+  'TFT_Item_CorruptedJeweledGauntlet': [statPatch({ ap: 35, critChance: 35 })],
+
+  // 찬란 무한의 대검
+  'TFT_Item_CorruptedInfinityEdge': [statPatch({ ad: 0.35, critChance: 35 })],
 };

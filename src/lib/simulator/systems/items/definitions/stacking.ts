@@ -101,4 +101,16 @@ export const STACKING_ITEMS: Record<string, ItemEffectDescriptor[]> = {
       action: { kind: 'modifyStat', stat: 'damageAmp', delta: 0.15 },
     },
   ],
+
+  // 수은 (Quicksilver) — Phase 3 6번째 중첩 아이템
+  // 효과: AS 15 / CritChance 20 / MR 20 + 매초 AS +3% (ProcAttackSpeed, 중첩)
+  //       전투 시작 18초 CC 면역 (SpellShieldDuration) 은 엔진 미지원 → skip
+  'TFT_Item_Quicksilver': [
+    statPatch({ as: 15, critChance: 20, magicResist: 20 }),
+    {
+      kind: 'timer',
+      intervalTicks: 30, // 1초마다
+      action: { kind: 'modifyStat', stat: 'as', delta: 0.03 },
+    },
+  ],
 };

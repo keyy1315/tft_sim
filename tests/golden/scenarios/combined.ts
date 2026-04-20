@@ -112,6 +112,21 @@ export const ILLAOI_MIXED_ITEMS: Scenario = {
   enemy: [{ apiName: 'TFT17_Akali', position: { q: 0, r: 7 }, starLevel: 2 }],
 };
 
+/** 수은 — Fiora 에게 Timer AS 스태커 + 초반 stat */
+export const FIORA_WITH_QUICKSILVER: Scenario = {
+  name: 'Fiora+Quicksilver vs Rammus',
+  seed: 7,
+  player: [
+    {
+      apiName: 'TFT17_Fiora',
+      position: { q: 0, r: 0 },
+      starLevel: 2,
+      items: ['TFT_Item_Quicksilver'],
+    },
+  ],
+  enemy: [{ apiName: 'TFT17_Rammus', position: { q: 0, r: 7 }, starLevel: 2 }],
+};
+
 export const COMBINED_SCENARIOS: Scenario[] = [
   AKALI_WITH_BT,
   AURORA_WITH_RABADON,
@@ -120,4 +135,5 @@ export const COMBINED_SCENARIOS: Scenario[] = [
   BRIAR_WITH_TITANS,
   JINX_WITH_IE_AND_DEATHBLADE,
   ILLAOI_MIXED_ITEMS,
+  FIORA_WITH_QUICKSILVER,
 ];
