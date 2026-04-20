@@ -11,9 +11,21 @@
 import { describe, it, expect } from 'vitest';
 import { runScenario } from './helpers';
 import { BASIC_SCENARIOS } from './scenarios/basic';
+import { COMBINED_SCENARIOS } from './scenarios/combined';
+
+const ALL_SCENARIOS = [...BASIC_SCENARIOS, ...COMBINED_SCENARIOS];
 
 describe('golden — basic', () => {
   for (const scenario of BASIC_SCENARIOS) {
+    it(scenario.name, () => {
+      const summary = runScenario(scenario);
+      expect(summary).toMatchSnapshot();
+    });
+  }
+});
+
+describe('golden — combined items', () => {
+  for (const scenario of COMBINED_SCENARIOS) {
     it(scenario.name, () => {
       const summary = runScenario(scenario);
       expect(summary).toMatchSnapshot();
@@ -26,7 +38,7 @@ describe('golden — basic', () => {
  * 엔진 전역 상태 / Math.random 직접 사용 등 regression 조기 감지용.
  */
 describe('golden — determinism', () => {
-  for (const scenario of BASIC_SCENARIOS) {
+  for (const scenario of ALL_SCENARIOS) {
     it(`${scenario.name} (2회 실행 동일)`, () => {
       const a = runScenario(scenario);
       const b = runScenario(scenario);

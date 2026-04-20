@@ -166,3 +166,328 @@ exports[`golden — basic > 2v2 Akali+Jinx vs Belveth+Illaoi 1`] = `
   "winner": "enemy",
 }
 `;
+
+exports[`golden — combined items > Akali+Bloodthirster vs Illaoi 1`] = `
+{
+  "duration": 15.4667,
+  "logCounts": {
+    "ability": 7,
+    "attack": 27,
+    "death": 1,
+    "move": 11,
+    "status_expire": 1,
+  },
+  "scenarioName": "Akali+Bloodthirster vs Illaoi",
+  "seed": 7,
+  "snapshotCount": 465,
+  "units": [
+    {
+      "alive": true,
+      "attackCount": 17,
+      "castCount": 5,
+      "championApi": "TFT17_Akali",
+      "finalHp": 849,
+      "id": "player-0",
+      "killCount": 1,
+      "maxHp": 1350,
+      "starLevel": 2,
+      "team": "player",
+      "totalDamageDealt": 2079.38,
+      "totalDamageTaken": 670.34,
+    },
+    {
+      "alive": false,
+      "attackCount": 10,
+      "castCount": 1,
+      "championApi": "TFT17_Illaoi",
+      "finalHp": 0,
+      "id": "enemy-0",
+      "killCount": 0,
+      "maxHp": 1980,
+      "starLevel": 2,
+      "team": "enemy",
+      "totalDamageDealt": 670.34,
+      "totalDamageTaken": 2079.38,
+    },
+  ],
+  "winner": "player",
+}
+`;
+
+exports[`golden — combined items > Aurora+Rabadon vs Rammus 1`] = `
+{
+  "duration": 19.5,
+  "logCounts": {
+    "ability": 4,
+    "attack": 30,
+    "death": 1,
+    "move": 6,
+  },
+  "scenarioName": "Aurora+Rabadon vs Rammus",
+  "seed": 7,
+  "snapshotCount": 586,
+  "units": [
+    {
+      "alive": false,
+      "attackCount": 17,
+      "castCount": 2,
+      "championApi": "TFT17_Aurora",
+      "finalHp": 0,
+      "id": "player-0",
+      "killCount": 0,
+      "maxHp": 1260,
+      "starLevel": 2,
+      "team": "player",
+      "totalDamageDealt": 712.5,
+      "totalDamageTaken": 1321.44,
+    },
+    {
+      "alive": true,
+      "attackCount": 13,
+      "castCount": 1,
+      "championApi": "TFT17_Rammus",
+      "finalHp": 1627.5,
+      "id": "enemy-0",
+      "killCount": 1,
+      "maxHp": 2340,
+      "starLevel": 2,
+      "team": "enemy",
+      "totalDamageDealt": 1321.44,
+      "totalDamageTaken": 712.5,
+    },
+  ],
+  "winner": "enemy",
+}
+`;
+
+exports[`golden — combined items > Belveth+Deathblade vs Briar 1`] = `
+{
+  "duration": 10.9,
+  "logCounts": {
+    "ability": 5,
+    "attack": 25,
+    "death": 1,
+    "move": 6,
+  },
+  "scenarioName": "Belveth+Deathblade vs Briar",
+  "seed": 42,
+  "snapshotCount": 328,
+  "units": [
+    {
+      "alive": true,
+      "attackCount": 10,
+      "castCount": 2,
+      "championApi": "TFT17_Belveth",
+      "finalHp": 260.78,
+      "id": "player-0",
+      "killCount": 1,
+      "maxHp": 1350,
+      "starLevel": 2,
+      "team": "player",
+      "totalDamageDealt": 1582.37,
+      "totalDamageTaken": 1267.45,
+    },
+    {
+      "alive": false,
+      "attackCount": 15,
+      "castCount": 3,
+      "championApi": "TFT17_Briar",
+      "finalHp": 0,
+      "id": "enemy-0",
+      "killCount": 0,
+      "maxHp": 1170,
+      "starLevel": 2,
+      "team": "enemy",
+      "totalDamageDealt": 1267.45,
+      "totalDamageTaken": 1582.37,
+    },
+  ],
+  "winner": "player",
+}
+`;
+
+exports[`golden — combined items > Briar+Titans vs Jinx 1`] = `
+{
+  "duration": 4.2333,
+  "logCounts": {
+    "ability": 2,
+    "attack": 14,
+    "death": 1,
+    "move": 6,
+  },
+  "scenarioName": "Briar+Titans vs Jinx",
+  "seed": 101,
+  "snapshotCount": 128,
+  "units": [
+    {
+      "alive": true,
+      "attackCount": 11,
+      "castCount": 2,
+      "championApi": "TFT17_Briar",
+      "finalHp": 1076.8,
+      "id": "player-0",
+      "killCount": 1,
+      "maxHp": 1170,
+      "starLevel": 2,
+      "team": "player",
+      "totalDamageDealt": 1033,
+      "totalDamageTaken": 217.16,
+    },
+    {
+      "alive": false,
+      "attackCount": 3,
+      "castCount": 0,
+      "championApi": "TFT17_Jinx",
+      "finalHp": 0,
+      "id": "enemy-0",
+      "killCount": 0,
+      "maxHp": 990,
+      "starLevel": 2,
+      "team": "enemy",
+      "totalDamageDealt": 217.16,
+      "totalDamageTaken": 1033,
+    },
+  ],
+  "winner": "player",
+}
+`;
+
+exports[`golden — combined items > Illaoi+BrambleVest+Archangels vs Akali (혼합 경로) 1`] = `
+{
+  "duration": 21.6333,
+  "logCounts": {
+    "ability": 9,
+    "attack": 38,
+    "death": 1,
+    "move": 13,
+    "status_expire": 1,
+  },
+  "scenarioName": "Illaoi+BrambleVest+Archangels vs Akali (혼합 경로)",
+  "seed": 5,
+  "snapshotCount": 650,
+  "units": [
+    {
+      "alive": false,
+      "attackCount": 14,
+      "castCount": 1,
+      "championApi": "TFT17_Illaoi",
+      "finalHp": 0,
+      "id": "player-0",
+      "killCount": 0,
+      "maxHp": 1980,
+      "starLevel": 2,
+      "team": "player",
+      "totalDamageDealt": 968.28,
+      "totalDamageTaken": 2014.59,
+    },
+    {
+      "alive": true,
+      "attackCount": 24,
+      "castCount": 8,
+      "championApi": "TFT17_Akali",
+      "finalHp": 515.89,
+      "id": "enemy-0",
+      "killCount": 1,
+      "maxHp": 1350,
+      "starLevel": 2,
+      "team": "enemy",
+      "totalDamageDealt": 2014.59,
+      "totalDamageTaken": 968.28,
+    },
+  ],
+  "winner": "enemy",
+}
+`;
+
+exports[`golden — combined items > Jinx+Guinsoos vs Illaoi 1`] = `
+{
+  "duration": 6.6667,
+  "logCounts": {
+    "ability": 6,
+    "attack": 36,
+    "death": 1,
+    "move": 6,
+  },
+  "scenarioName": "Jinx+Guinsoos vs Illaoi",
+  "seed": 101,
+  "snapshotCount": 201,
+  "units": [
+    {
+      "alive": true,
+      "attackCount": 32,
+      "castCount": 4,
+      "championApi": "TFT17_Jinx",
+      "finalHp": 581.11,
+      "id": "player-0",
+      "killCount": 1,
+      "maxHp": 990,
+      "starLevel": 2,
+      "team": "player",
+      "totalDamageDealt": 1984.07,
+      "totalDamageTaken": 360,
+    },
+    {
+      "alive": false,
+      "attackCount": 4,
+      "castCount": 1,
+      "championApi": "TFT17_Illaoi",
+      "finalHp": 0,
+      "id": "enemy-0",
+      "killCount": 0,
+      "maxHp": 1980,
+      "starLevel": 2,
+      "team": "enemy",
+      "totalDamageDealt": 360,
+      "totalDamageTaken": 1984.07,
+    },
+  ],
+  "winner": "player",
+}
+`;
+
+exports[`golden — combined items > Jinx+IE+Deathblade vs Illaoi (누적 StatPatch) 1`] = `
+{
+  "duration": 17.5667,
+  "logCounts": {
+    "ability": 4,
+    "attack": 25,
+    "death": 1,
+    "move": 6,
+    "status_expire": 1,
+  },
+  "scenarioName": "Jinx+IE+Deathblade vs Illaoi (누적 StatPatch)",
+  "seed": 11,
+  "snapshotCount": 528,
+  "units": [
+    {
+      "alive": true,
+      "attackCount": 14,
+      "castCount": 2,
+      "championApi": "TFT17_Jinx",
+      "finalHp": 35,
+      "id": "player-0",
+      "killCount": 1,
+      "maxHp": 990,
+      "starLevel": 2,
+      "team": "player",
+      "totalDamageDealt": 1986.17,
+      "totalDamageTaken": 855,
+    },
+    {
+      "alive": false,
+      "attackCount": 11,
+      "castCount": 1,
+      "championApi": "TFT17_Illaoi",
+      "finalHp": 0,
+      "id": "enemy-0",
+      "killCount": 0,
+      "maxHp": 1980,
+      "starLevel": 2,
+      "team": "enemy",
+      "totalDamageDealt": 855,
+      "totalDamageTaken": 1986.17,
+    },
+  ],
+  "winner": "player",
+}
+`;
