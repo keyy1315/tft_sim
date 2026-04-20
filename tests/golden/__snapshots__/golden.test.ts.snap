@@ -370,7 +370,7 @@ exports[`golden — combined items > Akali+Bloodthirster vs Illaoi 1`] = `
       "attackCount": 17,
       "castCount": 5,
       "championApi": "TFT17_Akali",
-      "finalHp": 849,
+      "finalHp": 1175.44,
       "id": "player-0",
       "killCount": 1,
       "maxHp": 1350,

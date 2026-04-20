@@ -58,6 +58,10 @@ export const ITEM_EFFECT_KEYS: Record<string, string> = {
   // 유물/찬란한/시너지 전용 아이템의 기본 스탯 키
   'AttackSpeed': 'as',
   'CritDamageBonusPercent': 'critDamage',
+  // Set 17 named stat keys (item-effect-engine Phase 5 Part 2)
+  // 피바라기 StatOmnivamp(0.2), 공감 임플란트 base ManaRegen(2), Shojin/Archangels ManaRegen(1)
+  'StatOmnivamp': 'omnivamp',
+  'ManaRegen': 'manaRegen',
 };
 
 // === 스탯 이름 한글화 ===

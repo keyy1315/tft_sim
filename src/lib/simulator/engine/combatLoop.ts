@@ -7,7 +7,7 @@ import {
 import arbiterLawsData from '../../../../public/data/arbiter_laws.json';
 import { findCarryAugment } from '@/data/carryAugments';
 import type { StatusEffectType } from '@/types';
-import { calculateStats } from '@/lib/simulator/systems/stat';
+import { calculateStats, getItemEffects } from '@/lib/simulator/systems/stat';
 import { getAbilityDamage, getAbilityShield, findAbilityTargets, CHAMPION_ABILITY_PATTERNS, getChampionScaling, starValue, getSynergyScaling } from '@/lib/simulator/systems/ability';
 import type { AbilityConfig } from '@/lib/simulator/systems/ability';
 import { canAttack, getMoveTicks, findBestMoveToward, coordKey, getNeighbors, hexDistance } from '@/lib/simulator/systems/movement';
@@ -86,6 +86,8 @@ function createCombatUnit(
 ): CombatUnit {
   const allItems = placed.voidItem ? [...placed.items, placed.voidItem] : placed.items;
   const { stats } = calculateStats(placed.champion, placed.starLevel, allItems, activeTraits, augmentEffects);
+  // 아이템 기반 omnivamp / manaRegen — ItemEffect 확장 (Set 17 StatOmnivamp / ManaRegen)
+  const itemFx = getItemEffects(allItems);
   const role = mapGameRole(placed.champion.role);
   const unit: CombatUnit = {
     id: `${team}-${index}`,
@@ -107,11 +109,11 @@ function createCombatUnit(
     totalDamageDealt: 0,
     totalDamageTaken: 0,
     statusEffects: [],
-    omnivamp: ROLE_OMNIVAMP[role],
+    omnivamp: ROLE_OMNIVAMP[role] + (itemFx.omnivamp ?? 0),
     damageAmp: 0,
     damageReduction: 0,
     shield: 0,
-    augmentManaRegen: 0,
+    augmentManaRegen: itemFx.manaRegen ?? 0,
     augmentGrievousWounds: 0,
     augmentExecuteThreshold: 0,
     augmentBurnPercent: 0,

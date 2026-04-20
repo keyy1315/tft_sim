@@ -27,6 +27,8 @@ const statPatch = (stats: {
   mana?: number;
   armorPen?: number;
   magicPen?: number;
+  omnivamp?: number;
+  manaRegen?: number;
 }): ItemEffectDescriptor => ({ kind: 'stat', stats });
 
 /**
@@ -43,14 +45,14 @@ export const COMBINED_ITEMS: Record<string, ItemEffectDescriptor[]> = {
   // 보석 건틀릿: AP 35, CritChance 35
   'TFT_Item_JeweledGauntlet': [statPatch({ ap: 35, critChance: 35 })],
 
-  // 피바라기: AD 15%, AP 15, MR 20 (StatOmnivamp / Shield → Phase 4+)
-  'TFT_Item_Bloodthirster': [statPatch({ ad: 0.15, ap: 15, magicResist: 20 })],
+  // 피바라기: AD 15%, AP 15, MR 20, StatOmnivamp 20% (ShieldDuration/HealthThreshold → Phase 5+ Trigger)
+  'TFT_Item_Bloodthirster': [statPatch({ ad: 0.15, ap: 15, magicResist: 20, omnivamp: 0.20 })],
 
-  // 쇼진의 창: AD 15%, AP 15 (ManaRegen/FlatManaRestore → 추후 별도)
-  'TFT_Item_SpearOfShojin': [statPatch({ ad: 0.15, ap: 15 })],
+  // 쇼진의 창: AD 15%, AP 15, ManaRegen 1 (FlatManaRestore → 추후 별도 Trigger)
+  'TFT_Item_SpearOfShojin': [statPatch({ ad: 0.15, ap: 15, manaRegen: 1 })],
 
-  // 대천사의 지팡이: AP 30 (APPerInterval/ManaRegen → Phase 3 Timer 확장 예정)
-  'TFT_Item_ArchangelsStaff': [statPatch({ ap: 30 })],
+  // 대천사의 지팡이: AP 30, ManaRegen 1 (APPerInterval → Phase 5+ Timer)
+  'TFT_Item_ArchangelsStaff': [statPatch({ ap: 30, manaRegen: 1 })],
 
   // 덤불 조끼: Armor 50 (AutoDamageReduction/PercentMaxHP/AoE reflect → Phase 4+)
   'TFT_Item_BrambleVest': [statPatch({ armor: 50 })],

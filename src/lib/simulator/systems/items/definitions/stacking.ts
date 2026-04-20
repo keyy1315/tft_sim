@@ -26,6 +26,7 @@ const statPatch = (stats: {
   armor?: number; magicResist?: number;
   critChance?: number; critDamage?: number; mana?: number;
   armorPen?: number; magicPen?: number;
+  omnivamp?: number; manaRegen?: number;
 }): ItemEffectDescriptor => ({ kind: 'stat', stats });
 
 /* ──────────────── Guinsoo's Rageblade ──────────────── */

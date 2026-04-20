@@ -213,6 +213,10 @@ export interface ItemEffect {
   mana?: number;
   armorPen?: number;
   magicPen?: number;
+  /** 아이템 기반 흡혈 (Bloodthirster StatOmnivamp 등) — 최종적으로 CombatUnit.omnivamp 에 합산 */
+  omnivamp?: number;
+  /** 아이템 기반 마나 재생 (초당, Shojin/Archangels/Empathic Implant ManaRegen) */
+  manaRegen?: number;
 }
 
 export interface ActiveTrait {

@@ -16,6 +16,7 @@ const statPatch = (stats: {
   armor?: number; magicResist?: number;
   critChance?: number; critDamage?: number; mana?: number;
   armorPen?: number; magicPen?: number;
+  omnivamp?: number; manaRegen?: number;
 }): ItemEffectDescriptor => ({ kind: 'stat', stats });
 
 /**
@@ -124,7 +125,9 @@ function buildSympatheticImplant(apiName: string): [string, ItemEffectDescriptor
   return [
     apiName,
     [
-      statPatch({ ap: 20 }),
+      // base ManaRegen 2: 전투 내내 초당 +2 마나 재생
+      statPatch({ ap: 20, manaRegen: 2 }),
+      // ManaRegenOverTime 1: 5초마다 +1 추가 (이건 주기적 스파이크라 Timer 로 유지)
       {
         kind: 'timer',
         intervalTicks: 150, // 5초 × 30 tick/s
