@@ -45,7 +45,8 @@ export type Cond = (ctx: TriggerContext) => boolean;
 
 export type Action =
   | { kind: 'dealDamage'; amount: DamageAmount; type: DamageType; target: TargetSelector }
-  | { kind: 'modifyStat'; stat: StatKey; delta: number; durationTicks?: number }
+  /** target 미지정 시 자기 자신. 지정 시 selector 로 찾은 대상(들)에게 delta 적용 (악성코드 armor shred 등) */
+  | { kind: 'modifyStat'; stat: StatKey; delta: number; durationTicks?: number; target?: TargetSelector }
   | { kind: 'applyDebuff'; debuff: DebuffSpec; target: TargetSelector; durationTicks: number }
   /**
    * 스택 증가. amount:
@@ -54,8 +55,12 @@ export type Action =
    *   timer 에서는 payload undefined 이므로 0 증분)
    */
   | { kind: 'addStack'; stack: string; amount?: number | 'payload.value'; cap?: number }
-  /** 스택을 특정 값으로 고정 — 주로 window reset (e.g. 드론 timer 발동 후 0 초기화) */
-  | { kind: 'setStack'; stack: string; value: number }
+  /**
+   * 스택을 특정 값으로 고정. value:
+   * - number: 고정값 (window reset 0 등)
+   * - 'tick': 현재 ctx.tick 값으로 설정 (ICD 타임스탬프 기록용)
+   */
+  | { kind: 'setStack'; stack: string; value: number | 'tick' }
   | { kind: 'chain'; actions: Action[] }
   | { kind: 'branch'; condition: Cond; then: Action; else?: Action };
 
@@ -139,4 +144,6 @@ export interface PendingBuff {
   stat: StatKey;
   delta: number;
   expireTick: number;
+  /** target 을 직접 지정한 modifyStat 에서 기록 (악성코드 shred 등). undefined = 자기 자신 */
+  targetId?: string;
 }

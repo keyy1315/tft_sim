@@ -59,9 +59,11 @@ export function executeAction(action: Action, ctx: ActionContext): void {
     case 'addStack':
       execAddStack(action, ctx);
       return;
-    case 'setStack':
-      ctx.state.stacks.set(action.stack, action.value);
+    case 'setStack': {
+      const v = action.value === 'tick' ? ctx.tick : action.value;
+      ctx.state.stacks.set(action.stack, v);
       return;
+    }
     case 'chain':
       for (const a of action.actions) executeAction(a, ctx);
       return;
@@ -147,15 +149,33 @@ function execModifyStat(
   action: Extract<Action, { kind: 'modifyStat' }>,
   ctx: ActionContext,
 ): void {
-  applyStatDelta(ctx.unit, action.stat, action.delta);
-  // 임시 버프: 만료 시점에 delta 되돌리기 위해 pendingBuffs 에 기록
-  if (action.durationTicks !== undefined && action.durationTicks > 0) {
-    if (!ctx.state.pendingBuffs) ctx.state.pendingBuffs = [];
-    ctx.state.pendingBuffs.push({
-      stat: action.stat,
-      delta: action.delta,
-      expireTick: ctx.tick + action.durationTicks,
-    });
+  // target 미지정: 자기 자신에게 적용 (기존 동작)
+  if (!action.target) {
+    applyStatDelta(ctx.unit, action.stat, action.delta);
+    if (action.durationTicks !== undefined && action.durationTicks > 0) {
+      if (!ctx.state.pendingBuffs) ctx.state.pendingBuffs = [];
+      ctx.state.pendingBuffs.push({
+        stat: action.stat,
+        delta: action.delta,
+        expireTick: ctx.tick + action.durationTicks,
+        // target undefined → 자기
+      });
+    }
+    return;
+  }
+  // target 지정: selector 로 찾은 대상(들)에게 적용 (악성코드 armor shred 등)
+  const targets = resolveTargets(action.target, ctx);
+  for (const target of targets) {
+    applyStatDelta(target, action.stat, action.delta);
+    if (action.durationTicks !== undefined && action.durationTicks > 0) {
+      if (!ctx.state.pendingBuffs) ctx.state.pendingBuffs = [];
+      ctx.state.pendingBuffs.push({
+        stat: action.stat,
+        delta: action.delta,
+        expireTick: ctx.tick + action.durationTicks,
+        targetId: target.id,
+      });
+    }
   }
 }
 

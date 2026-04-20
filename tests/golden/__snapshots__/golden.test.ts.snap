@@ -722,6 +722,52 @@ exports[`golden — psyops (counter + timer) > Aurora+EmpathicImplant vs Rammus 
 }
 `;
 
+exports[`golden — psyops (counter + timer) > Jinx+ChemicalCapacitor vs Rammus (armor shred) 1`] = `
+{
+  "duration": 5.0667,
+  "logCounts": {
+    "ability": 3,
+    "attack": 31,
+    "death": 1,
+    "move": 6,
+  },
+  "scenarioName": "Jinx+ChemicalCapacitor vs Rammus (armor shred)",
+  "seed": 7,
+  "snapshotCount": 153,
+  "units": [
+    {
+      "alive": true,
+      "attackCount": 29,
+      "castCount": 3,
+      "championApi": "TFT17_Jinx",
+      "finalHp": 950.02,
+      "id": "player-0",
+      "killCount": 1,
+      "maxHp": 990,
+      "starLevel": 2,
+      "team": "player",
+      "totalDamageDealt": 2410.99,
+      "totalDamageTaken": 216,
+    },
+    {
+      "alive": false,
+      "attackCount": 2,
+      "castCount": 0,
+      "championApi": "TFT17_Rammus",
+      "finalHp": 0,
+      "id": "enemy-0",
+      "killCount": 0,
+      "maxHp": 2340,
+      "starLevel": 2,
+      "team": "enemy",
+      "totalDamageDealt": 216,
+      "totalDamageTaken": 2410.99,
+    },
+  ],
+  "winner": "player",
+}
+`;
+
 exports[`golden — psyops (counter + timer) > Jinx+Semiconductor vs Rammus (Counter) 1`] = `
 {
   "duration": 19.5,

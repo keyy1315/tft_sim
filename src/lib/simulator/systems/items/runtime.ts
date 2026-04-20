@@ -82,15 +82,19 @@ export class ItemEffectRuntime {
   onTick(tick: number): void {
     if (!this.deps) return;
     // 1) 만료된 pendingBuffs 되돌리기 (modifyStat durationTicks 처리)
+    //    targetId 있으면 그 unit 에게 원복, 없으면 장착 unit 에게 원복
     for (const [key, state] of this.states) {
       const pending = state.pendingBuffs;
       if (!pending || pending.length === 0) continue;
-      const unitId = key.split('::')[0];
-      const unit = this.unitsById.get(unitId);
-      if (!unit) continue;
+      const ownerId = key.split('::')[0];
+      const owner = this.unitsById.get(ownerId);
+      if (!owner) continue;
       for (let i = pending.length - 1; i >= 0; i--) {
         if (pending[i].expireTick <= tick) {
-          applyStatDelta(unit, pending[i].stat, -pending[i].delta);
+          const revertTarget = pending[i].targetId
+            ? this.unitsById.get(pending[i].targetId!)
+            : owner;
+          if (revertTarget) applyStatDelta(revertTarget, pending[i].stat, -pending[i].delta);
           pending.splice(i, 1);
         }
       }

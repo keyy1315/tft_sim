@@ -137,6 +137,57 @@ function buildSympatheticImplant(apiName: string): [string, ItemEffectDescriptor
   ];
 }
 
+/**
+ * 악성코드 매트릭스 (Chemical Capacitor) — on_hit + ICD + armor shred.
+ *
+ * 효과: "적에게 물리 피해를 입힐 경우 대상 방어력 @ResistReduce@ 감소
+ *        (스킬 피해 재사용 대기시간: @Cooldown@초)"
+ *
+ * 구현:
+ *  - on_hit trigger + ICD condition (tick - last_proc >= 22 tick, 0.75s × 30)
+ *  - chain:
+ *    ① modifyStat armor -2 target:attackTarget (영구 누적 — 실게임 shred 가
+ *       10초 duration 이지만 전투 시간 짧아 근사)
+ *    ② setStack malware_icd value 'tick' (현재 tick 으로 마지막 발동 시각 기록)
+ *
+ * 단순화:
+ *  - StatOmnivamp 는 ItemEffect 확장으로 이미 반영 (Bloodthirster 와 동일 경로)
+ *  - radiant CleaveDamage/NumAttacks (초능력 전용) 는 Phase 5+ 에서 condition 확장
+ */
+function buildChemicalCapacitor(
+  apiName: string,
+  resistReduce: number,
+): [string, ItemEffectDescriptor[]] {
+  const icdKey = `malware_icd::${apiName}`;
+  const icdTicks = Math.round(0.75 * 30); // 22 tick
+  return [
+    apiName,
+    [
+      statPatch({ ad: 0.15, as: 15, omnivamp: 0.10 }),
+      {
+        kind: 'trigger',
+        event: 'on_hit',
+        condition: (ctx) => {
+          const last = ctx.state.stacks.get(icdKey) ?? -Infinity;
+          return ctx.tick - last >= icdTicks;
+        },
+        action: {
+          kind: 'chain',
+          actions: [
+            {
+              kind: 'modifyStat',
+              stat: 'armor',
+              delta: -resistReduce,
+              target: 'attackTarget',
+            },
+            { kind: 'setStack', stack: icdKey, value: 'tick' },
+          ],
+        },
+      },
+    ],
+  ];
+}
+
 export const PSYOPS_ITEMS: Record<string, ItemEffectDescriptor[]> = Object.fromEntries([
   // 드론 업링크 (Phase 3)
   buildDroneUplink('TFT17_Item_PsyOps_DroneMod', 25, 0.20),
@@ -148,4 +199,7 @@ export const PSYOPS_ITEMS: Record<string, ItemEffectDescriptor[]> = Object.fromE
   // 공감 임플란트 (Phase 4 Part 1) — base + radiant (TrueDamageConversion 제외)
   buildSympatheticImplant('TFT17_Item_PsyOps_SympatheticImplantMod'),
   buildSympatheticImplant('TFT17_Item_PsyOps_SympatheticImplantMod_Radiant'),
+  // 악성코드 매트릭스 (Phase 4 Part 2) — ResistReduce 2/초당 ICD 0.75s
+  buildChemicalCapacitor('TFT17_Item_PsyOps_ChemicalCapacitorMod', 2),
+  buildChemicalCapacitor('TFT17_Item_PsyOps_ChemicalCapacitorMod_Radiant', 2),
 ]);

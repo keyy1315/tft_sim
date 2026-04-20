@@ -67,9 +67,25 @@ export const AURORA_WITH_EMPATHIC: Scenario = {
   enemy: [{ apiName: 'TFT17_Rammus', position: { q: 0, r: 7 }, starLevel: 2 }],
 };
 
+/** 악성코드 매트릭스 — Jinx on_hit 마다 Rammus armor -2 (ICD 0.75s) */
+export const JINX_WITH_CHEMICAL: Scenario = {
+  name: 'Jinx+ChemicalCapacitor vs Rammus (armor shred)',
+  seed: 7,
+  player: [
+    {
+      apiName: 'TFT17_Jinx',
+      position: { q: 0, r: 0 },
+      starLevel: 2,
+      items: ['TFT17_Item_PsyOps_ChemicalCapacitorMod'],
+    },
+  ],
+  enemy: [{ apiName: 'TFT17_Rammus', position: { q: 0, r: 7 }, starLevel: 2 }],
+};
+
 export const PSYOPS_SCENARIOS: Scenario[] = [
   JINX_WITH_SEMICONDUCTOR,
   JINX_WITH_SEMICONDUCTOR_RADIANT,
   RAMMUS_WITH_SEMICONDUCTOR,
   AURORA_WITH_EMPATHIC,
+  JINX_WITH_CHEMICAL,
 ];
