@@ -59,6 +59,9 @@ export function executeAction(action: Action, ctx: ActionContext): void {
     case 'addStack':
       execAddStack(action, ctx);
       return;
+    case 'setStack':
+      ctx.state.stacks.set(action.stack, action.value);
+      return;
     case 'chain':
       for (const a of action.actions) executeAction(a, ctx);
       return;
@@ -121,6 +124,8 @@ function resolveDamageAmount(amount: DamageAmount, ctx: ActionContext, target: C
       return ctx.unit.stats.ap * amount.pct;
     case 'pctDealt':
       return (ctx.payload?.value ?? 0) * amount.pct;
+    case 'pctOfStack':
+      return (ctx.state.stacks.get(amount.stack) ?? 0) * amount.pct;
   }
 }
 
@@ -223,7 +228,10 @@ function execAddStack(
   ctx: ActionContext,
 ): void {
   const current = ctx.state.stacks.get(action.stack) ?? 0;
-  const inc = action.amount ?? 1;
+  // 'payload.value': 현재 이벤트 payload 의 value (timer 에서는 undefined → 0)
+  const inc = action.amount === 'payload.value'
+    ? (ctx.payload?.value ?? 0)
+    : (action.amount ?? 1);
   const next = action.cap !== undefined ? Math.min(current + inc, action.cap) : current + inc;
   ctx.state.stacks.set(action.stack, next);
 }

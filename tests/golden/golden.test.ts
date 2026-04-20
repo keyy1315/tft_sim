@@ -12,8 +12,17 @@ import { describe, it, expect } from 'vitest';
 import { runScenario } from './helpers';
 import { BASIC_SCENARIOS } from './scenarios/basic';
 import { COMBINED_SCENARIOS } from './scenarios/combined';
+import { TIMER_SCENARIOS } from './scenarios/timer';
+import { PSYOPS_SCENARIOS } from './scenarios/psyops';
+import { ANOMALY_SCENARIOS } from './scenarios/anomaly';
 
-const ALL_SCENARIOS = [...BASIC_SCENARIOS, ...COMBINED_SCENARIOS];
+const ALL_SCENARIOS = [
+  ...BASIC_SCENARIOS,
+  ...COMBINED_SCENARIOS,
+  ...TIMER_SCENARIOS,
+  ...PSYOPS_SCENARIOS,
+  ...ANOMALY_SCENARIOS,
+];
 
 describe('golden — basic', () => {
   for (const scenario of BASIC_SCENARIOS) {
@@ -26,6 +35,33 @@ describe('golden — basic', () => {
 
 describe('golden — combined items', () => {
   for (const scenario of COMBINED_SCENARIOS) {
+    it(scenario.name, () => {
+      const summary = runScenario(scenario);
+      expect(summary).toMatchSnapshot();
+    });
+  }
+});
+
+describe('golden — timer (drone uplink)', () => {
+  for (const scenario of TIMER_SCENARIOS) {
+    it(scenario.name, () => {
+      const summary = runScenario(scenario);
+      expect(summary).toMatchSnapshot();
+    });
+  }
+});
+
+describe('golden — psyops (counter + timer)', () => {
+  for (const scenario of PSYOPS_SCENARIOS) {
+    it(scenario.name, () => {
+      const summary = runScenario(scenario);
+      expect(summary).toMatchSnapshot();
+    });
+  }
+});
+
+describe('golden — anomaly (role-based)', () => {
+  for (const scenario of ANOMALY_SCENARIOS) {
     it(scenario.name, () => {
       const summary = runScenario(scenario);
       expect(summary).toMatchSnapshot();

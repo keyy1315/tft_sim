@@ -10,6 +10,8 @@
 import type { ItemEffectDescriptor } from './primitives/types';
 import { COMBINED_ITEMS } from './definitions/combined';
 import { STACKING_ITEMS } from './definitions/stacking';
+import { PSYOPS_ITEMS } from './definitions/psyops';
+import { ANOMALY_ITEMS } from './definitions/anomaly';
 
 /**
  * 여러 카테고리 registry 를 합병한다.
@@ -35,13 +37,18 @@ function mergeRegistries(
  *
  * Phase 1: 빈 상태 (legacy fallback 만 사용).
  * Phase 2: combined.ts — 주요 조합 아이템 StatPatch 이관.
- * Phase 3: stacking.ts — Guinsoos/Titans/Deathblade/Rabadon trigger 추가.
- * Phase 4 (예정): psyops.ts — PsyOps 12종.
- * Phase 5 (예정): anomaly.ts — Anomaly.
+ * Phase 3: stacking.ts — Guinsoos/Titans/Deathblade/Rabadon trigger.
+ *          psyops.ts — 드론 업링크 (Timer primitive 예제, 찬란 포함 2종).
+ * Phase 4 Part 1: psyops.ts 확장 — 반도체/공감 임플란트.
+ * Phase 4 Part 2 (예정): 악성코드/표적 고정/유기물 보존기.
+ * Phase 5 Part 1: anomaly.ts — Role 기반 Tank/Marksman/Fighter/Caster 4종.
+ * Phase 5 Part 2 (예정): Specialist (별 orbit 엔티티).
  */
 export const ITEM_EFFECTS: Record<string, ItemEffectDescriptor[]> = mergeRegistries(
   COMBINED_ITEMS,
   STACKING_ITEMS,
+  PSYOPS_ITEMS,
+  ANOMALY_ITEMS,
 );
 
 /** registry에 entry가 존재하는지 확인. 없으면 legacy fallback. */

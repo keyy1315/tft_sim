@@ -23,7 +23,10 @@ export type DamageAmount =
   | { mode: 'pctMaxHp'; pct: number }
   | { mode: 'pctAttackDamage'; pct: number }
   | { mode: 'pctAbilityPower'; pct: number }
-  | { mode: 'pctDealt'; pct: number };
+  /** payload.value 의 N% (trigger-chained action 에서 현재 이벤트 피해 기준) */
+  | { mode: 'pctDealt'; pct: number }
+  /** state.stacks[stack] 의 N% — 누적된 값 기반 (e.g. 드론 업링크 3초 window) */
+  | { mode: 'pctOfStack'; stack: string; pct: number };
 
 export type DamageType = 'physical' | 'magic' | 'true';
 
@@ -44,7 +47,15 @@ export type Action =
   | { kind: 'dealDamage'; amount: DamageAmount; type: DamageType; target: TargetSelector }
   | { kind: 'modifyStat'; stat: StatKey; delta: number; durationTicks?: number }
   | { kind: 'applyDebuff'; debuff: DebuffSpec; target: TargetSelector; durationTicks: number }
-  | { kind: 'addStack'; stack: string; amount?: number; cap?: number }
+  /**
+   * 스택 증가. amount:
+   * - number: 고정 증분 (default 1)
+   * - 'payload.value': 현재 이벤트 payload.value 를 증분으로 사용 (trigger 전용,
+   *   timer 에서는 payload undefined 이므로 0 증분)
+   */
+  | { kind: 'addStack'; stack: string; amount?: number | 'payload.value'; cap?: number }
+  /** 스택을 특정 값으로 고정 — 주로 window reset (e.g. 드론 timer 발동 후 0 초기화) */
+  | { kind: 'setStack'; stack: string; value: number }
   | { kind: 'chain'; actions: Action[] }
   | { kind: 'branch'; condition: Cond; then: Action; else?: Action };
 

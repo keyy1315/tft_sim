@@ -1,5 +1,189 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`golden — anomaly (role-based) > Anomaly: Aurora(Caster) vs Rammus 1`] = `
+{
+  "duration": 19.5,
+  "logCounts": {
+    "ability": 4,
+    "attack": 30,
+    "death": 1,
+    "move": 6,
+  },
+  "scenarioName": "Anomaly: Aurora(Caster) vs Rammus",
+  "seed": 7,
+  "snapshotCount": 586,
+  "units": [
+    {
+      "alive": false,
+      "attackCount": 17,
+      "castCount": 2,
+      "championApi": "TFT17_Aurora",
+      "finalHp": 0,
+      "id": "player-0",
+      "killCount": 0,
+      "maxHp": 1260,
+      "starLevel": 2,
+      "team": "player",
+      "totalDamageDealt": 786.9,
+      "totalDamageTaken": 1321.44,
+    },
+    {
+      "alive": true,
+      "attackCount": 13,
+      "castCount": 1,
+      "championApi": "TFT17_Rammus",
+      "finalHp": 1553.1,
+      "id": "enemy-0",
+      "killCount": 1,
+      "maxHp": 2340,
+      "starLevel": 2,
+      "team": "enemy",
+      "totalDamageDealt": 1321.44,
+      "totalDamageTaken": 786.9,
+    },
+  ],
+  "winner": "enemy",
+}
+`;
+
+exports[`golden — anomaly (role-based) > Anomaly: Briar(Fighter) vs Illaoi 1`] = `
+{
+  "duration": 11.1,
+  "logCounts": {
+    "ability": 5,
+    "attack": 23,
+    "death": 1,
+    "move": 6,
+  },
+  "scenarioName": "Anomaly: Briar(Fighter) vs Illaoi",
+  "seed": 7,
+  "snapshotCount": 334,
+  "units": [
+    {
+      "alive": true,
+      "attackCount": 16,
+      "castCount": 4,
+      "championApi": "TFT17_Briar",
+      "finalHp": 783.11,
+      "id": "player-0",
+      "killCount": 1,
+      "maxHp": 1170,
+      "starLevel": 2,
+      "team": "player",
+      "totalDamageDealt": 2068.74,
+      "totalDamageTaken": 573.33,
+    },
+    {
+      "alive": false,
+      "attackCount": 7,
+      "castCount": 1,
+      "championApi": "TFT17_Illaoi",
+      "finalHp": 0,
+      "id": "enemy-0",
+      "killCount": 0,
+      "maxHp": 1980,
+      "starLevel": 2,
+      "team": "enemy",
+      "totalDamageDealt": 573.33,
+      "totalDamageTaken": 2068.74,
+    },
+  ],
+  "winner": "player",
+}
+`;
+
+exports[`golden — anomaly (role-based) > Anomaly: Jinx(Marksman) vs Rammus 1`] = `
+{
+  "duration": 13.3667,
+  "logCounts": {
+    "ability": 4,
+    "attack": 27,
+    "death": 1,
+    "move": 6,
+  },
+  "scenarioName": "Anomaly: Jinx(Marksman) vs Rammus",
+  "seed": 7,
+  "snapshotCount": 402,
+  "units": [
+    {
+      "alive": false,
+      "attackCount": 18,
+      "castCount": 2,
+      "championApi": "TFT17_Jinx",
+      "finalHp": 0,
+      "id": "player-0",
+      "killCount": 0,
+      "maxHp": 990,
+      "starLevel": 2,
+      "team": "player",
+      "totalDamageDealt": 1176.12,
+      "totalDamageTaken": 1052.5,
+    },
+    {
+      "alive": true,
+      "attackCount": 9,
+      "castCount": 1,
+      "championApi": "TFT17_Rammus",
+      "finalHp": 1163.88,
+      "id": "enemy-0",
+      "killCount": 1,
+      "maxHp": 2340,
+      "starLevel": 2,
+      "team": "enemy",
+      "totalDamageDealt": 1052.5,
+      "totalDamageTaken": 1176.12,
+    },
+  ],
+  "winner": "enemy",
+}
+`;
+
+exports[`golden — anomaly (role-based) > Anomaly: Rammus(Tank) vs Jinx 1`] = `
+{
+  "duration": 16.4667,
+  "logCounts": {
+    "ability": 1,
+    "attack": 23,
+    "death": 1,
+    "move": 6,
+  },
+  "scenarioName": "Anomaly: Rammus(Tank) vs Jinx",
+  "seed": 7,
+  "snapshotCount": 495,
+  "units": [
+    {
+      "alive": true,
+      "attackCount": 10,
+      "castCount": 0,
+      "championApi": "TFT17_Rammus",
+      "finalHp": 2536.38,
+      "id": "player-0",
+      "killCount": 1,
+      "maxHp": 3440,
+      "starLevel": 2,
+      "team": "player",
+      "totalDamageDealt": 1044,
+      "totalDamageTaken": 903.62,
+    },
+    {
+      "alive": false,
+      "attackCount": 13,
+      "castCount": 1,
+      "championApi": "TFT17_Jinx",
+      "finalHp": 0,
+      "id": "enemy-0",
+      "killCount": 0,
+      "maxHp": 990,
+      "starLevel": 2,
+      "team": "enemy",
+      "totalDamageDealt": 903.62,
+      "totalDamageTaken": 1044,
+    },
+  ],
+  "winner": "player",
+}
+`;
+
 exports[`golden — basic > 1v1 Briar mirror (대칭) 1`] = `
 {
   "duration": 10.1,
@@ -489,5 +673,281 @@ exports[`golden — combined items > Jinx+IE+Deathblade vs Illaoi (누적 StatPa
     },
   ],
   "winner": "player",
+}
+`;
+
+exports[`golden — psyops (counter + timer) > Aurora+EmpathicImplant vs Rammus (Timer mana) 1`] = `
+{
+  "duration": 19.5,
+  "logCounts": {
+    "ability": 4,
+    "attack": 30,
+    "death": 1,
+    "move": 6,
+  },
+  "scenarioName": "Aurora+EmpathicImplant vs Rammus (Timer mana)",
+  "seed": 7,
+  "snapshotCount": 586,
+  "units": [
+    {
+      "alive": false,
+      "attackCount": 17,
+      "castCount": 2,
+      "championApi": "TFT17_Aurora",
+      "finalHp": 0,
+      "id": "player-0",
+      "killCount": 0,
+      "maxHp": 1260,
+      "starLevel": 2,
+      "team": "player",
+      "totalDamageDealt": 670.5,
+      "totalDamageTaken": 1321.44,
+    },
+    {
+      "alive": true,
+      "attackCount": 13,
+      "castCount": 1,
+      "championApi": "TFT17_Rammus",
+      "finalHp": 1669.5,
+      "id": "enemy-0",
+      "killCount": 1,
+      "maxHp": 2340,
+      "starLevel": 2,
+      "team": "enemy",
+      "totalDamageDealt": 1321.44,
+      "totalDamageTaken": 670.5,
+    },
+  ],
+  "winner": "enemy",
+}
+`;
+
+exports[`golden — psyops (counter + timer) > Jinx+Semiconductor vs Rammus (Counter) 1`] = `
+{
+  "duration": 19.5,
+  "logCounts": {
+    "ability": 4,
+    "attack": 29,
+    "death": 1,
+    "move": 6,
+  },
+  "scenarioName": "Jinx+Semiconductor vs Rammus (Counter)",
+  "seed": 7,
+  "snapshotCount": 586,
+  "units": [
+    {
+      "alive": false,
+      "attackCount": 16,
+      "castCount": 2,
+      "championApi": "TFT17_Jinx",
+      "finalHp": 0,
+      "id": "player-0",
+      "killCount": 0,
+      "maxHp": 1190,
+      "starLevel": 2,
+      "team": "player",
+      "totalDamageDealt": 1300.75,
+      "totalDamageTaken": 1268.5,
+    },
+    {
+      "alive": true,
+      "attackCount": 13,
+      "castCount": 1,
+      "championApi": "TFT17_Rammus",
+      "finalHp": 1039.25,
+      "id": "enemy-0",
+      "killCount": 1,
+      "maxHp": 2340,
+      "starLevel": 2,
+      "team": "enemy",
+      "totalDamageDealt": 1268.5,
+      "totalDamageTaken": 1300.75,
+    },
+  ],
+  "winner": "enemy",
+}
+`;
+
+exports[`golden — psyops (counter + timer) > Jinx+Semiconductor(Radiant) vs Rammus 1`] = `
+{
+  "duration": 21.0333,
+  "logCounts": {
+    "ability": 4,
+    "attack": 31,
+    "death": 1,
+    "move": 6,
+  },
+  "scenarioName": "Jinx+Semiconductor(Radiant) vs Rammus",
+  "seed": 7,
+  "snapshotCount": 632,
+  "units": [
+    {
+      "alive": false,
+      "attackCount": 17,
+      "castCount": 2,
+      "championApi": "TFT17_Jinx",
+      "finalHp": 0,
+      "id": "player-0",
+      "killCount": 0,
+      "maxHp": 1290,
+      "starLevel": 2,
+      "team": "player",
+      "totalDamageDealt": 1220.31,
+      "totalDamageTaken": 1358.5,
+    },
+    {
+      "alive": true,
+      "attackCount": 14,
+      "castCount": 1,
+      "championApi": "TFT17_Rammus",
+      "finalHp": 1119.69,
+      "id": "enemy-0",
+      "killCount": 1,
+      "maxHp": 2340,
+      "starLevel": 2,
+      "team": "enemy",
+      "totalDamageDealt": 1358.5,
+      "totalDamageTaken": 1220.31,
+    },
+  ],
+  "winner": "enemy",
+}
+`;
+
+exports[`golden — psyops (counter + timer) > Rammus+Semiconductor vs Jinx (on_hit_taken counter) 1`] = `
+{
+  "duration": 14.9333,
+  "logCounts": {
+    "ability": 1,
+    "attack": 21,
+    "death": 1,
+    "move": 6,
+  },
+  "scenarioName": "Rammus+Semiconductor vs Jinx (on_hit_taken counter)",
+  "seed": 7,
+  "snapshotCount": 449,
+  "units": [
+    {
+      "alive": true,
+      "attackCount": 9,
+      "castCount": 0,
+      "championApi": "TFT17_Rammus",
+      "finalHp": 1723,
+      "id": "player-0",
+      "killCount": 1,
+      "maxHp": 2540,
+      "starLevel": 2,
+      "team": "player",
+      "totalDamageDealt": 1091.25,
+      "totalDamageTaken": 817,
+    },
+    {
+      "alive": false,
+      "attackCount": 12,
+      "castCount": 1,
+      "championApi": "TFT17_Jinx",
+      "finalHp": 0,
+      "id": "enemy-0",
+      "killCount": 0,
+      "maxHp": 990,
+      "starLevel": 2,
+      "team": "enemy",
+      "totalDamageDealt": 817,
+      "totalDamageTaken": 1091.25,
+    },
+  ],
+  "winner": "player",
+}
+`;
+
+exports[`golden — timer (drone uplink) > Aurora+DroneUplink vs Rammus (Timer) 1`] = `
+{
+  "duration": 19.5,
+  "logCounts": {
+    "ability": 4,
+    "attack": 30,
+    "death": 1,
+    "move": 6,
+  },
+  "scenarioName": "Aurora+DroneUplink vs Rammus (Timer)",
+  "seed": 7,
+  "snapshotCount": 586,
+  "units": [
+    {
+      "alive": false,
+      "attackCount": 17,
+      "castCount": 2,
+      "championApi": "TFT17_Aurora",
+      "finalHp": 0,
+      "id": "player-0",
+      "killCount": 0,
+      "maxHp": 1260,
+      "starLevel": 2,
+      "team": "player",
+      "totalDamageDealt": 750.94,
+      "totalDamageTaken": 1321.44,
+    },
+    {
+      "alive": true,
+      "attackCount": 13,
+      "castCount": 1,
+      "championApi": "TFT17_Rammus",
+      "finalHp": 1589.06,
+      "id": "enemy-0",
+      "killCount": 1,
+      "maxHp": 2340,
+      "starLevel": 2,
+      "team": "enemy",
+      "totalDamageDealt": 1321.44,
+      "totalDamageTaken": 750.94,
+    },
+  ],
+  "winner": "enemy",
+}
+`;
+
+exports[`golden — timer (drone uplink) > Aurora+RadiantDrone vs Rammus 1`] = `
+{
+  "duration": 19.5,
+  "logCounts": {
+    "ability": 4,
+    "attack": 30,
+    "death": 1,
+    "move": 6,
+  },
+  "scenarioName": "Aurora+RadiantDrone vs Rammus",
+  "seed": 7,
+  "snapshotCount": 586,
+  "units": [
+    {
+      "alive": false,
+      "attackCount": 17,
+      "castCount": 2,
+      "championApi": "TFT17_Aurora",
+      "finalHp": 0,
+      "id": "player-0",
+      "killCount": 0,
+      "maxHp": 1260,
+      "starLevel": 2,
+      "team": "player",
+      "totalDamageDealt": 750.94,
+      "totalDamageTaken": 1321.44,
+    },
+    {
+      "alive": true,
+      "attackCount": 13,
+      "castCount": 1,
+      "championApi": "TFT17_Rammus",
+      "finalHp": 1589.06,
+      "id": "enemy-0",
+      "killCount": 1,
+      "maxHp": 2340,
+      "starLevel": 2,
+      "team": "enemy",
+      "totalDamageDealt": 1321.44,
+      "totalDamageTaken": 750.94,
+    },
+  ],
+  "winner": "enemy",
 }
 `;
