@@ -235,6 +235,35 @@ function buildTargetlockOptic(apiName: string): [string, ItemEffectDescriptor[]]
   ];
 }
 
+/**
+ * 유기물 보존기 (Organic Preserver, Grenade Mod) — Timer heal.
+ *
+ * 효과: "최대 체력 +5% 및 8초마다 구슬이 장착 유닛의 잃은 체력을 18% 회복"
+ *
+ * 구현:
+ *  - StatPatch: hp +250 (base) / hp +400 (radiant) — PctMaxHP 5% 는 champion base hp
+ *    기반 연산이 필요해 flat 으로 근사
+ *  - Timer intervalTicks 240 (8초 × 30) → heal pctMissingHp 0.18 on 'self'
+ *  - Grenade entity spawn (NumGrenades 3) 은 엔진 확장 필요 → Phase 6+ 이월
+ */
+function buildGrenadeMod(apiName: string, hp: number, healPct: number): [string, ItemEffectDescriptor[]] {
+  return [
+    apiName,
+    [
+      statPatch({ hp }),
+      {
+        kind: 'timer',
+        intervalTicks: 240, // 8초 × 30
+        action: {
+          kind: 'heal',
+          amount: { mode: 'pctMissingHp', pct: healPct },
+          target: 'self',
+        },
+      },
+    ],
+  ];
+}
+
 export const PSYOPS_ITEMS: Record<string, ItemEffectDescriptor[]> = Object.fromEntries([
   // 드론 업링크 (Phase 3)
   buildDroneUplink('TFT17_Item_PsyOps_DroneMod', 25, 0.20),
@@ -252,4 +281,7 @@ export const PSYOPS_ITEMS: Record<string, ItemEffectDescriptor[]> = Object.fromE
   // 표적 고정 광학 장치 (Phase 4 Part 2) — per-target first-hit +150% AD
   buildTargetlockOptic('TFT17_Item_PsyOps_TargetlockMod'),
   buildTargetlockOptic('TFT17_Item_PsyOps_TargetlockMod_Radiant'),
+  // 유기물 보존기 (Phase 4 Part 2-C) — 8초마다 잃은체력 18% 회복 (grenade entity 는 미구현)
+  buildGrenadeMod('TFT17_Item_PsyOps_GrenadeMod', 250, 0.18),
+  buildGrenadeMod('TFT17_Item_PsyOps_GrenadeMod_Radiant', 400, 0.18),
 ]);

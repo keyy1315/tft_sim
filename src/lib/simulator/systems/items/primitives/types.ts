@@ -43,8 +43,17 @@ export type StatKey = keyof ItemEffect | 'omnivamp' | 'damageAmp' | 'damageReduc
 /** 조건부 분기용 술어. Runtime이 TriggerContext 주입. */
 export type Cond = (ctx: TriggerContext) => boolean;
 
+/** 회복량 표현 — 유기물 보존기 등 self-heal 에 사용 */
+export type HealAmount =
+  | { mode: 'flat'; value: number }
+  /** 최대체력 N% */
+  | { mode: 'pctMaxHp'; pct: number }
+  /** 잃은 체력 N% (TFT HealPct 계열) */
+  | { mode: 'pctMissingHp'; pct: number };
+
 export type Action =
   | { kind: 'dealDamage'; amount: DamageAmount; type: DamageType; target: TargetSelector }
+  | { kind: 'heal'; amount: HealAmount; target: TargetSelector }
   /** target 미지정 시 자기 자신. 지정 시 selector 로 찾은 대상(들)에게 delta 적용 (악성코드 armor shred 등) */
   | { kind: 'modifyStat'; stat: StatKey; delta: number; durationTicks?: number; target?: TargetSelector }
   | { kind: 'applyDebuff'; debuff: DebuffSpec; target: TargetSelector; durationTicks: number }

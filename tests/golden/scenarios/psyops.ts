@@ -98,6 +98,17 @@ export const JINX_WITH_CHEMICAL: Scenario = {
   enemy: [{ apiName: 'TFT17_Rammus', position: { q: 0, r: 7 }, starLevel: 2 }],
 };
 
+/** 유기물 보존기 — Rammus 8초 주기 잃은체력 18% 회복 */
+export const RAMMUS_WITH_GRENADE: Scenario = {
+  name: 'Rammus+GrenadeMod vs Jinx (Timer heal)',
+  seed: 7,
+  player: [
+    { apiName: 'TFT17_Rammus', position: { q: 0, r: 0 }, starLevel: 2,
+      items: ['TFT17_Item_PsyOps_GrenadeMod'] },
+  ],
+  enemy: [{ apiName: 'TFT17_Jinx', position: { q: 0, r: 7 }, starLevel: 2 }],
+};
+
 export const PSYOPS_SCENARIOS: Scenario[] = [
   JINX_WITH_SEMICONDUCTOR,
   JINX_WITH_SEMICONDUCTOR_RADIANT,
@@ -105,4 +116,5 @@ export const PSYOPS_SCENARIOS: Scenario[] = [
   AURORA_WITH_EMPATHIC,
   JINX_WITH_CHEMICAL,
   JINX_WITH_TARGETLOCK_2V2,
+  RAMMUS_WITH_GRENADE,
 ];

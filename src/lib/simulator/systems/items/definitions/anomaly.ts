@@ -119,7 +119,35 @@ export const ANOMALY_ITEMS: Record<string, ItemEffectDescriptor[]> = {
       },
     },
 
-    // ───── Specialist: 별 6개 공전 (Phase 5 Part 2) ─────
-    // entity spawn 시스템이 엔진에 없어 간단 근사 조차 어려움 → 추후 전용 확장
+    // ───── Specialist: 별 6개 공전 근사 (Phase 5 Part 2) ─────
+    // 실게임: 6개 별이 공전 궤도 확장해 현재 대상 타격, 각 85 마법 피해
+    // 근사 구현: 1초마다 1개 별 발사 (최대 6회) — 공전/확장 시각화 없이 DPS 기여만
+    {
+      kind: 'trigger',
+      event: 'on_combat_start',
+      condition: (ctx) => ctx.unit.role === 'Specialist',
+      action: { kind: 'addStack', stack: 'specialist_activated', amount: 1 },
+    },
   ],
 };
+
+/* Specialist star orbit — Timer 로 근사 발사. 아이템 descriptor 레벨에선
+ * Trigger + Timer 조합이 필요한데, 현재 구조상 role condition 을 Timer 에
+ * 직접 걸 수 없어서 on_combat_start 에 Timer 를 런타임 등록하는 방식이 필요.
+ * 임시 우회: anomaly 에 모든 유닛 대상 Timer 를 두고, action 내부에서
+ * role === 'Specialist' 체크 + 발동 제한. */
+ANOMALY_ITEMS[ANOMALY_API].push({
+  kind: 'timer',
+  intervalTicks: 30, // 1초마다
+  maxRepeats: 6,     // 최대 6회 (별 6개)
+  action: {
+    kind: 'branch',
+    condition: (ctx) => ctx.unit.role === 'Specialist',
+    then: {
+      kind: 'dealDamage',
+      amount: { mode: 'flat', value: 85 },
+      type: 'magic',
+      target: 'nearestEnemy',
+    },
+  },
+});

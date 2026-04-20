@@ -184,6 +184,52 @@ exports[`golden — anomaly (role-based) > Anomaly: Rammus(Tank) vs Jinx 1`] = `
 }
 `;
 
+exports[`golden — anomaly specialist (star orbit) > Anomaly: Gnar(Specialist) vs Rammus 1`] = `
+{
+  "duration": 4.5333,
+  "logCounts": {
+    "ability": 8,
+    "attack": 11,
+    "death": 1,
+    "move": 6,
+  },
+  "scenarioName": "Anomaly: Gnar(Specialist) vs Rammus",
+  "seed": 7,
+  "snapshotCount": 137,
+  "units": [
+    {
+      "alive": true,
+      "attackCount": 9,
+      "castCount": 9,
+      "championApi": "TFT17_Gnar",
+      "finalHp": 738,
+      "id": "player-0",
+      "killCount": 1,
+      "maxHp": 990,
+      "starLevel": 2,
+      "team": "player",
+      "totalDamageDealt": 2368.13,
+      "totalDamageTaken": 252,
+    },
+    {
+      "alive": false,
+      "attackCount": 2,
+      "castCount": 0,
+      "championApi": "TFT17_Rammus",
+      "finalHp": 0,
+      "id": "enemy-0",
+      "killCount": 0,
+      "maxHp": 2340,
+      "starLevel": 2,
+      "team": "enemy",
+      "totalDamageDealt": 252,
+      "totalDamageTaken": 2368.13,
+    },
+  ],
+  "winner": "player",
+}
+`;
+
 exports[`golden — basic > 1v1 Briar mirror (대칭) 1`] = `
 {
   "duration": 10.1,
@@ -914,6 +960,52 @@ exports[`golden — psyops (counter + timer) > Jinx+Targetlock 2v2 (per-target f
       "team": "enemy",
       "totalDamageDealt": 180,
       "totalDamageTaken": 2000.27,
+    },
+  ],
+  "winner": "player",
+}
+`;
+
+exports[`golden — psyops (counter + timer) > Rammus+GrenadeMod vs Jinx (Timer heal) 1`] = `
+{
+  "duration": 16.4667,
+  "logCounts": {
+    "ability": 2,
+    "attack": 23,
+    "death": 1,
+    "move": 6,
+  },
+  "scenarioName": "Rammus+GrenadeMod vs Jinx (Timer heal)",
+  "seed": 7,
+  "snapshotCount": 495,
+  "units": [
+    {
+      "alive": true,
+      "attackCount": 10,
+      "castCount": 1,
+      "championApi": "TFT17_Rammus",
+      "finalHp": 1920.3,
+      "id": "player-0",
+      "killCount": 1,
+      "maxHp": 2590,
+      "starLevel": 2,
+      "team": "player",
+      "totalDamageDealt": 1044,
+      "totalDamageTaken": 903.62,
+    },
+    {
+      "alive": false,
+      "attackCount": 13,
+      "castCount": 1,
+      "championApi": "TFT17_Jinx",
+      "finalHp": 0,
+      "id": "enemy-0",
+      "killCount": 0,
+      "maxHp": 990,
+      "starLevel": 2,
+      "team": "enemy",
+      "totalDamageDealt": 903.62,
+      "totalDamageTaken": 1044,
     },
   ],
   "winner": "player",

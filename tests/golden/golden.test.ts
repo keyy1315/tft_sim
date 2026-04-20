@@ -15,6 +15,7 @@ import { COMBINED_SCENARIOS } from './scenarios/combined';
 import { TIMER_SCENARIOS } from './scenarios/timer';
 import { PSYOPS_SCENARIOS } from './scenarios/psyops';
 import { ANOMALY_SCENARIOS } from './scenarios/anomaly';
+import { ANOMALY_SPECIALIST_SCENARIOS } from './scenarios/anomaly-specialist';
 
 const ALL_SCENARIOS = [
   ...BASIC_SCENARIOS,
@@ -22,6 +23,7 @@ const ALL_SCENARIOS = [
   ...TIMER_SCENARIOS,
   ...PSYOPS_SCENARIOS,
   ...ANOMALY_SCENARIOS,
+  ...ANOMALY_SPECIALIST_SCENARIOS,
 ];
 
 describe('golden — basic', () => {
@@ -62,6 +64,15 @@ describe('golden — psyops (counter + timer)', () => {
 
 describe('golden — anomaly (role-based)', () => {
   for (const scenario of ANOMALY_SCENARIOS) {
+    it(scenario.name, () => {
+      const summary = runScenario(scenario);
+      expect(summary).toMatchSnapshot();
+    });
+  }
+});
+
+describe('golden — anomaly specialist (star orbit)', () => {
+  for (const scenario of ANOMALY_SPECIALIST_SCENARIOS) {
     it(scenario.name, () => {
       const summary = runScenario(scenario);
       expect(summary).toMatchSnapshot();

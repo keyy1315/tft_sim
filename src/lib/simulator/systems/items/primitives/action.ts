@@ -15,6 +15,7 @@ import type {
   Action,
   DamageAmount,
   DamageType,
+  HealAmount,
   TargetSelector,
   StatKey,
   TriggerContext,
@@ -49,6 +50,9 @@ export function executeAction(action: Action, ctx: ActionContext): void {
   switch (action.kind) {
     case 'dealDamage':
       execDealDamage(action, ctx);
+      return;
+    case 'heal':
+      execHeal(action, ctx);
       return;
     case 'modifyStat':
       execModifyStat(action, ctx);
@@ -142,6 +146,30 @@ function execDealDamage(
     const amount = resolveDamageAmount(action.amount, ctx, target);
     if (amount <= 0) continue;
     ctx.deps.applyDamage(target, amount, action.type, ctx.unit, ctx.tick);
+  }
+}
+
+function execHeal(
+  action: Extract<Action, { kind: 'heal' }>,
+  ctx: ActionContext,
+): void {
+  const targets = resolveTargets(action.target, ctx);
+  for (const target of targets) {
+    if (target.state === 'dead') continue;
+    const amount = resolveHealAmount(action.amount, target);
+    if (amount <= 0) continue;
+    target.currentHp = Math.min(target.maxHp, target.currentHp + amount);
+  }
+}
+
+function resolveHealAmount(amount: HealAmount, target: CombatUnit): number {
+  switch (amount.mode) {
+    case 'flat':
+      return amount.value;
+    case 'pctMaxHp':
+      return target.maxHp * amount.pct;
+    case 'pctMissingHp':
+      return (target.maxHp - target.currentHp) * amount.pct;
   }
 }
 
