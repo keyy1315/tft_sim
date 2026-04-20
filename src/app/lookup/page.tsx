@@ -154,6 +154,35 @@ function ItemTooltip({ meta }: { meta: ItemMetaEntry }) {
   );
 }
 
+function UnknownItemTooltip({ apiName }: { apiName: string }) {
+  return (
+    <div>
+      <div className="font-bold text-orange-300">미지원 아이템</div>
+      <div className="text-gray-400 text-xs mt-0.5 font-mono">{apiName}</div>
+      <div className="text-gray-500 text-[10px] mt-1">로컬 DB에 없는 아이템입니다 (Anomaly, Graves 특수 아이템 등). 가상 대전 시뮬에 반영되지 않습니다.</div>
+    </div>
+  );
+}
+
+function UnknownChampionTooltip({ apiName }: { apiName: string }) {
+  return (
+    <div>
+      <div className="font-bold text-orange-300">미지원 챔피언</div>
+      <div className="text-gray-400 text-xs mt-0.5 font-mono">{apiName}</div>
+      <div className="text-gray-500 text-[10px] mt-1">로컬 DB에 없는 챔피언입니다. 가상 대전 분석이 불가능할 수 있습니다.</div>
+    </div>
+  );
+}
+
+function UnknownTraitTooltip({ apiName }: { apiName: string }) {
+  return (
+    <div>
+      <div className="font-bold text-orange-300">미지원 시너지</div>
+      <div className="text-gray-400 text-xs mt-0.5 font-mono">{apiName}</div>
+    </div>
+  );
+}
+
 function TraitTooltipContent({ meta, numUnits }: { meta: TraitMetaEntry; numUnits: number }) {
   return (
     <div>
@@ -211,25 +240,37 @@ function ChampionUnit({
         <Tooltip content={<ChampionTooltip meta={meta} />}>
           {champImg}
         </Tooltip>
-      ) : champImg}
+      ) : (
+        <Tooltip content={<UnknownChampionTooltip apiName={id} />}>
+          <div className="relative">
+            {champImg}
+            <span className="absolute -top-1 -right-1 text-[8px] bg-orange-500/80 text-white rounded-full w-3 h-3 md:w-3.5 md:h-3.5 flex items-center justify-center leading-none">?</span>
+          </div>
+        </Tooltip>
+      )}
       {items.length > 0 && (
         <div className="flex gap-0.5 mt-0.5">
           {items.slice(0, 3).map((item, i) => {
             const iMeta = itemMeta?.[item];
-            if (!iMeta?.icon) return null;
-            const img = (
-              <img
-                src={iMeta.icon}
-                alt=""
-                className="w-3.5 h-3.5 md:w-4 md:h-4 rounded-sm"
-                onError={(e) => { e.currentTarget.style.display = 'none'; }}
-              />
-            );
-            return iMeta ? (
+            if (!iMeta?.icon) {
+              return (
+                <Tooltip key={i} content={<UnknownItemTooltip apiName={item} />}>
+                  <div className="w-3.5 h-3.5 md:w-4 md:h-4 rounded-sm bg-gray-700/60 border border-gray-500/50 flex items-center justify-center">
+                    <span className="text-[8px] md:text-[9px] text-gray-400 leading-none">?</span>
+                  </div>
+                </Tooltip>
+              );
+            }
+            return (
               <Tooltip key={i} content={<ItemTooltip meta={iMeta} />}>
-                {img}
+                <img
+                  src={iMeta.icon}
+                  alt=""
+                  className="w-3.5 h-3.5 md:w-4 md:h-4 rounded-sm"
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                />
               </Tooltip>
-            ) : <span key={i}>{img}</span>;
+            );
           })}
         </div>
       )}
@@ -265,7 +306,15 @@ function TraitBadge({ trait, meta }: { trait: TraitData; meta?: TraitMetaEntry }
     <Tooltip content={<TraitTooltipContent meta={meta} numUnits={trait.numUnits} />}>
       {badge}
     </Tooltip>
-  ) : badge;
+  ) : (
+    <Tooltip content={<UnknownTraitTooltip apiName={trait.name} />}>
+      <div className="flex items-center gap-1 px-1.5 py-0.5 rounded border border-orange-500/40 bg-orange-500/10">
+        <span className="text-[10px] text-orange-300">?</span>
+        <span className="text-[10px] text-orange-300">{trait.name.replace(/^TFT\d+_/, '')}</span>
+        <span className="text-[10px] md:text-xs font-medium text-orange-300">{trait.numUnits}</span>
+      </div>
+    </Tooltip>
+  );
 }
 
 /* ─── Season tabs ─── */
@@ -482,13 +531,49 @@ function MatchCard({
 
 /* ─── Main ─── */
 
+const STORAGE_KEYS = {
+  input: 'lookup-input',
+  result: 'lookup-result',
+  activeSet: 'lookup-active-set',
+} as const;
+
+function readSession<T>(key: string, fallback: T, parser: (raw: string) => T): T {
+  if (typeof window === 'undefined') return fallback;
+  try {
+    const raw = sessionStorage.getItem(key);
+    if (raw === null) return fallback;
+    return parser(raw);
+  } catch {
+    return fallback;
+  }
+}
+
 export default function LookupPage() {
-  const [input, setInput] = useState('');
-  const [result, setResult] = useState<LookupResult | null>(null);
+  const [input, setInput] = useState<string>(() => readSession(STORAGE_KEYS.input, '', (r) => r));
+  const [result, setResult] = useState<LookupResult | null>(() =>
+    readSession<LookupResult | null>(STORAGE_KEYS.result, null, (r) => JSON.parse(r) as LookupResult),
+  );
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [activeSet, setActiveSet] = useState('set17');
+  const [activeSet, setActiveSet] = useState<string>(() => readSession(STORAGE_KEYS.activeSet, 'set17', (r) => r));
   const { results: analysisResults, analyze } = useMatchAnalysis();
+
+  // Persist to sessionStorage (write-only effects; no setState inside)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    sessionStorage.setItem(STORAGE_KEYS.input, input);
+  }, [input]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (result) sessionStorage.setItem(STORAGE_KEYS.result, JSON.stringify(result));
+    else sessionStorage.removeItem(STORAGE_KEYS.result);
+  }, [result]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    sessionStorage.setItem(STORAGE_KEYS.activeSet, activeSet);
+  }, [activeSet]);
 
   const handleSearch = async (searchInput?: string) => {
     const trimmed = (searchInput ?? input).trim();

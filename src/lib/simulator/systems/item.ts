@@ -28,6 +28,9 @@ const DISABLED_ITEMS = new Set([
   // 서포트 아이템 (조합 아이템 아님)
   'TFT_Item_SeraphsEmbrace',   // 푸른 파수꾼 (서포트 버전)
   'TFT_Item_CrestOfCinders',   // 잉걸불 문장
+  // Set 17에서 제거된 레거시 조합 아이템 (번역 키만 남은 상태)
+  'TFT_Item_CursedBlade',      // 저주받은 칼날 (Artifact 버전과 별개인 레거시)
+  'TFT_Item_HextechChestguard',// 헥스텍 흉갑
 ]);
 
 /** 아이템이 비활성 상태인지 확인 */
@@ -52,8 +55,22 @@ export function resolveItemEffect(item: RawItem): ItemEffect {
   return result;
 }
 
+/** 10가지 기본 조합 재료 */
+const BASE_COMPONENTS = new Set([
+  'TFT_Item_BFSword',            // B.F. 대검
+  'TFT_Item_RecurveBow',         // 곡궁
+  'TFT_Item_TearOfTheGoddess',   // 여신의 눈물
+  'TFT_Item_NegatronCloak',      // 음전자 망토
+  'TFT_Item_SparringGloves',     // 연습용 장갑
+  'TFT_Item_Spatula',            // 뒤집개
+  'TFT_Item_ChainVest',          // 쇠사슬 조끼
+  'TFT_Item_GiantsBelt',         // 거인의 허리띠
+  'TFT_Item_NeedlesslyLargeRod', // 쓸데없이 큰 지팡이
+  'TFT_Item_FryingPan',          // 프라이팬
+]);
+
 export function isBaseComponent(item: RawItem): boolean {
-  return item.composition.length === 0 && !item.apiName.includes('TFT16_');
+  return BASE_COMPONENTS.has(item.apiName);
 }
 
 export function isCombinedItem(item: RawItem): boolean {
@@ -78,12 +95,43 @@ const FORCE_ARTIFACT = new Set([
   'TFT16_Item_Bilgewater_FreebootersFrock',         // 따개비 장갑
 ]);
 
+/** 장착할 수 없는 시스템 아이템 — 빌더/시뮬 UI에서 숨김, 장착 차단
+ *  (consumables, assists, market offerings, champion tokens, trait-specific shop items, anomaly tokens 등) */
+function isSystemItem(item: RawItem): boolean {
+  const api = item.apiName;
+  // 공용 시스템 아이템
+  if (api.startsWith('TFT_Consumable_')) return true;          // 재조합기, 챔피언 복제기 등
+  if (api.startsWith('TFT_Assist_')) return true;              // 더블업 어시스트 (골드 전달 등)
+  if (api.startsWith('TFT_Item_Grant')) return true;           // 전리품 토큰 (Orbs, Components, Anvils, TomeOfTraits 등)
+  // 필트오버는 기존 piltover 카테고리로 계속 분리 처리 (팀 모듈 슬롯 전용)
+  if (api.includes('Consumable_Void')) return false;            // 공허 돌연변이는 별도 처리
+
+  // Set 17 특수 토큰 — 제외할 것만 명시 (Item_, AnimaSquadItem_Tier 등 실제 장착 아이템은 포함)
+  if (api.startsWith('TFT17_MarketOffering_')) return true;    // 장터 offerings
+  if (api.startsWith('TFT17_ChampionItem_')) return true;      // 챔피언 획득 토큰
+  if (api.startsWith('TFT17_GravesTrait_')) return true;       // 최신상(Graves) 시너지 상점템
+  if (api.startsWith('TFT17_SonaUnique_')) return true;        // 소나 지휘 모드
+  if (api.startsWith('TFT17_Consumable_')) return true;        // Set17 소비 아이템
+  if (api.startsWith('TFT17_DRXSelector')) return true;        // DRX 내부 선택자
+  if (api === 'TFT17_AnimaSquad_Gold') return true;            // 애니마 스쿼드 골드 토큰
+  if (/^TFT17_Item_MissFortuneUnique.+Stance$/.test(api)) return true; // 미스 포츈 스탠스 내부 상태
+  if (/^TFT\d+_.+Offering_AnomalyItem$/.test(api)) return true; // 이상 현상 (시스템 아이템 — 효과 복원 불가)
+
+  return false;
+}
+
 export function getItemCategory(item: RawItem): ItemCategory {
+  // 비장착 시스템 아이템 → 'special' (UI 숨김 + 장착 차단)
+  if (isSystemItem(item)) return 'special';
+
   if (isArtifact(item) || FORCE_ARTIFACT.has(item.apiName)) return 'artifact';
   if (item.apiName.includes('EmblemItem')) return 'emblem';
   if (item.apiName.includes('Corrupted') || item.apiName.includes('Radiant_')) return 'radiant';
   if (item.apiName.includes('Consumable_Void')) return 'void';
   if (item.apiName.includes('TheDarkin')) return 'darkin';
+  // Set 17 실제 장착 가능한 특수 세트 아이템 (composition이 비어도 조합 완성품 취급)
+  if (item.apiName.startsWith('TFT17_Item_PsyOps_')) return 'combined';
+  if (item.apiName.startsWith('TFT17_AnimaSquadItem_')) return 'combined';
   if (isBaseComponent(item)) return 'component';
   if (isCombinedItem(item)) return 'combined';
   if (item.apiName.includes('Piltover')) return 'piltover';
