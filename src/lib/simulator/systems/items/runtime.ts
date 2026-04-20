@@ -17,7 +17,7 @@ import type {
   IntervalTimer,
 } from './primitives/types';
 import type { ActionContext, ActionDeps } from './primitives/action';
-import { executeAction } from './primitives/action';
+import { executeAction, applyStatDelta } from './primitives/action';
 import { ITEM_EFFECTS } from './registry';
 
 /** (unitId, itemApiName) → state */
@@ -81,6 +81,21 @@ export class ItemEffectRuntime {
    */
   onTick(tick: number): void {
     if (!this.deps) return;
+    // 1) 만료된 pendingBuffs 되돌리기 (modifyStat durationTicks 처리)
+    for (const [key, state] of this.states) {
+      const pending = state.pendingBuffs;
+      if (!pending || pending.length === 0) continue;
+      const unitId = key.split('::')[0];
+      const unit = this.unitsById.get(unitId);
+      if (!unit) continue;
+      for (let i = pending.length - 1; i >= 0; i--) {
+        if (pending[i].expireTick <= tick) {
+          applyStatDelta(unit, pending[i].stat, -pending[i].delta);
+          pending.splice(i, 1);
+        }
+      }
+    }
+    // 2) Timer descriptor 의 interval 판정 및 dispatch
     for (const entry of this.timers) {
       const unit = this.unitsById.get(entry.unitId);
       if (!unit || unit.state === 'dead') continue;

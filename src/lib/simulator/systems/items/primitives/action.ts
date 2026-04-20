@@ -147,8 +147,16 @@ function execModifyStat(
   action: Extract<Action, { kind: 'modifyStat' }>,
   ctx: ActionContext,
 ): void {
-  // Phase 1: durationTicks 미지원 (persistent만). 임시 버프 만료 큐는 후속 Phase에서.
   applyStatDelta(ctx.unit, action.stat, action.delta);
+  // 임시 버프: 만료 시점에 delta 되돌리기 위해 pendingBuffs 에 기록
+  if (action.durationTicks !== undefined && action.durationTicks > 0) {
+    if (!ctx.state.pendingBuffs) ctx.state.pendingBuffs = [];
+    ctx.state.pendingBuffs.push({
+      stat: action.stat,
+      delta: action.delta,
+      expireTick: ctx.tick + action.durationTicks,
+    });
+  }
 }
 
 /** 지정 stat에 delta 적용. StatKey 전범위 분기. */

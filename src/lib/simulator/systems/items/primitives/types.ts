@@ -127,4 +127,16 @@ export interface UnitItemState {
   timerLastTick: Map<string, number>;
   /** timer 누적 발동 횟수 (maxRepeats 체크용) */
   timerRepeats: Map<string, number>;
+  /**
+   * 임시 스탯 버프 만료 큐 — `modifyStat durationTicks` 로 적용된 delta 가
+   * 만료 시점에 되돌려지도록 기록. runtime.onTick 에서 expireTick 도달 시 원복.
+   */
+  pendingBuffs?: PendingBuff[];
+}
+
+/** durationTicks 만료 시 delta 되돌리기용 기록 */
+export interface PendingBuff {
+  stat: StatKey;
+  delta: number;
+  expireTick: number;
 }
