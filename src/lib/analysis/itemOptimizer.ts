@@ -317,9 +317,39 @@ export function optimizeItems(
   if (carryCandidates.length === 0) return null;
 
   // 헬퍼: 고정 아이템 + 재분배 아이템을 합쳐서 DPS 계산
+  //
+  // 상징 아이템 감지 (Phase 6-A, emblem-synergy-dps Plan):
+  // candidate 가 상징을 장착하면 해당 시너지를 candidate 의 traits 에 임시 추가해서
+  // `resolveTraits` 를 재실행. 새 activeTraits 로 calculateStats → 시너지 tier 상승분이
+  // DPS 에 반영됨. (상징 기본 스탯만 반영되던 문제 해결)
   function calcDps(candidate: CarryCandidate, redistributedItems: RawItem[]): number {
     const allItems = [...candidate.fixedItems, ...redistributedItems];
-    const { stats } = calculateStats(candidate.champion, candidate.starLevel, allItems, activeTraits);
+
+    // 상징 trait 추출
+    const emblemTraits: string[] = [];
+    for (const it of allItems) {
+      const t = getEmblemTraitName(it);
+      // 이미 같은 trait 가진 유닛에겐 등록 안 됨 (canEquipItem 에서 차단)
+      // 따라서 emblem trait 은 항상 신규 trait
+      if (t) emblemTraits.push(t);
+    }
+
+    let effectiveActiveTraits = activeTraits;
+    if (emblemTraits.length > 0) {
+      // 해당 candidate 의 champion 객체만 traits 확장한 복사본으로 교체
+      const augmentedChamp: RawChampion = {
+        ...candidate.champion,
+        traits: [...candidate.champion.traits, ...emblemTraits],
+      };
+      const modifiedTeam = resolvedChampions.map(rc =>
+        rc.champion.apiName === candidate.champion.apiName
+          ? { champion: augmentedChamp }
+          : rc,
+      );
+      effectiveActiveTraits = resolveTraits(modifiedTeam, traitData);
+    }
+
+    const { stats } = calculateStats(candidate.champion, candidate.starLevel, allItems, effectiveActiveTraits);
     return estimateDps(stats, candidate.isAP, candidate.starLevel, allItems);
   }
 
