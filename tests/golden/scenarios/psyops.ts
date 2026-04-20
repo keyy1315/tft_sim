@@ -109,6 +109,45 @@ export const RAMMUS_WITH_GRENADE: Scenario = {
   enemy: [{ apiName: 'TFT17_Jinx', position: { q: 0, r: 7 }, starLevel: 2 }],
 };
 
+/** Radiant: Pyke (초능력) 표적고정 radiant — on_kill 시 heal */
+export const PYKE_WITH_TARGETLOCK_RADIANT_2V2: Scenario = {
+  name: 'Pyke(PsyOps)+TargetlockRadiant 2v2 (on_kill heal)',
+  seed: 7,
+  player: [
+    { apiName: 'TFT17_Pyke', position: { q: 0, r: 0 }, starLevel: 2,
+      items: ['TFT17_Item_PsyOps_TargetlockMod_Radiant'] },
+  ],
+  enemy: [
+    { apiName: 'TFT17_Jinx', position: { q: 0, r: 7 }, starLevel: 1 },
+    { apiName: 'TFT17_Aurora', position: { q: 1, r: 7 }, starLevel: 1 },
+  ],
+};
+
+/** Radiant: MasterYi (초능력) 악성코드 radiant — 공격 3회마다 adjacentEnemies 75 cleave */
+export const MASTERYI_WITH_CHEMICAL_RADIANT_2V2: Scenario = {
+  name: 'MasterYi(PsyOps)+ChemicalRadiant 2v2 (cleave)',
+  seed: 7,
+  player: [
+    { apiName: 'TFT17_MasterYi', position: { q: 0, r: 0 }, starLevel: 2,
+      items: ['TFT17_Item_PsyOps_ChemicalCapacitorMod_Radiant'] },
+  ],
+  enemy: [
+    { apiName: 'TFT17_Jinx', position: { q: 0, r: 7 }, starLevel: 1 },
+    { apiName: 'TFT17_Aurora', position: { q: 1, r: 7 }, starLevel: 1 },
+  ],
+};
+
+/** Radiant: Viktor (초능력 caster) 드론 radiant — 초능력 보너스 드론 */
+export const VIKTOR_WITH_DRONE_RADIANT: Scenario = {
+  name: 'Viktor(PsyOps)+DroneRadiant vs Rammus',
+  seed: 7,
+  player: [
+    { apiName: 'TFT17_Viktor', position: { q: 0, r: 0 }, starLevel: 2,
+      items: ['TFT17_Item_PsyOps_DroneMod_Radiant'] },
+  ],
+  enemy: [{ apiName: 'TFT17_Rammus', position: { q: 0, r: 7 }, starLevel: 2 }],
+};
+
 export const PSYOPS_SCENARIOS: Scenario[] = [
   JINX_WITH_SEMICONDUCTOR,
   JINX_WITH_SEMICONDUCTOR_RADIANT,
@@ -117,4 +156,7 @@ export const PSYOPS_SCENARIOS: Scenario[] = [
   JINX_WITH_CHEMICAL,
   JINX_WITH_TARGETLOCK_2V2,
   RAMMUS_WITH_GRENADE,
+  PYKE_WITH_TARGETLOCK_RADIANT_2V2,
+  MASTERYI_WITH_CHEMICAL_RADIANT_2V2,
+  VIKTOR_WITH_DRONE_RADIANT,
 ];

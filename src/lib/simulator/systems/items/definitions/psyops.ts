@@ -9,7 +9,16 @@
  * 설계 문서: docs/02-design/features/item-effect-engine.design.md §6.3
  */
 
-import type { Action, ItemEffectDescriptor } from '../primitives/types';
+import type { Action, ItemEffectDescriptor, Cond } from '../primitives/types';
+
+/**
+ * 초능력(PsyOps) 트레이트 활성 체크 — Radiant 보너스 조건.
+ *
+ * 간소화: "장착 유닛의 champion.traits 에 '초능력' 이 있는지" 로 판정.
+ * 실게임은 team 의 PsyOps 유닛 수에 따른 trait tier 활성이지만, 개별 유닛
+ * 효과만 다루는 primitive 레벨에선 소유 여부로 근사.
+ */
+const isPsyOpsUnit: Cond = (ctx) => ctx.unit.champion.traits.includes('초능력');
 
 const statPatch = (stats: {
   ad?: number; ap?: number; as?: number; hp?: number;
@@ -35,40 +44,84 @@ const statPatch = (stats: {
  *    실게임 `DamageRepeat` 계산 방식과 ~5% 편차 가능. Phase 4 이후 정밀화.
  *  - TargetSelector 'attackTarget' 는 현재 타겟. 대상이 변했다면 새 타겟에 적용됨.
  */
-function buildDroneUplink(apiName: string, ap: number, damageRepeatPct: number): [string, ItemEffectDescriptor[]] {
+function buildDroneUplink(
+  apiName: string,
+  ap: number,
+  damageRepeatPct: number,
+  radiantBonusPct = 0,
+): [string, ItemEffectDescriptor[]] {
   const stackKey = `drone_window::${apiName}`;
-  return [
-    apiName,
-    [
-      statPatch({ ap }),
+  // Radiant: 초능력 유닛일 경우 추가 미니 드론 (SecondDroneDamageRepeat)
+  // 같은 window stack 을 공유하되, 초능력 조건 만족 시 추가 피해
+  const descriptors: ItemEffectDescriptor[] = [
+    statPatch({ ap }),
+    {
+      kind: 'trigger',
+      event: 'on_hit',
+      action: { kind: 'addStack', stack: stackKey, amount: 'payload.value' },
+    },
+    {
+      kind: 'trigger',
+      event: 'on_cast',
+      action: { kind: 'addStack', stack: stackKey, amount: 'payload.value' },
+    },
+    {
+      kind: 'timer',
+      intervalTicks: 90, // 3초 × 30 tick/s
+      action: {
+        kind: 'chain',
+        actions: [
+          {
+            kind: 'dealDamage',
+            amount: { mode: 'pctOfStack', stack: stackKey, pct: damageRepeatPct },
+            type: 'magic',
+            target: 'attackTarget',
+          },
+          { kind: 'setStack', stack: stackKey, value: 0 },
+        ],
+      },
+    },
+  ];
+  // Radiant 보너스 드론: 초능력 유닛일 때만 발동 (별도 timer 로 분리)
+  if (radiantBonusPct > 0) {
+    const bonusStack = `${stackKey}_radiant`;
+    // Radiant 보너스 누적도 별도 stack 으로 유지 — main stack reset 에 영향 안 줌
+    descriptors.push(
       {
         kind: 'trigger',
         event: 'on_hit',
-        action: { kind: 'addStack', stack: stackKey, amount: 'payload.value' },
+        condition: isPsyOpsUnit,
+        action: { kind: 'addStack', stack: bonusStack, amount: 'payload.value' },
       },
       {
         kind: 'trigger',
         event: 'on_cast',
-        action: { kind: 'addStack', stack: stackKey, amount: 'payload.value' },
+        condition: isPsyOpsUnit,
+        action: { kind: 'addStack', stack: bonusStack, amount: 'payload.value' },
       },
       {
         kind: 'timer',
-        intervalTicks: 90, // 3초 × 30 tick/s
+        intervalTicks: 90,
         action: {
-          kind: 'chain',
-          actions: [
-            {
-              kind: 'dealDamage',
-              amount: { mode: 'pctOfStack', stack: stackKey, pct: damageRepeatPct },
-              type: 'magic',
-              target: 'attackTarget',
-            },
-            { kind: 'setStack', stack: stackKey, value: 0 },
-          ],
+          kind: 'branch',
+          condition: isPsyOpsUnit,
+          then: {
+            kind: 'chain',
+            actions: [
+              {
+                kind: 'dealDamage',
+                amount: { mode: 'pctOfStack', stack: bonusStack, pct: radiantBonusPct },
+                type: 'magic',
+                target: 'attackTarget',
+              },
+              { kind: 'setStack', stack: bonusStack, value: 0 },
+            ],
+          },
         },
       },
-    ],
-  ];
+    );
+  }
+  return [apiName, descriptors];
 }
 
 /**
@@ -157,35 +210,53 @@ function buildSympatheticImplant(apiName: string): [string, ItemEffectDescriptor
 function buildChemicalCapacitor(
   apiName: string,
   resistReduce: number,
+  radiantCleaveDamage = 0,
+  radiantCleaveEvery = 3,
 ): [string, ItemEffectDescriptor[]] {
   const icdKey = `malware_icd::${apiName}`;
   const icdTicks = Math.round(0.75 * 30); // 22 tick
-  return [
-    apiName,
-    [
-      statPatch({ ad: 0.15, as: 15, omnivamp: 0.10 }),
-      {
-        kind: 'trigger',
-        event: 'on_hit',
-        condition: (ctx) => {
-          const last = ctx.state.stacks.get(icdKey) ?? -Infinity;
-          return ctx.tick - last >= icdTicks;
-        },
-        action: {
-          kind: 'chain',
-          actions: [
-            {
-              kind: 'modifyStat',
-              stat: 'armor',
-              delta: -resistReduce,
-              target: 'attackTarget',
-            },
-            { kind: 'setStack', stack: icdKey, value: 'tick' },
-          ],
+  const descriptors: ItemEffectDescriptor[] = [
+    statPatch({ ad: 0.15, as: 15, omnivamp: 0.10 }),
+    {
+      kind: 'trigger',
+      event: 'on_hit',
+      condition: (ctx) => {
+        const last = ctx.state.stacks.get(icdKey) ?? -Infinity;
+        return ctx.tick - last >= icdTicks;
+      },
+      action: {
+        kind: 'chain',
+        actions: [
+          {
+            kind: 'modifyStat',
+            stat: 'armor',
+            delta: -resistReduce,
+            target: 'attackTarget',
+          },
+          { kind: 'setStack', stack: icdKey, value: 'tick' },
+        ],
+      },
+    },
+  ];
+  // Radiant: 초능력 유닛이 기본 공격 N회마다 주변 적 cleave (flat magic damage)
+  if (radiantCleaveDamage > 0) {
+    descriptors.push({
+      kind: 'counter',
+      event: 'on_attack',
+      n: radiantCleaveEvery,
+      action: {
+        kind: 'branch',
+        condition: isPsyOpsUnit,
+        then: {
+          kind: 'dealDamage',
+          amount: { mode: 'flat', value: radiantCleaveDamage },
+          type: 'physical', // desc: physicalDamage
+          target: 'adjacentEnemies',
         },
       },
-    ],
-  ];
+    });
+  }
+  return [apiName, descriptors];
 }
 
 /**
@@ -204,35 +275,46 @@ function buildChemicalCapacitor(
  * Radiant HealPct 0.15 (초능력 사망 시 15% maxHP 회복) 은 별도 on_kill trigger
  * 필요 + 초능력 조건 처리 복잡 → Phase 5+ 로 이월.
  */
-function buildTargetlockOptic(apiName: string): [string, ItemEffectDescriptor[]] {
-  return [
-    apiName,
-    [
-      statPatch({ ad: 0.15, as: 35 }),
-      {
-        kind: 'trigger',
-        event: 'on_hit',
-        condition: (ctx) => {
-          const tgt = ctx.payload?.targetId;
-          if (!tgt) return false;
-          const fired = ctx.state.stacks.get(`targetlock_hit::${tgt}`) ?? 0;
-          return fired === 0;
-        },
-        action: {
-          kind: 'chain',
-          actions: [
-            {
-              kind: 'dealDamage',
-              amount: { mode: 'pctAttackDamage', pct: 1.5 },
-              type: 'physical',
-              target: 'attackTarget',
-            },
-            { kind: 'addStack', stack: 'targetlock_hit::{targetId}', amount: 1 },
-          ],
-        },
+function buildTargetlockOptic(apiName: string, radiantHealPct = 0): [string, ItemEffectDescriptor[]] {
+  const descriptors: ItemEffectDescriptor[] = [
+    statPatch({ ad: 0.15, as: 35 }),
+    {
+      kind: 'trigger',
+      event: 'on_hit',
+      condition: (ctx) => {
+        const tgt = ctx.payload?.targetId;
+        if (!tgt) return false;
+        const fired = ctx.state.stacks.get(`targetlock_hit::${tgt}`) ?? 0;
+        return fired === 0;
       },
-    ],
+      action: {
+        kind: 'chain',
+        actions: [
+          {
+            kind: 'dealDamage',
+            amount: { mode: 'pctAttackDamage', pct: 1.5 },
+            type: 'physical',
+            target: 'attackTarget',
+          },
+          { kind: 'addStack', stack: 'targetlock_hit::{targetId}', amount: 1 },
+        ],
+      },
+    },
   ];
+  // Radiant: 초능력 유닛이 대상을 처치하면 최대체력 N% 회복
+  if (radiantHealPct > 0) {
+    descriptors.push({
+      kind: 'trigger',
+      event: 'on_kill',
+      condition: isPsyOpsUnit,
+      action: {
+        kind: 'heal',
+        amount: { mode: 'pctMaxHp', pct: radiantHealPct },
+        target: 'self',
+      },
+    });
+  }
+  return [apiName, descriptors];
 }
 
 /**
@@ -265,9 +347,9 @@ function buildGrenadeMod(apiName: string, hp: number, healPct: number): [string,
 }
 
 export const PSYOPS_ITEMS: Record<string, ItemEffectDescriptor[]> = Object.fromEntries([
-  // 드론 업링크 (Phase 3)
+  // 드론 업링크 (Phase 3) / Radiant 초능력 보너스 (Phase 4 Part 2-D)
   buildDroneUplink('TFT17_Item_PsyOps_DroneMod', 25, 0.20),
-  buildDroneUplink('TFT17_Item_PsyOps_DroneMod_Radiant', 25, 0.20),
+  buildDroneUplink('TFT17_Item_PsyOps_DroneMod_Radiant', 25, 0.20, 0.20),
   // 반도체 (Phase 4 Part 1) — base: HP 200, receive 8, dmg 7%
   buildSemiconductor('TFT17_Item_PsyOps_SemiconductorMod', 200, 4, 8, 0.07),
   // 반도체 찬란 — HP 300, receive 12, dmg 7.5%
@@ -275,12 +357,14 @@ export const PSYOPS_ITEMS: Record<string, ItemEffectDescriptor[]> = Object.fromE
   // 공감 임플란트 (Phase 4 Part 1) — base + radiant (TrueDamageConversion 제외)
   buildSympatheticImplant('TFT17_Item_PsyOps_SympatheticImplantMod'),
   buildSympatheticImplant('TFT17_Item_PsyOps_SympatheticImplantMod_Radiant'),
-  // 악성코드 매트릭스 (Phase 4 Part 2) — ResistReduce 2/초당 ICD 0.75s
+  // 악성코드 매트릭스 (Phase 4 Part 2-A) — ResistReduce 2/초당 ICD 0.75s
   buildChemicalCapacitor('TFT17_Item_PsyOps_ChemicalCapacitorMod', 2),
-  buildChemicalCapacitor('TFT17_Item_PsyOps_ChemicalCapacitorMod_Radiant', 2),
-  // 표적 고정 광학 장치 (Phase 4 Part 2) — per-target first-hit +150% AD
+  // Radiant: 초능력 유닛일 때 공격 3회마다 주변 적 cleave 75 damage
+  buildChemicalCapacitor('TFT17_Item_PsyOps_ChemicalCapacitorMod_Radiant', 2, 75, 3),
+  // 표적 고정 광학 장치 (Phase 4 Part 2-B) — per-target first-hit +150% AD
   buildTargetlockOptic('TFT17_Item_PsyOps_TargetlockMod'),
-  buildTargetlockOptic('TFT17_Item_PsyOps_TargetlockMod_Radiant'),
+  // Radiant: 초능력 유닛의 on_kill 시 최대체력 15% 회복
+  buildTargetlockOptic('TFT17_Item_PsyOps_TargetlockMod_Radiant', 0.15),
   // 유기물 보존기 (Phase 4 Part 2-C) — 8초마다 잃은체력 18% 회복 (grenade entity 는 미구현)
   buildGrenadeMod('TFT17_Item_PsyOps_GrenadeMod', 250, 0.18),
   buildGrenadeMod('TFT17_Item_PsyOps_GrenadeMod_Radiant', 400, 0.18),

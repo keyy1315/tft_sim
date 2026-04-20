@@ -1012,6 +1012,126 @@ exports[`golden — psyops (counter + timer) > Jinx+Targetlock 2v2 (per-target f
 }
 `;
 
+exports[`golden — psyops (counter + timer) > MasterYi(PsyOps)+ChemicalRadiant 2v2 (cleave) 1`] = `
+{
+  "duration": 3.8667,
+  "logCounts": {
+    "ability": 2,
+    "attack": 16,
+    "death": 2,
+    "move": 9,
+  },
+  "scenarioName": "MasterYi(PsyOps)+ChemicalRadiant 2v2 (cleave)",
+  "seed": 7,
+  "snapshotCount": 117,
+  "units": [
+    {
+      "alive": true,
+      "attackCount": 11,
+      "castCount": 2,
+      "championApi": "TFT17_MasterYi",
+      "finalHp": 1949.86,
+      "id": "player-0",
+      "killCount": 2,
+      "maxHp": 1980,
+      "starLevel": 2,
+      "team": "player",
+      "totalDamageDealt": 1370.95,
+      "totalDamageTaken": 229.24,
+    },
+    {
+      "alive": false,
+      "attackCount": 3,
+      "castCount": 0,
+      "championApi": "TFT17_Jinx",
+      "finalHp": 0,
+      "id": "enemy-0",
+      "killCount": 0,
+      "maxHp": 550,
+      "starLevel": 1,
+      "team": "enemy",
+      "totalDamageDealt": 108.33,
+      "totalDamageTaken": 588.08,
+    },
+    {
+      "alive": false,
+      "attackCount": 2,
+      "castCount": 0,
+      "championApi": "TFT17_Aurora",
+      "finalHp": 0,
+      "id": "enemy-1",
+      "killCount": 0,
+      "maxHp": 700,
+      "starLevel": 1,
+      "team": "enemy",
+      "totalDamageDealt": 43.64,
+      "totalDamageTaken": 705.6,
+    },
+  ],
+  "winner": "player",
+}
+`;
+
+exports[`golden — psyops (counter + timer) > Pyke(PsyOps)+TargetlockRadiant 2v2 (on_kill heal) 1`] = `
+{
+  "duration": 3.3333,
+  "logCounts": {
+    "ability": 2,
+    "attack": 10,
+    "death": 2,
+    "move": 10,
+  },
+  "scenarioName": "Pyke(PsyOps)+TargetlockRadiant 2v2 (on_kill heal)",
+  "seed": 7,
+  "snapshotCount": 101,
+  "units": [
+    {
+      "alive": true,
+      "attackCount": 5,
+      "castCount": 1,
+      "championApi": "TFT17_Pyke",
+      "finalHp": 1260,
+      "id": "player-0",
+      "killCount": 1,
+      "maxHp": 1260,
+      "starLevel": 2,
+      "team": "player",
+      "totalDamageDealt": 1442.23,
+      "totalDamageTaken": 157.76,
+    },
+    {
+      "alive": false,
+      "attackCount": 3,
+      "castCount": 0,
+      "championApi": "TFT17_Jinx",
+      "finalHp": 0,
+      "id": "enemy-0",
+      "killCount": 0,
+      "maxHp": 550,
+      "starLevel": 1,
+      "team": "enemy",
+      "totalDamageDealt": 108.1,
+      "totalDamageTaken": 606.56,
+    },
+    {
+      "alive": false,
+      "attackCount": 2,
+      "castCount": 0,
+      "championApi": "TFT17_Aurora",
+      "finalHp": 0,
+      "id": "enemy-1",
+      "killCount": 0,
+      "maxHp": 700,
+      "starLevel": 1,
+      "team": "enemy",
+      "totalDamageDealt": 49.66,
+      "totalDamageTaken": 835.67,
+    },
+  ],
+  "winner": "player",
+}
+`;
+
 exports[`golden — psyops (counter + timer) > Rammus+GrenadeMod vs Jinx (Timer heal) 1`] = `
 {
   "duration": 16.4667,
@@ -1101,6 +1221,53 @@ exports[`golden — psyops (counter + timer) > Rammus+Semiconductor vs Jinx (on_
     },
   ],
   "winner": "player",
+}
+`;
+
+exports[`golden — psyops (counter + timer) > Viktor(PsyOps)+DroneRadiant vs Rammus 1`] = `
+{
+  "duration": 17.9667,
+  "logCounts": {
+    "ability": 3,
+    "attack": 27,
+    "death": 1,
+    "move": 6,
+    "status_expire": 1,
+  },
+  "scenarioName": "Viktor(PsyOps)+DroneRadiant vs Rammus",
+  "seed": 7,
+  "snapshotCount": 540,
+  "units": [
+    {
+      "alive": false,
+      "attackCount": 15,
+      "castCount": 1,
+      "championApi": "TFT17_Viktor",
+      "finalHp": 0,
+      "id": "player-0",
+      "killCount": 0,
+      "maxHp": 1170,
+      "starLevel": 2,
+      "team": "player",
+      "totalDamageDealt": 582.19,
+      "totalDamageTaken": 1235.04,
+    },
+    {
+      "alive": true,
+      "attackCount": 12,
+      "castCount": 1,
+      "championApi": "TFT17_Rammus",
+      "finalHp": 1523.44,
+      "id": "enemy-0",
+      "killCount": 1,
+      "maxHp": 2340,
+      "starLevel": 2,
+      "team": "enemy",
+      "totalDamageDealt": 1235.04,
+      "totalDamageTaken": 582.19,
+    },
+  ],
+  "winner": "enemy",
 }
 `;
 
