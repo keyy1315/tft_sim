@@ -13,7 +13,16 @@ export type CombatEventType =
   | 'on_death'
   | 'on_damage'
   | 'on_heal'
-  | 'on_shield_break';
+  | 'on_shield_break'
+  // v2 — item-effect-engine (설계: docs/02-design/features/item-effect-engine.design.md §5.2)
+  /** 매 tick. IntervalTimer dispatch 용. */
+  | 'on_tick'
+  /** 스킬 마나 소모 시점 (on_cast 이전). PsyOps 공감 임플란트 등. */
+  | 'on_mana_spent'
+  /** 피격 당한 시점 (방어자 관점). on_hit은 공격자 관점과 혼용되어 애매 → 분리. */
+  | 'on_hit_taken'
+  /** 공격 windup 시작. PsyOps AttackPct 버프 창 용. */
+  | 'on_windup_start';
 
 export interface CombatEventPayload {
   sourceId: string;
