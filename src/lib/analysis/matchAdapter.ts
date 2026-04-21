@@ -43,6 +43,8 @@ export function reconstructMatch(
       }
       const items: RawItem[] = [];
       for (const rawItemId of c.items) {
+        // 빈 슬롯 placeholder 는 coverage 대상 아님 (coverageChecker.isSpecialItem 과 일치).
+        if (rawItemId === 'TFT_Item_EmptyBag' || rawItemId === 'TFT_Item_Unknown') continue;
         const itemId = resolveItemId(rawItemId, itemApiNameSet);
         const item = itemMap.get(itemId);
         if (item) {
@@ -65,7 +67,10 @@ export function reconstructMatch(
   const resolved = resolveTraits(allChampions, traitData);
   const allTraits = traitData.filter(t => resolved.some(r => r.trait.apiName === t.apiName && r.style > 0));
 
-  const confidence: AnalysisConfidence = reasons.length > 0 ? 'unsupported' : 'estimated';
+  // coverageChecker 와 일치: 챔피언 미지원은 재현 불가, 아이템 미지원은 경고만 (해당 아이템 무시하고 시뮬 진행).
+  const confidence: AnalysisConfidence = reasons.includes('unsupported_champion')
+    ? 'unsupported'
+    : 'estimated';
 
   return {
     playerTeam,
