@@ -89,5 +89,11 @@ export function useMatchAnalysis() {
     return result;
   }, [results]);
 
-  return { results, analyze };
+  /** 새 유저 검색 시 호출. matchId 동일해도 유저별로 덱이 달라 분석 결과가 달라지므로
+   *  캐시를 비워 재계산하도록 한다. */
+  const reset = useCallback(() => {
+    setResults(new Map());
+  }, []);
+
+  return { results, analyze, reset };
 }

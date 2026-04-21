@@ -191,47 +191,60 @@ export async function POST(req: NextRequest) {
         { onConflict: 'puuid' }
       );
 
-    // 3. DB에 저장된 매치 ID 조회
-    const { data: existingMatches } = await supabase
+    // 3. DB에 저장된 매치 ID + set_id 조회 (이미 저장된 매치는 detail 재호출 불필요)
+    const { data: existingRows } = await supabase
       .from('matches')
-      .select('match_id')
+      .select('match_id, set_id')
       .eq('puuid', puuid);
 
-    const existingIds = new Set((existingMatches ?? []).map((m) => m.match_id));
+    const existingSetMap = new Map<string, string>(
+      (existingRows ?? []).map((r) => [r.match_id, r.set_id ?? 'set17']),
+    );
 
-    // 4. Riot에서 최근 매치 ID 가져오기
+    // 4. Riot에서 최근 매치 ID 가져오기 (최신순)
     const matchIds = await getMatchIds(puuid, MATCH_FETCH_LIMIT);
-    const newMatchIds = matchIds.filter((id) => !existingIds.has(id));
 
-    // 5. 새 매치 상세 조회 + DB 저장
-    const newMatches: ParsedMatch[] = [];
-    for (const matchId of newMatchIds) {
-      const detail = await getMatchDetail(matchId);
-      const parsed = parseMatchForPlayer(detail, puuid);
-      if (!parsed) continue;
-
-      newMatches.push(parsed);
-
-      await supabase.from('matches').insert({
-        match_id: parsed.matchId,
-        puuid,
-        placement: parsed.placement,
-        champions: parsed.champions,
-        game_datetime: parsed.gameDatetime,
-        game_length: parsed.gameLength,
-        queue_id: parsed.queueId,
-        set_id: parsed.setId,
-        traits: parsed.traits,
-      });
+    // 5. 최신순 스캔 — set17 이 아닌 매치를 만나면 그 이전 (더 오래된) 매치는 페치/응답 모두 차단.
+    //    DB 기존 매치는 setId 를 DB에서 읽고, 신규 매치만 getMatchDetail 호출.
+    const allowedMatchIds: string[] = [];
+    for (const matchId of matchIds) {
+      let setId: string;
+      if (existingSetMap.has(matchId)) {
+        setId = existingSetMap.get(matchId)!;
+      } else {
+        const detail = await getMatchDetail(matchId);
+        const parsed = parseMatchForPlayer(detail, puuid);
+        if (!parsed) continue;
+        setId = parsed.setId;
+        if (setId === 'set17') {
+          await supabase.from('matches').insert({
+            match_id: parsed.matchId,
+            puuid,
+            placement: parsed.placement,
+            champions: parsed.champions,
+            game_datetime: parsed.gameDatetime,
+            game_length: parsed.gameLength,
+            queue_id: parsed.queueId,
+            set_id: parsed.setId,
+            traits: parsed.traits,
+          });
+        }
+      }
+      if (setId !== 'set17') break;
+      allowedMatchIds.push(matchId);
     }
 
-    // 6. 전체 매치 반환 (DB에서 정렬된 전체 목록)
-    const { data: allMatches } = await supabase
-      .from('matches')
-      .select('*')
-      .eq('puuid', puuid)
-      .order('game_datetime', { ascending: false })
-      .limit(MATCH_FETCH_LIMIT);
+    // 6. 응답에 포함할 매치만 조회 (컷오프 이후 매치는 DB에 있어도 제외).
+    //    puuid 필터 필수 — matches 테이블은 (match_id, puuid) unique 이므로
+    //    puuid 를 빼면 다른 유저가 저장한 동일 match_id row 까지 딸려와 React key 중복 발생.
+    const { data: allMatches } = allowedMatchIds.length === 0
+      ? { data: [] as ParsedMatch[] }
+      : await supabase
+          .from('matches')
+          .select('*')
+          .eq('puuid', puuid)
+          .in('match_id', allowedMatchIds)
+          .order('game_datetime', { ascending: false });
 
     return NextResponse.json({
       summoner: {

@@ -1,11 +1,13 @@
 'use client';
 
 import { Suspense, useState, useMemo, useCallback, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { DndContext, DragOverlay, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { useGameData } from '@/hooks/useGameData';
 import { useActiveSet } from '@/hooks/useActiveSet';
 import { simulateCombat } from '@/lib/simulator/engine/combatLoop';
-import { PlacedChampion, HexCoord, axialToOffset, offsetToAxial, CombatResult, CombatLog } from '@/types';
+import { PlacedChampion, HexCoord, RawItem, axialToOffset, offsetToAxial, CombatResult, CombatLog } from '@/types';
+import { decodeTeamCode, autoPlaceChampions } from '@/lib/teamCode';
 import { TICKS_PER_SECOND, BOARD_COLS } from '@/lib/simulator/models/constants';
 import { useTeamManagement } from '@/hooks/useTeamManagement';
 import { useReplayControls } from '@/hooks/useReplayControls';
@@ -48,8 +50,26 @@ export default function SimulatorPage() {
   );
 }
 
+interface HandoffExtras {
+  items: Record<string, string[]>;
+  /** 팀코드 star=0 → 기본 2성 해석 대체. 분석 원본 성급을 그대로 복원. */
+  starLevels: Record<string, number>;
+}
+
+interface AnalysisHandoff {
+  playerCode: string;
+  enemyCode: string;
+  extras: {
+    player: HandoffExtras;
+    enemy: HandoffExtras;
+  };
+  teamNames?: { player: string | null; enemy: string | null };
+  returnTo: { matchId: string; puuid: string };
+}
+
 function SimulatorContent() {
   const activeSet = useActiveSet();
+  const router = useRouter();
   const { champions, items, traits, augments, teamPlannerMapping, loading } = useGameData(activeSet);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -57,22 +77,52 @@ function SimulatorContent() {
 
   const tm = useTeamManagement({ traits });
   const replay = useReplayControls();
+  const [returnTo, setReturnTo] = useState<{ matchId: string; puuid: string } | null>(null);
+  /** 분석에서 넘어왔을 때만 설정되는 팀 라벨. null 이면 기본 "TEAM A" / "TEAM B" 사용. */
+  const [teamNames, setTeamNames] = useState<{ player: string | null; enemy: string | null }>({ player: null, enemy: null });
+  const playerLabel = teamNames.player ?? 'TEAM A';
+  const enemyLabel = teamNames.enemy ?? 'TEAM B';
 
-  // 분석 페이지에서 넘어온 팀 데이터 로드
+  // 분석 페이지에서 넘어온 팀 데이터 — 팀코드 + extras(아이템) 방식.
+  // 의존성에 champions/items/teamPlannerMapping 포함 — 데이터 로드 완료 후 재발화.
   useEffect(() => {
-    const stored = sessionStorage.getItem('analysis_team');
+    const stored = sessionStorage.getItem('analysis_handoff');
     if (!stored) return;
-    sessionStorage.removeItem('analysis_team');
+    if (!champions.length || !items.length || !teamPlannerMapping.length) return;
+    sessionStorage.removeItem('analysis_handoff');
     try {
-      const { playerTeam, enemyTeam } = JSON.parse(stored) as {
-        playerTeam: PlacedChampion[];
-        enemyTeam: PlacedChampion[];
-      };
-      if (playerTeam.length > 0) tm.updatePlayerTeam(playerTeam);
-      if (enemyTeam.length > 0) tm.updateEnemyTeam(enemyTeam);
-    } catch { /* ignore */ }
+      const handoff = JSON.parse(stored) as AnalysisHandoff;
+      const itemMap = new Map(items.map(i => [i.apiName, i]));
+      const applyExtras = (arr: PlacedChampion[], extras: HandoffExtras): PlacedChampion[] =>
+        arr.map(p => {
+          const apiName = p.champion.apiName;
+          const overrideStar = extras.starLevels[apiName];
+          return {
+            ...p,
+            starLevel: (overrideStar === 1 || overrideStar === 2 || overrideStar === 3) ? overrideStar : p.starLevel,
+            items: (extras.items[apiName] ?? [])
+              .map(id => itemMap.get(id))
+              .filter((x): x is RawItem => !!x),
+          };
+        });
+
+      const playerDecoded = decodeTeamCode(handoff.playerCode, teamPlannerMapping, champions);
+      const enemyDecoded = decodeTeamCode(handoff.enemyCode, teamPlannerMapping, champions);
+      const playerPlaced = autoPlaceChampions(playerDecoded.champions, undefined, 'player');
+      const enemyPlaced = autoPlaceChampions(enemyDecoded.champions, undefined, 'enemy');
+
+      tm.updatePlayerTeam(applyExtras(playerPlaced, handoff.extras.player));
+      tm.updateEnemyTeam(applyExtras(enemyPlaced, handoff.extras.enemy));
+      setReturnTo(handoff.returnTo);
+      if (handoff.teamNames) {
+        setTeamNames({
+          player: handoff.teamNames.player ?? null,
+          enemy: handoff.teamNames.enemy ?? null,
+        });
+      }
+    } catch { /* ignore malformed handoff */ }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [champions, items, teamPlannerMapping]);
   const dnd = useDndHandlers({
     playerTeam: tm.playerTeam,
     enemyTeam: tm.enemyTeam,
@@ -228,6 +278,15 @@ function SimulatorContent() {
   return (
     <DndContext sensors={sensors} onDragStart={dnd.handleDragStart} onDragEnd={dnd.handleDragEnd}>
       <div className="space-y-4">
+        {/* 분석에서 넘어왔을 때만 표시되는 복귀 버튼 */}
+        {returnTo && (
+          <button
+            onClick={() => router.push(`/lookup/${encodeURIComponent(returnTo.matchId)}/analysis?puuid=${encodeURIComponent(returnTo.puuid)}`)}
+            className="text-sm text-gray-400 hover:text-gray-200 transition-colors"
+          >
+            ← 매치 분석으로 돌아가기
+          </button>
+        )}
         {/* Header */}
         <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-3">
@@ -443,7 +502,7 @@ function SimulatorContent() {
                 {/* Augment slots under the board */}
                 <div className="mt-2 flex justify-between px-2">
                   <div>
-                    <div className="text-[9px] text-red-400 font-bold mb-1">TEAM B 증강</div>
+                    <div className="text-[9px] text-red-400 font-bold mb-1 truncate max-w-[120px]">{enemyLabel} 증강</div>
                     <AugmentSlots
                       augments={tm.enemyAugments}
                       augmentStacks={tm.enemyAugmentStacks}
@@ -453,7 +512,7 @@ function SimulatorContent() {
                     />
                   </div>
                   <div>
-                    <div className="text-[9px] text-blue-400 font-bold mb-1">TEAM A 증강</div>
+                    <div className="text-[9px] text-blue-400 font-bold mb-1 truncate max-w-[120px]">{playerLabel} 증강</div>
                     <AugmentSlots
                       augments={tm.playerAugments}
                       augmentStacks={tm.playerAugmentStacks}
@@ -696,16 +755,16 @@ function SimulatorContent() {
               'bg-gray-600/10 border-gray-600/30'
             }`}>
               <div className="text-2xl font-black">
-                {replay.combatResult.winner === 'player' ? 'TEAM A 승리!' :
-                 replay.combatResult.winner === 'enemy' ? 'TEAM B 승리!' : '무승부'}
+                {replay.combatResult.winner === 'player' ? `${playerLabel} 승리!` :
+                 replay.combatResult.winner === 'enemy' ? `${enemyLabel} 승리!` : '무승부'}
               </div>
               <div className="text-xs text-gray-400 mt-1">
                 전투 시간: {replay.combatResult.duration.toFixed(1)}초
               </div>
               {multiSim && (
                 <div className="mt-2 flex gap-4 justify-center text-xs">
-                  <span className="text-blue-400">A 승: {multiSim.playerWins}회 ({(multiSim.playerWins / multiSim.total * 100).toFixed(1)}%)</span>
-                  <span className="text-red-400">B 승: {multiSim.enemyWins}회 ({(multiSim.enemyWins / multiSim.total * 100).toFixed(1)}%)</span>
+                  <span className="text-blue-400 truncate max-w-[140px]">{playerLabel} 승: {multiSim.playerWins}회 ({(multiSim.playerWins / multiSim.total * 100).toFixed(1)}%)</span>
+                  <span className="text-red-400 truncate max-w-[140px]">{enemyLabel} 승: {multiSim.enemyWins}회 ({(multiSim.enemyWins / multiSim.total * 100).toFixed(1)}%)</span>
                   <span className="text-gray-400">무승부: {multiSim.draws}회</span>
                 </div>
               )}
@@ -823,7 +882,7 @@ function SimulatorContent() {
         {replay.viewMode === 'setup' && replay.combatResult && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="p-3 bg-[#111827] rounded-lg border border-gray-800">
-              <h4 className="text-xs font-bold text-blue-400 mb-2">TEAM A 유닛</h4>
+              <h4 className="text-xs font-bold text-blue-400 mb-2 truncate">{playerLabel} 유닛</h4>
               {replay.combatResult.playerUnits.map((u) => (
                 <div key={u.id} className={`flex items-center gap-2 py-1 ${u.state === 'dead' ? 'opacity-40' : ''}`}>
                   <span className="text-xs text-gray-300 flex-1">{u.champion.name}</span>
@@ -833,7 +892,7 @@ function SimulatorContent() {
               ))}
             </div>
             <div className="p-3 bg-[#111827] rounded-lg border border-gray-800">
-              <h4 className="text-xs font-bold text-red-400 mb-2">TEAM B 유닛</h4>
+              <h4 className="text-xs font-bold text-red-400 mb-2 truncate">{enemyLabel} 유닛</h4>
               {replay.combatResult.enemyUnits.map((u) => (
                 <div key={u.id} className={`flex items-center gap-2 py-1 ${u.state === 'dead' ? 'opacity-40' : ''}`}>
                   <span className="text-xs text-gray-300 flex-1">{u.champion.name}</span>

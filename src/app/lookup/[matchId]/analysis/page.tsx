@@ -1,14 +1,17 @@
 'use client';
 
+import Link from 'next/link';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { useState, useEffect, useRef } from 'react';
 import { useCombatAnalysis } from '@/hooks/useCombatAnalysis';
+import { useTeamPlannerMapping } from '@/hooks/useGameData';
 import OpponentSelector from '@/components/analysis/OpponentSelector';
 import DefeatReport from '@/components/analysis/DefeatReport';
 import MatchResultSummary from '@/components/analysis/MatchResultSummary';
 import UnsupportedNotice from '@/components/analysis/UnsupportedNotice';
 import ConfidenceBadge from '@/components/analysis/ConfidenceBadge';
-import { axialToOffset, offsetToAxial, type PlacedChampion } from '@/types';
+import { encodeTeamCode } from '@/lib/teamCode';
+import type { PlacedChampion } from '@/types';
 import type { ParsedParticipant } from '@/lib/riot';
 
 interface ParticipantResponse {
@@ -20,13 +23,23 @@ interface ParticipantResponse {
   traits: Array<{ name: string; numUnits: number; style: number; tierCurrent: number }>;
 }
 
-/** reconstruction 이 넘겨주는 player 좌표 (row 4-7) 를 시뮬레이터 state 규약 (row 0-3) 으로 역변환. */
-function shiftPlayerRowsForSimulator(team: PlacedChampion[]): PlacedChampion[] {
-  return team.map(p => {
-    const off = axialToOffset(p.position);
-    const newRow = Math.max(0, Math.min(3, off.row - 4));
-    return { ...p, position: offsetToAxial({ row: newRow, col: off.col }) };
-  });
+/** 챔피언별 장착 아이템 apiName 맵 수집 (extras.items 용) */
+function collectItems(team: PlacedChampion[]): Record<string, string[]> {
+  const map: Record<string, string[]> = {};
+  for (const p of team) {
+    map[p.champion.apiName] = p.items.map(i => i.apiName);
+  }
+  return map;
+}
+
+/** 챔피언별 원본 성급 맵 수집. 팀코드는 star=0 을 기본 2성으로 해석하므로
+ * 원본 1성 정보를 보존하려면 별도 전달이 필요. */
+function collectStarLevels(team: PlacedChampion[]): Record<string, number> {
+  const map: Record<string, number> = {};
+  for (const p of team) {
+    map[p.champion.apiName] = p.starLevel;
+  }
+  return map;
 }
 
 export default function MatchAnalysisPage() {
@@ -40,6 +53,7 @@ export default function MatchAnalysisPage() {
   const [fetchError, setFetchError] = useState<string | null>(null);
 
   const analysis = useCombatAnalysis();
+  const { teamPlannerMapping } = useTeamPlannerMapping('set17');
   const autoRunTriggered = useRef(false);
 
   useEffect(() => {
@@ -86,21 +100,43 @@ export default function MatchAnalysisPage() {
     analysis.runSimulation(player);
   }, [analysis.status, analysis.reconstruction, analysis.selectedOpponent, player, analysis]);
 
-  /** 시뮬레이터 페이지로 팀 데이터를 넘기고 이동. player 좌표는 시뮬레이터 규약 (row 0-3) 으로 역변환. */
+  /** 시뮬레이터 페이지로 팀 데이터를 팀코드 + extras 로 전달하고 이동.
+   *  - playerCode/enemyCode: encodeTeamCode (챔피언 apiName + 별)
+   *  - extras.items: 챔피언별 아이템 apiName (팀코드 포맷에 없는 정보 보완)
+   *  - returnTo: 복귀 버튼용 {matchId, puuid}
+   */
   const openInSimulator = () => {
-    if (!analysis.reconstruction) return;
-    sessionStorage.setItem('analysis_team', JSON.stringify({
-      playerTeam: shiftPlayerRowsForSimulator(analysis.reconstruction.playerTeam),
-      enemyTeam: analysis.reconstruction.enemyTeam,
-    }));
+    if (!analysis.reconstruction || teamPlannerMapping.length === 0) return;
+
+    const { playerTeam, enemyTeam } = analysis.reconstruction;
+    const handoff = {
+      playerCode: encodeTeamCode(
+        playerTeam.map(p => ({ champion: p.champion, starLevel: p.starLevel })),
+        teamPlannerMapping,
+      ),
+      enemyCode: encodeTeamCode(
+        enemyTeam.map(p => ({ champion: p.champion, starLevel: p.starLevel })),
+        teamPlannerMapping,
+      ),
+      extras: {
+        player: { items: collectItems(playerTeam), starLevels: collectStarLevels(playerTeam) },
+        enemy: { items: collectItems(enemyTeam), starLevels: collectStarLevels(enemyTeam) },
+      },
+      teamNames: {
+        player: player?.gameName ?? null,
+        enemy: analysis.selectedOpponent?.gameName ?? null,
+      },
+      returnTo: { matchId, puuid },
+    };
+    sessionStorage.setItem('analysis_handoff', JSON.stringify(handoff));
     router.push('/simulator');
   };
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
-      <a href="/lookup" className="text-gray-500 hover:text-gray-300 text-sm mb-4 inline-block">
+      <Link href="/lookup" className="text-gray-500 hover:text-gray-300 text-sm mb-4 inline-block">
         ← 전적 목록
-      </a>
+      </Link>
 
       <div className="flex items-center gap-3 mb-6">
         <h1 className="text-2xl font-bold text-gray-200">매치 분석</h1>
@@ -141,7 +177,8 @@ export default function MatchAnalysisPage() {
             {analysis.status === 'done' && analysis.reconstruction && (
               <button
                 onClick={openInSimulator}
-                className="px-4 py-2 rounded bg-purple-600 hover:bg-purple-500 text-white text-sm font-medium transition-colors"
+                disabled={teamPlannerMapping.length === 0}
+                className="px-4 py-2 rounded bg-purple-600 hover:bg-purple-500 disabled:bg-gray-700 disabled:text-gray-500 text-white text-sm font-medium transition-colors"
               >
                 시뮬레이터에서 열기
               </button>

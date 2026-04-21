@@ -27,14 +27,17 @@ export default function MatchResultSummary({
   const playerDamage = sumDamage(result.playerUnits);
   const enemyDamage = sumDamage(result.enemyUnits);
 
+  const playerLabel = playerName ?? 'TEAM A';
+  const opponentLabel = opponentName ?? 'TEAM B';
+
   const winner = result.winner;
   const bannerStyle =
     winner === 'player' ? 'bg-blue-600/10 border-blue-600/30 text-blue-300' :
     winner === 'enemy'  ? 'bg-red-600/10 border-red-600/30 text-red-300' :
     'bg-gray-600/10 border-gray-600/30 text-gray-300';
   const winnerLabel =
-    winner === 'player' ? 'TEAM A 승리' :
-    winner === 'enemy'  ? 'TEAM B 승리' : '무승부';
+    winner === 'player' ? `${playerLabel} 승리` :
+    winner === 'enemy'  ? `${opponentLabel} 승리` : '무승부';
 
   const survivors: CombatUnit[] = winner === 'draw'
     ? []
@@ -52,30 +55,25 @@ export default function MatchResultSummary({
       {/* 배너 */}
       <header className={`p-3 border-b border-gray-700/50 ${bannerStyle}`}>
         <div className="flex items-baseline justify-between gap-3">
-          <div className="font-bold text-base">
+          <div className="font-bold text-base truncate">
             {winnerLabel}
             <span className="ml-2 text-xs text-gray-400 font-normal">
               전투 시간 {result.duration.toFixed(1)}초
             </span>
           </div>
-          {(playerName || opponentName) && (
-            <div className="text-xs text-gray-400 truncate">
-              {playerName ?? '나'} <span className="text-gray-600">vs</span> {opponentName ?? '상대'}
-            </div>
-          )}
         </div>
       </header>
 
       {/* 양팀 총 딜량 */}
       <div className="grid grid-cols-2 divide-x divide-gray-700/50 text-sm">
         <div className="p-3">
-          <div className="text-[10px] font-bold text-blue-400 mb-1">TEAM A 총 피해량</div>
+          <div className="text-[10px] font-bold text-blue-400 mb-1 truncate">{playerLabel} 총 피해량</div>
           <div className={`font-mono ${playerStrong ? 'text-blue-200 font-bold' : 'text-gray-400'}`}>
             {playerDamage.toLocaleString()}
           </div>
         </div>
         <div className="p-3">
-          <div className="text-[10px] font-bold text-red-400 mb-1">TEAM B 총 피해량</div>
+          <div className="text-[10px] font-bold text-red-400 mb-1 truncate">{opponentLabel} 총 피해량</div>
           <div className={`font-mono ${!playerStrong ? 'text-red-200 font-bold' : 'text-gray-400'}`}>
             {enemyDamage.toLocaleString()}
           </div>
@@ -88,8 +86,8 @@ export default function MatchResultSummary({
           <div className="text-xs text-gray-500">무승부 — 생존 유닛 없음</div>
         ) : (
           <>
-            <div className="text-[10px] font-bold text-gray-400 mb-2">
-              {winner === 'player' ? 'TEAM A' : 'TEAM B'} 생존 유닛 ({survivors.length} / {survivorTotal})
+            <div className="text-[10px] font-bold text-gray-400 mb-2 truncate">
+              {winner === 'player' ? playerLabel : opponentLabel} 생존 유닛 ({survivors.length} / {survivorTotal})
             </div>
             {survivors.length === 0 ? (
               <div className="text-xs text-gray-500">생존 유닛 없음</div>

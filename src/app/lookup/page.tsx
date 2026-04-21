@@ -1,70 +1,22 @@
 'use client';
 
-import { useRef, useState, useEffect, useSyncExternalStore } from 'react';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { getChampionImage } from '@/data/imageMap';
 import Tooltip from '@/components/ui/Tooltip';
 import { useMatchAnalysis } from '@/hooks/useMatchAnalysis';
 import ItemDiagnosis from '@/components/analysis/ItemDiagnosis';
+import { useLookupStore } from '@/store/lookupSlice';
 import type { ItemAnalysisResult } from '@/types/analysis';
-
-/* ─── Types ─── */
-
-interface Champion {
-  id: string;
-  tier: number;
-  items: string[];
-}
-
-interface TraitData {
-  name: string;
-  numUnits: number;
-  style: number;
-  tierCurrent: number;
-}
-
-interface TraitMetaEntry {
-  name: string;
-  icon: string;
-  isUnique: boolean;
-  desc: string;
-}
-
-interface ChampionMetaEntry {
-  name: string;
-  cost: number;
-  traits: string[];
-}
-
-interface ItemMetaEntry {
-  name: string;
-  desc: string;
-  icon: string;
-}
-
-interface MatchData {
-  match_id: string;
-  placement: number;
-  champions: Champion[];
-  game_datetime: string;
-  game_length: number;
-  queue_id: number | null;
-  set_id: string | null;
-  traits: TraitData[] | null;
-}
-
-interface SummonerData {
-  gameName: string;
-  tagLine: string;
-  puuid: string;
-}
-
-interface LookupResult {
-  summoner: SummonerData;
-  matches: MatchData[];
-  traitMeta: Record<string, TraitMetaEntry>;
-  championMeta: Record<string, ChampionMetaEntry>;
-  itemMeta: Record<string, ItemMetaEntry>;
-}
+import type {
+  LookupChampion as Champion,
+  LookupTraitData as TraitData,
+  TraitMetaEntry,
+  ChampionMetaEntry,
+  ItemMetaEntry,
+  MatchData,
+  LookupResult,
+} from '@/types/lookup';
 
 /* ─── Helpers ─── */
 
@@ -486,12 +438,12 @@ function MatchCard({
 
           {/* 가상 대전 분석 버튼 (Set 17만) */}
           {(match.set_id ?? 'set17') === 'set17' && !isFirstPlace && (
-            <a
+            <Link
               href={`/lookup/${encodeURIComponent(match.match_id)}/analysis?puuid=${encodeURIComponent(searchedPuuid)}`}
               className="mt-2 inline-block px-3 py-1.5 rounded text-xs font-medium bg-blue-600/20 border border-blue-500/30 text-blue-300 hover:bg-blue-600/30 transition-colors"
             >
               가상 대전 분석
-            </a>
+            </Link>
           )}
         </div>
 
@@ -531,106 +483,11 @@ function MatchCard({
 
 /* ─── Main ─── */
 
-const STORAGE_KEYS = {
-  input: 'lookup-input',
-  result: 'lookup-result',
-  activeSet: 'lookup-active-set',
-} as const;
-
-/* useSyncExternalStore 기반 sessionStorage hydration-safe 구독.
- *
- * 문제: 이전 구현은 useState 초기값으로 sessionStorage 를 읽었고, SSR 에서는 fallback,
- * 클라이언트에서는 sessionStorage 값을 반환 → SSR HTML 과 클라이언트 첫 렌더가 달라
- * React Hydration error 발생.
- *
- * 해결: useSyncExternalStore 의 getServerSnapshot=fallback 으로 SSR/hydration 첫 렌더는
- * fallback 으로 통일. React 가 자동으로 client snapshot 으로 swap. (Mismatch 없음)
- *
- * 추가 고려:
- *   - getSnapshot 은 referential identity 보존 필요 (객체 매번 new 하면 무한 렌더).
- *     raw 문자열 캐시 후 동일하면 이전 parsed 반환.
- *   - setValue 시 sessionStorage 쓰고 listener 에 알림 (탭 내 다른 컴포넌트도 갱신)
- */
-type Listener = () => void;
-const sessionListeners = new Map<string, Set<Listener>>();
-function subscribeKey(key: string) {
-  return (cb: Listener) => {
-    let set = sessionListeners.get(key);
-    if (!set) {
-      set = new Set();
-      sessionListeners.set(key, set);
-    }
-    set.add(cb);
-    return () => {
-      set!.delete(cb);
-    };
-  };
-}
-function notifyKey(key: string) {
-  sessionListeners.get(key)?.forEach((cb) => cb());
-}
-
-function useSessionState<T>(
-  key: string,
-  fallback: T,
-  parse: (raw: string) => T,
-  serialize: (v: T) => string,
-): [T, (v: T) => void] {
-  const cacheRaw = useRef<string | null | undefined>(undefined);
-  const cacheParsed = useRef<T>(fallback);
-  const subscribe = subscribeKey(key);
-
-  const value = useSyncExternalStore(
-    subscribe,
-    () => {
-      try {
-        const raw = sessionStorage.getItem(key);
-        if (raw === cacheRaw.current) return cacheParsed.current;
-        cacheRaw.current = raw;
-        cacheParsed.current = raw === null ? fallback : parse(raw);
-        return cacheParsed.current;
-      } catch {
-        return fallback;
-      }
-    },
-    () => fallback,
-  );
-
-  const setValue = (next: T) => {
-    try {
-      if (next === null || next === undefined) sessionStorage.removeItem(key);
-      else sessionStorage.setItem(key, serialize(next));
-    } catch {
-      /* sessionStorage 사용 불가 환경 (Safari private 등) — silent skip */
-    }
-    notifyKey(key);
-  };
-
-  return [value, setValue];
-}
-
 export default function LookupPage() {
-  const [input, setInput] = useSessionState<string>(
-    STORAGE_KEYS.input,
-    '',
-    (r) => r,
-    (v) => v,
-  );
-  const [result, setResult] = useSessionState<LookupResult | null>(
-    STORAGE_KEYS.result,
-    null,
-    (r) => JSON.parse(r) as LookupResult,
-    (v) => JSON.stringify(v),
-  );
+  const { input, activeSet, result, setInput, setActiveSet, setResult } = useLookupStore();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [activeSet, setActiveSet] = useSessionState<string>(
-    STORAGE_KEYS.activeSet,
-    'set17',
-    (r) => r,
-    (v) => v,
-  );
-  const { results: analysisResults, analyze } = useMatchAnalysis();
+  const { results: analysisResults, analyze, reset: resetAnalysis } = useMatchAnalysis();
 
   const PAGE_SIZE = 20;
   const [page, setPage] = useState(1);
@@ -655,6 +512,8 @@ export default function LookupPage() {
     setError('');
     setResult(null);
     setActiveSet('set17');
+    // 유저가 바뀌면 이전 분석 캐시를 비운다 — 같은 match_id 라도 덱/플레이어가 달라 분석 결과가 다름.
+    resetAnalysis();
 
     try {
       const res = await fetch('/api/lookup', {
@@ -757,12 +616,21 @@ export default function LookupPage() {
             </div>
           )}
 
-          {/* Match count */}
-          <div className="text-sm text-gray-500 mb-3">
-            {SET_LABELS[activeSet] ?? activeSet} — 전체 {filteredMatches.length}게임
-            {totalPages > 1 && (
-              <span className="ml-2 text-gray-600">· 페이지 {currentPage} / {totalPages}</span>
-            )}
+          {/* Match count + 새로고침 */}
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-sm text-gray-500">
+              {SET_LABELS[activeSet] ?? activeSet} — 전체 {filteredMatches.length}게임
+              {totalPages > 1 && (
+                <span className="ml-2 text-gray-600">· 페이지 {currentPage} / {totalPages}</span>
+              )}
+            </div>
+            <button
+              onClick={() => handleSearch()}
+              disabled={loading}
+              className="px-3 py-1 rounded bg-gray-800 hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed text-xs text-gray-300 transition-colors"
+            >
+              {loading ? '새로고침 중...' : '↻ 새로고침'}
+            </button>
           </div>
 
           {/* Match list */}
