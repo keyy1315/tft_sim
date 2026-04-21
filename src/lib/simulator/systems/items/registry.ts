@@ -12,6 +12,7 @@ import { COMBINED_ITEMS } from './definitions/combined';
 import { STACKING_ITEMS } from './definitions/stacking';
 import { PSYOPS_ITEMS } from './definitions/psyops';
 import { ANOMALY_ITEMS } from './definitions/anomaly';
+import { ARTIFACT_ITEMS } from './definitions/artifacts';
 
 /**
  * 여러 카테고리 registry 를 합병한다.
@@ -49,6 +50,7 @@ export const ITEM_EFFECTS: Record<string, ItemEffectDescriptor[]> = mergeRegistr
   STACKING_ITEMS,
   PSYOPS_ITEMS,
   ANOMALY_ITEMS,
+  ARTIFACT_ITEMS,
 );
 
 /** registry에 entry가 존재하는지 확인. 없으면 legacy fallback. */

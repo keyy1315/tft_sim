@@ -9,9 +9,22 @@ import {
   parseMatchForPlayer,
 } from '@/lib/riot';
 import type { ParsedMatch } from '@/lib/riot';
+import { resolveDescription } from '@/lib/utils/text';
 
-function stripHtml(s: string): string {
-  return s.replace(/<[^>]*>/g, '').replace(/\{\{[^}]*\}\}/g, '').replace(/@\w+@/g, '?').trim();
+/**
+ * 아이템/특성 desc 를 사용자에게 보여주기 전 정리.
+ *
+ * 이전 구현 `s.replace(/@\w+@/g, '?')` 는 `@DamageAmp*100@` 같이 곱셈/특수문자가
+ * 들어간 placeholder 를 매칭하지 못해 raw 코드 (`@DamageAmp*100@%`) 그대로 노출됐음.
+ *
+ * resolveDescription 을 사용해 effects 로 placeholder 를 치환한다. effects 누락
+ * 등으로 잔여 placeholder 가 남으면 "?" 로 sanitize.
+ */
+function formatDesc(desc: string, effects: Record<string, number | null> = {}): string {
+  if (!desc) return '';
+  const resolved = resolveDescription(desc, effects);
+  // 잔여 placeholder (effects 에 없는 변수) 정리
+  return resolved.replace(/@[^@]+@/g, '?').replace(/\{\{[^}]*\}\}/g, '').trim();
 }
 
 /* ─── TraitMeta ─── */
@@ -40,7 +53,7 @@ function loadTraitsFromFile(filePath: string, result: Record<string, TraitMeta>)
       name: t.name,
       icon: `${base}/${filename}`,
       isUnique: Array.isArray(t.effects) ? t.effects.length === 1 : false,
-      desc: stripHtml(t.desc ?? ''),
+      desc: formatDesc(t.desc ?? '', {}),
     };
   }
 }
@@ -122,7 +135,7 @@ function getItemMeta(): Record<string, ItemMeta> {
     for (const item of common.items ?? common) {
       cachedItemMeta[item.apiName] = {
         name: item.name,
-        desc: stripHtml(item.desc ?? ''),
+        desc: formatDesc(item.desc ?? '', item.effects ?? {}),
         icon: resolveItemIcon(item.apiName, item.icon ?? ''),
       };
     }
@@ -136,7 +149,7 @@ function getItemMeta(): Record<string, ItemMeta> {
       if (cachedItemMeta[item.apiName]) continue;
       cachedItemMeta[item.apiName] = {
         name: item.name,
-        desc: stripHtml(item.desc ?? ''),
+        desc: formatDesc(item.desc ?? '', item.effects ?? {}),
         icon: resolveItemIcon(item.apiName, item.icon ?? ''),
       };
     }

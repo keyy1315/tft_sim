@@ -107,6 +107,7 @@ function createCombatUnit(
     attackCooldown: 0,
     moveCooldown: 0,
     totalDamageDealt: 0,
+    itemDamageDealt: 0,
     totalDamageTaken: 0,
     statusEffects: [],
     omnivamp: ROLE_OMNIVAMP[role] + (itemFx.omnivamp ?? 0),
@@ -673,6 +674,7 @@ function spawnFreljordTurrets(
             attackCooldown: 0,
             moveCooldown: 0,
             totalDamageDealt: 0,
+            itemDamageDealt: 0,
             totalDamageTaken: 0,
             statusEffects: [],
             omnivamp: 0,
@@ -795,6 +797,7 @@ function trySpawnGalio(
     attackCooldown: 0,
     moveCooldown: 0,
     totalDamageDealt: 0,
+    itemDamageDealt: 0,
     totalDamageTaken: 0,
     statusEffects: [],
     omnivamp: 0,
@@ -1447,6 +1450,7 @@ export function simulateCombat(
       target.currentHp -= dmg;
       target.totalDamageTaken += dmg;
       source.totalDamageDealt += dmg;
+      source.itemDamageDealt += dmg;
     }
     eventBus.emit('on_damage', {
       sourceId: target.id,
@@ -1642,7 +1646,8 @@ export function simulateCombat(
             else enemyArbiterState.enemyDeathCount++;
             const deathLog: CombatLog = { tick, time, type: 'death', sourceId: target.id, message: `${target.champion.name} 사망! (${unit.champion.name}의 기본 공격)` };
             logs.push(deathLog); tickLogs.push(deathLog);
-            eventBus.emit('on_death', { sourceId: target.id, tick });
+            eventBus.emit('on_kill', { sourceId: unit.id, targetId: target.id, tick });
+            eventBus.emit('on_death', { sourceId: target.id, targetId: unit.id, tick });
           }
 
           if (unit.omnivamp > 0 && finalDamage > 0) {
@@ -1932,7 +1937,8 @@ export function simulateCombat(
                   };
                   logs.push(deathLog);
                   tickLogs.push(deathLog);
-                  eventBus.emit('on_death', { sourceId: t.id, tick });
+                  eventBus.emit('on_kill', { sourceId: unit.id, targetId: t.id, tick });
+                  eventBus.emit('on_death', { sourceId: t.id, targetId: unit.id, tick });
                 }
               }
             }

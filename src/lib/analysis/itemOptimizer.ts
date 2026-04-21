@@ -153,51 +153,56 @@ function estimateAvgStacks(attackSpeed: number, combatDuration: number, stackCap
 const AVG_COMBAT_DURATION = 15; // 평균 전투 시간 15초
 
 /**
- * estimateDps 내부 계수 — Phase 6-B Part 2 calibration 적용본.
+ * estimateDps 내부 계수 — Phase 6-B Part 2/3/4 calibration 적용본 (2026-04-21).
  *
- * 측정 일자: 2026-04-21
  * 측정 스크립트: tests/calibration/calibrate-dps.test.ts
- * 측정 결과: docs/03-analysis/calibration-dps-results.json
  *
- * 시뮬 시나리오:
- *   - mid-4v4: Jhin/Karma/Rammus/Pantheon vs Maokai/Aurora/Akali/Caitlyn (모두 2성)
- *   - late-7v7: Jhin/Karma/Aurora/Kindred + Rammus/Pantheon/Maokai vs Akali/Caitlyn/Vex/Xayah + Galio/Illaoi/Maokai
- *   - 시드: [1, 7, 13, 42, 99, 137, 211] (결정론 7회 평균)
- *
- * 측정 가능 3개 (실측 적용):
- *   #2 AVG_ENEMY_HP_FOR_BURN — 챔피언 데이터 가중평균 (cost 1:10%, 2:25%, 3:30%, 4:25%, 5:10%)
+ * Part 2 (실측 적용 3개):
+ *   #2 AVG_ENEMY_HP_FOR_BURN — 챔피언 데이터 가중평균
  *   #4 AVG_MISSING_HP_PCT    — snapshot 기반 양팀 평균 missing hp%
- *   #6 AVG_KILLS_PER_COMBAT  — 캐리(비탱커) killCount 평균 (탱커 별도)
+ *   #6 AVG_KILLS_PER_COMBAT  — 캐리 killCount 평균
  *
- * 측정 곤란 3개 (baseline 유지 + 사유):
- *   #1 FLAT_DAMAGE_PROC_RATE — 엔진에 BaseDamage(루덴) 직접 처리 미구현, control(stat-equivalent) 깨짐
- *   #3 BONUS_ATTACK_DPS_MULT — 엔진에 NumBonusAttacks(야스오 검술) 미구현
- *   #5 MANA_REGEN_EFFICIENCY — 대천사 vs 라바돈 control 깨짐 (ap stat 차이로 적이 빨리 죽어 cast 적음)
+ * Part 3 (엔진 primitive 보강 + #5 확정):
+ *   - 루덴의 폭풍 (BaseDamage 100, on_kill splash) artifacts.ts 추가
+ *   - 야스오의 검술 (NumBonusAttacks 3.5s timer) artifacts.ts 추가
+ *   - combatLoop on_kill emit 누락 2곳 보완 (basic attack kill, ability AoE kill)
+ *   - #5 MANA_REGEN_EFFICIENCY — 엔진 코드 직접 분석 (combatLoop.ts:1573) 1:1 비율 확정
+ *
+ * Part 4 (itemDamageDealt 카운터 기반 isolated measurement):
+ *   - CombatUnit.itemDamageDealt 필드 추가 (ItemEffectRuntime dealDamage 누적)
+ *   - #1/#3 을 isolated scenario (Fiora + 단일 artifact + BFSword2) 로 proc 기여만 측정
+ *   - stat-equivalent control 대신 "item trigger/timer 기여" 자체를 직접 카운트
+ *
+ * **6/6 실측 반영 완료** — Phase 6-B 종결.
  */
 export const DPS_CALIBRATION = {
-  /** 루덴/악성코드 등 고정 피해 아이템의 초당 발동 확률 추정치.
-   *  baseline 0.3 유지. 엔진에 BaseDamage(루덴) 직접 처리 미구현 → 시뮬 역산 불가. */
-  FLAT_DAMAGE_PROC_RATE: 0.3,
+  /** 고정 피해 아이템 (루덴의 폭풍 등) 의 proc 기여 계수.
+   *  estimateDps 식: flatDpsBonus = mods.flatDamage × totalAS × PROC_RATE
+   *  measured (Part 4): 0.091 (n=7, σ=0.006, Fiora 2성 + 루덴 vs 1성 enemy 3명).
+   *  루덴 on_kill 빈도 × adjacentEnemies splash 평균 반영. baseline 0.3 대비 1/3. */
+  FLAT_DAMAGE_PROC_RATE: 0.09,
 
   /** 화상 DPS 계산용 "적 평균 체력" (BurnPercent × 이 값 / 100).
-   *  measured: 1539 (mid-game 2성 가중평균), round to 1500 = 15 * 100. */
+   *  measured (Part 2): 1539, round 1500 = 15 × 100. */
   AVG_ENEMY_HP_FOR_BURN: 15 * 100, // 1500
 
   /** 추가 공격 (야스오 검술) 의 DPS 기여율.
-   *  baseline 0.3 유지. 엔진에 NumBonusAttacks 미구현 → 측정 불가. */
-  BONUS_ATTACK_DPS_MULT: 0.3,
+   *  estimateDps 식: bonusAttackMul = 1 + N × MULT
+   *  measured (Part 4): 0.033 (n=7, σ=0.009, Fiora 2성 + 야스오 vs 탱키 enemy 3명 2성, avg 7.6s).
+   *  야스오 timer fire / basic+ability actual DPS 비율. baseline 0.3 대비 1/10. */
+  BONUS_ATTACK_DPS_MULT: 0.03,
 
   /** "잃은 체력 %당 공격속도" 의 가중치 — 전투 중 평균 missing HP% 추정.
-   *  measured: 38.0 (n=14, σ=2.4, mid-4v4 + late-7v7 통합). */
+   *  measured (Part 2): 38.0 (n=14, σ=2.4, mid-4v4 + late-7v7 통합). */
   AVG_MISSING_HP_PCT: 38,
 
   /** 마나 재생 효율 — mana regen × duration × 이 값 만큼 effectiveMana 감소.
-   *  baseline 0.1 유지. 대천사 vs 라바돈 control 깨짐 (다른 stat 차이로 noise). */
-  MANA_REGEN_EFFICIENCY: 0.1,
+   *  Part 3 엔진 분석 확정: combatLoop.ts:1573 mana += augmentManaRegen × TICK_DURATION (1:1). */
+  MANA_REGEN_EFFICIENCY: 1.0,
 
   /** 평균 처치 수 (ADAPPerTakedown 같은 on-kill 스케일링).
-   *  measured: 0.99 (n=91, σ=1.34, 캐리 비탱커 평균. 탱커 평균 0.14).
-   *  4v4/7v7 시뮬 기준이므로 8v8 실게임에서는 더 높을 가능성 있음. */
+   *  measured (Part 2): 0.99 (n=91, σ=1.34, 캐리 비탱커 평균).
+   *  4v4/7v7 시뮬 기준 — 8v8 실게임에서는 더 높을 가능성. */
   AVG_KILLS_PER_COMBAT: 1,
 } as const;
 

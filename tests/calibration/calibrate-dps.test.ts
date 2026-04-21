@@ -282,168 +282,172 @@ function measureAvgKillsPerCombat(): MeasurementResult {
 
 /* ──────────────── #5 MANA_REGEN_EFFICIENCY ──────────────── */
 //
-// 측정: estimateDps 의 effectiveMana 보정식
-//   effectiveMana = max(maxMana - manaRegen × duration × EFFICIENCY, 20)
-//   castFreq = 100 / effectiveMana
+// 엔진 직접 분석으로 결정 (시뮬 측정 대신).
 //
-// 실측: AP 챔피언에 manaRegen 아이템 ON/OFF 로 castCount 변화 측정.
-//   castCount_on / castCount_off 비율 → effectiveMana 비율 → EFFICIENCY 역산
+// combatLoop.ts:1572-1574:
+//   if (unit.augmentManaRegen > 0) {
+//     unit.currentMana += unit.augmentManaRegen × TICK_DURATION;
+//   }
 //
-// 사용 아이템: 쇼진의 창 (SpearOfShojin, manaRegen=1, AD/AP +15/15)
-//   - manaRegen=1 (per second), 시뮬 평균 duration ~ 15s → 추가 mana = 1×15=15
-//   - 쇼진은 AD 도 주므로 AP 캐리에게 주면 AD 부분은 의미 없음, 마나 효과만 작용
-//   - 더 깔끔: TearOfTheGoddess (manaRegen=1, ap=15), 또는 ArchangelsStaff (manaRegen=1, ap=30)
+// ItemEffect.manaRegen → augmentManaRegen 매핑 (combatLoop.ts:116, getItemEffects 경로) 1:1.
+// 따라서 manaRegen=1 → 초당 1 mana. AVG_COMBAT_DURATION=15s → 15 mana 절약.
+// estimateDps 식: effectiveMana = maxMana - manaRegen × duration × EFFICIENCY
+//   → EFFICIENCY = 절약된 mana / (manaRegen × duration) = 15 / (1×15) = 1.0
+//
+// stat-equivalent control 시뮬은 AP stat 차이로 항상 noise. 엔진 코드 분석이 정답.
+//
+// 검증: 짧은 시뮬 (Karma 단독 + 강한 enemy=Galio 2성)에서 manaRegen 효과 단방향 확인.
 //
 function measureManaRegenEfficiency(): MeasurementResult {
-  const ratios: number[] = [];
+  // 1초간 mana 변화 검증 — Karma 가 cast 전에 측정해야 정확. 첫 cast time 비교.
+  // ON: 대천사 3개 (manaRegen=3 → 초당 3 mana)
+  // OFF: 라바돈 3개 (manaRegen=0)
+  // duration 차이로 cast 빈도 비교 (ratio)
+  //
+  // 이 측정은 control 안 깨끗하지만 엔진 동작의 sanity check 용으로만 보고.
 
-  // ON = 대천사 3개 (manaRegen=1, ap=30 each). OFF = 라바돈 3개 (manaRegen 없음, ap=50 each)
-  // ⚠ 한계: ap stat 차이로 적을 빨리 죽이는 양이 달라짐 → control 깨짐 (noise)
+  const onCasts: number[] = [];
+  const offCasts: number[] = [];
   const playerOn = PLAYER_BASE.map(u =>
     u === PLAYER_AP_CARRY
       ? { ...u, items: ['TFT_Item_ArchangelsStaff', 'TFT_Item_ArchangelsStaff', 'TFT_Item_ArchangelsStaff'] }
       : u,
   );
-  const playerCtrl = PLAYER_BASE.map(u =>
+  const playerOff = PLAYER_BASE.map(u =>
     u === PLAYER_AP_CARRY
       ? { ...u, items: ['TFT_Item_RabadonsDeathcap', 'TFT_Item_RabadonsDeathcap', 'TFT_Item_RabadonsDeathcap'] }
       : u,
   );
 
-  // ON vs CTRL: ap 비교 (대천사 ap=30 vs 라바돈 ap=50) 다르긴 함. castCount 위주로 ratio 보면 mana 효과만 분리 가능.
-  const castOn: number[] = [];
-  const castOff: number[] = [];
-
-  for (const seed of SEEDS) {
-    const rOn = runSim(playerOn, ENEMY_TEAM, seed);
-    const rCtrl = runSim(playerCtrl, ENEMY_TEAM, seed);
-    const apOnUnit = rOn.playerUnits.find(u => u.champion.apiName === PLAYER_AP_CARRY.api);
-    const apCtrlUnit = rCtrl.playerUnits.find(u => u.champion.apiName === PLAYER_AP_CARRY.api);
-    if (!apOnUnit || !apCtrlUnit) continue;
-
-    castOn.push(apOnUnit.castCount);
-    castOff.push(apCtrlUnit.castCount);
-
-    const dur = rOn.duration;
-    const maxMana = apOnUnit.maxMana;
-    if (apOnUnit.castCount === 0 || apCtrlUnit.castCount === 0 || dur <= 0) continue;
-    // castFreq = 100 / effectiveMana = castCount / (totalAS × duration)
-    // 하지만 totalAS 추정 어려우니 castCount 비율로 간이 추정
-    const ratio = apOnUnit.castCount / Math.max(apCtrlUnit.castCount, 1);
-    // ON: effectiveMana = maxMana - 1 × dur × E
-    // OFF: effectiveMana = maxMana
-    // ratio = maxMana / (maxMana - dur × E)  (∵ castFreq inverse)
-    // dur × E = maxMana × (1 - 1/ratio)
-    // E = maxMana × (1 - 1/ratio) / dur
-    if (ratio > 1) {
-      const efficiency = (maxMana * (1 - 1 / ratio)) / dur;
-      ratios.push(efficiency);
-    }
-  }
-
-  const measured = ratios.length > 0 ? mean(ratios) : 0.1;
-  return {
-    metric: 'MANA_REGEN_EFFICIENCY',
-    current: 0.1,
-    measured: Math.round(measured * 1000) / 1000,
-    samples: ratios.length,
-    stddev: Math.round(stddev(ratios) * 1000) / 1000,
-    notes: `대천사3 vs 라바돈3 cast 비율 역산. AP carry: ${PLAYER_AP_CARRY.api}, dur 평균 ${SEEDS.length}회`,
-  };
-}
-
-/* ──────────────── #1 FLAT_DAMAGE_PROC_RATE (best-effort) ──────────────── */
-//
-// BaseDamage 효과(루덴 100): 엔진에 직접 처리 없음 → 측정 시 ΔDPS=0 예상.
-// CleaveDamage radiant: 악성코드 매트릭스에 일부 — 측정해도 noise.
-// → baseline 0.3 유지하되, 측정 시도 결과 기록.
-//
-function measureFlatDamageProcRate(): MeasurementResult {
-  const ratios: number[] = [];
-  const flatDamage = 100; // 루덴의 폭풍 BaseDamage
-
-  // ON: AD carry 에 루덴의 폭풍 + stat-equivalent 2개
-  const playerOn = PLAYER_BASE.map(u =>
-    u === PLAYER_AD_CARRY
-      ? { ...u, items: ['TFT_Item_Artifact_LudensTempest', 'TFT_Item_BFSword', 'TFT_Item_BFSword'] }
-      : u,
-  );
-  const playerOff = PLAYER_BASE.map(u =>
-    u === PLAYER_AD_CARRY
-      ? { ...u, items: ['TFT_Item_BFSword', 'TFT_Item_BFSword', 'TFT_Item_BFSword'] }
-      : u,
-  );
-
   for (const seed of SEEDS) {
     const rOn = runSim(playerOn, ENEMY_TEAM, seed);
     const rOff = runSim(playerOff, ENEMY_TEAM, seed);
-    const adOn = rOn.playerUnits.find(u => u.champion.apiName === PLAYER_AD_CARRY.api);
-    const adOff = rOff.playerUnits.find(u => u.champion.apiName === PLAYER_AD_CARRY.api);
-    if (!adOn || !adOff || rOn.duration <= 0) continue;
-
-    const dpsOn = adOn.totalDamageDealt / rOn.duration;
-    const dpsOff = adOff.totalDamageDealt / rOff.duration;
-    const totalAS = adOn.stats.attackSpeed;
-    if (totalAS === 0) continue;
-
-    // ΔDPS = flatDamage × totalAS × proc_rate
-    // proc_rate = ΔDPS / (flatDamage × totalAS)
-    const proc = (dpsOn - dpsOff) / (flatDamage * totalAS);
-    ratios.push(proc);
+    const onAp = rOn.playerUnits.find(u => u.champion.apiName === PLAYER_AP_CARRY.api);
+    const offAp = rOff.playerUnits.find(u => u.champion.apiName === PLAYER_AP_CARRY.api);
+    if (!onAp || !offAp) continue;
+    // cast/sec
+    onCasts.push(rOn.duration > 0 ? onAp.castCount / rOn.duration : 0);
+    offCasts.push(rOff.duration > 0 ? offAp.castCount / rOff.duration : 0);
   }
 
-  const measured = mean(ratios);
+  return {
+    metric: 'MANA_REGEN_EFFICIENCY',
+    current: 0.1,
+    measured: 1.0, // 엔진 코드 분석 기반 확정값
+    samples: onCasts.length,
+    stddev: 0,
+    notes:
+      `엔진 직접 분석: combatLoop.ts:1573 mana += augmentManaRegen × TICK_DURATION (1:1). EFFICIENCY=1.0 확정. ` +
+      `Sanity sim (대천사3 vs 라바돈3) cast/s ON=${mean(onCasts).toFixed(3)}, OFF=${mean(offCasts).toFixed(3)} (control 비-stat-equivalent).`,
+  };
+}
+
+/* ──────────────── #1 FLAT_DAMAGE_PROC_RATE (Part 4 isolated measurement) ──────────────── */
+//
+// Phase 6-B Part 4: itemDamageDealt 카운터로 루덴 proc 기여만 직접 측정.
+//
+// 시나리오: Belveth (melee AD carry, ability magic) 에게 루덴의 폭풍 1개 + BFSword 2개 장착.
+// 루덴은 on_kill 시 adjacentEnemies(source 주변) 에게 100 magic flat. 다른 trigger 아이템
+// 없으므로 Belveth.itemDamageDealt = 루덴 proc 누적 dmg.
+//
+// proc_rate (estimateDps 식 의미): contribution_dps / (flatDamage × totalAS)
+//   contribution_dps = itemDamageDealt / duration
+//   즉 "초당 'flatDamage × totalAS' 가 실제 DPS 로 얼마나 환산되는가" 계수.
+//
+function measureFlatDamageProcRate(): MeasurementResult {
+  const procRates: number[] = [];
+  const flatDamage = 100; // 루덴의 폭풍 BaseDamage
+
+  // Fiora = 4 cost ADFighter, melee range 1. 2성 dmg=144 — 강한 carry 로 kill 빈도 ↑.
+  // Enemy 는 1성으로 약화해서 kill 빈도 안정 확보.
+  const measureCarry: UnitSpec = { api: 'TFT17_Fiora', position: { q: 3, r: 4 }, star: 2 };
+  const playerOn: UnitSpec[] = [
+    { ...measureCarry, items: ['TFT_Item_Artifact_LudensTempest', 'TFT_Item_BFSword', 'TFT_Item_BFSword'] },
+    { api: 'TFT17_Rammus', position: { q: 1, r: 5 }, star: 2 },
+    { api: 'TFT17_Pantheon', position: { q: 5, r: 5 }, star: 2 },
+  ];
+  const enemyWeak: UnitSpec[] = [
+    { api: 'TFT17_Aatrox', position: { q: 2, r: 0 }, star: 1 },
+    { api: 'TFT17_Veigar', position: { q: 4, r: 0 }, star: 1 },
+    { api: 'TFT17_Talon', position: { q: 0, r: 1 }, star: 1 },
+  ];
+
+  for (const seed of SEEDS) {
+    const rOn = runSim(playerOn, enemyWeak, seed);
+    const carry = rOn.playerUnits.find(u => u.champion.apiName === measureCarry.api);
+    if (!carry || rOn.duration <= 0) continue;
+    const totalAS = carry.stats.attackSpeed;
+    if (totalAS === 0) continue;
+    const contributionDps = carry.itemDamageDealt / rOn.duration;
+    const proc = contributionDps / (flatDamage * totalAS);
+    procRates.push(proc);
+  }
+
+  const measured = mean(procRates);
   return {
     metric: 'FLAT_DAMAGE_PROC_RATE',
     current: 0.3,
     measured: Math.round(measured * 1000) / 1000,
-    samples: ratios.length,
-    stddev: Math.round(stddev(ratios) * 1000) / 1000,
-    notes: `루덴의 폭풍 ON/OFF. 엔진에 BaseDamage 직접 처리 미구현 → ΔDPS≈0 예상`,
+    samples: procRates.length,
+    stddev: Math.round(stddev(procRates) * 1000) / 1000,
+    notes:
+      `Part 4 isolated: Fiora 2성 + 루덴 + BFSword2 vs 약한 enemy 3명 1성. ` +
+      `itemDamageDealt 카운터로 루덴 on_kill proc 만 분리.`,
   };
 }
 
-/* ──────────────── #3 BONUS_ATTACK_DPS_MULT (best-effort) ──────────────── */
+/* ──────────────── #3 BONUS_ATTACK_DPS_MULT (Part 4 isolated measurement) ──────────────── */
 //
-// NumBonusAttacks (야스오 검술): 엔진 미구현 → 측정 의미 없음.
+// Phase 6-B Part 4: itemDamageDealt 카운터로 야스오 timer fire 기여만 직접 측정.
+//
+// 야스오 검술 (artifacts.ts): 3.5s timer 로 attackTarget 에게 AD × 1.0 physical.
+// estimateDps 식: bonusAttackMul = 1 + N × MULT (N = NumBonusAttacks = 1).
+// 기여 DPS = baseAdDps × N × MULT
+//   baseAdDps = stats.damage × stats.attackSpeed × critMul
+//   야스오 contribution = itemDamageDealt / duration
+//   → MULT = contribution / (baseAdDps × N)
 //
 function measureBonusAttackDpsMult(): MeasurementResult {
-  const ratios: number[] = [];
+  const mults: number[] = [];
+  const N = 1; // NumBonusAttacks
 
-  const playerOn = PLAYER_BASE.map(u =>
-    u === PLAYER_AD_CARRY
-      ? { ...u, items: ['TFT17_Item_Artifact_YasuoArtifact', 'TFT_Item_BFSword', 'TFT_Item_BFSword'] }
-      : u,
-  );
-  const playerOff = PLAYER_BASE.map(u =>
-    u === PLAYER_AD_CARRY
-      ? { ...u, items: ['TFT_Item_BFSword', 'TFT_Item_BFSword', 'TFT_Item_BFSword'] }
-      : u,
-  );
+  // timer 3.5s → duration ≥ ~7s 필요. enemy 에 tank(Galio 2성) 추가해 duration 확보.
+  const measureCarry: UnitSpec = { api: 'TFT17_Fiora', position: { q: 3, r: 4 }, star: 2 };
+  const playerOn: UnitSpec[] = [
+    { ...measureCarry, items: ['TFT17_Item_Artifact_YasuoArtifact', 'TFT_Item_BFSword', 'TFT_Item_BFSword'] },
+    { api: 'TFT17_Rammus', position: { q: 1, r: 5 }, star: 2 },
+    { api: 'TFT17_Pantheon', position: { q: 5, r: 5 }, star: 2 },
+  ];
+  const enemyDurable: UnitSpec[] = [
+    { api: 'TFT17_Galio', position: { q: 3, r: 0 }, star: 2 },  // tanky
+    { api: 'TFT17_Illaoi', position: { q: 2, r: 1 }, star: 2 }, // tanky
+    { api: 'TFT17_Rammus', position: { q: 4, r: 1 }, star: 2 }, // tanky
+  ];
 
+  // baseAdDps 비교는 동일 basis (post-resistance) 여야 정확.
+  // carry.totalDamageDealt - carry.itemDamageDealt = basic + ability actual (post-resistance).
+  const durations: number[] = [];
   for (const seed of SEEDS) {
-    const rOn = runSim(playerOn, ENEMY_TEAM, seed);
-    const rOff = runSim(playerOff, ENEMY_TEAM, seed);
-    const adOn = rOn.playerUnits.find(u => u.champion.apiName === PLAYER_AD_CARRY.api);
-    const adOff = rOff.playerUnits.find(u => u.champion.apiName === PLAYER_AD_CARRY.api);
-    if (!adOn || !adOff || rOn.duration <= 0 || adOff.totalDamageDealt <= 0) continue;
-
-    const dpsOn = adOn.totalDamageDealt / rOn.duration;
-    const dpsOff = adOff.totalDamageDealt / rOff.duration;
-    // bonusAttackMul = 1 + N × MULT  → MULT = (dpsOn/dpsOff - 1) / N
-    const N = 1; // NumBonusAttacks
-    const mult = dpsOff > 0 ? dpsOn / dpsOff - 1 : 0;
-    ratios.push(mult / N);
+    const rOn = runSim(playerOn, enemyDurable, seed);
+    const carry = rOn.playerUnits.find(u => u.champion.apiName === measureCarry.api);
+    if (!carry || rOn.duration <= 0) continue;
+    durations.push(rOn.duration);
+    const basicActualDps = (carry.totalDamageDealt - carry.itemDamageDealt) / rOn.duration;
+    if (basicActualDps <= 0) continue;
+    const contribution = carry.itemDamageDealt / rOn.duration;
+    mults.push(contribution / (basicActualDps * N));
   }
 
-  const measured = mean(ratios);
+  const measured = mean(mults);
   return {
     metric: 'BONUS_ATTACK_DPS_MULT',
     current: 0.3,
     measured: Math.round(measured * 1000) / 1000,
-    samples: ratios.length,
-    stddev: Math.round(stddev(ratios) * 1000) / 1000,
-    notes: `야스오 검술 ON/OFF. 엔진에 NumBonusAttacks 미구현 → ΔDPS≈0 예상`,
+    samples: mults.length,
+    stddev: Math.round(stddev(mults) * 1000) / 1000,
+    notes:
+      `Part 4 isolated: Fiora + 야스오 + BFSword2 vs 탱키 enemy (Galio/Illaoi/Rammus 2성). ` +
+      `avg duration=${mean(durations).toFixed(1)}s. 야스오 timer 3.5s fire 반영.`,
   };
 }
 

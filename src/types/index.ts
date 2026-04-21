@@ -453,6 +453,10 @@ export interface CombatUnit {
   moveCooldown: number;
   totalDamageDealt: number;
   totalDamageTaken: number;
+  /** ItemEffectRuntime 의 dealDamage primitive 로만 누적되는 피해량.
+   *  totalDamageDealt 의 부분집합. Phase 6-B Part 4 calibration 측정용 — basic attack/ability
+   *  damage 와 분리해서 trigger/timer 발동 기여를 측정. */
+  itemDamageDealt: number;
   statusEffects: StatusEffect[];
   omnivamp: number;
   // 전투 내 카운터
