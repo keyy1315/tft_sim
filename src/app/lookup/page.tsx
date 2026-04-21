@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useSyncExternalStore } from 'react';
 import { getChampionImage } from '@/data/imageMap';
 import Tooltip from '@/components/ui/Tooltip';
 import { useMatchAnalysis } from '@/hooks/useMatchAnalysis';
@@ -537,43 +537,100 @@ const STORAGE_KEYS = {
   activeSet: 'lookup-active-set',
 } as const;
 
-function readSession<T>(key: string, fallback: T, parser: (raw: string) => T): T {
-  if (typeof window === 'undefined') return fallback;
-  try {
-    const raw = sessionStorage.getItem(key);
-    if (raw === null) return fallback;
-    return parser(raw);
-  } catch {
-    return fallback;
-  }
+/* useSyncExternalStore 기반 sessionStorage hydration-safe 구독.
+ *
+ * 문제: 이전 구현은 useState 초기값으로 sessionStorage 를 읽었고, SSR 에서는 fallback,
+ * 클라이언트에서는 sessionStorage 값을 반환 → SSR HTML 과 클라이언트 첫 렌더가 달라
+ * React Hydration error 발생.
+ *
+ * 해결: useSyncExternalStore 의 getServerSnapshot=fallback 으로 SSR/hydration 첫 렌더는
+ * fallback 으로 통일. React 가 자동으로 client snapshot 으로 swap. (Mismatch 없음)
+ *
+ * 추가 고려:
+ *   - getSnapshot 은 referential identity 보존 필요 (객체 매번 new 하면 무한 렌더).
+ *     raw 문자열 캐시 후 동일하면 이전 parsed 반환.
+ *   - setValue 시 sessionStorage 쓰고 listener 에 알림 (탭 내 다른 컴포넌트도 갱신)
+ */
+type Listener = () => void;
+const sessionListeners = new Map<string, Set<Listener>>();
+function subscribeKey(key: string) {
+  return (cb: Listener) => {
+    let set = sessionListeners.get(key);
+    if (!set) {
+      set = new Set();
+      sessionListeners.set(key, set);
+    }
+    set.add(cb);
+    return () => {
+      set!.delete(cb);
+    };
+  };
+}
+function notifyKey(key: string) {
+  sessionListeners.get(key)?.forEach((cb) => cb());
+}
+
+function useSessionState<T>(
+  key: string,
+  fallback: T,
+  parse: (raw: string) => T,
+  serialize: (v: T) => string,
+): [T, (v: T) => void] {
+  const cacheRaw = useRef<string | null | undefined>(undefined);
+  const cacheParsed = useRef<T>(fallback);
+  const subscribe = subscribeKey(key);
+
+  const value = useSyncExternalStore(
+    subscribe,
+    () => {
+      try {
+        const raw = sessionStorage.getItem(key);
+        if (raw === cacheRaw.current) return cacheParsed.current;
+        cacheRaw.current = raw;
+        cacheParsed.current = raw === null ? fallback : parse(raw);
+        return cacheParsed.current;
+      } catch {
+        return fallback;
+      }
+    },
+    () => fallback,
+  );
+
+  const setValue = (next: T) => {
+    try {
+      if (next === null || next === undefined) sessionStorage.removeItem(key);
+      else sessionStorage.setItem(key, serialize(next));
+    } catch {
+      /* sessionStorage 사용 불가 환경 (Safari private 등) — silent skip */
+    }
+    notifyKey(key);
+  };
+
+  return [value, setValue];
 }
 
 export default function LookupPage() {
-  const [input, setInput] = useState<string>(() => readSession(STORAGE_KEYS.input, '', (r) => r));
-  const [result, setResult] = useState<LookupResult | null>(() =>
-    readSession<LookupResult | null>(STORAGE_KEYS.result, null, (r) => JSON.parse(r) as LookupResult),
+  const [input, setInput] = useSessionState<string>(
+    STORAGE_KEYS.input,
+    '',
+    (r) => r,
+    (v) => v,
+  );
+  const [result, setResult] = useSessionState<LookupResult | null>(
+    STORAGE_KEYS.result,
+    null,
+    (r) => JSON.parse(r) as LookupResult,
+    (v) => JSON.stringify(v),
   );
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [activeSet, setActiveSet] = useState<string>(() => readSession(STORAGE_KEYS.activeSet, 'set17', (r) => r));
+  const [activeSet, setActiveSet] = useSessionState<string>(
+    STORAGE_KEYS.activeSet,
+    'set17',
+    (r) => r,
+    (v) => v,
+  );
   const { results: analysisResults, analyze } = useMatchAnalysis();
-
-  // Persist to sessionStorage (write-only effects; no setState inside)
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    sessionStorage.setItem(STORAGE_KEYS.input, input);
-  }, [input]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    if (result) sessionStorage.setItem(STORAGE_KEYS.result, JSON.stringify(result));
-    else sessionStorage.removeItem(STORAGE_KEYS.result);
-  }, [result]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    sessionStorage.setItem(STORAGE_KEYS.activeSet, activeSet);
-  }, [activeSet]);
 
   const handleSearch = async (searchInput?: string) => {
     const trimmed = (searchInput ?? input).trim();
