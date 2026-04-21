@@ -29,24 +29,42 @@ function isSpecialItem(itemId: string): boolean {
 
 /**
  * Riot API 레거시 아이템 ID → 현재 데이터 ID 매핑.
- * 예: TFT5_Item_DeathbladeRadiant → TFT_Item_CorruptedDeathblade
+ *
+ * 대응 패턴:
+ *  - TFT{N}[a-z]?_Item_{BaseName}Radiant   → TFT_Item_Corrupted{BaseName} 또는 TFT_Item_Radiant_{BaseName}
+ *  - TFT{N}[a-z]?_Item_Radiant_{BaseName}  → TFT_Item_Radiant_{BaseName} 또는 TFT_Item_Corrupted{BaseName}
+ *  - TFT{N}[a-z]?_Item_{Name}              → TFT_Item_{Name}
+ *
+ * 서브셋 표기 (`TFT9b`, `TFT14_5` 등) 대응을 위해 `\d+[a-z_\d]*` 허용.
  */
 export function resolveItemId(riotItemId: string, availableItems: Map<string, boolean>): string {
   // 이미 매칭되면 그대로
   if (availableItems.has(riotItemId)) return riotItemId;
 
-  // 레거시 Radiant 패턴: TFT{N}_Item_{BaseName}Radiant → TFT_Item_Corrupted{BaseName} 또는 TFT_Item_Radiant_{BaseName}
-  const radiantMatch = riotItemId.match(/^TFT\d+_Item_(.+?)Radiant$/);
-  if (radiantMatch) {
-    const base = radiantMatch[1];
+  const SET_PREFIX = String.raw`TFT\d+[a-z_\d]*_Item_`;
+
+  // 중간 Radiant_ 형태: TFT{N}_Item_Radiant_{BaseName}
+  const midRadiantMatch = riotItemId.match(new RegExp(`^${SET_PREFIX}Radiant_(.+)$`));
+  if (midRadiantMatch) {
+    const base = midRadiantMatch[1];
+    const radiant = `TFT_Item_Radiant_${base}`;
+    if (availableItems.has(radiant)) return radiant;
+    const corrupted = `TFT_Item_Corrupted${base}`;
+    if (availableItems.has(corrupted)) return corrupted;
+  }
+
+  // 끝 Radiant 형태: TFT{N}_Item_{BaseName}Radiant
+  const tailRadiantMatch = riotItemId.match(new RegExp(`^${SET_PREFIX}(.+?)Radiant$`));
+  if (tailRadiantMatch) {
+    const base = tailRadiantMatch[1];
     const corrupted = `TFT_Item_Corrupted${base}`;
     if (availableItems.has(corrupted)) return corrupted;
     const radiant = `TFT_Item_Radiant_${base}`;
     if (availableItems.has(radiant)) return radiant;
   }
 
-  // 레거시 일반 아이템: TFT{N}_Item_{Name} → TFT_Item_{Name}
-  const legacyMatch = riotItemId.match(/^TFT\d+_Item_(.+)$/);
+  // 일반 레거시: TFT{N}_Item_{Name} → TFT_Item_{Name}
+  const legacyMatch = riotItemId.match(new RegExp(`^${SET_PREFIX}(.+)$`));
   if (legacyMatch) {
     const normalized = `TFT_Item_${legacyMatch[1]}`;
     if (availableItems.has(normalized)) return normalized;
@@ -127,6 +145,11 @@ export function checkCoverage(
   const reasons: UnsupportedReason[] = [];
   if (unsupportedChampionIds.length > 0) reasons.push('unsupported_champion');
   if (unsupportedItemIds.length > 0) reasons.push('unsupported_item');
+
+  // 개발 환경에서만 미지원 ID 를 한 번에 묶어 로깅 — resolveItemId 패턴 보강용.
+  if (process.env.NODE_ENV !== 'production' && unsupportedItemIds.length > 0) {
+    console.warn('[coverageChecker] unsupported item ids (raw from Riot API):', unsupportedItemIds);
+  }
 
   let confidence: AnalysisConfidence;
   // 챔피언 미지원이면 재현 불가, 아이템 미지원은 경고만 (빠진 아이템 무시하고 시뮬 가능)

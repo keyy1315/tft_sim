@@ -158,6 +158,9 @@ function getItemMeta(): Record<string, ItemMeta> {
   return cachedItemMeta;
 }
 
+/** Riot + Supabase 매치 조회 최대 개수. 클라이언트 페이지네이션 (페이지당 20) 과 맞물림. */
+const MATCH_FETCH_LIMIT = 60;
+
 export async function POST(req: NextRequest) {
   const { gameName, tagLine } = (await req.json()) as {
     gameName: string;
@@ -197,7 +200,7 @@ export async function POST(req: NextRequest) {
     const existingIds = new Set((existingMatches ?? []).map((m) => m.match_id));
 
     // 4. Riot에서 최근 매치 ID 가져오기
-    const matchIds = await getMatchIds(puuid, 20);
+    const matchIds = await getMatchIds(puuid, MATCH_FETCH_LIMIT);
     const newMatchIds = matchIds.filter((id) => !existingIds.has(id));
 
     // 5. 새 매치 상세 조회 + DB 저장
@@ -228,7 +231,7 @@ export async function POST(req: NextRequest) {
       .select('*')
       .eq('puuid', puuid)
       .order('game_datetime', { ascending: false })
-      .limit(20);
+      .limit(MATCH_FETCH_LIMIT);
 
     return NextResponse.json({
       summoner: {

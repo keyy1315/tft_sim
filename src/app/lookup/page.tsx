@@ -632,6 +632,9 @@ export default function LookupPage() {
   );
   const { results: analysisResults, analyze } = useMatchAnalysis();
 
+  const PAGE_SIZE = 20;
+  const [page, setPage] = useState(1);
+
   const handleSearch = async (searchInput?: string) => {
     const trimmed = (searchInput ?? input).trim();
     const separatorIdx = trimmed.lastIndexOf('#');
@@ -667,6 +670,7 @@ export default function LookupPage() {
       }
 
       setResult(data as LookupResult);
+      setPage(1);
     } catch {
       setError('서버 연결 실패');
     } finally {
@@ -678,9 +682,15 @@ export default function LookupPage() {
   const availableSets = [...new Set(allMatches.map((m) => m.set_id ?? 'set17'))].sort().reverse();
   const filteredMatches = allMatches.filter((m) => (m.set_id ?? 'set17') === activeSet);
 
-  // Set 17 매치에 대해 자동 분석 실행
+  // 페이지네이션 파생 값: currentPage 는 데이터 감소 케이스 대비 clamp.
+  const totalPages = Math.max(1, Math.ceil(filteredMatches.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pageStart = (currentPage - 1) * PAGE_SIZE;
+  const visibleMatches = filteredMatches.slice(pageStart, pageStart + PAGE_SIZE);
+
+  // Set 17 매치에 대해 자동 분석 실행 (현재 페이지 한정)
   useEffect(() => {
-    for (const m of filteredMatches) {
+    for (const m of visibleMatches) {
       if ((m.set_id ?? 'set17') === 'set17' && !analysisResults.has(m.match_id)) {
         analyze(m.match_id, {
           setId: m.set_id,
@@ -690,7 +700,7 @@ export default function LookupPage() {
         });
       }
     }
-  }, [filteredMatches, analysisResults, analyze]);
+  }, [visibleMatches, analysisResults, analyze]);
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
@@ -733,7 +743,7 @@ export default function LookupPage() {
                 return (
                   <button
                     key={setId}
-                    onClick={() => setActiveSet(setId)}
+                    onClick={() => { setActiveSet(setId); setPage(1); }}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                       activeSet === setId
                         ? 'bg-yellow-500 text-black'
@@ -749,12 +759,15 @@ export default function LookupPage() {
 
           {/* Match count */}
           <div className="text-sm text-gray-500 mb-3">
-            {SET_LABELS[activeSet] ?? activeSet} — {filteredMatches.length}게임
+            {SET_LABELS[activeSet] ?? activeSet} — 전체 {filteredMatches.length}게임
+            {totalPages > 1 && (
+              <span className="ml-2 text-gray-600">· 페이지 {currentPage} / {totalPages}</span>
+            )}
           </div>
 
           {/* Match list */}
           <div className="space-y-3">
-            {filteredMatches.map((m) => (
+            {visibleMatches.map((m) => (
               <MatchCard
                 key={m.match_id}
                 match={m}
@@ -772,8 +785,49 @@ export default function LookupPage() {
               </div>
             )}
           </div>
+
+          <PaginationBar page={currentPage} totalPages={totalPages} onChange={setPage} />
         </>
       )}
+    </div>
+  );
+}
+
+interface PaginationBarProps {
+  page: number;
+  totalPages: number;
+  onChange: (page: number) => void;
+}
+
+function PaginationBar({ page, totalPages, onChange }: PaginationBarProps) {
+  if (totalPages <= 1) return null;
+  const go = (p: number) => {
+    onChange(p);
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+  return (
+    <div className="flex items-center justify-center gap-3 mt-6 text-sm">
+      <button
+        onClick={() => go(Math.max(1, page - 1))}
+        disabled={page <= 1}
+        aria-label="이전 페이지"
+        className="px-3 py-1.5 rounded bg-gray-800 text-gray-300 hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+      >
+        ←
+      </button>
+      <span className="text-gray-400 tabular-nums">
+        {page} <span className="text-gray-600">/</span> {totalPages}
+      </span>
+      <button
+        onClick={() => go(Math.min(totalPages, page + 1))}
+        disabled={page >= totalPages}
+        aria-label="다음 페이지"
+        className="px-3 py-1.5 rounded bg-gray-800 text-gray-300 hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+      >
+        →
+      </button>
     </div>
   );
 }
