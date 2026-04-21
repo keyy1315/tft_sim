@@ -811,13 +811,53 @@ function SimulatorContent() {
             </div>
 
             {/* Unit Detail Panel — 챔피언 클릭 시 보드 하단에 표시 */}
-            {replay.selectedUnitId && replay.selectedUnitSnap && replay.unitMeta[replay.selectedUnitId] && (
-              <UnitDetailPanel
-                unitSnapshot={replay.selectedUnitSnap}
-                meta={replay.unitMeta[replay.selectedUnitId]}
-                onClose={() => replay.setSelectedUnitId(null)}
-              />
-            )}
+            {replay.selectedUnitId && replay.selectedUnitSnap && replay.unitMeta[replay.selectedUnitId] && (() => {
+              const selMeta = replay.unitMeta[replay.selectedUnitId];
+              // 원본 플레이어 팀을 전투 시뮬 규약(row 4-7)으로 매핑해 verifyContext 구성.
+              // player 팀 유닛만 추천 대상 (enemy 는 원본 팀 입력이 없어 건너뜀).
+              const mappedPlayer = toEightRowCoords(tm.playerTeam, 4);
+              const target = selMeta.team === 'player'
+                ? mappedPlayer.find(p => p.champion.apiName === selMeta.championApiName)
+                : undefined;
+              const verifyContext = target ? {
+                playerTeam: mappedPlayer,
+                enemyTeam: tm.enemyTeam,
+                targetApiName: selMeta.championApiName,
+                targetPosition: target.position,
+                simulateOptions: {
+                  seed: 42,
+                  allTraits: traits,
+                  skipMirror: true,
+                  playerAugments: tm.playerAugments,
+                  playerAugmentStacks: tm.playerAugmentStacks,
+                  enemyAugments: tm.enemyAugments,
+                  enemyAugmentStacks: tm.enemyAugmentStacks,
+                  playerBilgewaterEffects: resolveBilgewaterStatEffects(tm.playerBilgewaterStats, items),
+                  enemyBilgewaterEffects: resolveBilgewaterStatEffects(tm.enemyBilgewaterStats, items),
+                  playerPiltoverModules: tm.playerPiltoverModules,
+                  enemyPiltoverModules: tm.enemyPiltoverModules,
+                  playerIoniaPath: tm.playerIoniaPath ?? undefined,
+                  enemyIoniaPath: tm.enemyIoniaPath ?? undefined,
+                  playerGalio: tm.playerGalio,
+                  enemyGalio: tm.enemyGalio,
+                  playerHexBuffs,
+                  enemyHexBuffs,
+                  stageNumber,
+                  playerArbiterLaw: tm.playerArbiterLaw ?? undefined,
+                  enemyArbiterLaw: tm.enemyArbiterLaw ?? undefined,
+                },
+              } : undefined;
+              return (
+                <UnitDetailPanel
+                  key={replay.selectedUnitId}
+                  unitSnapshot={replay.selectedUnitSnap}
+                  meta={selMeta}
+                  onClose={() => replay.setSelectedUnitId(null)}
+                  allItems={items}
+                  verifyContext={verifyContext}
+                />
+              );
+            })()}
 
             {/* Tick events — 고정 높이로 깜빡임 방지 */}
             <div className="bg-[#111827] rounded-lg border border-gray-800 p-2" style={{ minHeight: 60 }}>
