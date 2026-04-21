@@ -4,7 +4,7 @@ import { BOARD_COLS, DEFAULT_STAR_LEVEL } from '@/lib/simulator/models/constants
 import { resolveTraits } from '@/lib/simulator/systems/trait';
 import { canEquipItem, canAddPiltoverModule, isVoidMutation } from '@/lib/simulator/systems/item';
 import { getDefaultStacks } from '@/lib/simulator/systems/augment';
-import { FRELJORD_TURRET, TIBBERS_CHAMPION, AZIR_SOLDIER_CHAMPION, AZIR_MAX_SOLDIERS, VOYAGER_SUMMON_CHAMPION, isAutoUnit } from '@/data/specialUnits';
+import { FRELJORD_TURRET, TIBBERS_CHAMPION, AZIR_SOLDIER_CHAMPION, AZIR_MAX_SOLDIERS, VOYAGER_SUMMON_CHAMPION, SHEN_ARTIFACT_CHAMPION, isAutoUnit } from '@/data/specialUnits';
 import type { IoniaPathType } from '@/data/traitModules';
 import { RawTrait } from '@/types';
 
@@ -158,8 +158,32 @@ function syncVoyagerSummonInTeam(team: PlacedChampion[]): PlacedChampion[] {
   return team;
 }
 
+/** 쉔이 있으면 옆칸에 "유물"(TFT17_ShenProp) 을 자동 소환, 쉔이 없으면 제거. 보루 시너지 unique trait. */
+function syncShenArtifactInTeam(team: PlacedChampion[]): PlacedChampion[] {
+  const shen = team.find(p => p.champion.apiName === 'TFT17_Shen');
+  const hasArtifact = team.some(p => p.champion.apiName === 'TFT17_ShenProp');
+
+  if (shen && !hasArtifact) {
+    const occupied = new Set(team.map(p => `${p.position.q},${p.position.r}`));
+    const pos = findEmptyAdjacentHex(shen.position, occupied, 2);
+    if (!pos) return team;
+    return [...team, {
+      champion: SHEN_ARTIFACT_CHAMPION,
+      position: pos,
+      starLevel: 1,
+      items: [],
+    }];
+  }
+
+  if (!shen && hasArtifact) {
+    return team.filter(p => p.champion.apiName !== 'TFT17_ShenProp');
+  }
+
+  return team;
+}
+
 function syncTeam(team: PlacedChampion[]): PlacedChampion[] {
-  return syncVoyagerSummonInTeam(syncFreljordTurretsInTeam(syncAzirSoldiersInTeam(syncTibbersInTeam(team))));
+  return syncShenArtifactInTeam(syncVoyagerSummonInTeam(syncFreljordTurretsInTeam(syncAzirSoldiersInTeam(syncTibbersInTeam(team)))));
 }
 
 // === Exported helpers used by DnD ===

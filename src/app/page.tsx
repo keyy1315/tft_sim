@@ -30,15 +30,6 @@ function HomeContent() {
           disabled: false,
         },
         {
-          title: '데미지 계산기',
-          desc: 'PBE 데이터 업데이트 후 사용 가능',
-          href: '#',
-          icon: '⚔️',
-          color: 'from-gray-700/20 to-gray-600/20',
-          borderColor: 'border-gray-700/30',
-          disabled: true,
-        },
-        {
           title: '전투 시뮬레이션',
           desc: 'PBE 데이터 업데이트 후 사용 가능',
           href: '#',
@@ -49,15 +40,6 @@ function HomeContent() {
         },
       ]
     : [
-        {
-          title: '데미지 계산기',
-          desc: '챔피언의 DPS, 스킬 데미지를 아이템/시너지/증강 포함하여 실시간 계산',
-          href: '/builder/calculator',
-          icon: '⚔️',
-          color: 'from-red-600/20 to-orange-600/20',
-          borderColor: 'border-red-500/30',
-          disabled: false,
-        },
         {
           title: '전투 시뮬레이션',
           desc: '아군 vs 적군 자동 전투, 이동/사거리 시스템, 턴별 로그',

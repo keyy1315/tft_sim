@@ -34,11 +34,6 @@ export default function NavHeader() {
         <SetSelector activeSet={activeSet} onSetChange={handleSetChange} />
       </div>
       <div className="flex gap-1">
-        {cfg.status !== 'pbe' && (
-          <Link href="/builder/calculator" className="px-2 py-1.5 lg:px-4 lg:py-2 rounded-lg text-xs lg:text-sm text-gray-300 hover:text-white hover:bg-[#1f2937] transition-colors">
-            계산기
-          </Link>
-        )}
         <Link
           href={cfg.status === 'pbe' ? `/simulator?set=${activeSet}` : '/simulator'}
           className="px-2 py-1.5 lg:px-4 lg:py-2 rounded-lg text-xs lg:text-sm text-gray-300 hover:text-white hover:bg-[#1f2937] transition-colors"

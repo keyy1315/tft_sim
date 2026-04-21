@@ -42,11 +42,24 @@ export const VOYAGER_SUMMON_CHAMPION: RawChampion = {
   ability: { name: '울음소리', desc: 'AA 추가 마법 피해 + 보호막 + 아군 AP 버프', icon: '', variables: [] },
 };
 
+/** 쉔의 "보루" 시너지(TFT17_ShenUniqueTrait)로 자동 소환되는 유물.
+ * 이동/공격 없고 이펙트만 담당 (totem). 전투 시작 시 인접 아군에게 shield + attackSpeed 부여. */
+export const SHEN_ARTIFACT_CHAMPION: RawChampion = {
+  name: '유물',
+  apiName: 'TFT17_ShenProp',
+  cost: 11,
+  traits: [],
+  role: null,
+  stats: { armor: 60, attackSpeed: 0, critChance: 0, critMultiplier: 1.0, damage: 0, hp: 1000, initialMana: 0, magicResist: 60, mana: 0, range: 0 },
+  ability: { name: '수호 유물', desc: '전투 시작 시 인접 아군에게 최대 체력 비례 보호막과 공격 속도를 부여합니다.', icon: '', variables: [] },
+};
+
 export const AUTO_UNIT_API_NAMES = [
   'TFT16_AnnieTibbers',
   'TFT16_FreljordTurret',
   'TFT16_AzirSoldier',
   'TFT17_Summon',
+  'TFT17_ShenProp',
 ] as const;
 
 export function isAutoUnit(apiName: string): boolean {

@@ -539,6 +539,47 @@ function applyInvokerManaRegen(activeTraits: ActiveTrait[], units: CombatUnit[])
   }
 }
 
+/** 보루 (쉔) — 유물 인접 아군에게 보호막 + 공격 속도 부여. TFT17_ShenUniqueTrait, unique=1 */
+function applyShenBastionAura(activeTraits: ActiveTrait[], units: CombatUnit[]): void {
+  const bastion = activeTraits.find(t => t.trait.apiName === 'TFT17_ShenUniqueTrait' && t.activeEffect);
+  if (!bastion?.activeEffect) return;
+  const shieldPct = (bastion.activeEffect.variables['PercentHealthShield'] ?? 0.15) as number;
+  const asPct = (bastion.activeEffect.variables['AttackSpeed'] ?? 0.25) as number;
+  const artifact = units.find(u => u.champion.apiName === 'TFT17_ShenProp');
+  if (!artifact) return;
+  for (const u of units) {
+    if (u.id === artifact.id) continue;
+    if (hexDistance(u.position, artifact.position) > 1) continue;
+    const shieldAmount = u.maxHp * shieldPct;
+    u.shield += shieldAmount;
+    u.statusEffects.push({ type: 'shield', sourceId: 'shen-artifact', remainingTicks: 9999, value: shieldAmount });
+    if (asPct > 0) u.stats.attackSpeed *= (1 + asPct);
+  }
+}
+
+/** 말살자 (진) — 적 전체 방어력/마법 저항력 감소. TFT17_JhinUniqueTrait, unique=1 */
+function applyJhinAnnihilator(activeTraits: ActiveTrait[], enemies: CombatUnit[]): void {
+  const annih = activeTraits.find(t => t.trait.apiName === 'TFT17_JhinUniqueTrait' && t.activeEffect);
+  if (!annih?.activeEffect) return;
+  const reductionPct = (annih.activeEffect.variables['PctResists'] ?? 0.15) as number;
+  if (reductionPct <= 0) return;
+  for (const e of enemies) {
+    e.stats.armor *= (1 - reductionPct);
+    e.stats.magicResist *= (1 - reductionPct);
+  }
+}
+
+/** 어둠의 여인 (모르가나) — 아군 스킬 피해량 감소. TFT17_MorganaUniqueTrait, unique=1 */
+function applyMorganaDarklight(activeTraits: ActiveTrait[], units: CombatUnit[]): void {
+  const trait = activeTraits.find(t => t.trait.apiName === 'TFT17_MorganaUniqueTrait' && t.activeEffect);
+  if (!trait?.activeEffect) return;
+  const reduction = (trait.activeEffect.variables['UntransformedAbilityDA'] ?? 0.10) as number;
+  if (reduction <= 0) return;
+  for (const u of units) {
+    u.damageReduction = Math.min(0.9, (u.damageReduction ?? 0) + reduction);
+  }
+}
+
 /** 전쟁기계 — BaseDR을 damageReduction에 적용 */
 function applyJuggernautDR(activeTraits: ActiveTrait[], units: CombatUnit[]): void {
   const jugg = activeTraits.find(t => t.trait.apiName === 'TFT16_Juggernaut' && t.activeEffect);
@@ -1349,6 +1390,12 @@ export function simulateCombat(
   applyInvokerManaRegen(enemyActiveTraits, enemies);
   applyJuggernautDR(playerActiveTraits, playerUnits);
   applyJuggernautDR(enemyActiveTraits, enemies);
+  applyShenBastionAura(playerActiveTraits, playerUnits);
+  applyShenBastionAura(enemyActiveTraits, enemies);
+  applyJhinAnnihilator(playerActiveTraits, enemies);  // 적 대상
+  applyJhinAnnihilator(enemyActiveTraits, playerUnits);
+  applyMorganaDarklight(playerActiveTraits, playerUnits);
+  applyMorganaDarklight(enemyActiveTraits, enemies);
 
   // 아이오니아 길 적용
   if (options.playerIoniaPath) {
