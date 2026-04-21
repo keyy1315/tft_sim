@@ -855,6 +855,7 @@ function SimulatorContent() {
                   onClose={() => replay.setSelectedUnitId(null)}
                   allItems={items}
                   verifyContext={verifyContext}
+                  activeTraits={selMeta.team === 'player' ? tm.playerTraits : tm.enemyTraits}
                 />
               );
             })()}

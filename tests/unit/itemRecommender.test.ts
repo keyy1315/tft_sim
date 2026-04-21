@@ -20,13 +20,15 @@ function champ(role: string | null): RawChampion {
 }
 
 function item(apiName: string, effects: Record<string, number>): RawItem {
+  // composition 을 2개로 채워 isCombinedItem === true 로 만든다. 이를 통해
+  // getItemCategory === 'combined' 판정을 받아 추천 풀 통과.
   return {
     apiName,
     name: apiName,
     desc: '',
     icon: '',
     effects,
-    composition: [],
+    composition: ['TFT_Item_A', 'TFT_Item_B'],
   } as unknown as RawItem;
 }
 
@@ -210,5 +212,130 @@ describe('getStaticRecommendations', () => {
 describe('verifyWithSimulation (smoke)', () => {
   it('export 존재', () => {
     expect(typeof verifyWithSimulation).toBe('function');
+  });
+});
+
+describe('filterItemPool — trait rules', () => {
+  const noCtx = { psyOpsLevel: 0, animaSquadLevel: 0 };
+
+  it('유물 아이템은 항상 제외', () => {
+    const all = [
+      item('TFT_Item_Artifact_ShadowPuppet', { AD: 20 }),
+      item('TFT17_Item_Artifact_ZekesHeraldShadow', { AD: 30 }),
+      item('TFT_Item_InfinityEdge', { AD: 70 }),
+    ];
+    const out = filterItemPool(all, 'DAMAGE', 'ad', noCtx);
+    const names = out.map(i => i.apiName);
+    expect(names).not.toContain('TFT_Item_Artifact_ShadowPuppet');
+    expect(names).not.toContain('TFT17_Item_Artifact_ZekesHeraldShadow');
+    expect(names).toContain('TFT_Item_InfinityEdge');
+  });
+
+  it('찬란한(Radiant) / 타락한(Corrupted) 아이템 항상 제외', () => {
+    const all = [
+      item('TFT_Item_Radiant_Deathblade', { AD: 80 }),
+      item('TFT_Item_Radiant_VoidStaff', { AP: 80 }),
+      item('TFT_Item_CorruptedInfinityEdge', { AD: 100, CritChance: 75 }),
+      item('TFT_Item_InfinityEdge', { AD: 70 }),
+    ];
+    const out = filterItemPool(all, 'DAMAGE', 'ad', noCtx);
+    const names = out.map(i => i.apiName);
+    expect(names).not.toContain('TFT_Item_Radiant_Deathblade');
+    expect(names).not.toContain('TFT_Item_Radiant_VoidStaff');
+    expect(names).not.toContain('TFT_Item_CorruptedInfinityEdge');
+    expect(names).toContain('TFT_Item_InfinityEdge');
+  });
+
+  it('번역 안 된 데이터 (name prefix tft_item_name_ 또는 빈 name) 아이템 제외', () => {
+    const bad = item('TFT_Item_SwordOfTheDivine', { AD: 50 });
+    (bad as unknown as { name: string }).name = 'tft_item_name_SwordOfTheDivine2';
+    const good = item('TFT_Item_InfinityEdge', { AD: 70 });
+    (good as unknown as { name: string }).name = '무한의 대검';
+    const out = filterItemPool([bad, good], 'DAMAGE', 'ad', noCtx);
+    expect(out.map(i => i.apiName)).not.toContain('TFT_Item_SwordOfTheDivine');
+    expect(out.map(i => i.apiName)).toContain('TFT_Item_InfinityEdge');
+  });
+
+  it('PsyOps Radiant 변종은 PsyOps 규칙 우선 (일반 Radiant 규칙이 아님)', () => {
+    const all = [
+      item('TFT17_Item_PsyOps_DroneMod_Radiant', { AD: 60 }),
+    ];
+    // PsyOps 비활성 → 제외
+    expect(
+      filterItemPool(all, 'DAMAGE', 'ad', noCtx).length,
+    ).toBe(0);
+    // PsyOps 2 활성 → 포함
+    expect(
+      filterItemPool(all, 'DAMAGE', 'ad', { psyOpsLevel: 2, animaSquadLevel: 0 }).length,
+    ).toBe(1);
+  });
+
+  it('동물특공대 만능 무기는 항상 제외 (시너지 활성도 무관)', () => {
+    const all = [
+      item('TFT17_AnimaSquadItem_Tier4_Omniweapon', { AD: 100 }),
+      item('TFT_Item_InfinityEdge', { AD: 70 }),
+    ];
+    const out = filterItemPool(all, 'DAMAGE', 'ad', { psyOpsLevel: 0, animaSquadLevel: 6 });
+    expect(out.map(i => i.apiName)).not.toContain('TFT17_AnimaSquadItem_Tier4_Omniweapon');
+  });
+
+  it('AnimaSquad 비활성 시 AnimaSquad 아이템 제외', () => {
+    const all = [
+      item('TFT17_AnimaSquadItem_Tier2_SearingShortbow', { AD: 40 }),
+      item('TFT_Item_InfinityEdge', { AD: 70 }),
+    ];
+    const out = filterItemPool(all, 'DAMAGE', 'ad', noCtx);
+    expect(out.map(i => i.apiName)).not.toContain('TFT17_AnimaSquadItem_Tier2_SearingShortbow');
+  });
+
+  it('AnimaSquad 3+ 활성 시 AnimaSquad 아이템 포함', () => {
+    const all = [
+      item('TFT17_AnimaSquadItem_Tier2_SearingShortbow', { AD: 40 }),
+    ];
+    const out = filterItemPool(all, 'DAMAGE', 'ad', { psyOpsLevel: 0, animaSquadLevel: 3 });
+    expect(out.map(i => i.apiName)).toContain('TFT17_AnimaSquadItem_Tier2_SearingShortbow');
+  });
+
+  it('PsyOps 비활성 시 PsyOps 아이템 제외', () => {
+    const all = [
+      item('TFT17_Item_PsyOps_DroneMod', { AD: 40 }),
+    ];
+    const out = filterItemPool(all, 'DAMAGE', 'ad', noCtx);
+    expect(out.map(i => i.apiName)).not.toContain('TFT17_Item_PsyOps_DroneMod');
+  });
+
+  it('PsyOps 2+ 활성 시 PsyOps 아이템 포함', () => {
+    const all = [
+      item('TFT17_Item_PsyOps_DroneMod', { AD: 40 }),
+    ];
+    const out = filterItemPool(all, 'DAMAGE', 'ad', { psyOpsLevel: 2, animaSquadLevel: 0 });
+    expect(out.map(i => i.apiName)).toContain('TFT17_Item_PsyOps_DroneMod');
+  });
+});
+
+describe('pickTopCombo — maxPsyOps 제약', () => {
+  it('maxPsyOps=1 이면 조합에 PsyOps 최대 1개', () => {
+    const scored = [
+      { item: item('TFT17_Item_PsyOps_DroneMod', { AD: 100 }), score: 100, reason: '' },
+      { item: item('TFT17_Item_PsyOps_ChemicalCapacitorMod', { AD: 95 }), score: 95, reason: '' },
+      { item: item('TFT_Item_InfinityEdge', { AD: 90 }), score: 90, reason: '' },
+      { item: item('TFT_Item_LastWhisper', { AD: 85 }), score: 85, reason: '' },
+      { item: item('TFT_Item_GuinsoosRageblade', { AD: 80 }), score: 80, reason: '' },
+    ];
+    const combo = pickTopCombo(scored, baseStats, false, 2, { maxPsyOps: 1 });
+    const psyCount = combo.filter(r => r.item.apiName.startsWith('TFT17_Item_PsyOps_')).length;
+    expect(psyCount).toBeLessThanOrEqual(1);
+  });
+
+  it('maxPsyOps=0 이면 조합에 PsyOps 없음', () => {
+    const scored = [
+      { item: item('TFT17_Item_PsyOps_DroneMod', { AD: 100 }), score: 100, reason: '' },
+      { item: item('TFT_Item_InfinityEdge', { AD: 90 }), score: 90, reason: '' },
+      { item: item('TFT_Item_LastWhisper', { AD: 85 }), score: 85, reason: '' },
+      { item: item('TFT_Item_GuinsoosRageblade', { AD: 80 }), score: 80, reason: '' },
+    ];
+    const combo = pickTopCombo(scored, baseStats, false, 2, { maxPsyOps: 0 });
+    const psyCount = combo.filter(r => r.item.apiName.startsWith('TFT17_Item_PsyOps_')).length;
+    expect(psyCount).toBe(0);
   });
 });

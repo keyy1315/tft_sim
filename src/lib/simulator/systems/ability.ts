@@ -213,7 +213,7 @@ export const CHAMPION_ABILITY_PATTERNS: Record<string, AbilityConfig> = {
   // === 4코스트 ===
   TFT17_Rammus:      { pattern: 'line', maxTargets: 3, selfBuff: { durability: 0.3, duration: 4 } },  // 보호막 + 직선 3칸
   TFT17_Corki:       { pattern: 'aoe_circle', radius: 2, dash: 'to_target', hitCount: 21, damageVar: 'MissileAD' },  // 저공비행 + 미사일 21개 AOE
-  TFT17_Kindred:     { pattern: 'multi', maxTargets: 3, dash: 'to_farthest', damageVar: 'ADDamage' },  // 도약 + 화살 3명 ADDamage (표식 패시브는 combatLoop)
+  TFT17_Kindred:     { pattern: 'multi', maxTargets: 3, damageVar: 'ADDamage' },  // 제자리에서 화살 3명 ADDamage. 이동은 기본 공격 AI 의 한 칸 이동에 맡긴다 (표식 패시브는 combatLoop)
   TFT17_Karma:       { pattern: 'multi', maxTargets: 3, secondaryDamageVar: 'SecondaryDamage' },  // 블랙홀 3명 분배 + 대상 추가 SecondaryDamage
   TFT17_AurelionSol: { pattern: 'line', damageDecay: 0.15, dot: { duration: 3 } },  // 직선 광선 3초 DOT + 관통 감소
   TFT17_Galio:       { pattern: 'aoe_circle', radius: 2, heal: true, selfBuff: { durability: 0.3, duration: 4 } },  // 방어 태세 + 충격파

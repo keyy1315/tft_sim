@@ -1613,6 +1613,22 @@ export function simulateCombat(
       allUnits.filter(u => u.state !== 'dead').map(u => coordKey(u.position))
     );
 
+    // 도전자(TFT17_ASTrait) 시너지 활성 유닛 id 집합 — 매 틱 lookup 비용 절감.
+    // 타겟 사망 시 새 타겟으로 돌진하는 hook 조건에 사용.
+    const playerChallengerActive = playerActiveTraits.some(t => t.trait.apiName === 'TFT17_ASTrait' && t.activeEffect);
+    const enemyChallengerActive = enemyActiveTraits.some(t => t.trait.apiName === 'TFT17_ASTrait' && t.activeEffect);
+    const challengerIds = new Set<string>();
+    if (playerChallengerActive) {
+      for (const u of playerUnits) {
+        if ((u.resolvedTraits ?? u.champion.traits).includes('도전자')) challengerIds.add(u.id);
+      }
+    }
+    if (enemyChallengerActive) {
+      for (const u of enemies) {
+        if ((u.resolvedTraits ?? u.champion.traits).includes('도전자')) challengerIds.add(u.id);
+      }
+    }
+
     for (const unit of allUnits) {
       if (unit.state === 'dead') continue;
 
@@ -1633,9 +1649,25 @@ export function simulateCombat(
 
       if (!canAct(unit)) continue;
 
+      // Totem(쉔 유물 등): 공격/이동 불가. 편집창에서 배치된 자리 고정 유지.
+      if (unit.stats.range === 0 && unit.stats.damage === 0 && unit.stats.attackSpeed === 0) continue;
+
       const enemyTeamAlive = unit.team === 'player' ? aliveEnemies : alivePlayers;
+      const prevTargetId = unit.target;
       const target = findTarget(unit, enemyTeamAlive, rng);
       if (!target) continue;
+
+      // 도전자 시너지: 이전 타겟이 사망해 새 타겟으로 바뀐 순간 돌진.
+      if (
+        challengerIds.has(unit.id) &&
+        prevTargetId && prevTargetId !== target.id
+      ) {
+        const allEnemy = unit.team === 'player' ? enemies : playerUnits;
+        const prev = allEnemy.find(e => e.id === prevTargetId);
+        if (prev && prev.state === 'dead') {
+          applyAbilityDash(unit, 'to_target', target, enemyTeamAlive, occupiedPositions, logs, tickLogs, tick, time);
+        }
+      }
 
       unit.target = target.id;
 

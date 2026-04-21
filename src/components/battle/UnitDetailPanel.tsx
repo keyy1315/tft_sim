@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { TickSnapshotUnit, COST_COLORS, RawItem, RawChampion } from '@/types';
+import { TickSnapshotUnit, COST_COLORS, RawItem, RawChampion, ActiveTrait } from '@/types';
 import { getChampionImage } from '@/data/imageMap';
 import { resolveDescription } from '@/lib/utils/text';
 import { isAutoUnit } from '@/data/specialUnits';
@@ -22,6 +22,7 @@ interface UnitMeta {
   maxHp: number;
   maxMana: number;
   traits: string[];
+  items: { apiName: string }[];
   ability: { name: string; desc: string; variables: { name: string; value: number[] }[] };
 }
 
@@ -33,6 +34,8 @@ interface UnitDetailPanelProps {
   verifyContext?: VerifyContext;
   /** 1차 추천 아이템 풀. 비어 있으면 추천 섹션 생략. */
   allItems?: RawItem[];
+  /** 선택된 유닛의 팀 시너지. 초능력/동물특공대 활성 조건부 추천에 사용. */
+  activeTraits?: ActiveTrait[];
 }
 
 const STAR_LABELS: Record<number, string> = { 1: '★', 2: '★★', 3: '★★★' };
@@ -55,6 +58,7 @@ export default function UnitDetailPanel({
   onClose,
   verifyContext,
   allItems,
+  activeTraits,
 }: UnitDetailPanelProps) {
   const { stats, damageAmp } = unitSnapshot;
   const costColor = COST_COLORS[meta.cost as keyof typeof COST_COLORS] ?? '#9ca3af';
@@ -119,16 +123,30 @@ export default function UnitDetailPanel({
 
       {/* Body: 3-column */}
       <div className="grid grid-cols-1 md:grid-cols-[240px_260px_minmax(0,1fr)] gap-4">
-        {/* 좌: 스탯 */}
-        <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 content-start">
-          {statDefs.map(s => (
-            <div key={s.label} className="flex items-baseline justify-between gap-1">
-              <span className="text-xs text-gray-500">{s.label}</span>
-              <span className="text-sm font-mono text-gray-200 tabular-nums">
-                {formatStat(s.value, s.format)}
-              </span>
+        {/* 좌: 스탯 + 장착 아이템 */}
+        <div className="content-start">
+          <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+            {statDefs.map(s => (
+              <div key={s.label} className="flex items-baseline justify-between gap-1">
+                <span className="text-xs text-gray-500">{s.label}</span>
+                <span className="text-sm font-mono text-gray-200 tabular-nums">
+                  {formatStat(s.value, s.format)}
+                </span>
+              </div>
+            ))}
+          </div>
+          {meta.items.length > 0 && allItems && allItems.length > 0 && (
+            <div className="mt-3 pt-3 border-t border-gray-800">
+              <div className="text-xs text-gray-500 mb-1.5">장착 아이템</div>
+              <div className="flex gap-1.5">
+                {meta.items.map((slot, i) => {
+                  const item = allItems.find(it => it.apiName === slot.apiName);
+                  if (!item) return null;
+                  return <ItemIcon key={i} item={item} size={32} />;
+                })}
+              </div>
             </div>
-          ))}
+          )}
         </div>
 
         {/* 중: 추천 아이템 */}
@@ -138,6 +156,7 @@ export default function UnitDetailPanel({
             meta={meta}
             verifyContext={verifyContext}
             allItems={allItems}
+            activeTraits={activeTraits}
           />
         </div>
 
@@ -187,6 +206,7 @@ interface RecommendationSectionProps {
   meta: UnitMeta;
   verifyContext?: VerifyContext;
   allItems?: RawItem[];
+  activeTraits?: ActiveTrait[];
 }
 
 function roleTagLabel(role: RoleCategory): string {
@@ -205,7 +225,7 @@ function deriveRole(meta: UnitMeta, verifyContext?: VerifyContext): RoleCategory
 }
 
 function RecommendationSection({
-  snapshot, meta, verifyContext, allItems,
+  snapshot, meta, verifyContext, allItems, activeTraits,
 }: RecommendationSectionProps) {
   const [verified, setVerified] = useState<VerifiedResult | null>(null);
   const [verifying, setVerifying] = useState(false);
@@ -242,8 +262,8 @@ function RecommendationSection({
         variables: meta.ability.variables,
       },
     } as RawChampion);
-    return getStaticRecommendations(champ, snapshot.stats, meta.starLevel, allItems);
-  }, [meta, snapshot.stats, allItems, verifyContext]);
+    return getStaticRecommendations(champ, snapshot.stats, meta.starLevel, allItems, activeTraits);
+  }, [meta, snapshot.stats, allItems, verifyContext, activeTraits]);
 
   const canVerify = !!verifyContext && recommendations.length > 0;
 

@@ -50,6 +50,8 @@ export function useReplayControls() {
       items: { apiName: string }[];
       maxHp: number;
       maxMana: number;
+      traits: string[];
+      ability: { name: string; desc: string; variables: { name: string; value: number[] }[] };
     }> = {};
     for (const u of [...combatResult.playerUnits, ...combatResult.enemyUnits]) {
       meta[u.id] = {
@@ -61,6 +63,12 @@ export function useReplayControls() {
         items: u.items.map(it => ({ apiName: it.apiName })),
         maxHp: u.maxHp,
         maxMana: u.maxMana,
+        traits: u.resolvedTraits ?? u.champion.traits,
+        ability: {
+          name: u.champion.ability.name,
+          desc: u.champion.ability.desc,
+          variables: u.champion.ability.variables ?? [],
+        },
       };
     }
     return meta;

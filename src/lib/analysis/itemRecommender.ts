@@ -1,4 +1,4 @@
-import type { RawChampion, RawItem, ChampionStats, PlacedChampion, HexCoord } from '@/types';
+import type { RawChampion, RawItem, ChampionStats, PlacedChampion, HexCoord, ActiveTrait } from '@/types';
 import type {
   RoleCategory,
   Recommendation,
@@ -8,6 +8,7 @@ import type {
 } from '@/types/analysis';
 import { estimateDps } from '@/lib/analysis/itemOptimizer';
 import { simulateCombat } from '@/lib/simulator/engine/combatLoop';
+import { getItemCategory, isDisabledItem } from '@/lib/simulator/systems/item';
 
 /** champion.role → 추천 스코어링용 카테고리 매핑. */
 export function classifyRole(champ: RawChampion): RoleCategory {
@@ -35,20 +36,80 @@ function isPureAD(item: RawItem): boolean {
   return fx.some(k => AD_KEYS.some(ak => k.includes(ak))) && !fx.some(k => k.includes('AP'));
 }
 
-/** 역할 + damageType 기반 아이템 풀 필터. */
+/** 트레잇 활성 수준 — apiName → 활성된 breakpoint minUnits (비활성 0). */
+export interface FilterContext {
+  psyOpsLevel: number;
+  animaSquadLevel: number;
+}
+
+/** ActiveTrait[] 에서 특정 trait apiName 의 활성 minUnits 를 조회. 비활성이면 0. */
+export function activeMinUnits(activeTraits: ActiveTrait[], apiName: string): number {
+  const t = activeTraits.find(x => x.trait.apiName === apiName && x.activeEffect);
+  return t?.activeEffect?.minUnits ?? 0;
+}
+
+/** 시너지 활성 상태에 따라 불가능한 아이템 제외.
+ *  - 유물(Artifact) 완전 제외
+ *  - 찬란한(Radiant) / 타락한(Corrupted) 변종 완전 제외 — 일반 플레이에서 드롭 불가
+ *    (단 TFT17_Item_PsyOps_*_Radiant 는 PsyOps 규칙 우선 적용)
+ *  - 동물특공대 만능 무기 완전 제외
+ *  - AnimaSquad 아이템: 동물특공대 ≥ 3 활성 시에만
+ *  - PsyOps 아이템: 초능력 ≥ 2 활성 시에만 */
+function filterByTraitRules(items: RawItem[], ctx: FilterContext): RawItem[] {
+  return items.filter(it => {
+    const api = it.apiName;
+    // PsyOps 는 시너지 규칙 우선 (Radiant 변종 포함)
+    if (api.startsWith('TFT17_Item_PsyOps_')) return ctx.psyOpsLevel >= 2;
+    // 유물 / 찬란한 / 타락한 (찬란한의 변종) 전면 제외
+    if (api.includes('_Artifact_') || api.includes('Artifact')) return false;
+    if (api.startsWith('TFT_Item_Radiant_')) return false;
+    if (api.startsWith('TFT_Item_Corrupted')) return false;
+    // 동물특공대 만능 무기 + 조건부 AnimaSquad
+    if (api === 'TFT17_AnimaSquadItem_Tier4_Omniweapon') return false;
+    if (api.startsWith('TFT17_AnimaSquadItem_')) return ctx.animaSquadLevel >= 3;
+    return true;
+  });
+}
+
+/** Riot 번역/데이터가 불완전한 아이템 — name 이 번역키 fallback 이거나 비어 있으면 게임에서 비활성 상태로 간주. */
+function isDataIncomplete(item: RawItem): boolean {
+  const name = item.name ?? '';
+  return name === '' || name.startsWith('tft_item_name_');
+}
+
+/** 추천 풀에 들어갈 수 있는 카테고리인가.
+ *  편집 탭의 아이템 그리드에 실제로 나오는 "완성 아이템" 만 허용.
+ *  유물 / 찬란한 / 타락한 / 재료 / 시너지 상징 / 발명품 / 빌지워터 / 비활성 아이템은 모두 제외. */
+function isRecommendable(item: RawItem): boolean {
+  if (isDisabledItem(item)) return false;
+  return getItemCategory(item) === 'combined';
+}
+
+/** 역할 + damageType 기반 아이템 풀 필터. ctx 주입 시 트레잇 규칙도 적용. */
 export function filterItemPool(
   all: RawItem[],
   role: RoleCategory,
   damageType: 'ad' | 'ap' | 'none',
+  ctx?: FilterContext,
 ): RawItem[] {
-  if (role === 'TANK') return all.filter(i => hasAnyKey(i, TANK_KEYS));
-  if (role === 'SUPPORT') return all.slice();
-  if (damageType === 'ad') return all.filter(i => hasAnyKey(i, AD_KEYS) && !isPureAP(i));
-  if (damageType === 'ap') return all.filter(i => hasAnyKey(i, AP_KEYS) && !isPureAD(i));
-  return all.slice();
+  // 1) 카테고리 필터 — 편집 탭의 완성 아이템만 추천 풀로 허용
+  //    (유물/찬란한/타락한/재료/상징/발명품/빌지워터/비활성 아이템 전면 제외)
+  // 2) 데이터 불완전 (번역 안 된 비활성) 아이템 제거
+  const valid = all.filter(i => isRecommendable(i) && !isDataIncomplete(i));
+
+  let pool: RawItem[];
+  if (role === 'TANK') pool = valid.filter(i => hasAnyKey(i, TANK_KEYS));
+  else if (role === 'SUPPORT') pool = valid.slice();
+  else if (damageType === 'ad') pool = valid.filter(i => hasAnyKey(i, AD_KEYS) && !isPureAP(i));
+  else if (damageType === 'ap') pool = valid.filter(i => hasAnyKey(i, AP_KEYS) && !isPureAD(i));
+  else pool = valid.slice();
+  return ctx ? filterByTraitRules(pool, ctx) : pool;
 }
 
-/** 각 아이템 단독 장착 시 DPS 에서 baseline 을 뺀 기여도. */
+/** 각 아이템 단독 장착 시 DPS 기여도 + flat 스탯 보정.
+ *  estimateDps 는 AttackSpeed/Stacking 같은 배율 효과는 잘 반영하지만 단순 AD/CritChance/CritDamage 같은
+ *  플랫 스탯 증가는 누락하는 편이라 IE/피바라기/죽음의 검 등 핵심 AD 캐리템이 과소평가됨.
+ *  effects 키 기반 휴리스틱을 가산해 Top-N 후보에 포함되도록 균형. */
 export function scoreItemsForDamage(
   stats: ChampionStats,
   isAP: boolean,
@@ -58,9 +119,34 @@ export function scoreItemsForDamage(
   const baseline = estimateDps(stats, isAP, starLevel, []);
   return pool.map(it => ({
     item: it,
-    score: estimateDps(stats, isAP, starLevel, [it]) - baseline,
+    score: (estimateDps(stats, isAP, starLevel, [it]) - baseline) + flatStatBonus(it, isAP),
     reason: '',
   }));
+}
+
+/** effects 키별 경험적 가중치 — 단순 flat 스탯을 DPS 기여로 환산. */
+function flatStatBonus(item: RawItem, isAP: boolean): number {
+  const fx = item.effects ?? {};
+  let bonus = 0;
+  if (isAP) {
+    bonus += (fx.AP ?? 0) * 3;
+    bonus += (fx.ManaOnRoundStart ?? 0) * 2;
+    bonus += (fx.ManaGain ?? 0) * 2;
+    bonus += (fx.SpellDamageAmp ?? 0) * 150;
+  } else {
+    bonus += (fx.AD ?? 0) * 2;
+    bonus += (fx.AS ?? 0) * 100;             // '%' 값이라 배수
+    bonus += (fx.AttackSpeed ?? 0) * 100;
+    bonus += (fx.CritChance ?? 0) * 3;
+    bonus += (fx.CritDamage ?? fx.CritDamageToGive ?? 0) * 2;
+    bonus += (fx.LifeSteal ?? 0) * 1.5;
+    bonus += (fx.Omnivamp ?? fx.StatOmnivamp ?? 0) * 2;
+    bonus += (fx.ArmorReductionPercent ?? 0) * 2;
+    bonus += (fx.BonusDamage ?? 0) * 1;
+    bonus += (fx.StackingAD ?? 0) * 3;
+    bonus += (fx.StackedAmp ?? 0) * 150;
+  }
+  return bonus;
 }
 
 /** TANK 역할용 effective-HP 근사 스코어. */
@@ -76,32 +162,60 @@ function scoreItemsForTank(stats: ChampionStats, pool: RawItem[]): Recommendatio
   });
 }
 
-/** 상위 6개 후보에서 C(6,3)=20 조합 열거 → 3개 동시 장착 시 DPS 최대. */
+/** 조합 선택 제약. maxPsyOps — 조합 내 PsyOps 아이템 최대 개수. */
+export interface ComboConstraint {
+  maxPsyOps?: number;
+}
+
+function isPsyOpsItem(r: Recommendation): boolean {
+  return r.item.apiName.startsWith('TFT17_Item_PsyOps_');
+}
+
+function satisfiesConstraint(combo: Recommendation[], constraint?: ComboConstraint): boolean {
+  if (!constraint) return true;
+  if (constraint.maxPsyOps !== undefined) {
+    const psyCount = combo.filter(isPsyOpsItem).length;
+    if (psyCount > constraint.maxPsyOps) return false;
+  }
+  return true;
+}
+
+/** 상위 6개 후보에서 C(6,3)=20 조합 열거 → 3개 동시 장착 시 DPS 최대.
+ *  제약(maxPsyOps 등) 위반 조합은 스킵. */
 export function pickTopCombo(
   scored: Recommendation[],
   stats: ChampionStats,
   isAP: boolean,
   starLevel: number,
+  constraint?: ComboConstraint,
 ): Recommendation[] {
   if (scored.length === 0) return [];
   const sorted = [...scored].sort((a, b) => b.score - a.score);
-  if (sorted.length <= 3) return sorted;
+  if (sorted.length <= 3) {
+    return satisfiesConstraint(sorted, constraint) ? sorted : sorted.filter(r => !isPsyOpsItem(r));
+  }
   const candidates = sorted.slice(0, 6);
 
-  let best = candidates.slice(0, 3);
-  let bestDps = estimateDps(stats, isAP, starLevel, best.map(r => r.item));
+  let best: Recommendation[] | null = null;
+  let bestDps = -Infinity;
 
   for (let i = 0; i < candidates.length - 2; i++) {
     for (let j = i + 1; j < candidates.length - 1; j++) {
       for (let k = j + 1; k < candidates.length; k++) {
-        const items = [candidates[i].item, candidates[j].item, candidates[k].item];
-        const d = estimateDps(stats, isAP, starLevel, items);
+        const combo = [candidates[i], candidates[j], candidates[k]];
+        if (!satisfiesConstraint(combo, constraint)) continue;
+        const d = estimateDps(stats, isAP, starLevel, combo.map(r => r.item));
         if (d > bestDps) {
           bestDps = d;
-          best = [candidates[i], candidates[j], candidates[k]];
+          best = combo;
         }
       }
     }
+  }
+  // 제약 때문에 유효 조합이 전혀 없었다면 PsyOps 를 제거한 fallback
+  if (!best) {
+    const nonPsy = sorted.filter(r => !isPsyOpsItem(r)).slice(0, 3);
+    return nonPsy;
   }
   return best;
 }
@@ -141,16 +255,22 @@ function detectDamageType(champ: RawChampion): 'ad' | 'ap' | 'none' {
   return 'none';
 }
 
-/** 1차 추천 — 역할 필터 + DPS 스코어 + Top-3 조합 + reason 태깅. 즉시 응답. */
+/** 1차 추천 — 역할 필터 + 시너지 규칙 + DPS 스코어 + Top-3 조합 + reason 태깅.
+ *  activeTraits 주입 시 초능력/동물특공대 조건부 풀 + PsyOps 슬롯 상한 적용. */
 export function getStaticRecommendations(
   champ: RawChampion,
   stats: ChampionStats,
   starLevel: number,
   allItems: RawItem[],
+  activeTraits?: ActiveTrait[],
 ): Recommendation[] {
+  const psyOpsLevel = activeTraits ? activeMinUnits(activeTraits, 'TFT17_PsyOps') : 0;
+  const animaSquadLevel = activeTraits ? activeMinUnits(activeTraits, 'TFT17_AnimaSquad') : 0;
+  const ctx: FilterContext = { psyOpsLevel, animaSquadLevel };
+
   const role = classifyRole(champ);
   const damageType = detectDamageType(champ);
-  const pool = filterItemPool(allItems, role, damageType);
+  const pool = filterItemPool(allItems, role, damageType, ctx);
   if (pool.length === 0) return [];
 
   const scored = role === 'TANK'
@@ -158,7 +278,8 @@ export function getStaticRecommendations(
     : scoreItemsForDamage(stats, damageType === 'ap', starLevel, pool);
 
   const isAP = damageType === 'ap';
-  const combo = pickTopCombo(scored, stats, isAP, starLevel);
+  const maxPsyOps = psyOpsLevel >= 4 ? 2 : psyOpsLevel >= 2 ? 1 : 0;
+  const combo = pickTopCombo(scored, stats, isAP, starLevel, { maxPsyOps });
   return combo.map(r => ({ ...r, reason: tagReason(r.item) }));
 }
 

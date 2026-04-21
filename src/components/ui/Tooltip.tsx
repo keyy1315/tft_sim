@@ -81,7 +81,10 @@ export default function Tooltip({ content, children, disabled }: TooltipProps) {
     el.style.visibility = 'hidden';
     el.style.top = '0';
     el.style.left = '0';
-    el.style.zIndex = '9999';
+    // 툴팁은 항상 최상위. 상위 요소의 stacking context 영향을 받지 않도록
+    // isolation 으로 독립 컨텍스트화 + 매우 큰 z-index.
+    el.style.zIndex = '2147483647';
+    el.style.isolation = 'isolate';
 
     const tt = el.getBoundingClientRect();
     const gap = 8;
