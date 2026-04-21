@@ -1,4 +1,4 @@
-import type { CombatResult, PlacedChampion } from '@/types';
+import type { CombatResult, PlacedChampion, RawItem, HexCoord } from '@/types';
 import type { SimulateOptions } from '@/lib/simulator/engine/combatLoop';
 
 // ── 정확도 등급 ──
@@ -77,4 +77,39 @@ export interface WhatIfComparisonResult {
       survivalDelta: number;
     }>;
   };
+}
+
+// ── 아이템 추천 시스템 (UnitDetailPanel) ──
+
+/** 추천 스코어링에 쓸 역할 분류 */
+export type RoleCategory = 'DAMAGE' | 'TANK' | 'SUPPORT';
+
+export interface Recommendation {
+  item: RawItem;
+  score: number;
+  reason: string;
+}
+
+export interface VerifyContext {
+  playerTeam: PlacedChampion[];     // row 4-7 규약 (전투 시뮬 입력)
+  enemyTeam: PlacedChampion[];
+  targetApiName: string;
+  targetPosition: HexCoord;
+  simulateOptions: SimulateOptions;
+}
+
+export interface VerifiedPerItem {
+  comboLabel: string;
+  items: RawItem[];
+  winRate: number;
+  deltaWinRate: number;
+  roleScore: number;
+  avgOwnDmg: number;
+  avgOwnTanked: number;
+}
+
+export interface VerifiedResult {
+  baseline: { winRate: number; avgDuration: number };
+  perItem: VerifiedPerItem[];
+  bestIndex: number;
 }
