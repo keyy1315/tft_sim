@@ -1,12 +1,14 @@
 'use client';
 
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useCombatAnalysis } from '@/hooks/useCombatAnalysis';
 import OpponentSelector from '@/components/analysis/OpponentSelector';
 import DefeatReport from '@/components/analysis/DefeatReport';
+import MatchResultSummary from '@/components/analysis/MatchResultSummary';
 import UnsupportedNotice from '@/components/analysis/UnsupportedNotice';
 import ConfidenceBadge from '@/components/analysis/ConfidenceBadge';
+import { axialToOffset, offsetToAxial, type PlacedChampion } from '@/types';
 import type { ParsedParticipant } from '@/lib/riot';
 
 interface ParticipantResponse {
@@ -16,6 +18,15 @@ interface ParticipantResponse {
   placement: number;
   champions: Array<{ id: string; tier: number; items: string[] }>;
   traits: Array<{ name: string; numUnits: number; style: number; tierCurrent: number }>;
+}
+
+/** reconstruction 이 넘겨주는 player 좌표 (row 4-7) 를 시뮬레이터 state 규약 (row 0-3) 으로 역변환. */
+function shiftPlayerRowsForSimulator(team: PlacedChampion[]): PlacedChampion[] {
+  return team.map(p => {
+    const off = axialToOffset(p.position);
+    const newRow = Math.max(0, Math.min(3, off.row - 4));
+    return { ...p, position: offsetToAxial({ row: newRow, col: off.col }) };
+  });
 }
 
 export default function MatchAnalysisPage() {
@@ -29,6 +40,7 @@ export default function MatchAnalysisPage() {
   const [fetchError, setFetchError] = useState<string | null>(null);
 
   const analysis = useCombatAnalysis();
+  const autoRunTriggered = useRef(false);
 
   useEffect(() => {
     async function loadMatch() {
@@ -64,11 +76,21 @@ export default function MatchAnalysisPage() {
 
   const player = analysis.participants.find(p => p.puuid === puuid) ?? analysis.participants[0];
 
-  /** 시뮬레이터 페이지로 팀 데이터를 넘기고 이동 */
+  /** 진입 시 1회 — 기본 상대(한 등수 위) 와 자동 가상 대전 실행. */
+  useEffect(() => {
+    if (autoRunTriggered.current) return;
+    if (analysis.status !== 'ready') return;
+    if (analysis.reconstruction !== null) return;
+    if (!player || !analysis.selectedOpponent) return;
+    autoRunTriggered.current = true;
+    analysis.runSimulation(player);
+  }, [analysis.status, analysis.reconstruction, analysis.selectedOpponent, player, analysis]);
+
+  /** 시뮬레이터 페이지로 팀 데이터를 넘기고 이동. player 좌표는 시뮬레이터 규약 (row 0-3) 으로 역변환. */
   const openInSimulator = () => {
     if (!analysis.reconstruction) return;
     sessionStorage.setItem('analysis_team', JSON.stringify({
-      playerTeam: analysis.reconstruction.playerTeam,
+      playerTeam: shiftPlayerRowsForSimulator(analysis.reconstruction.playerTeam),
       enemyTeam: analysis.reconstruction.enemyTeam,
     }));
     router.push('/simulator');
@@ -126,14 +148,17 @@ export default function MatchAnalysisPage() {
             )}
           </div>
 
-          {/* 결과: 승리 */}
-          {analysis.status === 'done' && analysis.reconstruction && !analysis.defeatReport && (
-            <div className="p-3 rounded bg-blue-500/10 border border-blue-500/30 text-sm text-blue-300">
-              가상 대전 결과: 승리! 이 조합이라면 상대를 이길 수 있습니다.
-            </div>
+          {/* 결과 요약: 승자 · 양팀 딜량 · 생존 유닛 */}
+          {analysis.status === 'done' && analysis.reconstruction && analysis.originalResult && (
+            <MatchResultSummary
+              result={analysis.originalResult}
+              reconstruction={analysis.reconstruction}
+              playerName={player?.gameName}
+              opponentName={analysis.selectedOpponent?.gameName}
+            />
           )}
 
-          {/* 결과: 패배 → 취약 요인 리포트 */}
+          {/* 패배 시 취약 요인 리포트 병기 */}
           {analysis.status === 'done' && analysis.defeatReport && (
             <DefeatReport result={analysis.defeatReport} />
           )}
@@ -141,7 +166,7 @@ export default function MatchAnalysisPage() {
           {/* 시뮬레이터 안내 */}
           {analysis.status === 'done' && analysis.reconstruction && (
             <div className="p-2 rounded bg-gray-800/50 border border-gray-700/30 text-xs text-gray-400">
-              "시뮬레이터에서 열기"로 배치/아이템을 수정하고 재시뮬레이션할 수 있습니다.
+              &quot;시뮬레이터에서 열기&quot;로 배치/아이템을 수정하고 재시뮬레이션할 수 있습니다.
             </div>
           )}
         </div>
