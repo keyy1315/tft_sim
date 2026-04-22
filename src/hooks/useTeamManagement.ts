@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { PlacedChampion, HexCoord, RawChampion, RawItem, RawAugment, MfMode, PERMANENT_STACK_CONFIG, ArbiterLaw } from '@/types';
+import { PlacedChampion, HexCoord, RawChampion, RawItem, RawAugment, MfMode, PERMANENT_STACK_CONFIG, ArbiterLaw, offsetToAxial } from '@/types';
 import { BOARD_COLS, DEFAULT_STAR_LEVEL } from '@/lib/simulator/models/constants';
 import { resolveTraits } from '@/lib/simulator/systems/trait';
 import { canEquipItem, canAddPiltoverModule, isVoidMutation } from '@/lib/simulator/systems/item';
@@ -302,6 +302,28 @@ export function useTeamManagement({ traits }: UseTeamManagementArgs) {
     }
   };
 
+  /** 풀에서 챔피언 클릭 시 Player 팀 뒷줄(row 3)부터 좌→우, 다음 row 2, 1, 0 순으로 빈 칸에 배치. */
+  const handleQuickAddChampion = (champion: RawChampion) => {
+    for (let row = 3; row >= 0; row--) {
+      for (let col = 0; col < BOARD_COLS; col++) {
+        const pos = offsetToAxial({ row, col });
+        const occupied = playerTeam.some(p => p.position.q === pos.q && p.position.r === pos.r);
+        if (occupied) continue;
+        const isMf = champion.apiName === 'TFT17_MissFortune';
+        const currentLen = playerTeam.length;
+        updatePlayerTeam(prev => [...prev, {
+          champion,
+          position: pos,
+          starLevel: DEFAULT_STAR_LEVEL,
+          items: [],
+          ...(isMf ? { mfMode: null } : {}),
+        }]);
+        if (isMf) setPendingMfPlacement({ team: 'player', index: currentLen });
+        return;
+      }
+    }
+  };
+
   const handleMfModeChange = (team: 'player' | 'enemy', index: number, mode: MfMode) => {
     const setTeam = team === 'player' ? updatePlayerTeam : updateEnemyTeam;
     setTeam(prev => prev.map((p, i) => i === index ? { ...p, mfMode: mode } : p));
@@ -529,6 +551,7 @@ export function useTeamManagement({ traits }: UseTeamManagementArgs) {
     handleCellClick,
     handleUnitClick,
     handleChampionSelect,
+    handleQuickAddChampion,
     handleEquipItem,
     handleRemoveItem,
     handleRemoveVoidItem,
