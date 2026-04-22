@@ -9,6 +9,7 @@ import SelectedUnitPanel from '@/components/builder/SelectedUnitPanel';
 import SynergyPanel from '@/components/builder/SynergyPanel';
 import PiltoverModulePanel from '@/components/builder/PiltoverModulePanel';
 import BottomSheet from '@/components/ui/BottomSheet';
+import OverflowMenu from '@/components/ui/OverflowMenu';
 import { BottomSheetState } from '@/components/ui/bottomSheetLogic';
 import { TICKS_PER_SECOND } from '@/lib/simulator/models/constants';
 import type { SimulatorLayoutProps } from './types';
@@ -234,8 +235,52 @@ export default function SimulatorLayoutMobile(props: SimulatorLayoutProps) {
 
 // --- Placeholder helpers (Tasks 4.3–4.5 replace these) -----------------------
 
-function MobileHeader(_props: SimulatorLayoutProps) {
-  return <div className="text-xs text-gray-400">Header placeholder</div>;
+function MobileHeader({
+  tm, replay, isRunning, runSimulation, runMultiple,
+  stageNumber, setStageNumber, showTeamCode, setShowTeamCode,
+}: SimulatorLayoutProps) {
+  const canRun = !isRunning && tm.playerTeam.length > 0 && tm.enemyTeam.length > 0;
+  const overflowItems = [
+    { label: '초기화', onClick: tm.resetAll },
+    {
+      label: showTeamCode ? '팀 코드 닫기' : '팀 코드 열기',
+      onClick: () => setShowTeamCode(v => !v),
+      active: showTeamCode,
+    },
+    { label: '100회 시뮬', onClick: runMultiple, disabled: !canRun },
+    {
+      label: replay.viewMode === 'setup' ? '리플레이 보기' : '편집으로',
+      onClick: () => replay.setViewMode(replay.viewMode === 'setup' ? 'replay' : 'setup'),
+      disabled: !replay.combatResult,
+    },
+  ];
+
+  return (
+    <div className="flex items-center gap-2">
+      <h2 className="text-sm font-bold text-gray-200 flex-1 truncate">전투 시뮬레이션</h2>
+      <button
+        onClick={runSimulation}
+        disabled={!canRun}
+        className="px-3 py-1.5 bg-yellow-600 hover:bg-yellow-500 disabled:opacity-40 rounded-lg text-xs font-bold text-black transition-colors"
+      >
+        {isRunning ? '전투 중...' : '▶ 시작'}
+      </button>
+      <OverflowMenu items={overflowItems} ariaLabel="more simulator options">
+        <div>
+          <label className="text-[10px] text-gray-400 block mb-1">Stage</label>
+          <select
+            value={stageNumber}
+            onChange={(e) => setStageNumber(Number(e.target.value))}
+            className="w-full bg-[#1f2937] text-gray-300 text-xs rounded px-2 py-1 border border-gray-600"
+          >
+            {[1, 2, 3, 4, 5, 6, 7].map(s => (
+              <option key={s} value={s}>Stage {s}</option>
+            ))}
+          </select>
+        </div>
+      </OverflowMenu>
+    </div>
+  );
 }
 
 interface MobileOverlayExtra {
