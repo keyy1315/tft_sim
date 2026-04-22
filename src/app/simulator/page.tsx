@@ -410,8 +410,8 @@ function SimulatorContent() {
               {/* Board (mobile: first, desktop: center) */}
               <div className="order-1 lg:order-2 lg:flex-1 lg:min-w-0">
                 <div className="bg-[#0d1117] rounded-xl border border-gray-800 p-2 lg:p-3 flex justify-center">
-                  <div className="h-[320px] sm:h-[420px] lg:h-auto overflow-hidden flex justify-center">
-                    <div className="transform scale-[0.5] sm:scale-[0.65] lg:scale-100 origin-top" style={{ position: 'relative', display: 'inline-block' }}>
+                  <div className="overflow-auto flex justify-center">
+                    <div style={{ position: 'relative', display: 'inline-block' }}>
                     <SetupBoard
                       playerChampions={tm.playerTeam}
                       enemyChampions={tm.enemyTeam}
@@ -815,15 +815,13 @@ function SimulatorContent() {
             <div className="flex flex-col lg:flex-row gap-3 lg:gap-4">
               {/* Board */}
               <div className="bg-[#0d1117] rounded-xl border border-gray-800 p-2 lg:p-3 flex justify-center flex-1 min-w-0">
-                <div className="h-[310px] sm:h-[420px] lg:h-auto overflow-hidden">
-                  <div className="transform scale-[0.48] sm:scale-[0.65] lg:scale-100 origin-top">
-                    <ReplayBoard
-                      snapshot={replay.currentSnapshot}
-                      unitMeta={replay.unitMeta}
-                      selectedUnitId={replay.selectedUnitId}
-                      onUnitClick={replay.setSelectedUnitId}
-                    />
-                  </div>
+                <div className="overflow-auto">
+                  <ReplayBoard
+                    snapshot={replay.currentSnapshot}
+                    unitMeta={replay.unitMeta}
+                    selectedUnitId={replay.selectedUnitId}
+                    onUnitClick={replay.setSelectedUnitId}
+                  />
                 </div>
               </div>
 
