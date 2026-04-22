@@ -14,7 +14,6 @@ import PiltoverModulePanel from '@/components/builder/PiltoverModulePanel';
 import AugmentSlots from '@/components/builder/AugmentSlots';
 import BottomSheet from '@/components/ui/BottomSheet';
 import OverflowMenu from '@/components/ui/OverflowMenu';
-import { BottomSheetState } from '@/components/ui/bottomSheetLogic';
 import { TICKS_PER_SECOND } from '@/lib/simulator/models/constants';
 import { useWindowWidth } from '@/hooks/useViewport';
 import type { SimulatorLayoutProps } from './types';
@@ -45,12 +44,11 @@ interface MobileTab {
 }
 
 export default function SimulatorLayoutMobile(props: SimulatorLayoutProps) {
-  const { tm, replay, hexBuffs, teamNames } = props;
+  const { tm, replay, hexBuffs, teamNames, sheetState, setSheetState } = props;
 
   const windowWidth = useWindowWidth();
   const cellSize = computeMobileCellSize(windowWidth);
 
-  const [sheetState, setSheetState] = useState<BottomSheetState>('peek');
   const [activeTabId, setActiveTabId] = useState<MobileTabId>(
     replay.viewMode === 'replay' ? 'log' : 'pool',
   );
@@ -64,7 +62,7 @@ export default function SimulatorLayoutMobile(props: SimulatorLayoutProps) {
       setActiveTabId('unit');
       setSheetState('half');
     },
-    [tm],
+    [tm, setSheetState],
   );
 
   const setupTabs: MobileTab[] = [
@@ -197,6 +195,7 @@ export default function SimulatorLayoutMobile(props: SimulatorLayoutProps) {
                 setHoverUnit={props.setHoverUnit}
                 cellSize={cellSize}
                 onUnitClick={onUnitClickWithSheet}
+                onMovableActivate={() => setSheetState('peek')}
               />
             </>
           )}

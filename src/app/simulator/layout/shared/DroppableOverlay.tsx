@@ -12,6 +12,8 @@ interface DroppableOverlayProps {
   setHoverUnit: SimulatorLayoutProps['setHoverUnit'];
   cellSize: number;
   onUnitClick: (team: 'player' | 'enemy', index: number) => void;
+  /** movable hexBuff 이동 모드 활성화 시 호출 (모바일에서 sheet peek 용) */
+  onMovableActivate?: () => void;
 }
 
 /**
@@ -19,7 +21,7 @@ interface DroppableOverlayProps {
  * 모바일/태블릿/데스크톱 레이아웃에서 재사용.
  */
 export default function DroppableOverlay({
-  tm, hexBuffs, setHoverUnit, cellSize, onUnitClick,
+  tm, hexBuffs, setHoverUnit, cellSize, onUnitClick, onMovableActivate,
 }: DroppableOverlayProps) {
   const { playerTeam, enemyTeam } = tm;
   const { player: playerHexBuffs, enemy: enemyHexBuffs, moving, setMoving, setOverrides } = hexBuffs;
@@ -54,6 +56,7 @@ export default function DroppableOverlay({
             }));
             if (movableBuff && !placed) {
               setMoving({ team, apiName: movableBuff.augmentApiName });
+              onMovableActivate?.();
               return;
             }
             if (placed && placedIdx >= 0) onUnitClick(team, placedIdx);

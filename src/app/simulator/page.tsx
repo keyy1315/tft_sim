@@ -25,6 +25,7 @@ import SimulatorLayoutDesktop from './layout/SimulatorLayoutDesktop';
 import SimulatorLayoutMobile from './layout/SimulatorLayoutMobile';
 import SimulatorLayoutTablet from './layout/SimulatorLayoutTablet';
 import type { SimulatorLayoutProps, ItemFilterTab, PoolTab } from './layout/types';
+import type { BottomSheetState } from '@/components/ui/bottomSheetLogic';
 
 export default function SimulatorPage() {
   return (
@@ -131,6 +132,8 @@ function SimulatorContent() {
   const [hoverUnit, setHoverUnit] = useState<{ placed: PlacedChampion; rect: DOMRect } | null>(null);
   const [hexBuffOverrides, setHexBuffOverrides] = useState<Record<string, Record<string, HexCoord>>>({ player: {}, enemy: {} });
   const [movingHexBuff, setMovingHexBuff] = useState<{ team: 'player' | 'enemy'; apiName: string } | null>(null);
+  // 모바일 BottomSheet 상태 — lift up 으로 DnD 핸들러에서 접근
+  const [sheetState, setSheetState] = useState<BottomSheetState>('peek');
 
   /** Map player data-row 0-3 → display-row 4-7 for 8-row combat board */
   const toEightRowCoords = useCallback((team: PlacedChampion[], rowOffset: number): PlacedChampion[] => {
@@ -264,10 +267,20 @@ function SimulatorContent() {
     returnTo,
     onBackToAnalysis,
     mappedPlayerForReplay,
+    sheetState,
+    setSheetState,
   };
 
   return (
-    <DndContext sensors={sensors} onDragStart={dnd.handleDragStart} onDragEnd={dnd.handleDragEnd}>
+    <DndContext
+      sensors={sensors}
+      onDragStart={(e) => {
+        dnd.handleDragStart(e);
+        // 모바일에서 DnD 시작 시 bottom sheet 를 peek 로 축소해 보드가 보이도록 함
+        if (viewport === 'mobile') setSheetState('peek');
+      }}
+      onDragEnd={dnd.handleDragEnd}
+    >
       <div className="space-y-4">
         {/* 분석에서 넘어왔을 때만 표시되는 복귀 버튼 */}
         {returnTo && (
