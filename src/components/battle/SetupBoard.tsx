@@ -3,7 +3,7 @@
 import { PlacedChampion, HexCoord, HexBuff, axialToOffset, offsetToAxial, COST_COLORS, MF_MODE_CONFIG } from '@/types';
 import { getChampionImage, getItemImage } from '@/data/imageMap';
 import { BOARD_COLS } from '@/lib/simulator/models/constants';
-import { hexPoints, hexCenter, HEX_R, HEX_W, HEX_H, PAD } from './HexBoard';
+import { createHexLayout, DEFAULT_HEX_R } from './HexBoard';
 
 interface SetupBoardProps {
   playerChampions: PlacedChampion[];
@@ -17,6 +17,7 @@ interface SetupBoardProps {
   playerHexBuffs?: HexBuff[];
   enemyHexBuffs?: HexBuff[];
   movingHexBuffApiName?: string | null;
+  cellSize?: number;
 }
 
 const ROWS = 8;
@@ -121,7 +122,9 @@ export default function SetupBoard({
   playerHexBuffs = [],
   enemyHexBuffs = [],
   movingHexBuffApiName,
+  cellSize = DEFAULT_HEX_R,
 }: SetupBoardProps) {
+  const { HEX_R, HEX_W, HEX_H, PAD, hexCenter, hexPoints } = createHexLayout(cellSize);
   const cols = BOARD_COLS;
   const width = cols * (HEX_W + PAD) + HEX_W / 2 + 40;
   const height = ROWS * (HEX_H * 0.75 + PAD) + HEX_R + 40;
