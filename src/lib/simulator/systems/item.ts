@@ -84,8 +84,8 @@ export function isArtifact(item: RawItem): boolean {
 /** 유물로 분류해야 하지만 apiName에 Artifact가 없는 아이템들 */
 const FORCE_ARTIFACT = new Set([
   'TFT9_Item_CrownOfDemacia',                      // 데마시아의 왕관
-  'TFT7_Item_ShimmerscaleMogulsMail_Revival',       // 거물의 갑옷
-  'TFT7_Item_ShimmerscaleGamblersBlade_Revival',    // 도박꾼의 칼날
+  'TFT7_Item_ShimmerscaleMogulsMail',                // 거물의 갑옷
+  'TFT7_Item_ShimmerscaleGamblersBlade',             // 도박꾼의 칼날
   'TFT4_Item_OrnnInfinityForce',                    // 무한한 삼위일체
   'TFT9_Item_OrnnHullbreaker',                      // 선체분쇄자
   'TFT9_Item_OrnnHorizonFocus',                     // 저격수의 집중
