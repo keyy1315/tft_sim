@@ -1,9 +1,8 @@
 'use client';
 
-import { MouseEvent, ReactNode, useCallback, useMemo, useState } from 'react';
+import { ReactNode, useCallback, useMemo, useState } from 'react';
 import SetupBoard from '@/components/battle/SetupBoard';
 import ReplayBoard from '@/components/battle/ReplayBoard';
-import DroppableHexCell from '@/components/battle/DroppableHexCell';
 import BattleControls from '@/components/battle/BattleControls';
 import DamageSidebar from '@/components/battle/DamageSidebar';
 import UnitDetailPanel from '@/components/battle/UnitDetailPanel';
@@ -16,10 +15,10 @@ import AugmentSlots from '@/components/builder/AugmentSlots';
 import BottomSheet from '@/components/ui/BottomSheet';
 import OverflowMenu from '@/components/ui/OverflowMenu';
 import { BottomSheetState } from '@/components/ui/bottomSheetLogic';
-import { BOARD_COLS, TICKS_PER_SECOND } from '@/lib/simulator/models/constants';
-import { axialToOffset, offsetToAxial } from '@/types';
+import { TICKS_PER_SECOND } from '@/lib/simulator/models/constants';
 import { useWindowWidth } from '@/hooks/useViewport';
 import type { SimulatorLayoutProps } from './types';
+import DroppableOverlay from './shared/DroppableOverlay';
 import ChampionPoolContent from './pool/ChampionPoolContent';
 import ItemPoolContent from './pool/ItemPoolContent';
 import BilgewaterPoolContent from './pool/BilgewaterPoolContent';
@@ -192,8 +191,10 @@ export default function SimulatorLayoutMobile(props: SimulatorLayoutProps) {
                 movingHexBuffApiName={hexBuffs.moving?.apiName}
                 cellSize={cellSize}
               />
-              <MobileDroppableOverlay
-                {...props}
+              <DroppableOverlay
+                tm={tm}
+                hexBuffs={hexBuffs}
+                setHoverUnit={props.setHoverUnit}
                 cellSize={cellSize}
                 onUnitClick={onUnitClickWithSheet}
               />
@@ -342,78 +343,6 @@ function MobileHeader({
           </select>
         </div>
       </OverflowMenu>
-    </div>
-  );
-}
-
-interface MobileOverlayExtra {
-  cellSize: number;
-  onUnitClick: (team: 'player' | 'enemy', index: number) => void;
-}
-
-function MobileDroppableOverlay({
-  tm, hexBuffs, setHoverUnit, cellSize, onUnitClick,
-}: SimulatorLayoutProps & MobileOverlayExtra) {
-  const { playerTeam, enemyTeam } = tm;
-  const { player: playerHexBuffs, enemy: enemyHexBuffs, moving, setMoving, setOverrides } = hexBuffs;
-
-  return (
-    <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
-      {Array.from({ length: 8 }, (_, row) =>
-        Array.from({ length: BOARD_COLS }, (_, col) => {
-          const team = row < 4 ? 'enemy' : 'player';
-          const teamArr = team === 'player' ? playerTeam : enemyTeam;
-          const dataRow = team === 'player' ? row - 4 : row;
-          const placedIdx = teamArr.findIndex(p => {
-            const off = axialToOffset(p.position);
-            return off.row === dataRow && off.col === col;
-          });
-          const placed = placedIdx >= 0 ? teamArr[placedIdx] : null;
-
-          const cellClick = () => {
-            if (moving) {
-              const pos = offsetToAxial({ row: dataRow, col });
-              setOverrides(prev => ({
-                ...prev,
-                [moving.team]: { ...prev[moving.team], [moving.apiName]: pos },
-              }));
-              setMoving(null);
-              return;
-            }
-            const buffs = team === 'player' ? playerHexBuffs : enemyHexBuffs;
-            const movableBuff = buffs.find(b => b.movable && b.positions.some(p => {
-              const off = axialToOffset(p);
-              return off.row === dataRow && off.col === col;
-            }));
-            if (movableBuff && !placed) {
-              setMoving({ team, apiName: movableBuff.augmentApiName });
-              return;
-            }
-            if (placed && placedIdx >= 0) onUnitClick(team, placedIdx);
-            else tm.handleCellClick(offsetToAxial({ row: dataRow, col }), team);
-          };
-
-          const cellContextMenu = (e: MouseEvent) => {
-            e.preventDefault();
-            if (placed && placedIdx >= 0) tm.handleRemoveUnit(team, placedIdx);
-          };
-
-          return (
-            <DroppableHexCell
-              key={`cell-${row}-${col}`}
-              id={`cell-${row}-${col}`}
-              row={row}
-              col={col}
-              placedUnit={placed ? { team, position: placed.position } : null}
-              onClick={cellClick}
-              onContextMenu={cellContextMenu}
-              onMouseEnter={placed ? (rect) => setHoverUnit({ placed, rect }) : undefined}
-              onMouseLeave={() => setHoverUnit(null)}
-              cellSize={cellSize}
-            />
-          );
-        })
-      )}
     </div>
   );
 }
