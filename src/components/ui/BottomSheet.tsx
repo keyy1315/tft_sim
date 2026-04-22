@@ -73,18 +73,32 @@ export default function BottomSheet({
   if (typeof document === 'undefined') return null;
 
   return createPortal(
-    <div
-      style={{
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        height,
-        transition: dragY === null ? 'height 200ms ease-out' : 'none',
-        zIndex: 2147483646,
-      }}
-      className="bg-[#0d1117] border-t border-gray-700 rounded-t-xl shadow-2xl flex flex-col"
-    >
+    <>
+      {/* Backdrop — half/full 상태에서 시트 외부 클릭 시 peek 로 복귀 */}
+      {state !== 'peek' && (
+        <div
+          onClick={() => onStateChange('peek')}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.3)',
+            zIndex: 2147483645,
+            transition: 'opacity 200ms ease-out',
+          }}
+        />
+      )}
+      <div
+        style={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height,
+          transition: dragY === null ? 'height 200ms ease-out' : 'none',
+          zIndex: 2147483646,
+        }}
+        className="bg-[#0d1117] border-t border-gray-700 rounded-t-xl shadow-2xl flex flex-col"
+      >
       {/* 드래그 핸들 */}
       <div
         onPointerDown={onPointerDown}
@@ -119,7 +133,8 @@ export default function BottomSheet({
       <div className="flex-1 overflow-y-auto p-3">
         {tabs.find((t) => t.id === activeTabId)?.content ?? null}
       </div>
-    </div>,
+      </div>
+    </>,
     document.body,
   );
 }
