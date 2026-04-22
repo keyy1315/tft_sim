@@ -23,6 +23,7 @@ import ItemIcon from '@/components/builder/ItemIcon';
 import MfModeSelector from '@/components/builder/MfModeSelector';
 import SimulatorLayoutDesktop from './layout/SimulatorLayoutDesktop';
 import SimulatorLayoutMobile from './layout/SimulatorLayoutMobile';
+import SimulatorLayoutTablet from './layout/SimulatorLayoutTablet';
 import type { SimulatorLayoutProps, ItemFilterTab, PoolTab } from './layout/types';
 
 export default function SimulatorPage() {
@@ -278,8 +279,8 @@ function SimulatorContent() {
           </button>
         )}
 
-        {viewport === 'mobile'
-          ? <SimulatorLayoutMobile {...layoutProps} />
+        {viewport === 'mobile' ? <SimulatorLayoutMobile {...layoutProps} />
+          : viewport === 'tablet' ? <SimulatorLayoutTablet {...layoutProps} />
           : <SimulatorLayoutDesktop {...layoutProps} />}
 
         {/* MF mode selection popup */}
