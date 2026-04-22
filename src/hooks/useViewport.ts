@@ -34,3 +34,27 @@ export function useViewport(): Viewport {
 
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }
+
+/**
+ * 현재 window.innerWidth 를 반환. SSR 기본 1024.
+ *
+ * cellSize 등 화면 크기에 비례한 치수 계산용. useViewport 과 동일한 subscribe 로직으로
+ * resize 이벤트에 반응.
+ */
+export function useWindowWidth(): number {
+  const subscribe = (onChange: () => void): (() => void) => {
+    if (typeof window === 'undefined') return () => {};
+    const handler = () => onChange();
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  };
+
+  const getSnapshot = (): number => {
+    if (typeof window === 'undefined') return 1024;
+    return window.innerWidth;
+  };
+
+  const getServerSnapshot = (): number => 1024;
+
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+}

@@ -18,12 +18,23 @@ import OverflowMenu from '@/components/ui/OverflowMenu';
 import { BottomSheetState } from '@/components/ui/bottomSheetLogic';
 import { BOARD_COLS, TICKS_PER_SECOND } from '@/lib/simulator/models/constants';
 import { axialToOffset, offsetToAxial } from '@/types';
+import { useWindowWidth } from '@/hooks/useViewport';
 import type { SimulatorLayoutProps } from './types';
 import ChampionPoolContent from './pool/ChampionPoolContent';
 import ItemPoolContent from './pool/ItemPoolContent';
 import BilgewaterPoolContent from './pool/BilgewaterPoolContent';
 
-const MOBILE_CELL_SIZE = 26;
+/**
+ * 모바일 뷰포트 폭에 맞춰 cellSize (hexR) 동적 계산.
+ * 보드 폭 공식: 7.5 × HEX_W + 75 = 7.5 × hexR × √3 + 75
+ * 22 <= hexR <= 36 범위로 제한 (너무 작으면 tap 어려움, 너무 크면 desktop과 동일).
+ */
+function computeMobileCellSize(viewportWidth: number): number {
+  // 카드 패딩/마진 감안 40px
+  const usable = viewportWidth - 40;
+  const candidate = Math.floor((usable - 75) / (7.5 * Math.sqrt(3)));
+  return Math.max(22, Math.min(36, candidate));
+}
 
 type MobileTabId = 'pool' | 'unit' | 'synergy' | 'log' | 'damage';
 
@@ -36,6 +47,9 @@ interface MobileTab {
 
 export default function SimulatorLayoutMobile(props: SimulatorLayoutProps) {
   const { tm, replay, hexBuffs, teamNames } = props;
+
+  const windowWidth = useWindowWidth();
+  const cellSize = computeMobileCellSize(windowWidth);
 
   const [sheetState, setSheetState] = useState<BottomSheetState>('peek');
   const [activeTabId, setActiveTabId] = useState<MobileTabId>(
@@ -159,9 +173,9 @@ export default function SimulatorLayoutMobile(props: SimulatorLayoutProps) {
         </div>
       )}
 
-      {/* Board */}
-      <div className="bg-[#0d1117] rounded-xl border border-gray-800 p-2 overflow-x-auto">
-        <div style={{ position: 'relative', display: 'inline-block' }}>
+      {/* Board — text-center on wrapper so inline-block 이 자동 중앙 정렬, overflow 시 스크롤 */}
+      <div className="bg-[#0d1117] rounded-xl border border-gray-800 p-2 overflow-x-auto text-center">
+        <div style={{ position: 'relative', display: 'inline-block', textAlign: 'left' }}>
           {replay.viewMode === 'setup' && (
             <>
               <SetupBoard
@@ -176,11 +190,11 @@ export default function SimulatorLayoutMobile(props: SimulatorLayoutProps) {
                 playerHexBuffs={hexBuffs.player}
                 enemyHexBuffs={hexBuffs.enemy}
                 movingHexBuffApiName={hexBuffs.moving?.apiName}
-                cellSize={MOBILE_CELL_SIZE}
+                cellSize={cellSize}
               />
               <MobileDroppableOverlay
                 {...props}
-                cellSize={MOBILE_CELL_SIZE}
+                cellSize={cellSize}
                 onUnitClick={onUnitClickWithSheet}
               />
             </>
@@ -197,7 +211,7 @@ export default function SimulatorLayoutMobile(props: SimulatorLayoutProps) {
                   setSheetState('half');
                 }
               }}
-              cellSize={MOBILE_CELL_SIZE}
+              cellSize={cellSize}
             />
           )}
         </div>
