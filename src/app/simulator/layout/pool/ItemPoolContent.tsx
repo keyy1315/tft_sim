@@ -33,7 +33,7 @@ export default function ItemPoolContent({ data, poolFilters, tm }: SimulatorLayo
           </button>
         ))}
       </div>
-      <div className="grid grid-cols-5 gap-1 overflow-y-auto min-h-0 p-1">
+      <div className="grid grid-cols-5 gap-0.5 overflow-y-auto min-h-0 p-1">
         {data.items.filter(item => {
           if (isDisabledItem(item)) return false;
           const cat = getItemCategory(item);

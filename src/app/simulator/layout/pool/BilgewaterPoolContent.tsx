@@ -23,7 +23,7 @@ export default function BilgewaterPoolContent({ data, tm }: SimulatorLayoutProps
   return (
     <div className="flex flex-col min-h-0 flex-1 gap-2">
       <div className="text-[10px] font-bold text-teal-400 shrink-0">능력치 (클릭으로 구매 — 빌지워터 챔피언 전체 적용)</div>
-      <div className="grid grid-cols-5 gap-1 overflow-y-auto min-h-0 p-1">
+      <div className="grid grid-cols-5 gap-0.5 overflow-y-auto min-h-0 p-1">
         {statItems.map(item => {
           const playerCount = tm.playerBilgewaterStats[item.apiName] ?? 0;
           const enemyCount = tm.enemyBilgewaterStats[item.apiName] ?? 0;
@@ -56,7 +56,7 @@ export default function BilgewaterPoolContent({ data, tm }: SimulatorLayoutProps
         })}
       </div>
       <div className="text-[10px] font-bold text-teal-400 shrink-0 mt-2">장비 아이템 (드래그로 장착)</div>
-      <div className="grid grid-cols-5 gap-1 overflow-y-auto min-h-0 p-1">
+      <div className="grid grid-cols-5 gap-0.5 overflow-y-auto min-h-0 p-1">
         {equipItems.map(item => <DraggableItemIcon key={item.apiName} item={item} size={iconSize} />)}
       </div>
     </div>

@@ -41,7 +41,7 @@ export default function ChampionPoolContent({ data, poolFilters, tm }: Simulator
           </button>
         ))}
       </div>
-      <div className="grid grid-cols-5 gap-1 overflow-y-auto min-h-0 p-1">
+      <div className="grid grid-cols-5 gap-0.5 overflow-y-auto min-h-0 p-1">
         {filteredChampions.map(c => (
           <DraggableChampionCard key={c.apiName} champion={c} size={iconSize} onClick={tm.handleQuickAddChampion} />
         ))}
