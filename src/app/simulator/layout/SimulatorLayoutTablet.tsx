@@ -23,11 +23,11 @@ import BilgewaterPoolContent from './pool/BilgewaterPoolContent';
 type TabletSideTab = 'pool' | 'synergy' | 'unit';
 
 /**
- * 태블릿 뷰포트(768~1023px)에서 2-column grid 의 left(보드) 폭을 기준으로 cellSize 계산.
- * grid-cols-[3fr_2fr]: 좌측 3/5. 28~48 범위로 제한.
+ * 태블릿 뷰포트(768~1023px)에서 좌측 보드 컬럼 폭을 기준으로 cellSize 계산.
+ * 28~48 범위로 제한.
  */
-function computeTabletCellSize(viewportWidth: number): number {
-  const leftColWidth = (viewportWidth * 3) / 5 - 60;
+function computeTabletCellSize(viewportWidth: number, leftColRatio: number): number {
+  const leftColWidth = viewportWidth * leftColRatio - 60;
   const candidate = Math.floor((leftColWidth - 75) / (7.5 * Math.sqrt(3)));
   return Math.max(28, Math.min(48, candidate));
 }
@@ -40,9 +40,15 @@ export default function SimulatorLayoutTablet(props: SimulatorLayoutProps) {
   } = props;
 
   const windowWidth = useWindowWidth();
-  const cellSize = computeTabletCellSize(windowWidth);
-
   const [sideTab, setSideTab] = useState<TabletSideTab>('pool');
+
+  // 리플레이 모드에서만 우측 패널 접기/펼치기. Setup 모드는 항상 펼침.
+  const [replaySidebarOpen, setReplaySidebarOpen] = useState(true);
+  const sidebarOpen = replay.viewMode === 'setup' ? true : replaySidebarOpen;
+
+  // 좌측 보드 컬럼 비율: 패널 닫힘 = 100%, 열림 = 5/8 (grid-cols-[5fr_3fr])
+  const leftColRatio = sidebarOpen ? 5 / 8 : 1;
+  const cellSize = computeTabletCellSize(windowWidth, leftColRatio);
 
   const playerLabel = teamNames.player ?? 'TEAM A';
   const enemyLabel = teamNames.enemy ?? 'TEAM B';
@@ -127,8 +133,8 @@ export default function SimulatorLayoutTablet(props: SimulatorLayoutProps) {
         />
       )}
 
-      {/* 2-column grid: 3fr (보드) | 2fr (side panel) — 우측 패널에 SelectedUnit 여유 공간 확보 */}
-      <div className="grid grid-cols-[3fr_2fr] gap-3">
+      {/* 2-column grid: 5fr (보드) | 3fr (side panel). 리플레이 모드에서 패널 닫으면 보드 전체 폭. */}
+      <div className={`grid ${sidebarOpen ? 'grid-cols-[5fr_3fr]' : 'grid-cols-[1fr]'} gap-2`}>
         {/* Left: Board + Augments + (replay controls) */}
         <div className="min-w-0 space-y-2">
           <div className="bg-[#0d1117] rounded-xl border border-gray-800 p-2 overflow-x-auto text-center">
@@ -201,18 +207,27 @@ export default function SimulatorLayoutTablet(props: SimulatorLayoutProps) {
 
           {replay.viewMode === 'replay' && replay.combatResult && (
             <>
-              <div className={`text-center p-2 rounded-lg border ${
+              <div className={`flex items-stretch gap-2 p-2 rounded-lg border ${
                 replay.combatResult.winner === 'player' ? 'bg-blue-600/10 border-blue-600/30' :
                 replay.combatResult.winner === 'enemy' ? 'bg-red-600/10 border-red-600/30' :
                 'bg-gray-600/10 border-gray-600/30'
               }`}>
-                <div className="text-sm font-black">
-                  {replay.combatResult.winner === 'player' ? `${playerLabel} 승리!` :
-                   replay.combatResult.winner === 'enemy' ? `${enemyLabel} 승리!` : '무승부'}
+                <div className="flex-1 text-center">
+                  <div className="text-sm font-black">
+                    {replay.combatResult.winner === 'player' ? `${playerLabel} 승리!` :
+                     replay.combatResult.winner === 'enemy' ? `${enemyLabel} 승리!` : '무승부'}
+                  </div>
+                  <div className="text-[10px] text-gray-400">
+                    전투 시간: {replay.combatResult.duration.toFixed(1)}초
+                  </div>
                 </div>
-                <div className="text-[10px] text-gray-400">
-                  전투 시간: {replay.combatResult.duration.toFixed(1)}초
-                </div>
+                <button
+                  onClick={() => setReplaySidebarOpen(v => !v)}
+                  aria-label={sidebarOpen ? '패널 닫기' : '패널 열기'}
+                  className="px-2 bg-[#1f2937] hover:bg-[#2a3342] text-gray-400 hover:text-gray-200 rounded text-xs transition-colors"
+                >
+                  {sidebarOpen ? '›› 패널 닫기' : '‹‹ 패널 열기'}
+                </button>
               </div>
               <BattleControls
                 currentTick={replay.replayTick}
@@ -231,7 +246,8 @@ export default function SimulatorLayoutTablet(props: SimulatorLayoutProps) {
           )}
         </div>
 
-        {/* Right: Tabbed side panel */}
+        {/* Right: Tabbed side panel (리플레이 모드에서 접을 수 있음) */}
+        {sidebarOpen && (
         <div className="bg-[#111827] rounded-xl border border-gray-800 flex flex-col max-h-[calc(100vh-140px)] overflow-hidden">
           <div className="flex border-b border-gray-800 shrink-0">
             <button
@@ -267,6 +283,7 @@ export default function SimulatorLayoutTablet(props: SimulatorLayoutProps) {
             {sideTab === 'unit' && <TabletUnitContent {...props} />}
           </div>
         </div>
+        )}
       </div>
 
       {/* Replay: full log below */}
