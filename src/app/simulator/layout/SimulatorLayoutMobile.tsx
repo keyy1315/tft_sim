@@ -66,7 +66,17 @@ export default function SimulatorLayoutMobile(props: SimulatorLayoutProps) {
   );
 
   const setupTabs: MobileTab[] = [
-    { id: 'pool', label: '풀', content: <PoolContentRouter {...props} /> },
+    {
+      id: 'pool',
+      label: '풀',
+      // onFocusCapture: 풀 탭 내부 input (검색바) 포커스 시 sheet full 로 올려
+      // 가상 키보드 와도 함께 보이도록 함
+      content: (
+        <div onFocusCapture={() => setSheetState('full')} className="flex flex-col h-full">
+          <PoolContentRouter {...props} />
+        </div>
+      ),
+    },
     {
       id: 'unit',
       label: '유닛',

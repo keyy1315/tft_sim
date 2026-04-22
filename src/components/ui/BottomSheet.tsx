@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useCallback, useRef, useState } from 'react';
+import { ReactNode, useCallback, useRef, useState, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
 import {
   BottomSheetState,
@@ -8,6 +8,26 @@ import {
   snapStateFromDragY,
   SHEET_PEEK_PX,
 } from './bottomSheetLogic';
+
+/**
+ * visualViewport 우선 사용 — 가상 키보드가 뜨면 innerHeight 는 변하지 않지만
+ * visualViewport.height 는 축소되므로 시트가 키보드 위에 올바르게 포지셔닝됨.
+ */
+function getViewportHeight(): number {
+  if (typeof window === 'undefined') return 800;
+  return window.visualViewport?.height ?? window.innerHeight;
+}
+
+function subscribeViewportHeight(onChange: () => void): () => void {
+  if (typeof window === 'undefined') return () => {};
+  const handler = () => onChange();
+  window.visualViewport?.addEventListener('resize', handler);
+  window.addEventListener('resize', handler);
+  return () => {
+    window.visualViewport?.removeEventListener('resize', handler);
+    window.removeEventListener('resize', handler);
+  };
+}
 
 interface BottomSheetTab {
   id: string;
@@ -39,7 +59,7 @@ export default function BottomSheet({
   const [dragY, setDragY] = useState<number | null>(null);
   const startRef = useRef<{ clientY: number; baseHeight: number } | null>(null);
 
-  const vh = typeof window !== 'undefined' ? window.innerHeight : 800;
+  const vh = useSyncExternalStore(subscribeViewportHeight, getViewportHeight, () => 800);
   const baseHeight = computeSheetHeightPx(state, vh);
   const height = dragY !== null ? Math.max(SHEET_PEEK_PX, vh - dragY) : baseHeight;
 
