@@ -1,6 +1,7 @@
 .bkit
 .claude
 .next
+.superpowers
 .vscode
 /node_modules
 /raw-data
