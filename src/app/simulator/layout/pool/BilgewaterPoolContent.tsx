@@ -3,9 +3,12 @@
 import DraggableItemIcon from '@/components/builder/DraggableItemIcon';
 import ItemIcon from '@/components/builder/ItemIcon';
 import { isBilgewaterStatItem } from '@/data/traitModules';
+import { useViewport } from '@/hooks/useViewport';
 import type { SimulatorLayoutProps } from '../types';
 
 export default function BilgewaterPoolContent({ data, tm }: SimulatorLayoutProps) {
+  const viewport = useViewport();
+  const iconSize = viewport === 'tablet' ? 36 : 48;
   const hasBWPlayer = tm.playerTraits.some(t => t.trait.apiName === 'TFT16_Bilgewater' && t.style > 0);
   const hasBWEnemy = tm.enemyTraits.some(t => t.trait.apiName === 'TFT16_Bilgewater' && t.style > 0);
 
@@ -37,7 +40,7 @@ export default function BilgewaterPoolContent({ data, tm }: SimulatorLayoutProps
             >
               <ItemIcon
                 item={item}
-                size={48}
+                size={iconSize}
                 onClick={() => {
                   if (hasBWPlayer) tm.handleBuyBilgewaterStat('player', item);
                   else if (hasBWEnemy) tm.handleBuyBilgewaterStat('enemy', item);
@@ -54,7 +57,7 @@ export default function BilgewaterPoolContent({ data, tm }: SimulatorLayoutProps
       </div>
       <div className="text-[10px] font-bold text-teal-400 shrink-0 mt-2">장비 아이템 (드래그로 장착)</div>
       <div className="grid grid-cols-5 gap-1 overflow-y-auto min-h-0 p-1">
-        {equipItems.map(item => <DraggableItemIcon key={item.apiName} item={item} size={48} />)}
+        {equipItems.map(item => <DraggableItemIcon key={item.apiName} item={item} size={iconSize} />)}
       </div>
     </div>
   );

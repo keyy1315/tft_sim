@@ -3,9 +3,12 @@
 import { useMemo } from 'react';
 import SearchBar from '@/components/ui/SearchBar';
 import DraggableChampionCard from '@/components/builder/DraggableChampionCard';
+import { useViewport } from '@/hooks/useViewport';
 import type { SimulatorLayoutProps } from '../types';
 
 export default function ChampionPoolContent({ data, poolFilters, tm }: SimulatorLayoutProps) {
+  const viewport = useViewport();
+  const iconSize = viewport === 'tablet' ? 40 : 54;
   const { champSearch, setChampSearch, champCostFilter, setChampCostFilter } = poolFilters;
 
   const filteredChampions = useMemo(() => {
@@ -40,7 +43,7 @@ export default function ChampionPoolContent({ data, poolFilters, tm }: Simulator
       </div>
       <div className="grid grid-cols-5 gap-1 overflow-y-auto min-h-0 p-1">
         {filteredChampions.map(c => (
-          <DraggableChampionCard key={c.apiName} champion={c} size={54} onClick={tm.handleQuickAddChampion} />
+          <DraggableChampionCard key={c.apiName} champion={c} size={iconSize} onClick={tm.handleQuickAddChampion} />
         ))}
       </div>
     </div>

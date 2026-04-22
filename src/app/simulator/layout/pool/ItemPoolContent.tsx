@@ -3,6 +3,7 @@
 import SearchBar from '@/components/ui/SearchBar';
 import DraggableItemIcon from '@/components/builder/DraggableItemIcon';
 import { getItemCategory, isDisabledItem } from '@/lib/simulator/systems/item';
+import { useViewport } from '@/hooks/useViewport';
 import type { ItemFilterTab, SimulatorLayoutProps } from '../types';
 
 const FILTERS: { key: ItemFilterTab; label: string }[] = [
@@ -14,6 +15,8 @@ const FILTERS: { key: ItemFilterTab; label: string }[] = [
 ];
 
 export default function ItemPoolContent({ data, poolFilters, tm }: SimulatorLayoutProps) {
+  const viewport = useViewport();
+  const iconSize = viewport === 'tablet' ? 36 : 48;
   const { itemSearch, setItemSearch, itemCategoryFilter, setItemCategoryFilter } = poolFilters;
 
   return (
@@ -48,7 +51,7 @@ export default function ItemPoolContent({ data, poolFilters, tm }: SimulatorLayo
           }
           return true;
         }).map(item => (
-          <DraggableItemIcon key={item.apiName} item={item} size={48} />
+          <DraggableItemIcon key={item.apiName} item={item} size={iconSize} />
         ))}
       </div>
     </div>
