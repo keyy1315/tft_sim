@@ -11,7 +11,7 @@ exports[`golden — anomaly (role-based) > Anomaly: Aurora(Caster) vs Rammus 1`]
   },
   "scenarioName": "Anomaly: Aurora(Caster) vs Rammus",
   "seed": 7,
-  "snapshotCount": 586,
+  "snapshotCount": 587,
   "units": [
     {
       "alive": false,
@@ -57,7 +57,7 @@ exports[`golden — anomaly (role-based) > Anomaly: Briar(Fighter) vs Illaoi 1`]
   },
   "scenarioName": "Anomaly: Briar(Fighter) vs Illaoi",
   "seed": 7,
-  "snapshotCount": 334,
+  "snapshotCount": 335,
   "units": [
     {
       "alive": true,
@@ -103,7 +103,7 @@ exports[`golden — anomaly (role-based) > Anomaly: Jinx(Marksman) vs Rammus 1`]
   },
   "scenarioName": "Anomaly: Jinx(Marksman) vs Rammus",
   "seed": 7,
-  "snapshotCount": 402,
+  "snapshotCount": 403,
   "units": [
     {
       "alive": false,
@@ -149,7 +149,7 @@ exports[`golden — anomaly (role-based) > Anomaly: Rammus(Tank) vs Jinx 1`] = `
   },
   "scenarioName": "Anomaly: Rammus(Tank) vs Jinx",
   "seed": 7,
-  "snapshotCount": 495,
+  "snapshotCount": 496,
   "units": [
     {
       "alive": true,
@@ -195,7 +195,7 @@ exports[`golden — anomaly specialist (star orbit) > Anomaly: Gnar(Specialist) 
   },
   "scenarioName": "Anomaly: Gnar(Specialist) vs Rammus",
   "seed": 7,
-  "snapshotCount": 137,
+  "snapshotCount": 138,
   "units": [
     {
       "alive": true,
@@ -241,7 +241,7 @@ exports[`golden — basic > 1v1 Briar mirror (대칭) 1`] = `
   },
   "scenarioName": "1v1 Briar mirror (대칭)",
   "seed": 42,
-  "snapshotCount": 304,
+  "snapshotCount": 305,
   "units": [
     {
       "alive": true,
@@ -287,7 +287,7 @@ exports[`golden — basic > 1v1 Jinx+IE vs Briar (단일 스탯 아이템) 1`] =
   },
   "scenarioName": "1v1 Jinx+IE vs Briar (단일 스탯 아이템)",
   "seed": 42,
-  "snapshotCount": 290,
+  "snapshotCount": 291,
   "units": [
     {
       "alive": false,
@@ -334,7 +334,7 @@ exports[`golden — basic > 2v2 Akali+Jinx vs Belveth+Illaoi 1`] = `
   },
   "scenarioName": "2v2 Akali+Jinx vs Belveth+Illaoi",
   "seed": 1337,
-  "snapshotCount": 461,
+  "snapshotCount": 462,
   "units": [
     {
       "alive": false,
@@ -409,7 +409,7 @@ exports[`golden — combined items > Akali+Bloodthirster vs Illaoi 1`] = `
   },
   "scenarioName": "Akali+Bloodthirster vs Illaoi",
   "seed": 7,
-  "snapshotCount": 465,
+  "snapshotCount": 466,
   "units": [
     {
       "alive": true,
@@ -455,7 +455,7 @@ exports[`golden — combined items > Aurora+Rabadon vs Rammus 1`] = `
   },
   "scenarioName": "Aurora+Rabadon vs Rammus",
   "seed": 7,
-  "snapshotCount": 586,
+  "snapshotCount": 587,
   "units": [
     {
       "alive": false,
@@ -501,7 +501,7 @@ exports[`golden — combined items > Belveth+Deathblade vs Briar 1`] = `
   },
   "scenarioName": "Belveth+Deathblade vs Briar",
   "seed": 42,
-  "snapshotCount": 328,
+  "snapshotCount": 329,
   "units": [
     {
       "alive": true,
@@ -547,7 +547,7 @@ exports[`golden — combined items > Briar+Titans vs Jinx 1`] = `
   },
   "scenarioName": "Briar+Titans vs Jinx",
   "seed": 101,
-  "snapshotCount": 126,
+  "snapshotCount": 127,
   "units": [
     {
       "alive": true,
@@ -593,7 +593,7 @@ exports[`golden — combined items > Fiora+Quicksilver vs Rammus 1`] = `
   },
   "scenarioName": "Fiora+Quicksilver vs Rammus",
   "seed": 7,
-  "snapshotCount": 142,
+  "snapshotCount": 143,
   "units": [
     {
       "alive": true,
@@ -640,7 +640,7 @@ exports[`golden — combined items > Illaoi+BrambleVest+Archangels vs Akali (혼
   },
   "scenarioName": "Illaoi+BrambleVest+Archangels vs Akali (혼합 경로)",
   "seed": 5,
-  "snapshotCount": 650,
+  "snapshotCount": 651,
   "units": [
     {
       "alive": false,
@@ -686,7 +686,7 @@ exports[`golden — combined items > Jinx+Guinsoos vs Illaoi 1`] = `
   },
   "scenarioName": "Jinx+Guinsoos vs Illaoi",
   "seed": 101,
-  "snapshotCount": 149,
+  "snapshotCount": 150,
   "units": [
     {
       "alive": true,
@@ -733,7 +733,7 @@ exports[`golden — combined items > Jinx+IE+Deathblade vs Illaoi (누적 StatPa
   },
   "scenarioName": "Jinx+IE+Deathblade vs Illaoi (누적 StatPatch)",
   "seed": 11,
-  "snapshotCount": 488,
+  "snapshotCount": 489,
   "units": [
     {
       "alive": true,
@@ -779,7 +779,7 @@ exports[`golden — psyops (counter + timer) > Aurora+EmpathicImplant vs Rammus 
   },
   "scenarioName": "Aurora+EmpathicImplant vs Rammus (Timer mana)",
   "seed": 7,
-  "snapshotCount": 586,
+  "snapshotCount": 587,
   "units": [
     {
       "alive": false,
@@ -825,7 +825,7 @@ exports[`golden — psyops (counter + timer) > Jinx+ChemicalCapacitor vs Rammus 
   },
   "scenarioName": "Jinx+ChemicalCapacitor vs Rammus (armor shred)",
   "seed": 7,
-  "snapshotCount": 153,
+  "snapshotCount": 154,
   "units": [
     {
       "alive": true,
@@ -871,7 +871,7 @@ exports[`golden — psyops (counter + timer) > Jinx+Semiconductor vs Rammus (Cou
   },
   "scenarioName": "Jinx+Semiconductor vs Rammus (Counter)",
   "seed": 7,
-  "snapshotCount": 586,
+  "snapshotCount": 587,
   "units": [
     {
       "alive": false,
@@ -917,7 +917,7 @@ exports[`golden — psyops (counter + timer) > Jinx+Semiconductor(Radiant) vs Ra
   },
   "scenarioName": "Jinx+Semiconductor(Radiant) vs Rammus",
   "seed": 7,
-  "snapshotCount": 632,
+  "snapshotCount": 633,
   "units": [
     {
       "alive": false,
@@ -963,7 +963,7 @@ exports[`golden — psyops (counter + timer) > Jinx+Targetlock 2v2 (per-target f
   },
   "scenarioName": "Jinx+Targetlock 2v2 (per-target first hit)",
   "seed": 7,
-  "snapshotCount": 211,
+  "snapshotCount": 212,
   "units": [
     {
       "alive": true,
@@ -1023,7 +1023,7 @@ exports[`golden — psyops (counter + timer) > MasterYi(PsyOps)+ChemicalRadiant 
   },
   "scenarioName": "MasterYi(PsyOps)+ChemicalRadiant 2v2 (cleave)",
   "seed": 7,
-  "snapshotCount": 117,
+  "snapshotCount": 118,
   "units": [
     {
       "alive": true,
@@ -1083,7 +1083,7 @@ exports[`golden — psyops (counter + timer) > Pyke(PsyOps)+TargetlockRadiant 2v
   },
   "scenarioName": "Pyke(PsyOps)+TargetlockRadiant 2v2 (on_kill heal)",
   "seed": 7,
-  "snapshotCount": 101,
+  "snapshotCount": 102,
   "units": [
     {
       "alive": true,
@@ -1143,7 +1143,7 @@ exports[`golden — psyops (counter + timer) > Rammus+GrenadeMod vs Jinx (Timer 
   },
   "scenarioName": "Rammus+GrenadeMod vs Jinx (Timer heal)",
   "seed": 7,
-  "snapshotCount": 495,
+  "snapshotCount": 496,
   "units": [
     {
       "alive": true,
@@ -1189,7 +1189,7 @@ exports[`golden — psyops (counter + timer) > Rammus+Semiconductor vs Jinx (on_
   },
   "scenarioName": "Rammus+Semiconductor vs Jinx (on_hit_taken counter)",
   "seed": 7,
-  "snapshotCount": 449,
+  "snapshotCount": 450,
   "units": [
     {
       "alive": true,
@@ -1236,7 +1236,7 @@ exports[`golden — psyops (counter + timer) > Viktor(PsyOps)+DroneRadiant vs Ra
   },
   "scenarioName": "Viktor(PsyOps)+DroneRadiant vs Rammus",
   "seed": 7,
-  "snapshotCount": 540,
+  "snapshotCount": 541,
   "units": [
     {
       "alive": false,
@@ -1282,7 +1282,7 @@ exports[`golden — timer (drone uplink) > Aurora+DroneUplink vs Rammus (Timer) 
   },
   "scenarioName": "Aurora+DroneUplink vs Rammus (Timer)",
   "seed": 7,
-  "snapshotCount": 586,
+  "snapshotCount": 587,
   "units": [
     {
       "alive": false,
@@ -1328,7 +1328,7 @@ exports[`golden — timer (drone uplink) > Aurora+RadiantDrone vs Rammus 1`] = `
   },
   "scenarioName": "Aurora+RadiantDrone vs Rammus",
   "seed": 7,
-  "snapshotCount": 586,
+  "snapshotCount": 587,
   "units": [
     {
       "alive": false,

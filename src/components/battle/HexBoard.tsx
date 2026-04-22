@@ -17,16 +17,23 @@ interface HexBoardProps {
 export const DEFAULT_HEX_R = 44;
 const PAD = 5;
 
+export const DEFAULT_TEAM_GAP = 10;
+export const PLAYER_TEAM_ROW_START = 4;
+
 export interface HexLayout {
   HEX_R: number;
   HEX_W: number;
   HEX_H: number;
   PAD: number;
+  teamGap: number;
   hexPoints: (cx: number, cy: number, r: number) => string;
   hexCenter: (row: number, col: number) => { cx: number; cy: number };
 }
 
-export function createHexLayout(hexR: number = DEFAULT_HEX_R): HexLayout {
+export function createHexLayout(
+  hexR: number = DEFAULT_HEX_R,
+  teamGap: number = DEFAULT_TEAM_GAP,
+): HexLayout {
   const HEX_W = hexR * Math.sqrt(3);
   const HEX_H = hexR * 2;
 
@@ -42,11 +49,12 @@ export function createHexLayout(hexR: number = DEFAULT_HEX_R): HexLayout {
   const hexCenter = (row: number, col: number): { cx: number; cy: number } => {
     const offset = row % 2 === 1 ? HEX_W / 2 : 0;
     const cx = col * (HEX_W + PAD) + HEX_W / 2 + 20 + offset;
-    const cy = row * (HEX_H * 0.75 + PAD) + hexR + 20;
+    const gapOffset = row >= PLAYER_TEAM_ROW_START ? teamGap : 0;
+    const cy = row * (HEX_H * 0.75 + PAD) + hexR + 20 + gapOffset;
     return { cx, cy };
   };
 
-  return { HEX_R: hexR, HEX_W, HEX_H, PAD, hexPoints, hexCenter };
+  return { HEX_R: hexR, HEX_W, HEX_H, PAD, teamGap, hexPoints, hexCenter };
 }
 
 const defaultLayout = createHexLayout(DEFAULT_HEX_R);

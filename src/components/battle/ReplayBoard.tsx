@@ -35,10 +35,12 @@ export default function ReplayBoard({
   onUnitClick,
   cellSize = REPLAY_DEFAULT_HEX_R,
 }: ReplayBoardProps) {
-  const { HEX_R, HEX_W, HEX_H, PAD, hexCenter, hexPoints } = createHexLayout(cellSize);
+  const { HEX_R, HEX_W, HEX_H, PAD, teamGap, hexCenter, hexPoints } = createHexLayout(cellSize);
   const cols = BOARD_COLS;
   const width = cols * (HEX_W + PAD) + HEX_W / 2 + 40;
-  const height = ROWS * (HEX_H * 0.75 + PAD) + HEX_R + 40;
+  const height = ROWS * (HEX_H * 0.75 + PAD) + HEX_R + 40 + teamGap;
+  const splitY = 4 * (HEX_H * 0.75 + PAD) + 10;
+  const dividerY = splitY + teamGap / 2;
 
   // Build position → unitId map from snapshot (axial → offset for grid matching)
   const posMap = new Map<string, string>();
@@ -99,17 +101,17 @@ export default function ReplayBoard({
       {/* Dividing line between player/enemy */}
       <line
         x1={10}
-        y1={4 * (HEX_H * 0.75 + PAD) + 10}
+        y1={dividerY}
         x2={width - 10}
-        y2={4 * (HEX_H * 0.75 + PAD) + 10}
+        y2={dividerY}
         stroke="#374151"
         strokeWidth={1}
         strokeDasharray="4,4"
       />
-      <text x={width - 16} y={4 * (HEX_H * 0.75 + PAD) + 6} textAnchor="end" fill="#4b5563" fontSize="8">
+      <text x={width - 16} y={dividerY - 4} textAnchor="end" fill="#4b5563" fontSize="8">
         TEAM B
       </text>
-      <text x={width - 16} y={4 * (HEX_H * 0.75 + PAD) + 18} textAnchor="end" fill="#4b5563" fontSize="8">
+      <text x={width - 16} y={dividerY + teamGap + 6} textAnchor="end" fill="#4b5563" fontSize="8">
         TEAM A
       </text>
 

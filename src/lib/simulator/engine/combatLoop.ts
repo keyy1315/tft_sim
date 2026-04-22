@@ -1523,6 +1523,11 @@ export function simulateCombat(
 
   eventBus.emit('on_combat_start', { sourceId: '', tick: 0 });
 
+  // 초기 배치 스냅샷 — tick 0 처리 이전의 원본 포지션 보존.
+  // 리플레이 첫 프레임에 배치 상태를 노출하여, tick 0 에 발생하는
+  // 이동/공격/돌진 시전 등의 상태 변화를 사용자가 관찰 가능하게 한다.
+  snapshots.push(captureSnapshot(-1, allUnits, []));
+
   for (let tick = 0; tick < MAX_TICKS; tick++) {
     const time = +(tick * TICK_DURATION).toFixed(4);
     const tickLogs: CombatLog[] = [];

@@ -124,10 +124,10 @@ export default function SetupBoard({
   movingHexBuffApiName,
   cellSize = DEFAULT_HEX_R,
 }: SetupBoardProps) {
-  const { HEX_R, HEX_W, HEX_H, PAD, hexCenter, hexPoints } = createHexLayout(cellSize);
+  const { HEX_R, HEX_W, HEX_H, PAD, teamGap, hexCenter, hexPoints } = createHexLayout(cellSize);
   const cols = BOARD_COLS;
   const width = cols * (HEX_W + PAD) + HEX_W / 2 + 40;
-  const height = ROWS * (HEX_H * 0.75 + PAD) + HEX_R + 40;
+  const height = ROWS * (HEX_H * 0.75 + PAD) + HEX_R + 40 + teamGap;
 
   // 프렐요드 포탑 효과 범위
   const turretZones = getTurretEffectZones(playerChampions, enemyChampions);
@@ -203,15 +203,15 @@ export default function SetupBoard({
 
       {/* Team background tint */}
       <rect x={0} y={0} width={width} height={4 * (HEX_H * 0.75 + PAD) + 10} fill="#ef444408" rx={8} />
-      <rect x={0} y={4 * (HEX_H * 0.75 + PAD) + 10} width={width} height={height - (4 * (HEX_H * 0.75 + PAD) + 10)} fill="#3b82f608" rx={8} />
+      <rect x={0} y={4 * (HEX_H * 0.75 + PAD) + 10 + teamGap} width={width} height={height - (4 * (HEX_H * 0.75 + PAD) + 10 + teamGap)} fill="#3b82f608" rx={8} />
 
       {/* Team labels - left side vertical */}
       <text x={14} y={2 * (HEX_H * 0.75 + PAD) + HEX_R} textAnchor="middle" fill="#ef4444" fontSize="20" fontWeight="900" opacity={0.3}
         transform={`rotate(-90, 14, ${2 * (HEX_H * 0.75 + PAD) + HEX_R})`}>
         B
       </text>
-      <text x={14} y={6 * (HEX_H * 0.75 + PAD) + HEX_R} textAnchor="middle" fill="#3b82f6" fontSize="20" fontWeight="900" opacity={0.3}
-        transform={`rotate(-90, 14, ${6 * (HEX_H * 0.75 + PAD) + HEX_R})`}>
+      <text x={14} y={6 * (HEX_H * 0.75 + PAD) + HEX_R + teamGap} textAnchor="middle" fill="#3b82f6" fontSize="20" fontWeight="900" opacity={0.3}
+        transform={`rotate(-90, 14, ${6 * (HEX_H * 0.75 + PAD) + HEX_R + teamGap})`}>
         A
       </text>
 

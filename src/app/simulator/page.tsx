@@ -117,6 +117,9 @@ function SimulatorContent() {
         tm.setPendingMfPlacement({ team, index });
       }
     },
+    onTeamSwitched: () => {
+      tm.setSelectedUnit(null);
+    },
   });
 
   // Pool state

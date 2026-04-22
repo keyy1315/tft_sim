@@ -3,6 +3,7 @@ import { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
 import { PlacedChampion, HexCoord, axialToOffset, DragData, RawItem } from '@/types';
 import { DEFAULT_STAR_LEVEL } from '@/lib/simulator/models/constants';
 import { getTeamFromRow, parseCellId } from '@/hooks/useTeamManagement';
+import { isAutoUnit } from '@/data/specialUnits';
 
 interface UseDndHandlersArgs {
   playerTeam: PlacedChampion[];
@@ -11,6 +12,7 @@ interface UseDndHandlersArgs {
   updateEnemyTeam: (action: PlacedChampion[] | ((prev: PlacedChampion[]) => PlacedChampion[])) => void;
   handleEquipItem: (team: 'player' | 'enemy', index: number, item: RawItem) => void;
   onChampionPlaced?: (team: 'player' | 'enemy', index: number, champion: PlacedChampion['champion']) => void;
+  onTeamSwitched?: () => void;
 }
 
 export function useDndHandlers({
@@ -20,6 +22,7 @@ export function useDndHandlers({
   updateEnemyTeam,
   handleEquipItem,
   onChampionPlaced,
+  onTeamSwitched,
 }: UseDndHandlersArgs) {
   const [activeDragData, setActiveDragData] = useState<DragData | null>(null);
 
@@ -81,13 +84,25 @@ export function useDndHandlers({
       }]);
       if (onChampionPlaced) onChampionPlaced(team, newIndex, dragData.champion);
     } else if (dragData.type === 'placed-unit') {
-      if (dragData.team !== team) return;
-      const srcIdx = teamArr.findIndex(p => {
+      const srcTeam = dragData.team;
+      const srcArr = srcTeam === 'player' ? playerTeam : enemyTeam;
+      const setSrcTeam = srcTeam === 'player' ? updatePlayerTeam : updateEnemyTeam;
+      const srcOff = axialToOffset(dragData.position);
+      const srcIdx = srcArr.findIndex(p => {
         const off = axialToOffset(p.position);
-        const srcOff = axialToOffset(dragData.position);
         return off.row === srcOff.row && off.col === srcOff.col;
       });
       if (srcIdx < 0) return;
+
+      if (srcTeam !== team) {
+        const dragged = srcArr[srcIdx];
+        if (isAutoUnit(dragged.champion.apiName)) return;
+        if (existingIdx >= 0) return;
+        setSrcTeam(prev => prev.filter((_, i) => i !== srcIdx));
+        setTeam(prev => [...prev, { ...dragged, position: pos }]);
+        onTeamSwitched?.();
+        return;
+      }
 
       if (existingIdx >= 0 && existingIdx !== srcIdx) {
         setTeam(prev => prev.map((p, i) => {
