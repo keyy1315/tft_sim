@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import SetupBoard from '@/components/battle/SetupBoard';
 import ReplayBoard from '@/components/battle/ReplayBoard';
 import BattleControls from '@/components/battle/BattleControls';
@@ -48,6 +48,29 @@ export default function SimulatorLayoutTablet(props: SimulatorLayoutProps) {
   // 좌측 보드 컬럼 비율: 패널 닫힘 = 100%, 열림 = 5/8 (grid-cols-[5fr_3fr])
   const leftColRatio = sidebarOpen ? 5 / 8 : 1;
   const cellSize = computeTabletCellSize(windowWidth, leftColRatio);
+
+  // ESC 키로 패널 닫기
+  useEffect(() => {
+    if (!sidebarOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setSidebarOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [sidebarOpen]);
+
+  // 드래그 스트립 pointer 핸들러 — 오른쪽으로 50px 초과 드래그 시 닫기
+  const dragStartXRef = useRef<number | null>(null);
+  const onDragPointerDown = useCallback((e: React.PointerEvent) => {
+    e.currentTarget.setPointerCapture(e.pointerId);
+    dragStartXRef.current = e.clientX;
+  }, []);
+  const onDragPointerUp = useCallback((e: React.PointerEvent) => {
+    if (dragStartXRef.current === null) return;
+    const dx = e.clientX - dragStartXRef.current;
+    dragStartXRef.current = null;
+    if (dx > 50) setSidebarOpen(false);
+  }, []);
 
   const playerLabel = teamNames.player ?? 'TEAM A';
   const enemyLabel = teamNames.enemy ?? 'TEAM B';
@@ -239,15 +262,20 @@ export default function SimulatorLayoutTablet(props: SimulatorLayoutProps) {
         {/* Right: Tabbed side panel (접을 수 있음) */}
         {sidebarOpen && (
         <div className="bg-[#111827] rounded-xl border border-gray-800 flex max-h-[calc(100vh-140px)] overflow-hidden relative">
-          {/* 패널 닫기 버튼 — 패널 안쪽 왼쪽 edge 세로 중앙 */}
-          <button
-            onClick={() => setSidebarOpen(false)}
-            aria-label="패널 닫기"
-            className="absolute left-0 top-1/2 -translate-y-1/2 w-5 h-12 bg-[#1f2937] hover:bg-[#2a3342] text-gray-400 hover:text-gray-200 rounded-r-md flex items-center justify-center text-sm z-20"
-          >
-            &gt;
-          </button>
-          <div className="flex flex-col flex-1 ml-5 overflow-hidden">
+          {/* 드래그 스트립 — 패널 왼쪽 edge. 오른쪽으로 드래그해 닫기 */}
+          <div
+            onPointerDown={onDragPointerDown}
+            onPointerUp={onDragPointerUp}
+            onPointerCancel={onDragPointerUp}
+            aria-label="드래그하거나 ESC 키로 패널 닫기"
+            className="absolute left-0 top-0 bottom-0 w-1.5 bg-gray-700/30 hover:bg-gray-500/60 cursor-ew-resize z-20 transition-colors"
+            style={{ touchAction: 'none' }}
+          />
+          <div className="flex flex-col flex-1 ml-2 overflow-hidden">
+          {/* 닫기 힌트 — 항상 표시 (터치 뷰포트에서 hover tooltip 은 동작 안 함) */}
+          <div className="text-[9px] text-gray-600 px-2 py-0.5 text-center shrink-0 bg-[#0d1117]/40 border-b border-gray-800/50 italic">
+            오른쪽으로 드래그 · ESC 로 닫기
+          </div>
           <div className="flex border-b border-gray-800 shrink-0">
             <button
               onClick={() => setSideTab('pool')}
