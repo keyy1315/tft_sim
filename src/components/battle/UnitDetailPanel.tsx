@@ -121,8 +121,8 @@ export default function UnitDetailPanel({
         </button>
       </div>
 
-      {/* Body: 3-column */}
-      <div className="grid grid-cols-1 md:grid-cols-[240px_260px_minmax(0,1fr)] gap-4">
+      {/* Body: 3-column on desktop ≥1024 (lg). 태블릿(768~1023)에서는 좁은 우측 패널에 들어갈 수 있으므로 단일 컬럼으로 세로 스택. */}
+      <div className="grid grid-cols-1 lg:grid-cols-[240px_260px_minmax(0,1fr)] gap-4">
         {/* 좌: 스탯 + 장착 아이템 */}
         <div className="content-start">
           <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
