@@ -5,6 +5,7 @@ import type { StatusEffectType } from '@/types';
 import { getChampionImage } from '@/data/imageMap';
 import { BOARD_COLS } from '@/lib/simulator/models/constants';
 import { STATUS_EFFECT_CONFIG, CATEGORY_BORDER } from '@/lib/statusEffectConfig';
+import { createHexLayout } from './HexBoard';
 
 interface ReplayBoardProps {
   snapshot: TickSnapshot | null;
@@ -21,36 +22,20 @@ interface ReplayBoardProps {
   }>;
   selectedUnitId: string | null;
   onUnitClick?: (unitId: string) => void;
+  cellSize?: number;
 }
 
-const HEX_R = 40;
-const HEX_W = HEX_R * Math.sqrt(3);
-const HEX_H = HEX_R * 2;
-const PAD = 5;
+const REPLAY_DEFAULT_HEX_R = 40;
 const ROWS = 8; // player 4 + enemy 4
-
-function hexPoints(cx: number, cy: number, r: number): string {
-  const pts = [];
-  for (let i = 0; i < 6; i++) {
-    const angle = (Math.PI / 3) * i - Math.PI / 6;
-    pts.push(`${cx + r * Math.cos(angle)},${cy + r * Math.sin(angle)}`);
-  }
-  return pts.join(' ');
-}
-
-function hexCenter(row: number, col: number): { cx: number; cy: number } {
-  const offset = row % 2 === 1 ? HEX_W / 2 : 0;
-  const cx = col * (HEX_W + PAD) + HEX_W / 2 + 20 + offset;
-  const cy = row * (HEX_H * 0.75 + PAD) + HEX_R + 20;
-  return { cx, cy };
-}
 
 export default function ReplayBoard({
   snapshot,
   unitMeta,
   selectedUnitId,
   onUnitClick,
+  cellSize = REPLAY_DEFAULT_HEX_R,
 }: ReplayBoardProps) {
+  const { HEX_R, HEX_W, HEX_H, PAD, hexCenter, hexPoints } = createHexLayout(cellSize);
   const cols = BOARD_COLS;
   const width = cols * (HEX_W + PAD) + HEX_W / 2 + 40;
   const height = ROWS * (HEX_H * 0.75 + PAD) + HEX_R + 40;
