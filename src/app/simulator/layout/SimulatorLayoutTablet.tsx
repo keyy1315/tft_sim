@@ -238,16 +238,16 @@ export default function SimulatorLayoutTablet(props: SimulatorLayoutProps) {
 
         {/* Right: Tabbed side panel (접을 수 있음) */}
         {sidebarOpen && (
-        <div className="relative">
-          {/* 패널 닫기 버튼 — 패널 안쪽 세로 중앙 */}
+        <div className="bg-[#111827] rounded-xl border border-gray-800 flex max-h-[calc(100vh-140px)] overflow-hidden relative">
+          {/* 패널 닫기 버튼 — 패널 안쪽 왼쪽 edge 세로 중앙 */}
           <button
             onClick={() => setSidebarOpen(false)}
             aria-label="패널 닫기"
-            className="absolute left-0 top-1/2 -translate-y-1/2 w-6 h-12 bg-[#1f2937] hover:bg-[#2a3342] border border-gray-700 rounded-r-md flex items-center justify-center text-gray-400 hover:text-gray-200 text-sm z-20"
+            className="absolute left-0 top-1/2 -translate-y-1/2 w-5 h-12 bg-[#1f2937] hover:bg-[#2a3342] text-gray-400 hover:text-gray-200 rounded-r-md flex items-center justify-center text-sm z-20"
           >
             &gt;
           </button>
-          <div className="bg-[#111827] rounded-xl border border-gray-800 flex flex-col max-h-[calc(100vh-140px)] overflow-hidden ml-6">
+          <div className="flex flex-col flex-1 ml-5 overflow-hidden">
           <div className="flex border-b border-gray-800 shrink-0">
             <button
               onClick={() => setSideTab('pool')}
