@@ -30,7 +30,7 @@ export default function ItemPoolContent({ data, poolFilters, tm }: SimulatorLayo
           </button>
         ))}
       </div>
-      <div className="grid grid-cols-7 gap-1.5 overflow-y-auto min-h-0 p-1">
+      <div className="grid grid-cols-6 gap-1 overflow-y-auto min-h-0 p-1">
         {data.items.filter(item => {
           if (isDisabledItem(item)) return false;
           const cat = getItemCategory(item);
@@ -48,7 +48,7 @@ export default function ItemPoolContent({ data, poolFilters, tm }: SimulatorLayo
           }
           return true;
         }).map(item => (
-          <DraggableItemIcon key={item.apiName} item={item} size={32} />
+          <DraggableItemIcon key={item.apiName} item={item} size={40} />
         ))}
       </div>
     </div>
