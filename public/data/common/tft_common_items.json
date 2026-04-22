@@ -2542,17 +2542,17 @@
     },
     {
       "name": "거물의 갑옷",
-      "apiName": "TFT7_Item_ShimmerscaleMogulsMail_Revival",
+      "apiName": "TFT7_Item_ShimmerscaleMogulsMail",
       "composition": [],
       "effects": {
-        "BaseHealthPerStack": 10,
+        "BaseHealthPerStack": 8,
         "BaseResistsPerStack": 1,
-        "GoldAtFullStacks": 2,
-        "GoldInterval": 8,
-        "Health": 350,
+        "GoldAtFullStacks": 1,
+        "GoldInterval": 11,
+        "Health": 300,
         "StackCap": 35
       },
-      "desc": "피해를 입으면 방어력 @BaseResistsPerStack@, 마법 저항력 @BaseResistsPerStack@, 체력 @BaseHealthPerStack@ 획득 (최대 @StackCap@회 중첩)<br><br>최대 중첩 시 @GoldAtFullStacks@골드%i:goldCoins% 획득<br><br><tftitemrules>이번 게임에서 획득한 골드: @TFTUnitProperty.item:TFT_Item_GoldGenerated@</tftitemrules>",
+      "desc": "피해를 입으면 방어력 @BaseResistsPerStack@, 마법 저항력 @BaseResistsPerStack@, 체력 @BaseHealthPerStack@ 획득 (최대 @StackCap@회 중첩)<br><br>최대 중첩 시 @GoldAtFullStacks@골드%i:goldCoins% 획득. 이후 @GoldInterval@초마다 @GoldAtFullStacks@골드%i:goldCoins% 획득<br><br><tftitemrules>이번 게임에서 획득한 골드: @TFTUnitProperty.item:TFT_Item_GoldGenerated@</tftitemrules><br><br><tftitemrules>[고유 - 중복 적용 불가]</tftitemrules>",
       "icon": "tft7_item_shimmerscalemogulsmail.tft_set13.png",
       "apply_seasons": [
         16,
@@ -2617,19 +2617,18 @@
     },
     {
       "name": "도박꾼의 칼날",
-      "apiName": "TFT7_Item_ShimmerscaleGamblersBlade_Revival",
+      "apiName": "TFT7_Item_ShimmerscaleGamblersBlade",
       "composition": [],
       "effects": {
-        "AP": 15,
-        "AS": 15,
-        "AttackSpeedGoldLimit": 60,
-        "AttackSpeedPerGold": 0.014999999664723873,
-        "ChanceToProc": 0.07000000029802322,
+        "AS": 55,
+        "AttackSpeedGoldLimit": 30,
+        "AttackSpeedPerGold": 0.009999999776482582,
+        "ChanceToProc": 0.05999999865889549,
         "GoldPerProc": 1,
         "{46736b3f}": 4,
         "{b38e1643}": 20
       },
-      "desc": "보유한 골드%i:goldCoins%마다 추가 공격 속도%i:scaleAS% @AttackSpeedPerGold*100@% 획득 (최대 @AttackSpeedGoldLimit@골드%i:goldCoins%)<br><br>기본 공격할 때마다 @ChanceToProc*100@% 확률로 @GoldPerProc@골드%i:goldCoins% 획득<br><br><tftitemrules>이번 게임에서 획득한 골드: @TFTUnitProperty.item:TFT_Item_GoldGenerated@</tftitemrules>",
+      "desc": "보유한 골드%i:goldCoins%마다 추가 공격 속도%i:scaleAS% @AttackSpeedPerGold*100@% 획득 (최대 @AttackSpeedGoldLimit@골드%i:goldCoins%)<br><br>기본 공격할 때마다 @ChanceToProc*100@% 확률로 @GoldPerProc@골드%i:goldCoins% 획득<br><br><tftitemrules>이번 게임에서 획득한 골드: @TFTUnitProperty.item:TFT_Item_GoldGenerated@</tftitemrules><br><br><tftitemrules>[고유 - 중복 적용 불가]</tftitemrules>",
       "icon": "tft7_item_shimmerscalegamblersblade.tft_set13.png",
       "apply_seasons": [
         16,
