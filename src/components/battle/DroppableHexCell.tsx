@@ -13,7 +13,7 @@ interface DroppableHexCellProps {
   onClick?: () => void;
   onDoubleClick?: () => void;
   onContextMenu?: (e: MouseEvent) => void;
-  onMouseEnter?: () => void;
+  onMouseEnter?: (rect: DOMRect) => void;
   onMouseLeave?: () => void;
 }
 
@@ -41,7 +41,7 @@ export default function DroppableHexCell({ id, row, col, placedUnit, onClick, on
       onClick={onClick}
       onDoubleClick={onDoubleClick}
       onContextMenu={onContextMenu}
-      onMouseEnter={onMouseEnter}
+      onMouseEnter={onMouseEnter ? (e) => onMouseEnter(e.currentTarget.getBoundingClientRect()) : undefined}
       onMouseLeave={onMouseLeave}
       style={{
         position: 'absolute',

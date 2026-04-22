@@ -1,6 +1,7 @@
 'use client';
 
 import { Suspense, useState, useMemo, useCallback, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { DndContext, DragOverlay, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { useGameData } from '@/hooks/useGameData';
@@ -17,7 +18,6 @@ import { isBilgewaterStatItem } from '@/data/traitModules';
 import { resolveBilgewaterStatEffects } from '@/lib/simulator/systems/stat';
 import { resolveHexBuffs } from '@/data/augmentHexBuffs';
 import { resolveDescription } from '@/lib/utils/text';
-import { hexCenter, HEX_R } from '@/components/battle/HexBoard';
 import ChampionGrid from '@/components/builder/ChampionGrid';
 import SetupBoard from '@/components/battle/SetupBoard';
 import DroppableHexCell from '@/components/battle/DroppableHexCell';
@@ -146,7 +146,39 @@ function SimulatorContent() {
   const [logFilter, setLogFilter] = useState<CombatLog['type'] | 'all'>('all');
   const [isRunning, setIsRunning] = useState(false);
   const [stageNumber, setStageNumber] = useState(4);
-  const [hoverUnit, setHoverUnit] = useState<{ placed: PlacedChampion; row: number; col: number } | null>(null);
+  const [hoverUnit, setHoverUnit] = useState<{ placed: PlacedChampion; rect: DOMRect } | null>(null);
+
+  // 보드 카드의 overflow-hidden/transform:scale 스택 컨텍스트를 회피하기 위해
+  // 툴팁은 body 로 portal + position:fixed 로 배치. (Tooltip.tsx 패턴)
+  const positionHoverTooltipRef = useCallback((el: HTMLDivElement | null) => {
+    if (!el || !hoverUnit) return;
+    el.style.position = 'fixed';
+    el.style.visibility = 'hidden';
+    el.style.top = '0';
+    el.style.left = '0';
+    el.style.zIndex = '2147483647';
+    el.style.isolation = 'isolate';
+    const tt = el.getBoundingClientRect();
+    const { rect } = hoverUnit;
+    const gap = 8;
+    const margin = 8;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    let top: number;
+    if (rect.top - tt.height - gap < 0) {
+      top = rect.bottom + gap;
+    } else {
+      top = rect.top - tt.height - gap;
+    }
+    if (top + tt.height > vh - margin) top = vh - margin - tt.height;
+    if (top < margin) top = margin;
+    let left = rect.left + rect.width / 2 - tt.width / 2;
+    if (left < margin) left = margin;
+    if (left + tt.width > vw - margin) left = vw - margin - tt.width;
+    el.style.top = `${top}px`;
+    el.style.left = `${left}px`;
+    el.style.visibility = 'visible';
+  }, [hoverUnit]);
   const [hexBuffOverrides, setHexBuffOverrides] = useState<Record<string, Record<string, HexCoord>>>({ player: {}, enemy: {} });
   const [movingHexBuff, setMovingHexBuff] = useState<{ team: 'player' | 'enemy'; apiName: string } | null>(null);
 
@@ -449,7 +481,7 @@ function SimulatorContent() {
                               placedUnit={placed ? { team, position: placed.position } : null}
                               onClick={cellClick}
                               onContextMenu={cellContextMenu}
-                              onMouseEnter={placed ? () => setHoverUnit({ placed, row, col }) : undefined}
+                              onMouseEnter={placed ? (rect) => setHoverUnit({ placed, rect }) : undefined}
                               onMouseLeave={() => setHoverUnit(null)}
                             />
                           );
@@ -468,15 +500,8 @@ function SimulatorContent() {
                           </div>
                         </div>
                       )}
-                      {hoverUnit && (
-                        <div
-                          className="absolute pointer-events-none z-50"
-                          style={{
-                            left: hexCenter(hoverUnit.row, hoverUnit.col).cx,
-                            top: hexCenter(hoverUnit.row, hoverUnit.col).cy - HEX_R - 8,
-                            transform: 'translate(-50%, -100%)',
-                          }}
-                        >
+                      {hoverUnit && typeof document !== 'undefined' && createPortal(
+                        <div ref={positionHoverTooltipRef} className="pointer-events-none">
                           <div className="bg-[#1a1f2e] border border-gray-600 rounded-lg px-3 py-2 shadow-xl max-w-[240px]">
                             <div className="font-bold text-yellow-400 text-xs mb-1">
                               {hoverUnit.placed.champion.name}
@@ -493,7 +518,8 @@ function SimulatorContent() {
                               )}
                             </div>
                           </div>
-                        </div>
+                        </div>,
+                        document.body,
                       )}
                       </div>
                     </div>
