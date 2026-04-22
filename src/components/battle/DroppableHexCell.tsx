@@ -1,7 +1,7 @@
 'use client';
 
 import { useDroppable, useDraggable } from '@dnd-kit/core';
-import { hexCenter, HEX_R } from './HexBoard';
+import { createHexLayout, DEFAULT_HEX_R } from './HexBoard';
 import { HexCoord, DragData } from '@/types';
 import { MouseEvent } from 'react';
 
@@ -15,9 +15,11 @@ interface DroppableHexCellProps {
   onContextMenu?: (e: MouseEvent) => void;
   onMouseEnter?: (rect: DOMRect) => void;
   onMouseLeave?: () => void;
+  cellSize?: number;
 }
 
-export default function DroppableHexCell({ id, row, col, placedUnit, onClick, onDoubleClick, onContextMenu, onMouseEnter, onMouseLeave }: DroppableHexCellProps) {
+export default function DroppableHexCell({ id, row, col, placedUnit, onClick, onDoubleClick, onContextMenu, onMouseEnter, onMouseLeave, cellSize = DEFAULT_HEX_R }: DroppableHexCellProps) {
+  const { HEX_R, hexCenter } = createHexLayout(cellSize);
   const { isOver, setNodeRef: setDropRef } = useDroppable({ id });
   const dragData: DragData | undefined = placedUnit
     ? { type: 'placed-unit', team: placedUnit.team, position: placedUnit.position }
