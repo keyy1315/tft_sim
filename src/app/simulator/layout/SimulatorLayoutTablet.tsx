@@ -42,9 +42,8 @@ export default function SimulatorLayoutTablet(props: SimulatorLayoutProps) {
   const windowWidth = useWindowWidth();
   const [sideTab, setSideTab] = useState<TabletSideTab>('pool');
 
-  // 리플레이 모드에서만 우측 패널 접기/펼치기. Setup 모드는 항상 펼침.
-  const [replaySidebarOpen, setReplaySidebarOpen] = useState(true);
-  const sidebarOpen = replay.viewMode === 'setup' ? true : replaySidebarOpen;
+  // 태블릿 우측 패널 접기/펼치기 (Setup + Replay 공통)
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   // 좌측 보드 컬럼 비율: 패널 닫힘 = 100%, 열림 = 5/8 (grid-cols-[5fr_3fr])
   const leftColRatio = sidebarOpen ? 5 / 8 : 1;
@@ -115,6 +114,13 @@ export default function SimulatorLayoutTablet(props: SimulatorLayoutProps) {
             className="px-3 py-1.5 bg-purple-600 hover:bg-purple-500 disabled:opacity-40 rounded-lg text-xs font-bold text-white"
           >
             100회
+          </button>
+          <button
+            onClick={() => setSidebarOpen(v => !v)}
+            aria-label={sidebarOpen ? '패널 닫기' : '패널 열기'}
+            className="px-2 py-1.5 bg-[#1f2937] hover:bg-[#2a3342] text-gray-400 hover:text-gray-200 rounded-lg text-xs transition-colors"
+          >
+            {sidebarOpen ? '›› 패널' : '‹‹ 패널'}
           </button>
         </div>
       </div>
@@ -207,27 +213,18 @@ export default function SimulatorLayoutTablet(props: SimulatorLayoutProps) {
 
           {replay.viewMode === 'replay' && replay.combatResult && (
             <>
-              <div className={`flex items-stretch gap-2 p-2 rounded-lg border ${
+              <div className={`text-center p-2 rounded-lg border ${
                 replay.combatResult.winner === 'player' ? 'bg-blue-600/10 border-blue-600/30' :
                 replay.combatResult.winner === 'enemy' ? 'bg-red-600/10 border-red-600/30' :
                 'bg-gray-600/10 border-gray-600/30'
               }`}>
-                <div className="flex-1 text-center">
-                  <div className="text-sm font-black">
-                    {replay.combatResult.winner === 'player' ? `${playerLabel} 승리!` :
-                     replay.combatResult.winner === 'enemy' ? `${enemyLabel} 승리!` : '무승부'}
-                  </div>
-                  <div className="text-[10px] text-gray-400">
-                    전투 시간: {replay.combatResult.duration.toFixed(1)}초
-                  </div>
+                <div className="text-sm font-black">
+                  {replay.combatResult.winner === 'player' ? `${playerLabel} 승리!` :
+                   replay.combatResult.winner === 'enemy' ? `${enemyLabel} 승리!` : '무승부'}
                 </div>
-                <button
-                  onClick={() => setReplaySidebarOpen(v => !v)}
-                  aria-label={sidebarOpen ? '패널 닫기' : '패널 열기'}
-                  className="px-2 bg-[#1f2937] hover:bg-[#2a3342] text-gray-400 hover:text-gray-200 rounded text-xs transition-colors"
-                >
-                  {sidebarOpen ? '›› 패널 닫기' : '‹‹ 패널 열기'}
-                </button>
+                <div className="text-[10px] text-gray-400">
+                  전투 시간: {replay.combatResult.duration.toFixed(1)}초
+                </div>
               </div>
               <BattleControls
                 currentTick={replay.replayTick}
