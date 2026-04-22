@@ -10,6 +10,7 @@ import {
 } from '@/lib/riot';
 import type { ParsedMatch } from '@/lib/riot';
 import { resolveDescription } from '@/lib/utils/text';
+import { getRiotIdAliases } from '@/lib/analysis/itemIdAliases';
 
 /**
  * 아이템/특성 desc 를 사용자에게 보여주기 전 정리.
@@ -124,6 +125,22 @@ function resolveItemIcon(apiName: string, iconField: string): string {
 
 let cachedItemMeta: Record<string, ItemMeta> | null = null;
 
+/**
+ * Canonical apiName 으로 ItemMeta 를 등록하고, 찬란/타락 변형인 경우
+ * Riot 매치 API 가 반환하는 raw ID alias 들도 같은 meta 로 미러 등록한다.
+ * 이미 canonical 로 등록된 키는 덮지 않는다 (정확도 우선).
+ */
+function registerItemWithAliases(
+  apiName: string,
+  meta: ItemMeta,
+  dict: Record<string, ItemMeta>,
+): void {
+  dict[apiName] = meta;
+  for (const alias of getRiotIdAliases(apiName)) {
+    if (!dict[alias]) dict[alias] = meta;
+  }
+}
+
 function getItemMeta(): Record<string, ItemMeta> {
   if (cachedItemMeta) return cachedItemMeta;
   cachedItemMeta = {};
@@ -133,11 +150,12 @@ function getItemMeta(): Record<string, ItemMeta> {
   if (fs.existsSync(commonPath)) {
     const common = JSON.parse(fs.readFileSync(commonPath, 'utf-8'));
     for (const item of common.items ?? common) {
-      cachedItemMeta[item.apiName] = {
+      const meta: ItemMeta = {
         name: item.name,
         desc: formatDesc(item.desc ?? '', item.effects ?? {}),
         icon: resolveItemIcon(item.apiName, item.icon ?? ''),
       };
+      registerItemWithAliases(item.apiName, meta, cachedItemMeta);
     }
   }
 
@@ -147,11 +165,12 @@ function getItemMeta(): Record<string, ItemMeta> {
     const data = JSON.parse(fs.readFileSync(fp, 'utf-8'));
     for (const item of data.items ?? data) {
       if (cachedItemMeta[item.apiName]) continue;
-      cachedItemMeta[item.apiName] = {
+      const meta: ItemMeta = {
         name: item.name,
         desc: formatDesc(item.desc ?? '', item.effects ?? {}),
         icon: resolveItemIcon(item.apiName, item.icon ?? ''),
       };
+      registerItemWithAliases(item.apiName, meta, cachedItemMeta);
     }
   }
 
