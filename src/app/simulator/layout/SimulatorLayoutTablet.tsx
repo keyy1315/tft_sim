@@ -24,10 +24,10 @@ type TabletSideTab = 'pool' | 'synergy' | 'unit';
 
 /**
  * 태블릿 뷰포트(768~1023px)에서 2-column grid 의 left(보드) 폭을 기준으로 cellSize 계산.
- * grid-cols-[2fr_1fr] + gap-3 + 전체 px-N 고려. 28~48 범위로 제한.
+ * grid-cols-[3fr_2fr]: 좌측 3/5. 28~48 범위로 제한.
  */
 function computeTabletCellSize(viewportWidth: number): number {
-  const leftColWidth = (viewportWidth * 2) / 3 - 60;
+  const leftColWidth = (viewportWidth * 3) / 5 - 60;
   const candidate = Math.floor((leftColWidth - 75) / (7.5 * Math.sqrt(3)));
   return Math.max(28, Math.min(48, candidate));
 }
@@ -127,8 +127,8 @@ export default function SimulatorLayoutTablet(props: SimulatorLayoutProps) {
         />
       )}
 
-      {/* 2-column grid: 2fr (보드) | 1fr (side panel) */}
-      <div className="grid grid-cols-[2fr_1fr] gap-3">
+      {/* 2-column grid: 3fr (보드) | 2fr (side panel) — 우측 패널에 SelectedUnit 여유 공간 확보 */}
+      <div className="grid grid-cols-[3fr_2fr] gap-3">
         {/* Left: Board + Augments + (replay controls) */}
         <div className="min-w-0 space-y-2">
           <div className="bg-[#0d1117] rounded-xl border border-gray-800 p-2 overflow-x-auto text-center">
