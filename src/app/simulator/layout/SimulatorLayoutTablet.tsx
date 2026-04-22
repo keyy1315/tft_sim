@@ -115,13 +115,6 @@ export default function SimulatorLayoutTablet(props: SimulatorLayoutProps) {
           >
             100회
           </button>
-          <button
-            onClick={() => setSidebarOpen(v => !v)}
-            aria-label={sidebarOpen ? '패널 닫기' : '패널 열기'}
-            className="px-2 py-1.5 bg-[#1f2937] hover:bg-[#2a3342] text-gray-400 hover:text-gray-200 rounded-lg text-xs transition-colors"
-          >
-            {sidebarOpen ? '›› 패널' : '‹‹ 패널'}
-          </button>
         </div>
       </div>
 
@@ -243,9 +236,18 @@ export default function SimulatorLayoutTablet(props: SimulatorLayoutProps) {
           )}
         </div>
 
-        {/* Right: Tabbed side panel (리플레이 모드에서 접을 수 있음) */}
+        {/* Right: Tabbed side panel (접을 수 있음) */}
         {sidebarOpen && (
-        <div className="bg-[#111827] rounded-xl border border-gray-800 flex flex-col max-h-[calc(100vh-140px)] overflow-hidden">
+        <div className="relative">
+          {/* 패널 닫기 버튼 — 패널 안쪽 세로 중앙 */}
+          <button
+            onClick={() => setSidebarOpen(false)}
+            aria-label="패널 닫기"
+            className="absolute left-0 top-1/2 -translate-y-1/2 w-6 h-12 bg-[#1f2937] hover:bg-[#2a3342] border border-gray-700 rounded-r-md flex items-center justify-center text-gray-400 hover:text-gray-200 text-sm z-20"
+          >
+            &gt;
+          </button>
+          <div className="bg-[#111827] rounded-xl border border-gray-800 flex flex-col max-h-[calc(100vh-140px)] overflow-hidden ml-6">
           <div className="flex border-b border-gray-800 shrink-0">
             <button
               onClick={() => setSideTab('pool')}
@@ -280,8 +282,20 @@ export default function SimulatorLayoutTablet(props: SimulatorLayoutProps) {
             {sideTab === 'unit' && <TabletUnitContent {...props} />}
           </div>
         </div>
+        </div>
         )}
       </div>
+
+      {/* 패널 닫혔을 때 — 화면 우측 끝 세로 중앙에 열기 버튼 (fixed) */}
+      {!sidebarOpen && (
+        <button
+          onClick={() => setSidebarOpen(true)}
+          aria-label="패널 열기"
+          className="fixed right-0 top-1/2 -translate-y-1/2 w-6 h-12 bg-[#1f2937] hover:bg-[#2a3342] border border-gray-700 rounded-l-md flex items-center justify-center text-gray-400 hover:text-gray-200 text-sm z-20"
+        >
+          &lt;
+        </button>
+      )}
 
       {/* Replay: full log below */}
       {replay.viewMode === 'replay' && replay.combatResult && <TabletReplayLog {...props} />}
