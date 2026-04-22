@@ -9,6 +9,7 @@ import type {
 import { estimateDps } from '@/lib/analysis/itemOptimizer';
 import { simulateCombat } from '@/lib/simulator/engine/combatLoop';
 import { getItemCategory, isDisabledItem } from '@/lib/simulator/systems/item';
+import { SPELL_CRIT_ITEMS, SPELL_CRIT_UNLOCK_BONUS } from '@/lib/combat/spellCrit';
 
 /** champion.role → 추천 스코어링용 카테고리 매핑. */
 export function classifyRole(champ: RawChampion): RoleCategory {
@@ -133,6 +134,8 @@ function flatStatBonus(item: RawItem, isAP: boolean): number {
     bonus += (fx.ManaOnRoundStart ?? 0) * 2;
     bonus += (fx.ManaGain ?? 0) * 2;
     bonus += (fx.SpellDamageAmp ?? 0) * 150;
+    // 보건/무대는 AP 캐리의 스킬 크리 언락 가치 (플랫 스탯 외 추가 프리미엄).
+    if (SPELL_CRIT_ITEMS.has(item.apiName)) bonus += SPELL_CRIT_UNLOCK_BONUS;
   } else {
     bonus += (fx.AD ?? 0) * 2;
     bonus += (fx.AS ?? 0) * 100;             // '%' 값이라 배수
@@ -222,6 +225,9 @@ export function pickTopCombo(
 
 /** 아이템 effects 키 주요 패턴 → 1줄 요약. */
 export function tagReason(item: RawItem): string {
+  // 보건/무대는 AP 캐리 스킬 크리 언락 — 최우선 태그
+  if (SPELL_CRIT_ITEMS.has(item.apiName)) return '스킬 치명타 언락';
+
   const keys = Object.keys(item.effects ?? {});
   if (keys.length === 0) return '범용';
 

@@ -24,6 +24,7 @@ import { ROLE_OMNIVAMP, getFighterASBonus } from '@/lib/simulator/models/unit';
 import { resolveTraits } from '@/lib/simulator/systems/trait';
 import { resolveAugmentEffects, resolveInCombatAugmentEffects, resolvePerUnitMods, applyPerUnitMods, AugmentWithStacks } from '@/lib/simulator/systems/augment';
 import type { IoniaPathType } from '@/data/traitModules';
+import { computeSpellCanCrit } from '@/lib/combat/spellCrit';
 
 /** 상태이상 한글 레이블 (엔진 로그용 — UI 모듈에 의존하지 않음) */
 const STATUS_EFFECT_LABELS: Record<StatusEffectType, string> = {
@@ -122,6 +123,7 @@ function createCombatUnit(
     attackCount: 0,
     castCount: 0,
     killCount: 0,
+    spellCanCrit: computeSpellCanCrit(allItems, activeTraits),
   };
 
   // MF 특성 선택 → 실제 트레이트로 치환
@@ -730,6 +732,7 @@ function spawnFreljordTurrets(
             attackCount: 0,
             castCount: 0,
             killCount: 0,
+            spellCanCrit: false,
           };
           // Store stun duration for prismatic tier
           if (stunDuration > 0) {
@@ -853,6 +856,7 @@ function trySpawnGalio(
     attackCount: 0,
     castCount: 0,
     killCount: 0,
+    spellCanCrit: false,
   };
 
   // 착지 충격파 — 영웅 시너지 variables
@@ -1967,6 +1971,9 @@ export function simulateCombat(
                 if (config.damageDecay && ti > 0) {
                   dmg *= Math.pow(1 - config.damageDecay, ti);
                 }
+                if (unit.spellCanCrit && rng.next() < unit.stats.critChance) {
+                  dmg *= unit.stats.critMultiplier;
+                }
 
                 const resistance = dmgType === 'magic' ? t.stats.magicResist
                   : dmgType === 'physical' ? t.stats.armor : 0;
@@ -2197,7 +2204,11 @@ export function simulateCombat(
               if (t.state === 'dead') continue;
               const resistance = dmgType === 'magic' ? t.stats.magicResist : t.stats.armor;
               const pen = dmgType === 'magic' ? unit.stats.magicPen : unit.stats.armorPen;
-              let dmg = dmgType === 'true' ? abilityDmg * (1 + unit.damageAmp) : applyResistance(abilityDmg * (1 + unit.damageAmp), resistance, pen);
+              let rawDmg = abilityDmg * (1 + unit.damageAmp);
+              if (unit.spellCanCrit && rng.next() < unit.stats.critChance) {
+                rawDmg *= unit.stats.critMultiplier;
+              }
+              let dmg = dmgType === 'true' ? rawDmg : applyResistance(rawDmg, resistance, pen);
               if (t.damageReduction > 0) dmg *= (1 - t.damageReduction);
               dmg = applyShield(t, dmg, eventBus, tick);
               if (t.statusEffects.some(e => e.type === 'invulnerable')) dmg = 0;

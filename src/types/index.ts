@@ -474,6 +474,8 @@ export interface CombatUnit {
   inventionTankDamageAmp: number;
   /** MF 특성 선택 등으로 치환된 실제 트레이트 목록 */
   resolvedTraits?: string[];
+  /** 스킬 치명타 가능 여부. 전투 시작 시 보건/무대 착용 또는 정밀 계열 시너지로 결정. */
+  spellCanCrit: boolean;
 }
 
 export interface CombatLog {

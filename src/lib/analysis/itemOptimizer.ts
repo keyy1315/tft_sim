@@ -2,6 +2,7 @@ import type { RawChampion, RawItem, RawTrait, ChampionStats } from '@/types';
 import { STAR_SCALING } from '@/types';
 import { calculateStats } from '@/lib/simulator/systems/stat';
 import { resolveTraits } from '@/lib/simulator/systems/trait';
+import { hasSpellCritItem, expectedSpellCritMultiplier } from '@/lib/combat/spellCrit';
 
 /** 공격형 조합 재료 */
 const OFFENSIVE_COMPONENTS = new Set([
@@ -94,6 +95,8 @@ export interface ItemDpsModifiers {
   procAS: number;          // ProcAttackSpeed (수은)
   // 처치 보너스
   adapPerKill: number;     // ADAPPerTakedown (카파 주스)
+  // 스킬 치명타 언락 여부 (보건/무대 착용 시 AP 스킬에 critMul 기댓값 적용)
+  canSpellCrit: boolean;
 }
 
 export function extractItemDpsModifiers(items: RawItem[]): ItemDpsModifiers {
@@ -103,6 +106,7 @@ export function extractItemDpsModifiers(items: RawItem[]): ItemDpsModifiers {
     manaRegen: 0, bonusAttacks: 0,
     asPerStack: 0, adPerStack: 0, apPerStack: 0, stackCap: 25, procAS: 0,
     adapPerKill: 0,
+    canSpellCrit: hasSpellCritItem(items),
   };
   for (const item of items) {
     const e = item.effects;
@@ -260,8 +264,14 @@ export function estimateDps(
       20,
     );
     const castFreq = 100 / effectiveMana;
-    const baseApDps = (100 + stats.ap + stackAP + killBonusAP) * star * totalAS * castFreq;
-    const apScalarBonus = mods.apScalar > 0 ? (stats.ap + stackAP) * mods.apScalar * totalAS : 0;
+    // 보건/무대 착용 시 스킬 치명타 기댓값 반영 — AD 분기의 critMul 과 대칭
+    const spellCritMul = mods.canSpellCrit
+      ? expectedSpellCritMultiplier(stats.critChance, stats.critMultiplier)
+      : 1;
+    const baseApDps = (100 + stats.ap + stackAP + killBonusAP) * star * totalAS * castFreq * spellCritMul;
+    const apScalarBonus = mods.apScalar > 0
+      ? (stats.ap + stackAP) * mods.apScalar * totalAS * spellCritMul
+      : 0;
     return (baseApDps + apScalarBonus + flatDpsBonus + burnDps) * ampMul * repeatMul * splashMul * bonusAttackMul;
   }
 
