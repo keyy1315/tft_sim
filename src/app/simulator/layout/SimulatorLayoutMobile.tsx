@@ -23,7 +23,7 @@ import ChampionPoolContent from './pool/ChampionPoolContent';
 import ItemPoolContent from './pool/ItemPoolContent';
 import BilgewaterPoolContent from './pool/BilgewaterPoolContent';
 
-const MOBILE_CELL_SIZE = 36;
+const MOBILE_CELL_SIZE = 26;
 
 type MobileTabId = 'pool' | 'unit' | 'synergy' | 'log' | 'damage';
 
