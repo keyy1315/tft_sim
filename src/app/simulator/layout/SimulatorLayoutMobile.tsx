@@ -1,18 +1,24 @@
 'use client';
 
-import { ReactNode, useCallback, useState } from 'react';
+import { MouseEvent, ReactNode, useCallback, useState } from 'react';
 import SetupBoard from '@/components/battle/SetupBoard';
 import ReplayBoard from '@/components/battle/ReplayBoard';
+import DroppableHexCell from '@/components/battle/DroppableHexCell';
 import BattleControls from '@/components/battle/BattleControls';
 import SynergyChip from '@/components/builder/SynergyChip';
 import SelectedUnitPanel from '@/components/builder/SelectedUnitPanel';
 import SynergyPanel from '@/components/builder/SynergyPanel';
 import PiltoverModulePanel from '@/components/builder/PiltoverModulePanel';
+import AugmentSlots from '@/components/builder/AugmentSlots';
 import BottomSheet from '@/components/ui/BottomSheet';
 import OverflowMenu from '@/components/ui/OverflowMenu';
 import { BottomSheetState } from '@/components/ui/bottomSheetLogic';
-import { TICKS_PER_SECOND } from '@/lib/simulator/models/constants';
+import { BOARD_COLS, TICKS_PER_SECOND } from '@/lib/simulator/models/constants';
+import { axialToOffset, offsetToAxial } from '@/types';
 import type { SimulatorLayoutProps } from './types';
+import ChampionPoolContent from './pool/ChampionPoolContent';
+import ItemPoolContent from './pool/ItemPoolContent';
+import BilgewaterPoolContent from './pool/BilgewaterPoolContent';
 
 const MOBILE_CELL_SIZE = 36;
 
@@ -288,16 +294,137 @@ interface MobileOverlayExtra {
   onUnitClick: (team: 'player' | 'enemy', index: number) => void;
 }
 
-function MobileDroppableOverlay(_props: SimulatorLayoutProps & MobileOverlayExtra) {
-  return null;
+function MobileDroppableOverlay({
+  tm, hexBuffs, setHoverUnit, cellSize, onUnitClick,
+}: SimulatorLayoutProps & MobileOverlayExtra) {
+  const { playerTeam, enemyTeam } = tm;
+  const { player: playerHexBuffs, enemy: enemyHexBuffs, moving, setMoving, setOverrides } = hexBuffs;
+
+  return (
+    <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+      {Array.from({ length: 8 }, (_, row) =>
+        Array.from({ length: BOARD_COLS }, (_, col) => {
+          const team = row < 4 ? 'enemy' : 'player';
+          const teamArr = team === 'player' ? playerTeam : enemyTeam;
+          const dataRow = team === 'player' ? row - 4 : row;
+          const placedIdx = teamArr.findIndex(p => {
+            const off = axialToOffset(p.position);
+            return off.row === dataRow && off.col === col;
+          });
+          const placed = placedIdx >= 0 ? teamArr[placedIdx] : null;
+
+          const cellClick = () => {
+            if (moving) {
+              const pos = offsetToAxial({ row: dataRow, col });
+              setOverrides(prev => ({
+                ...prev,
+                [moving.team]: { ...prev[moving.team], [moving.apiName]: pos },
+              }));
+              setMoving(null);
+              return;
+            }
+            const buffs = team === 'player' ? playerHexBuffs : enemyHexBuffs;
+            const movableBuff = buffs.find(b => b.movable && b.positions.some(p => {
+              const off = axialToOffset(p);
+              return off.row === dataRow && off.col === col;
+            }));
+            if (movableBuff && !placed) {
+              setMoving({ team, apiName: movableBuff.augmentApiName });
+              return;
+            }
+            if (placed && placedIdx >= 0) onUnitClick(team, placedIdx);
+            else tm.handleCellClick(offsetToAxial({ row: dataRow, col }), team);
+          };
+
+          const cellContextMenu = (e: MouseEvent) => {
+            e.preventDefault();
+            if (placed && placedIdx >= 0) tm.handleRemoveUnit(team, placedIdx);
+          };
+
+          return (
+            <DroppableHexCell
+              key={`cell-${row}-${col}`}
+              id={`cell-${row}-${col}`}
+              row={row}
+              col={col}
+              placedUnit={placed ? { team, position: placed.position } : null}
+              onClick={cellClick}
+              onContextMenu={cellContextMenu}
+              onMouseEnter={placed ? (rect) => setHoverUnit({ placed, rect }) : undefined}
+              onMouseLeave={() => setHoverUnit(null)}
+              cellSize={cellSize}
+            />
+          );
+        })
+      )}
+    </div>
+  );
 }
 
-function MobileAugmentRow(_props: SimulatorLayoutProps) {
-  return null;
+function MobileAugmentRow({ tm, teamNames }: SimulatorLayoutProps) {
+  const playerLabel = teamNames.player ?? 'TEAM A';
+  const enemyLabel = teamNames.enemy ?? 'TEAM B';
+  return (
+    <div className="flex justify-between px-2 gap-4">
+      <div className="flex-1 min-w-0">
+        <div className="text-[9px] text-red-400 font-bold mb-1 truncate">{enemyLabel} 증강</div>
+        <AugmentSlots
+          augments={tm.enemyAugments}
+          augmentStacks={tm.enemyAugmentStacks}
+          onOpenSelector={() => tm.setShowAugmentPicker('enemy')}
+          onOpenDetail={(aug) => tm.setAugmentDetailTarget({ aug, team: 'enemy' })}
+          onRemove={(i) => tm.handleRemoveAugment('enemy', i)}
+        />
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="text-[9px] text-blue-400 font-bold mb-1 truncate">{playerLabel} 증강</div>
+        <AugmentSlots
+          augments={tm.playerAugments}
+          augmentStacks={tm.playerAugmentStacks}
+          onOpenSelector={() => tm.setShowAugmentPicker('player')}
+          onOpenDetail={(aug) => tm.setAugmentDetailTarget({ aug, team: 'player' })}
+          onRemove={(i) => tm.handleRemoveAugment('player', i)}
+        />
+      </div>
+    </div>
+  );
 }
 
-function PoolContentRouter(_props: SimulatorLayoutProps) {
-  return <div className="text-xs text-gray-500">Pool placeholder</div>;
+function PoolContentRouter(props: SimulatorLayoutProps) {
+  const { poolFilters, tm } = props;
+  const bwPlayerActive = tm.playerTraits.some(t => t.trait.apiName === 'TFT16_Bilgewater' && t.style > 0);
+  const bwEnemyActive = tm.enemyTraits.some(t => t.trait.apiName === 'TFT16_Bilgewater' && t.style > 0);
+  const showBilgewaterTab = bwPlayerActive || bwEnemyActive;
+
+  return (
+    <div className="flex flex-col gap-2 h-full">
+      <div className="flex gap-2 shrink-0">
+        <button
+          onClick={() => poolFilters.setActivePoolTab('champions')}
+          className={`px-3 py-1 rounded text-xs font-medium ${poolFilters.activePoolTab === 'champions' ? 'bg-blue-600 text-white' : 'bg-[#1f2937] text-gray-400'}`}
+        >
+          챔피언
+        </button>
+        <button
+          onClick={() => poolFilters.setActivePoolTab('items')}
+          className={`px-3 py-1 rounded text-xs font-medium ${poolFilters.activePoolTab === 'items' ? 'bg-yellow-600 text-white' : 'bg-[#1f2937] text-gray-400'}`}
+        >
+          아이템
+        </button>
+        {showBilgewaterTab && (
+          <button
+            onClick={() => poolFilters.setActivePoolTab('bilgewater')}
+            className={`px-3 py-1 rounded text-xs font-medium ${poolFilters.activePoolTab === 'bilgewater' ? 'bg-teal-600 text-white' : 'bg-[#1f2937] text-gray-400'}`}
+          >
+            빌지워터
+          </button>
+        )}
+      </div>
+      {poolFilters.activePoolTab === 'champions' && <ChampionPoolContent {...props} />}
+      {poolFilters.activePoolTab === 'items' && <ItemPoolContent {...props} />}
+      {poolFilters.activePoolTab === 'bilgewater' && showBilgewaterTab && <BilgewaterPoolContent {...props} />}
+    </div>
+  );
 }
 
 function ReplayLogTab(_props: SimulatorLayoutProps) {
