@@ -1,10 +1,13 @@
 'use client';
 
-import { MouseEvent, ReactNode, useCallback, useState } from 'react';
+import { MouseEvent, ReactNode, useCallback, useMemo, useState } from 'react';
 import SetupBoard from '@/components/battle/SetupBoard';
 import ReplayBoard from '@/components/battle/ReplayBoard';
 import DroppableHexCell from '@/components/battle/DroppableHexCell';
 import BattleControls from '@/components/battle/BattleControls';
+import DamageSidebar from '@/components/battle/DamageSidebar';
+import UnitDetailPanel from '@/components/battle/UnitDetailPanel';
+import { resolveBilgewaterStatEffects } from '@/lib/simulator/systems/stat';
 import SynergyChip from '@/components/builder/SynergyChip';
 import SelectedUnitPanel from '@/components/builder/SelectedUnitPanel';
 import SynergyPanel from '@/components/builder/SynergyPanel';
@@ -139,6 +142,23 @@ export default function SimulatorLayoutMobile(props: SimulatorLayoutProps) {
     <div className="space-y-2">
       <MobileHeader {...props} />
 
+      {/* Replay winner banner (replay mode only, above board) */}
+      {replay.viewMode === 'replay' && replay.combatResult && (
+        <div className={`text-center p-2 rounded-lg border ${
+          replay.combatResult.winner === 'player' ? 'bg-blue-600/10 border-blue-600/30' :
+          replay.combatResult.winner === 'enemy' ? 'bg-red-600/10 border-red-600/30' :
+          'bg-gray-600/10 border-gray-600/30'
+        }`}>
+          <div className="text-sm font-black">
+            {replay.combatResult.winner === 'player' ? `${playerLabel} 승리!` :
+             replay.combatResult.winner === 'enemy' ? `${enemyLabel} 승리!` : '무승부'}
+          </div>
+          <div className="text-[10px] text-gray-400">
+            전투 시간: {replay.combatResult.duration.toFixed(1)}초
+          </div>
+        </div>
+      )}
+
       {/* Board */}
       <div className="bg-[#0d1117] rounded-xl border border-gray-800 p-2 overflow-x-auto">
         <div style={{ position: 'relative', display: 'inline-block' }}>
@@ -209,6 +229,29 @@ export default function SimulatorLayoutMobile(props: SimulatorLayoutProps) {
 
       {/* Augment row (setup mode only) */}
       {replay.viewMode === 'setup' && <MobileAugmentRow {...props} />}
+
+      {/* Tick events (replay mode, under the board) */}
+      {replay.viewMode === 'replay' && replay.combatResult && (
+        <div className="bg-[#111827] rounded-lg border border-gray-800 p-2" style={{ minHeight: 60 }}>
+          <div className="text-[10px] font-bold text-gray-500 mb-1">현재 틱 이벤트</div>
+          <div className="space-y-0.5 font-mono text-[10px] h-[44px] overflow-y-auto">
+            {replay.tickEvents.length > 0 ? replay.tickEvents.map((e, i) => (
+              <div
+                key={`${e.tick}-${i}`}
+                className={
+                  e.type === 'death' ? 'text-red-400' :
+                  e.type === 'ability' ? 'text-purple-400' :
+                  e.type === 'move' ? 'text-gray-600' : 'text-gray-400'
+                }
+              >
+                {e.message}
+              </div>
+            )) : (
+              <div className="text-gray-600">대기 중...</div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Battle controls (replay mode only) */}
       {replay.viewMode === 'replay' && replay.combatResult && (
@@ -427,14 +470,110 @@ function PoolContentRouter(props: SimulatorLayoutProps) {
   );
 }
 
-function ReplayLogTab(_props: SimulatorLayoutProps) {
-  return <div className="text-xs text-gray-500">Log placeholder</div>;
+function ReplayLogTab({ replay, logFilter, setLogFilter }: SimulatorLayoutProps) {
+  const filteredLogs = useMemo(() => {
+    if (!replay.combatResult) return [];
+    if (logFilter === 'all') return replay.combatResult.logs.slice(-200);
+    return replay.combatResult.logs.filter(l => l.type === logFilter).slice(-200);
+  }, [replay.combatResult, logFilter]);
+
+  return (
+    <div className="flex flex-col h-full gap-2">
+      <div className="flex gap-1 shrink-0 overflow-x-auto">
+        {(['all', 'attack', 'ability', 'death', 'move'] as const).map(f => (
+          <button
+            key={f}
+            onClick={() => setLogFilter(f)}
+            className={`px-2 py-0.5 rounded text-[10px] shrink-0 ${logFilter === f ? 'bg-[#8b5cf6] text-white' : 'bg-[#1f2937] text-gray-500'}`}
+          >
+            {f === 'all' ? '전체' : f === 'attack' ? '공격' : f === 'ability' ? '스킬' : f === 'death' ? '사망' : '이동'}
+          </button>
+        ))}
+      </div>
+      <div
+        className="flex-1 overflow-y-auto space-y-0.5 font-mono text-[10px]"
+        ref={(el) => { if (el) el.scrollTop = el.scrollHeight; }}
+      >
+        {filteredLogs.map((log, i) => (
+          <div
+            key={`${log.tick}-${i}`}
+            className={`py-0.5 px-2 rounded ${
+              log.type === 'death' ? 'bg-red-900/20 text-red-400' :
+              log.type === 'ability' ? 'text-purple-400' :
+              log.type === 'move' ? 'text-gray-500' :
+              'text-gray-400'
+            }`}
+          >
+            <span className="text-gray-600 mr-2">[{log.time.toFixed(1)}s]</span>
+            {log.message}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
-function ReplayDamageTab(_props: SimulatorLayoutProps) {
-  return <div className="text-xs text-gray-500">Damage placeholder</div>;
+function ReplayDamageTab({ replay }: SimulatorLayoutProps) {
+  if (!replay.combatResult) {
+    return <div className="text-center text-xs text-gray-500 py-6">전투를 시작하면 표시됩니다</div>;
+  }
+  return (
+    <DamageSidebar
+      combatResult={replay.combatResult}
+      currentSnapshot={replay.currentSnapshot}
+      selectedUnitId={replay.selectedUnitId}
+      onUnitClick={replay.setSelectedUnitId}
+    />
+  );
 }
 
-function ReplayUnitDetailTab(_props: SimulatorLayoutProps) {
-  return <div className="text-center text-xs text-gray-500 py-6">보드의 유닛을 선택하세요</div>;
+function ReplayUnitDetailTab(props: SimulatorLayoutProps) {
+  const { tm, replay, data, hexBuffs, stageNumber, mappedPlayerForReplay } = props;
+  if (!replay.selectedUnitId || !replay.selectedUnitSnap || !replay.unitMeta[replay.selectedUnitId]) {
+    return <div className="text-center text-xs text-gray-500 py-6">보드의 유닛을 선택하세요</div>;
+  }
+  const selMeta = replay.unitMeta[replay.selectedUnitId];
+  const target = selMeta.team === 'player'
+    ? mappedPlayerForReplay.find(p => p.champion.apiName === selMeta.championApiName)
+    : undefined;
+  const verifyContext = target ? {
+    playerTeam: mappedPlayerForReplay,
+    enemyTeam: tm.enemyTeam,
+    targetApiName: selMeta.championApiName,
+    targetPosition: target.position,
+    simulateOptions: {
+      seed: 42,
+      allTraits: data.traits,
+      skipMirror: true,
+      playerAugments: tm.playerAugments,
+      playerAugmentStacks: tm.playerAugmentStacks,
+      enemyAugments: tm.enemyAugments,
+      enemyAugmentStacks: tm.enemyAugmentStacks,
+      playerBilgewaterEffects: resolveBilgewaterStatEffects(tm.playerBilgewaterStats, data.items),
+      enemyBilgewaterEffects: resolveBilgewaterStatEffects(tm.enemyBilgewaterStats, data.items),
+      playerPiltoverModules: tm.playerPiltoverModules,
+      enemyPiltoverModules: tm.enemyPiltoverModules,
+      playerIoniaPath: tm.playerIoniaPath ?? undefined,
+      enemyIoniaPath: tm.enemyIoniaPath ?? undefined,
+      playerGalio: tm.playerGalio,
+      enemyGalio: tm.enemyGalio,
+      playerHexBuffs: hexBuffs.player,
+      enemyHexBuffs: hexBuffs.enemy,
+      stageNumber,
+      playerArbiterLaw: tm.playerArbiterLaw ?? undefined,
+      enemyArbiterLaw: tm.enemyArbiterLaw ?? undefined,
+    },
+  } : undefined;
+
+  return (
+    <UnitDetailPanel
+      key={replay.selectedUnitId}
+      unitSnapshot={replay.selectedUnitSnap}
+      meta={selMeta}
+      onClose={() => replay.setSelectedUnitId(null)}
+      allItems={data.items}
+      verifyContext={verifyContext}
+      activeTraits={selMeta.team === 'player' ? tm.playerTraits : tm.enemyTraits}
+    />
+  );
 }

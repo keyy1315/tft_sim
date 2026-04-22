@@ -11,6 +11,7 @@ import { decodeTeamCode, autoPlaceChampions } from '@/lib/teamCode';
 import { useTeamManagement } from '@/hooks/useTeamManagement';
 import { useReplayControls } from '@/hooks/useReplayControls';
 import { useDndHandlers } from '@/hooks/useDndHandlers';
+import { useViewport } from '@/hooks/useViewport';
 import { resolveBilgewaterStatEffects } from '@/lib/simulator/systems/stat';
 import { resolveHexBuffs } from '@/data/augmentHexBuffs';
 import ChampionGrid from '@/components/builder/ChampionGrid';
@@ -21,6 +22,7 @@ import ChampionCard from '@/components/builder/ChampionCard';
 import ItemIcon from '@/components/builder/ItemIcon';
 import MfModeSelector from '@/components/builder/MfModeSelector';
 import SimulatorLayoutDesktop from './layout/SimulatorLayoutDesktop';
+import SimulatorLayoutMobile from './layout/SimulatorLayoutMobile';
 import type { SimulatorLayoutProps, ItemFilterTab, PoolTab } from './layout/types';
 
 export default function SimulatorPage() {
@@ -51,6 +53,7 @@ interface AnalysisHandoff {
 function SimulatorContent() {
   const activeSet = useActiveSet();
   const router = useRouter();
+  const viewport = useViewport();
   const { champions, items, traits, augments, teamPlannerMapping, loading } = useGameData(activeSet);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -275,7 +278,9 @@ function SimulatorContent() {
           </button>
         )}
 
-        <SimulatorLayoutDesktop {...layoutProps} />
+        {viewport === 'mobile'
+          ? <SimulatorLayoutMobile {...layoutProps} />
+          : <SimulatorLayoutDesktop {...layoutProps} />}
 
         {/* MF mode selection popup */}
         <MfModeSelector
