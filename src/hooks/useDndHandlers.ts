@@ -31,10 +31,27 @@ export function useDndHandlers({
   const handleDragEnd = (event: DragEndEvent) => {
     setActiveDragData(null);
     const { active, over } = event;
-    if (!over) return;
-
     const dragData = active.data.current as DragData | undefined;
     if (!dragData) return;
+
+    // 보드 밖으로 drop → placed-unit 이면 해당 유닛을 팀에서 제거.
+    // (모바일/태블릿에서 보드 위 유닛 터치 후 바깥으로 드래그하여 삭제하는 UX)
+    if (!over) {
+      if (dragData.type === 'placed-unit') {
+        const team = dragData.team;
+        const teamArr = team === 'player' ? playerTeam : enemyTeam;
+        const setTeam = team === 'player' ? updatePlayerTeam : updateEnemyTeam;
+        const srcOff = axialToOffset(dragData.position);
+        const srcIdx = teamArr.findIndex(p => {
+          const off = axialToOffset(p.position);
+          return off.row === srcOff.row && off.col === srcOff.col;
+        });
+        if (srcIdx >= 0) {
+          setTeam(prev => prev.filter((_, i) => i !== srcIdx));
+        }
+      }
+      return;
+    }
 
     const cellInfo = parseCellId(over.id as string);
     if (!cellInfo) return;
