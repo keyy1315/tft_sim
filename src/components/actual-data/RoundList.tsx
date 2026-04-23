@@ -26,8 +26,8 @@ export default function RoundList() {
   }
 
   return (
-    <div className="border-r border-gray-700 p-2 w-48 text-gray-100">
-      <ul className="space-y-1">
+    <div className="flex flex-col border-r border-gray-700 w-48 text-gray-100 min-h-0">
+      <ul className="flex-1 overflow-y-auto p-2 space-y-1 min-h-0">
         {game.rounds.map((r, i) => (
           <li key={i}>
             <button onClick={() => setCurrentRound(i)}
@@ -37,7 +37,7 @@ export default function RoundList() {
           </li>
         ))}
       </ul>
-      <div className="mt-4 space-y-1">
+      <div className="border-t border-gray-700 p-2 space-y-1 bg-[#0a0e1a]">
         <button onClick={() => addPvPRound(suggestNextRoundName('pvp'))}
           className="w-full text-sm border border-gray-700 rounded p-1 hover:bg-gray-700">+ PvP</button>
         <button onClick={() => addShrineRound(suggestNextRoundName('shrine'))}
