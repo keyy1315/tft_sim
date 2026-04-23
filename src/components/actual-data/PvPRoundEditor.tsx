@@ -2,6 +2,7 @@
 import type { PvPRound } from '@/lib/actualData/types';
 import { useActualDataStore } from '@/store/actualDataSlice';
 import TeamEditor from './TeamEditor';
+import OpponentPanel from './OpponentPanel';
 
 export default function PvPRoundEditor({ index, round }: { index: number; round: PvPRound }) {
   const updateRoundMeta = useActualDataStore(s => s.updateRoundMeta);
@@ -36,8 +37,8 @@ export default function PvPRoundEditor({ index, round }: { index: number; round:
         <TeamEditor label="내 팀" team={round.playerTeam}
           onChange={t => updatePlayerTeam(index, t)}
           showGrace={{ roundIndex: index }} />
-        <TeamEditor label="상대" team={round.opponent}
-          onChange={t => updateOpponent(index, t)} />
+        <OpponentPanel index={index} opponent={round.opponent}
+          onChange={o => updateOpponent(index, o)} />
       </div>
 
       <div>
