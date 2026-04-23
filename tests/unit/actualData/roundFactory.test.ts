@@ -133,9 +133,14 @@ describe('buildNextPvPRound', () => {
     expect(next.opponent.riotId).toBeUndefined();
   });
 
-  it('uses prev videoEndTime as new videoStartTime when provided', () => {
+  it('adds 35s transition to prev videoEndTime for new videoStartTime', () => {
     const next = buildNextPvPRound('2-5', { ...prev, videoEndTime: 55 }, []);
-    expect(next.videoStartTime).toBe(55);
+    expect(next.videoStartTime).toBe(55 + 35);
+  });
+
+  it('defaults videoStartTime to 0 when prev has no videoEndTime', () => {
+    const next = buildNextPvPRound('2-5', prev, []);
+    expect(next.videoStartTime).toBe(0);
   });
 
   it('returns videoStartTime=0 when prev=null', () => {

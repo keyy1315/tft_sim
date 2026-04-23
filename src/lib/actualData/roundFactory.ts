@@ -41,6 +41,13 @@ export function accumulateHexModifiers(
   return result;
 }
 
+/**
+ * PvP 라운드 종료 → 다음 PvP 라운드 시작까지의 영상상 소요 시간(초).
+ * 전투 결산 + 캐러셀/크립/신 선택 등 중간 라운드의 통상 길이에 맞춘 경험치 기반 기본값.
+ * 정확한 시작 시각은 사용자가 VideoTimeInput에서 재조정 가능.
+ */
+export const PVP_TO_PVP_TRANSITION_SECONDS = 35;
+
 function emptyTeam(): TeamSnapshot {
   return {
     units: [],
@@ -74,10 +81,14 @@ export function buildNextPvPRound(
       }
     : emptyTeam();
 
+  const nextStartTime = prev?.videoEndTime != null
+    ? prev.videoEndTime + PVP_TO_PVP_TRANSITION_SECONDS
+    : 0;
+
   return {
     type: 'pvp',
     roundName,
-    videoStartTime: prev?.videoEndTime ?? 0,
+    videoStartTime: nextStartTime,
     playerTeam,
     opponent: emptyOpponent(),
     winner: 'draw',
