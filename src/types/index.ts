@@ -147,6 +147,12 @@ export interface RawAugment {
   icon: string;
   associatedTraits: string[];
   tags: string[];
+  /**
+   * Set 17에서 실제 사용되는 증강 여부 (CommunityDragon 기준).
+   * false면 이전 시즌 잔재이거나 비활성 증강.
+   * 누락된 경우 기본 false 취급.
+   */
+  inSet17?: boolean;
 }
 
 export interface RawAugmentsData {

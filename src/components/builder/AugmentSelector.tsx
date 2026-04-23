@@ -50,9 +50,11 @@ interface TooltipState {
 export default function AugmentSelector({ augments, onSelect, selectedApiNames }: AugmentSelectorProps) {
   const [search, setSearch] = useState('');
   const [tierFilter, setTierFilter] = useState<AugmentTier | null>(null);
+  const [showInactive, setShowInactive] = useState(false);
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
 
   const filtered = augments.filter((aug) => {
+    if (!showInactive && aug.inSet17 === false) return false;
     if (search) {
       const s = search.toLowerCase();
       if (!aug.name.toLowerCase().includes(s) && !aug.apiName.toLowerCase().includes(s)) return false;
@@ -83,7 +85,7 @@ export default function AugmentSelector({ augments, onSelect, selectedApiNames }
   return (
     <div className="space-y-3">
       <SearchBar value={search} onChange={setSearch} placeholder="증강 검색..." />
-      <div className="flex gap-1">
+      <div className="flex gap-1 items-center">
         {TIER_FILTERS.map((f) => (
           <button
             key={f.label}
@@ -97,6 +99,11 @@ export default function AugmentSelector({ augments, onSelect, selectedApiNames }
             {f.label}
           </button>
         ))}
+        <label className="ml-auto flex items-center gap-1 text-[11px] text-gray-400 cursor-pointer select-none">
+          <input type="checkbox" checked={showInactive} onChange={e => setShowInactive(e.target.checked)}
+            className="accent-[#8b5cf6]" />
+          <span>미사용(이전 시즌) 포함</span>
+        </label>
       </div>
       <div className="relative">
         <div className="grid grid-cols-6 gap-2 max-h-[400px] overflow-y-auto p-1">
