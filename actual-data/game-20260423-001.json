@@ -12,7 +12,7 @@
   ],
   "timeline": [],
   "createdAt": "2026-04-23T04:51:14.262Z",
-  "updatedAt": "2026-04-23T07:52:18.753Z",
+  "updatedAt": "2026-04-23T08:16:46.129Z",
   "rounds": [
     {
       "type": "pvp",
@@ -4045,7 +4045,7 @@
             "items": [
               "TFT_Item_DragonsClaw",
               "TFT_Item_Artifact_AegisOfDusk",
-              null
+              "TFT17_EkkoOffering_AnomalyItem"
             ]
           },
           {
@@ -4729,7 +4729,7 @@
             "items": [
               "TFT_Item_DragonsClaw",
               "TFT_Item_Artifact_AegisOfDusk",
-              null
+              "TFT17_EkkoOffering_AnomalyItem"
             ]
           },
           {
@@ -5021,7 +5021,7 @@
             "items": [
               "TFT_Item_DragonsClaw",
               "TFT_Item_Artifact_AegisOfDusk",
-              null
+              "TFT17_EkkoOffering_AnomalyItem"
             ]
           },
           {
@@ -5313,7 +5313,7 @@
             "items": [
               "TFT_Item_DragonsClaw",
               "TFT_Item_Artifact_AegisOfDusk",
-              null
+              "TFT17_EkkoOffering_AnomalyItem"
             ]
           },
           {
