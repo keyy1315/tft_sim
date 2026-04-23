@@ -1,5 +1,5 @@
 'use client';
-import type { PlacedUnit, TeamSnapshot } from '@/lib/actualData/types';
+import type { TeamSnapshot } from '@/lib/actualData/types';
 import AugmentSlotsQuad from './AugmentSlotsQuad';
 import GraceStatus from './GraceStatus';
 import HexModifierOverlay from './HexModifierOverlay';
@@ -11,46 +11,28 @@ interface Props {
   showGrace?: { roundIndex: number };
 }
 
+/**
+ * Team info bar — level, HP, augments × 4, hex modifiers, grace status.
+ * Unit placement lives on the hex board (ActualBoard); this component is
+ * the compact top/bottom strip around it.
+ */
 export default function TeamEditor({ label, team, onChange, showGrace }: Props) {
-  const updateUnit = (index: number, patch: Partial<PlacedUnit>) => {
-    onChange({
-      ...team,
-      units: team.units.map((u, j) => (j === index ? { ...u, ...patch } : u)),
-    });
-  };
-
-  const addUnit = () => {
-    const newUnit: PlacedUnit = {
-      championId: '',
-      hex: { q: 0, r: 0 },
-      starLevel: 1,
-      items: [undefined, undefined, undefined],
-    };
-    onChange({ ...team, units: [...team.units, newUnit] });
-  };
-
-  const removeUnit = (index: number) => {
-    onChange({ ...team, units: team.units.filter((_, j) => j !== index) });
-  };
-
   return (
-    <div className="space-y-2 text-gray-100">
-      <h3 className="font-semibold">{label}</h3>
+    <div className="flex flex-wrap items-center gap-3 text-gray-100">
+      <h3 className="font-semibold text-sm whitespace-nowrap">{label}</h3>
 
-      <div className="flex gap-2">
-        <label className="flex flex-col">
-          <span className="text-xs text-gray-300">Level</span>
-          <input type="number" min={1} max={10} value={team.level}
-            onChange={e => onChange({ ...team, level: Number(e.target.value) })}
-            className="border border-gray-700 bg-gray-900 text-gray-100 p-1 rounded w-16 text-sm" />
-        </label>
-        <label className="flex flex-col">
-          <span className="text-xs text-gray-300">HP</span>
-          <input type="number" min={0} value={team.hp}
-            onChange={e => onChange({ ...team, hp: Number(e.target.value) })}
-            className="border border-gray-700 bg-gray-900 text-gray-100 p-1 rounded w-20 text-sm" />
-        </label>
-      </div>
+      <label className="flex items-center gap-1 text-xs">
+        <span className="text-gray-300">Lv</span>
+        <input type="number" min={1} max={10} value={team.level}
+          onChange={e => onChange({ ...team, level: Number(e.target.value) })}
+          className="border border-gray-700 bg-gray-900 text-gray-100 p-1 rounded w-14 text-sm" />
+      </label>
+      <label className="flex items-center gap-1 text-xs">
+        <span className="text-gray-300">HP</span>
+        <input type="number" min={0} value={team.hp}
+          onChange={e => onChange({ ...team, hp: Number(e.target.value) })}
+          className="border border-gray-700 bg-gray-900 text-gray-100 p-1 rounded w-16 text-sm" />
+      </label>
 
       <AugmentSlotsQuad
         augments={team.augments}
@@ -60,63 +42,6 @@ export default function TeamEditor({ label, team, onChange, showGrace }: Props) 
       <HexModifierOverlay modifiers={team.hexModifiers} />
 
       {showGrace && <GraceStatus currentRoundIndex={showGrace.roundIndex} />}
-
-      <div className="border border-gray-700 rounded p-2 space-y-1 text-xs">
-        <div className="flex justify-between items-center">
-          <span className="font-semibold">유닛 배치</span>
-          <button
-            type="button"
-            onClick={addUnit}
-            className="text-blue-400 underline"
-          >
-            + 유닛 추가
-          </button>
-        </div>
-        {team.units.length === 0 && (
-          <p className="text-gray-400">유닛이 없습니다.</p>
-        )}
-        {team.units.map((u, i) => (
-          <div key={i} className="flex gap-1 items-center">
-            <input
-              value={u.championId}
-              onChange={e => updateUnit(i, { championId: e.target.value })}
-              placeholder="championId"
-              className="border border-gray-700 bg-gray-900 text-gray-100 p-0.5 w-28"
-            />
-            <input
-              type="number"
-              value={u.hex.q}
-              onChange={e => updateUnit(i, { hex: { ...u.hex, q: Number(e.target.value) } })}
-              className="border border-gray-700 bg-gray-900 text-gray-100 p-0.5 w-12"
-              placeholder="q"
-            />
-            <input
-              type="number"
-              value={u.hex.r}
-              onChange={e => updateUnit(i, { hex: { ...u.hex, r: Number(e.target.value) } })}
-              className="border border-gray-700 bg-gray-900 text-gray-100 p-0.5 w-12"
-              placeholder="r"
-            />
-            <select
-              value={u.starLevel}
-              onChange={e => updateUnit(i, { starLevel: Number(e.target.value) as 1 | 2 | 3 })}
-              className="border border-gray-700 bg-gray-900 text-gray-100 p-0.5"
-            >
-              <option value={1}>★</option>
-              <option value={2}>★★</option>
-              <option value={3}>★★★</option>
-            </select>
-            <button
-              type="button"
-              onClick={() => removeUnit(i)}
-              className="text-red-400"
-              aria-label="유닛 제거"
-            >
-              ×
-            </button>
-          </div>
-        ))}
-      </div>
     </div>
   );
 }
