@@ -1,6 +1,7 @@
 'use client';
 import type { ShrineRound, ShrineName } from '@/lib/actualData/types';
 import { useActualDataStore } from '@/store/actualDataSlice';
+import YasuoTilePicker from './YasuoTilePicker';
 
 export default function ShrineRoundEditor({ index, round }: { index: number; round: ShrineRound }) {
   const updateShrineRound = useActualDataStore(s => s.updateShrineRound);
@@ -37,9 +38,14 @@ export default function ShrineRoundEditor({ index, round }: { index: number; rou
       </label>
 
       {round.playerChosenShrine === 'yasuo' && (
-        <p className="text-sm text-gray-500">
-          YasuoTilePicker는 Task 18에서 추가.
-        </p>
+        <div>
+          <span className="text-sm block mb-1">야스오 칸 설치</span>
+          <YasuoTilePicker
+            stage={Number(round.roundName.split('-')[0]) as 2 | 3 | 4}
+            value={round.playerYasuoTile}
+            onChange={tile => updateShrineRound(index, { playerYasuoTile: tile })}
+          />
+        </div>
       )}
     </div>
   );
