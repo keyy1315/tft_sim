@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import Image from 'next/image';
 import { RawAugment, AugmentTier } from '@/types';
 import { getAugmentImage, TIER_BORDER_COLORS } from '@/data/imageMap';
@@ -51,7 +51,6 @@ export default function AugmentSelector({ augments, onSelect, selectedApiNames }
   const [search, setSearch] = useState('');
   const [tierFilter, setTierFilter] = useState<AugmentTier | null>(null);
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
-  const gridRef = useRef<HTMLDivElement>(null);
 
   const filtered = augments.filter((aug) => {
     if (search) {
@@ -69,13 +68,16 @@ export default function AugmentSelector({ augments, onSelect, selectedApiNames }
 
   const handleMouseEnter = (aug: RawAugment, e: React.MouseEvent) => {
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    const gridRect = gridRef.current?.getBoundingClientRect();
-    if (!gridRect) return;
-    setTooltip({
-      aug,
-      x: rect.right - gridRect.left + 8,
-      y: rect.top - gridRect.top,
-    });
+    // 툴팁 기본: 버튼 오른쪽에 표시. 오른쪽 여백 부족하면 왼쪽에 표시.
+    const TOOLTIP_WIDTH = 240;
+    const GAP = 8;
+    const viewportW = typeof window !== 'undefined' ? window.innerWidth : 1024;
+    const rightX = rect.right + GAP;
+    const x = rightX + TOOLTIP_WIDTH > viewportW
+      ? Math.max(8, rect.left - TOOLTIP_WIDTH - GAP)
+      : rightX;
+    const y = Math.max(8, rect.top);
+    setTooltip({ aug, x, y });
   };
 
   return (
@@ -97,7 +99,7 @@ export default function AugmentSelector({ augments, onSelect, selectedApiNames }
           </button>
         ))}
       </div>
-      <div className="relative" ref={gridRef}>
+      <div className="relative">
         <div className="grid grid-cols-6 gap-2 max-h-[400px] overflow-y-auto p-1">
           {sorted.map((aug) => {
             const tier = getAugmentTier(aug);
@@ -132,13 +134,13 @@ export default function AugmentSelector({ augments, onSelect, selectedApiNames }
           })}
         </div>
 
-        {/* Hover tooltip */}
+        {/* Hover tooltip — fixed 포지셔닝으로 모달의 overflow 밖까지 표시 */}
         {tooltip && (
           <div
-            className="absolute z-50 w-56 bg-[#1a1f2e] border border-gray-600 rounded-lg shadow-xl p-3 pointer-events-none"
+            className="fixed z-[100] w-56 bg-[#1a1f2e] border border-gray-600 rounded-lg shadow-xl p-3 pointer-events-none"
             style={{
-              left: Math.min(tooltip.x, 280),
-              top: Math.max(tooltip.y, 0),
+              left: tooltip.x,
+              top: tooltip.y,
             }}
           >
             <div className="flex items-center gap-2 mb-2">
