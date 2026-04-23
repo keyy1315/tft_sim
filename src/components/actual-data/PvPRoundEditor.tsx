@@ -4,6 +4,7 @@ import { useActualDataStore } from '@/store/actualDataSlice';
 import TeamEditor from './TeamEditor';
 import OpponentPanel from './OpponentPanel';
 import DamageChartInput from './DamageChartInput';
+import VideoTimeInput from './VideoTimeInput';
 
 export default function PvPRoundEditor({ index, round }: { index: number; round: PvPRound }) {
   const updateRoundMeta = useActualDataStore(s => s.updateRoundMeta);
@@ -21,16 +22,21 @@ export default function PvPRoundEditor({ index, round }: { index: number; round:
             className="border border-gray-700 bg-gray-900 text-gray-100 p-1 rounded w-20" />
         </label>
         <label className="flex flex-col">
-          <span className="text-sm text-gray-300">영상 시작 (초)</span>
-          <input type="number" value={round.videoStartTime}
-            onChange={e => updateRoundMeta(index, { videoStartTime: Number(e.target.value) })}
-            className="border border-gray-700 bg-gray-900 text-gray-100 p-1 rounded w-24" />
+          <span className="text-sm text-gray-300">영상 시작 (mm:ss)</span>
+          <VideoTimeInput
+            value={round.videoStartTime}
+            onChange={v => updateRoundMeta(index, { videoStartTime: v ?? 0 })}
+            className="w-24"
+          />
         </label>
         <label className="flex flex-col">
-          <span className="text-sm text-gray-300">영상 종료 (초)</span>
-          <input type="number" value={round.videoEndTime ?? ''}
-            onChange={e => updateRoundMeta(index, { videoEndTime: e.target.value ? Number(e.target.value) : undefined })}
-            className="border border-gray-700 bg-gray-900 text-gray-100 p-1 rounded w-24" />
+          <span className="text-sm text-gray-300">영상 종료 (mm:ss)</span>
+          <VideoTimeInput
+            value={round.videoEndTime}
+            onChange={v => updateRoundMeta(index, { videoEndTime: v })}
+            className="w-24"
+            allowEmpty
+          />
         </label>
       </div>
 

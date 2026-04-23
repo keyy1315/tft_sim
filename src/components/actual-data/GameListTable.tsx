@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import type { ActualGameSummary } from '@/lib/actualData/types';
 import { useActualDataStore } from '@/store/actualDataSlice';
+import LocalDateTime from './LocalDateTime';
 
 export default function GameListTable({ games }: { games: ActualGameSummary[] }) {
   const deleteGame = useActualDataStore(s => s.deleteGame);
@@ -33,7 +34,7 @@ export default function GameListTable({ games }: { games: ActualGameSummary[] })
             <td className="p-2">{g.patchVersion}</td>
             <td className="p-2">{g.finalPlacement}</td>
             <td className="p-2">{g.videoSource.kind === 'local' ? '📹' : '—'}</td>
-            <td className="p-2 text-sm text-gray-400">{new Date(g.updatedAt).toLocaleString()}</td>
+            <td className="p-2 text-sm text-gray-400"><LocalDateTime iso={g.updatedAt} /></td>
             <td className="p-2">
               <button
                 onClick={async () => {

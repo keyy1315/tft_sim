@@ -1,6 +1,7 @@
 'use client';
 import { useEffect } from 'react';
 import { useActualDataStore } from '@/store/actualDataSlice';
+import LocalDateTime from './LocalDateTime';
 
 const AUTO_SAVE_MS = 30_000;
 
@@ -32,26 +33,28 @@ export default function SaveStatusBar() {
     return () => window.removeEventListener('beforeunload', handler);
   }, [isDirty]);
 
-  let label: string;
+  let labelNode: React.ReactNode;
   let color = 'text-gray-400';
   if (status === 'saving') {
-    label = '저장 중...';
+    labelNode = '저장 중...';
   } else if (status === 'saved') {
-    label = '✓ 저장됨';
+    labelNode = '✓ 저장됨';
     color = 'text-green-400';
   } else if (status === 'error') {
-    label = `⚠ ${saveError ?? '저장 실패'}`;
+    labelNode = `⚠ ${saveError ?? '저장 실패'}`;
     color = 'text-red-400';
   } else if (isDirty) {
-    label = '● 변경됨 (30초 후 자동 저장)';
+    labelNode = '● 변경됨 (30초 후 자동 저장)';
     color = 'text-amber-300';
+  } else if (lastSavedAt) {
+    labelNode = <>저장됨 <LocalDateTime iso={lastSavedAt} kind="time" /></>;
   } else {
-    label = lastSavedAt ? `저장됨 ${new Date(lastSavedAt).toLocaleTimeString()}` : '';
+    labelNode = '';
   }
 
   return (
     <div className={`flex items-center gap-2 text-sm ${color}`}>
-      <span>{label}</span>
+      <span>{labelNode}</span>
       {(isDirty || status === 'error') && (
         <button
           onClick={() => save()}

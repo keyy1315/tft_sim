@@ -2,6 +2,7 @@
 import type { ShrineRound, ShrineName } from '@/lib/actualData/types';
 import { useActualDataStore } from '@/store/actualDataSlice';
 import YasuoTilePicker from './YasuoTilePicker';
+import VideoTimeInput from './VideoTimeInput';
 
 export default function ShrineRoundEditor({ index, round }: { index: number; round: ShrineRound }) {
   const updateShrineRound = useActualDataStore(s => s.updateShrineRound);
@@ -21,10 +22,12 @@ export default function ShrineRoundEditor({ index, round }: { index: number; rou
             className="border border-gray-700 bg-gray-900 text-gray-100 p-1 rounded w-20" />
         </label>
         <label className="flex flex-col">
-          <span className="text-sm text-gray-300">영상 시작 (초)</span>
-          <input type="number" value={round.videoStartTime}
-            onChange={e => updateRoundMeta(index, { videoStartTime: Number(e.target.value) })}
-            className="border border-gray-700 bg-gray-900 text-gray-100 p-1 rounded w-24" />
+          <span className="text-sm text-gray-300">영상 시작 (mm:ss)</span>
+          <VideoTimeInput
+            value={round.videoStartTime}
+            onChange={v => updateRoundMeta(index, { videoStartTime: v ?? 0 })}
+            className="w-24"
+          />
         </label>
       </div>
 
