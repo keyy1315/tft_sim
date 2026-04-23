@@ -115,6 +115,8 @@ export const ShrineRoundSchema = z.object({
   { message: 'videoEndTime must be >= videoStartTime', path: ['videoEndTime'] },
 );
 
+export const RoundSchema = z.union([PvPRoundSchema, ShrineRoundSchema]);
+
 export const TimelineMarkerSchema = z.object({
   id: z.string(),
   timestamp: z.number().min(0),
@@ -151,7 +153,7 @@ export const ActualGameDataSchema = z.object({
   timeline: z.array(TimelineMarkerSchema),
   createdAt: z.string(),
   updatedAt: z.string(),
-  rounds: z.array(z.union([PvPRoundSchema, ShrineRoundSchema])),
+  rounds: z.array(RoundSchema),
 }).superRefine((data, ctx) => {
   // rounds roundName 오름차순 + 중복 금지
   const names = data.rounds.map(r => r.roundName);

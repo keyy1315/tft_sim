@@ -3,6 +3,7 @@ import {
   ActualGameDataSchema,
   PvPRoundSchema,
   ShrineRoundSchema,
+  RoundSchema,
   HexCoordSchema,
 } from '@/lib/actualData/schema';
 
@@ -52,6 +53,55 @@ describe('HexCoordSchema', () => {
   });
   it('rejects non-integers', () => {
     expect(() => HexCoordSchema.parse({ q: 1.5, r: 0 })).toThrow();
+  });
+});
+
+describe('PvPRoundSchema videoEndTime refine', () => {
+  const baseRound = {
+    type: 'pvp' as const,
+    roundName: '2-3',
+    videoStartTime: 100,
+    playerTeam: minTeam(),
+    opponent: minOpp(),
+    winner: 'player' as const,
+  };
+
+  it('accepts videoEndTime >= videoStartTime', () => {
+    expect(() => PvPRoundSchema.parse({ ...baseRound, videoEndTime: 150 })).not.toThrow();
+  });
+
+  it('accepts missing videoEndTime', () => {
+    expect(() => PvPRoundSchema.parse(baseRound)).not.toThrow();
+  });
+
+  it('rejects videoEndTime < videoStartTime', () => {
+    expect(() => PvPRoundSchema.parse({ ...baseRound, videoEndTime: 50 })).toThrow();
+  });
+});
+
+describe('ShrineRoundSchema videoEndTime refine', () => {
+  it('rejects videoEndTime < videoStartTime', () => {
+    expect(() => ShrineRoundSchema.parse({
+      type: 'shrine',
+      roundName: '2-4',
+      videoStartTime: 200,
+      videoEndTime: 100,
+      playerChosenShrine: 'yasuo',
+    })).toThrow();
+  });
+});
+
+describe('RoundSchema', () => {
+  it('accepts pvp round', () => {
+    expect(() => RoundSchema.parse({
+      type: 'pvp', roundName: '2-3', videoStartTime: 0,
+      playerTeam: minTeam(), opponent: minOpp(), winner: 'player',
+    })).not.toThrow();
+  });
+  it('accepts shrine round', () => {
+    expect(() => RoundSchema.parse({
+      type: 'shrine', roundName: '2-4', videoStartTime: 0, playerChosenShrine: 'yasuo',
+    })).not.toThrow();
   });
 });
 
