@@ -11,6 +11,8 @@ interface AugmentSelectorProps {
   augments: RawAugment[];
   onSelect: (aug: RawAugment) => void;
   selectedApiNames: string[];
+  /** 모달 open 시 기본 티어 필터 (예: 은총 슬롯 클릭 시 'boon'). */
+  initialTierFilter?: AugmentTier | null;
 }
 
 const TIER_FILTERS: { label: string; value: AugmentTier | null }[] = [
@@ -18,18 +20,21 @@ const TIER_FILTERS: { label: string; value: AugmentTier | null }[] = [
   { label: '실버', value: 'silver' },
   { label: '골드', value: 'gold' },
   { label: '프리즘', value: 'prismatic' },
+  { label: '은총', value: 'boon' },
 ];
 
 const TIER_FILTER_COLORS: Record<string, string> = {
   silver: 'bg-gray-500',
   gold: 'bg-yellow-600',
   prismatic: 'bg-fuchsia-500',
+  boon: 'bg-amber-500',
 };
 
 const TIER_LABELS: Record<AugmentTier, string> = {
   silver: '실버',
   gold: '골드',
   prismatic: '프리즘',
+  boon: '은총',
 };
 
 function formatDesc(desc: string, effects: Record<string, number>): string {
@@ -47,9 +52,9 @@ interface TooltipState {
   y: number;
 }
 
-export default function AugmentSelector({ augments, onSelect, selectedApiNames }: AugmentSelectorProps) {
+export default function AugmentSelector({ augments, onSelect, selectedApiNames, initialTierFilter = null }: AugmentSelectorProps) {
   const [search, setSearch] = useState('');
-  const [tierFilter, setTierFilter] = useState<AugmentTier | null>(null);
+  const [tierFilter, setTierFilter] = useState<AugmentTier | null>(initialTierFilter);
   const [showInactive, setShowInactive] = useState(false);
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
 
@@ -64,7 +69,7 @@ export default function AugmentSelector({ augments, onSelect, selectedApiNames }
   });
 
   const sorted = [...filtered].sort((a, b) => {
-    const tierOrder: Record<AugmentTier, number> = { silver: 0, gold: 1, prismatic: 2 };
+    const tierOrder: Record<AugmentTier, number> = { silver: 0, gold: 1, prismatic: 2, boon: 3 };
     return tierOrder[getAugmentTier(a)] - tierOrder[getAugmentTier(b)] || a.name.localeCompare(b.name);
   });
 
@@ -162,6 +167,7 @@ export default function AugmentSelector({ augments, onSelect, selectedApiNames }
                 <span className={`text-[10px] px-1.5 py-0.5 rounded ${
                   getAugmentTier(tooltip.aug) === 'silver' ? 'bg-gray-600 text-gray-200' :
                   getAugmentTier(tooltip.aug) === 'gold' ? 'bg-yellow-700 text-yellow-200' :
+                  getAugmentTier(tooltip.aug) === 'boon' ? 'bg-amber-700 text-amber-200' :
                   'bg-fuchsia-700 text-fuchsia-200'
                 }`}>
                   {TIER_LABELS[getAugmentTier(tooltip.aug)]}

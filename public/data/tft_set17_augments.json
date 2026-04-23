@@ -110,7 +110,7 @@
     {
       "name": "아우솔의 은총 퀘스트 II",
       "apiName": "TFT17_Augment_AurelionSolGodAugment_MediumQuest",
-      "desc": "",
+      "desc": "플레이어 대상 전투 @MedQuestRounds@회 후, 완성 아이템 모루와 @MedQuestGold@골드를 획득합니다.",
       "effects": {
         "MedQuestGold": 22,
         "MedQuestRounds": 3,
@@ -126,7 +126,7 @@
     {
       "name": "아우솔의 은총 퀘스트 III",
       "apiName": "TFT17_Augment_AurelionSolGodAugment_LargeQuest",
-      "desc": "",
+      "desc": "플레이어 대상 전투 @LargeQuestRounds@회 후, 고유 특성이 아닌 모든 특성에 +1을 추가합니다.",
       "effects": {
         "LargeQuestRounds": 8
       },

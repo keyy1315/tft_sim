@@ -91,6 +91,7 @@ export default function AugmentSlotsQuad({ augments, onChange }: Props) {
           onSelect={aug => handleSelect(openSlot, aug.apiName)}
           selectedApiNames={selectedApiNames}
           title={openSlot === 3 ? '은총 선택' : `증강 ${openSlot + 1} 선택`}
+          initialTierFilter={openSlot === 3 ? 'boon' : null}
         />
       )}
     </>

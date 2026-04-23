@@ -38,15 +38,34 @@ const EMPTY_MOD: PerUnitAugmentMod = {
 
 // === Tier helpers ===
 
+/**
+ * GodAugment 라인 중 태그로 자동 분류가 안 되는 특수 케이스들을 명시적으로 지정.
+ * 주로 "신 은총" 테마이지만 태그가 비어있거나, 반대로 신 이름을 쓰지만 실제로는 일반 티어인 경우.
+ */
+const APINAME_TIER_OVERRIDES: Readonly<Record<string, AugmentTier>> = {
+  // 은총 (태그 빠진 변형들)
+  'TFT17_Augment_AurelionSolGodAugment_BoonOfResurrection': 'boon',
+  'TFT17_Augment_KayleGodAugment_Scrapper': 'boon',
+  // GodAugment suffix지만 실제로는 일반 티어인 변형들 (사용자 확인)
+  'TFT17_Augment_EvelynnGodAugment_BloodPrice': 'gold',   // 피의 대가 — 일반 골드
+  'TFT17_Augment_YasuoGodAugment_MoreHexes': 'gold',       // 야스오 스포트라이트 공유 — 일반 골드
+  'TFT17_Augment_YasuoGodAugment_GoldenHex': 'silver',     // 야스오 황금 칸 — 일반 실버
+  // 아우솔 은총 퀘스트 선택지 — 은총 본체 선택 후 등장. 은총 탭에 노출하지 않음.
+  'TFT17_Augment_AurelionSolGodAugment_SmallQuest': 'silver',
+  'TFT17_Augment_AurelionSolGodAugment_MediumQuest': 'silver',
+  'TFT17_Augment_AurelionSolGodAugment_LargeQuest': 'silver',
+};
+
 export function getAugmentTier(aug: RawAugment): AugmentTier {
-  // 1. 명시적 tier 태그
+  const api = aug.apiName;
+  // 1. 명시적 override
+  if (APINAME_TIER_OVERRIDES[api]) return APINAME_TIER_OVERRIDES[api];
+  // 2. 챔피언 Carry 증강은 태그에 silver가 붙어있어도 실제는 프리즘
+  if (api.endsWith('Carry') || api.includes('_Carry')) return 'prismatic';
+  // 3. 명시적 tier 태그 ({719abef1} → 'boon', 기타 실버/골드/프리즘)
   for (const tag of aug.tags) {
     if (tag in AUGMENT_TIER_TAGS) return AUGMENT_TIER_TAGS[tag];
   }
-  // 2. apiName heuristic — 태그 없는 prismatic 케이스 (신 은총, 캐리 증강, 야스오 칸 변형)
-  const api = aug.apiName;
-  if (api.includes('GodAugment')) return 'prismatic';
-  if (api.endsWith('Carry') || api.includes('_Carry')) return 'prismatic';
   return 'silver';
 }
 

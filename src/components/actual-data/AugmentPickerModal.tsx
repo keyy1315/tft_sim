@@ -1,7 +1,7 @@
 'use client';
 import { useAugments } from '@/hooks/useGameData';
 import AugmentSelector from '@/components/builder/AugmentSelector';
-import type { RawAugment } from '@/types';
+import type { RawAugment, AugmentTier } from '@/types';
 
 interface Props {
   isOpen: boolean;
@@ -9,9 +9,11 @@ interface Props {
   onSelect: (aug: RawAugment) => void;
   selectedApiNames: string[];
   title?: string;
+  /** 모달 open 시 기본 필터 티어 (예: 은총 슬롯 → 'boon'). */
+  initialTierFilter?: AugmentTier | null;
 }
 
-export default function AugmentPickerModal({ isOpen, onClose, onSelect, selectedApiNames, title }: Props) {
+export default function AugmentPickerModal({ isOpen, onClose, onSelect, selectedApiNames, title, initialTierFilter }: Props) {
   const { augments, loading } = useAugments();
   if (!isOpen) return null;
 
@@ -37,6 +39,7 @@ export default function AugmentPickerModal({ isOpen, onClose, onSelect, selected
             augments={augments}
             onSelect={handleSelect}
             selectedApiNames={selectedApiNames}
+            initialTierFilter={initialTierFilter}
           />
         )}
       </div>
