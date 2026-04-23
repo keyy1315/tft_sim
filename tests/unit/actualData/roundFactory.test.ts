@@ -1,6 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { accumulateHexModifiers, generateGameId } from '@/lib/actualData/roundFactory';
-import type { HexModifier, ShrineRound } from '@/lib/actualData/types';
+import {
+  accumulateHexModifiers,
+  buildNextPvPRound,
+  generateGameId,
+} from '@/lib/actualData/roundFactory';
+import type { HexModifier, PvPRound, ShrineRound } from '@/lib/actualData/types';
 
 describe('generateGameId', () => {
   it('produces 001 when no prior ids for today', () => {
@@ -79,5 +83,69 @@ describe('accumulateHexModifiers', () => {
     const result = accumulateHexModifiers([], shrines);
     expect(result[0].stageGranted).toBe(2);
     expect(result[1].stageGranted).toBe(4);
+  });
+});
+
+describe('buildNextPvPRound', () => {
+  const prev: PvPRound = {
+    type: 'pvp',
+    roundName: '2-3',
+    videoStartTime: 10,
+    playerTeam: {
+      units: [{ championId: 'ahri', hex: { q: 0, r: 0 }, starLevel: 2, items: [undefined, undefined, undefined] }],
+      augments: ['aug1', undefined, undefined, undefined],
+      level: 6,
+      hp: 80,
+      hexModifiers: [],
+    },
+    opponent: {
+      units: [],
+      augments: [undefined, undefined, undefined, undefined],
+      level: 6,
+      hp: 100,
+      hexModifiers: [],
+    },
+    winner: 'player',
+  };
+
+  it('copies playerTeam units/augments/level/hp from prev', () => {
+    const next = buildNextPvPRound('2-5', prev, []);
+    expect(next.playerTeam.units).toEqual(prev.playerTeam.units);
+    expect(next.playerTeam.augments).toEqual(prev.playerTeam.augments);
+    expect(next.playerTeam.level).toBe(6);
+    expect(next.playerTeam.hp).toBe(80);
+  });
+
+  it('accumulates hexModifiers from intervening shrine rounds', () => {
+    const next = buildNextPvPRound('2-5', prev, [
+      { type: 'shrine', roundName: '2-4', videoStartTime: 20, playerChosenShrine: 'yasuo',
+        playerYasuoTile: { hex: { q: 1, r: 0 }, tileId: 'solar' } },
+    ]);
+    expect(next.playerTeam.hexModifiers).toHaveLength(1);
+    expect(next.playerTeam.hexModifiers[0].tileId).toBe('solar');
+  });
+
+  it('leaves opponent empty', () => {
+    const next = buildNextPvPRound('2-5', prev, []);
+    expect(next.opponent.units).toEqual([]);
+    expect(next.opponent.level).toBe(1);
+    expect(next.opponent.hp).toBe(100);
+    expect(next.opponent.riotId).toBeUndefined();
+  });
+
+  it('uses prev videoEndTime as new videoStartTime when provided', () => {
+    const next = buildNextPvPRound('2-5', { ...prev, videoEndTime: 55 }, []);
+    expect(next.videoStartTime).toBe(55);
+  });
+
+  it('returns videoStartTime=0 when prev=null', () => {
+    const next = buildNextPvPRound('2-2', null, []);
+    expect(next.videoStartTime).toBe(0);
+    expect(next.playerTeam.units).toEqual([]);
+  });
+
+  it('sets winner to draw placeholder', () => {
+    const next = buildNextPvPRound('2-5', prev, []);
+    expect(next.winner).toBe('draw');
   });
 });

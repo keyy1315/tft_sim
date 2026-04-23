@@ -1,4 +1,10 @@
-import type { HexModifier, ShrineRound } from './types';
+import type {
+  HexModifier,
+  OpponentSnapshot,
+  PvPRound,
+  ShrineRound,
+  TeamSnapshot,
+} from './types';
 
 export function generateGameId(existingIds: string[], now: Date = new Date()): string {
   const yyyy = now.getUTCFullYear();
@@ -33,4 +39,47 @@ export function accumulateHexModifiers(
     });
   }
   return result;
+}
+
+function emptyTeam(): TeamSnapshot {
+  return {
+    units: [],
+    augments: [undefined, undefined, undefined, undefined],
+    level: 1,
+    hp: 100,
+    hexModifiers: [],
+  };
+}
+
+function emptyOpponent(): OpponentSnapshot {
+  return emptyTeam();
+}
+
+export function buildNextPvPRound(
+  roundName: string,
+  prev: PvPRound | null,
+  shrineRoundsBetween: ShrineRound[],
+): PvPRound {
+  const playerTeam: TeamSnapshot = prev
+    ? {
+        units: prev.playerTeam.units.map((u) => ({ ...u })),
+        augments: [...prev.playerTeam.augments] as TeamSnapshot['augments'],
+        level: prev.playerTeam.level,
+        hp: prev.playerTeam.hp,
+        hexModifiers: accumulateHexModifiers(prev.playerTeam.hexModifiers, shrineRoundsBetween),
+        graceApplied: prev.playerTeam.graceApplied,
+        arbiterLaw: prev.playerTeam.arbiterLaw,
+        stargazer: prev.playerTeam.stargazer,
+        factoryNew: prev.playerTeam.factoryNew,
+      }
+    : emptyTeam();
+
+  return {
+    type: 'pvp',
+    roundName,
+    videoStartTime: prev?.videoEndTime ?? 0,
+    playerTeam,
+    opponent: emptyOpponent(),
+    winner: 'draw',
+  };
 }
