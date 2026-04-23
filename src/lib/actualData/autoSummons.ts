@@ -1,8 +1,16 @@
 import type { RawChampion, RawTrait } from '@/types';
 import { resolveTraits } from '@/lib/simulator/systems/trait';
+import { BOARD_COLS } from '@/lib/simulator/models/constants';
 import type { PlacedUnit, TeamSnapshot } from './types';
 
 const VOYAGER_SUMMON_API = 'TFT17_Summon';
+const MAX_R = 3;  // 각 팀 data-row 0..3 (SetupBoardCore가 player는 +4 offset 렌더)
+
+function isValidHex(q: number, r: number): boolean {
+  if (r < 0 || r > MAX_R) return false;
+  const col = q + Math.floor(r / 2);
+  return col >= 0 && col < BOARD_COLS;
+}
 
 function getVoyagerSummonStarLevel(activeVoyagerCount: number): 1 | 2 | 3 | null {
   if (activeVoyagerCount >= 7) return 3;
@@ -11,8 +19,7 @@ function getVoyagerSummonStarLevel(activeVoyagerCount: number): 1 | 2 | 3 | null
   return null;
 }
 
-function findEmptyHexNearFirstUnit(units: PlacedUnit[]): { q: number; r: number } {
-  // 간단한 빈 칸 찾기: 첫 유닛 주위 6방향 중 empty, 없으면 r=0,q=0..7 스캔.
+function findEmptyHexNearFirstUnit(units: PlacedUnit[]): { q: number; r: number } | null {
   const occupied = new Set(units.map(u => `${u.hex.q},${u.hex.r}`));
   const first = units[0];
   if (first) {
@@ -23,17 +30,18 @@ function findEmptyHexNearFirstUnit(units: PlacedUnit[]): { q: number; r: number 
     ];
     for (const off of offsets) {
       const c = { q: first.hex.q + off.q, r: first.hex.r + off.r };
-      if (c.r < 0 || c.r > 3) continue;
+      if (!isValidHex(c.q, c.r)) continue;
       if (!occupied.has(`${c.q},${c.r}`)) return c;
     }
   }
-  // fallback: 보드 스캔 (r 0-3, q -2..7)
-  for (let r = 0; r <= 3; r++) {
-    for (let q = -Math.floor(r / 2); q < 7 - Math.floor(r / 2); q++) {
+  // fallback: 보드 전체 스캔 (col 기반, 0..BOARD_COLS-1)
+  for (let r = 0; r <= MAX_R; r++) {
+    for (let col = 0; col < BOARD_COLS; col++) {
+      const q = col - Math.floor(r / 2);
       if (!occupied.has(`${q},${r}`)) return { q, r };
     }
   }
-  return { q: 0, r: 0 };
+  return null;  // 보드 가득 참 — 소환체 배치 불가
 }
 
 /**
@@ -73,14 +81,24 @@ export function syncVoyagerSummon(
   }
 
   if (existingIdx >= 0) {
-    if (units[existingIdx].starLevel === targetStar) return units;
+    const existing = units[existingIdx];
+    const hexValid = isValidHex(existing.hex.q, existing.hex.r);
+    if (existing.starLevel === targetStar && hexValid) return units;
+    // starLevel 이 맞아도 위치가 보드 밖이면 재배치
+    const others = units.filter((_, i) => i !== existingIdx);
+    if (!hexValid) {
+      const pos = findEmptyHexNearFirstUnit(others);
+      if (!pos) return units;
+      return [...others, { ...existing, hex: pos, starLevel: targetStar }];
+    }
     return units.map((u, i) =>
       i === existingIdx ? { ...u, starLevel: targetStar } : u,
     );
   }
 
-  // 신규 소환체 추가
+  // 신규 소환체 추가 — 빈 자리 없으면 포기 (희귀 edge case)
   const pos = findEmptyHexNearFirstUnit(units);
+  if (!pos) return units;
   const newUnit: PlacedUnit = {
     championId: VOYAGER_SUMMON_API,
     hex: pos,
