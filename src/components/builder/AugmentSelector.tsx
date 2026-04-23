@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
 import { RawAugment, AugmentTier } from '@/types';
-import { getAugmentImage, TIER_BORDER_COLORS } from '@/data/imageMap';
+import { TIER_BORDER_COLORS } from '@/data/imageMap';
+import AugmentIcon from './AugmentIcon';
 import { getAugmentTier } from '@/lib/simulator/systems/augment';
 import SearchBar from '@/components/ui/SearchBar';
 
@@ -123,14 +123,12 @@ export default function AugmentSelector({ augments, onSelect, selectedApiNames }
                     : `${TIER_BORDER_COLORS[tier]} hover:bg-[#1f2937] cursor-pointer`
                 }`}
               >
-                <Image
-                  src={getAugmentImage(aug.icon)}
+                <AugmentIcon
+                  icon={aug.icon}
                   alt={aug.name}
                   className="w-10 h-10 object-contain rounded"
-                  loading="lazy"
                   width={40}
                   height={40}
-                  unoptimized
                 />
                 <span className="text-[9px] text-gray-300 text-center leading-tight line-clamp-2 w-full">
                   {aug.name}
@@ -150,13 +148,12 @@ export default function AugmentSelector({ augments, onSelect, selectedApiNames }
             }}
           >
             <div className="flex items-center gap-2 mb-2">
-              <Image
-                src={getAugmentImage(tooltip.aug.icon)}
+              <AugmentIcon
+                icon={tooltip.aug.icon}
                 alt=""
                 className="w-8 h-8 object-contain rounded"
                 width={32}
                 height={32}
-                unoptimized
               />
               <div>
                 <div className="text-sm font-bold text-gray-100">{tooltip.aug.name}</div>

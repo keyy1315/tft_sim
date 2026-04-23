@@ -1,9 +1,8 @@
 'use client';
 import { useState } from 'react';
-import Image from 'next/image';
 import type { AugmentId } from '@/lib/actualData/types';
 import { useAugments } from '@/hooks/useGameData';
-import { getAugmentImage } from '@/data/imageMap';
+import AugmentIcon from '@/components/builder/AugmentIcon';
 import AugmentPickerModal from './AugmentPickerModal';
 
 type AugmentSlot = AugmentId | null | undefined;
@@ -52,13 +51,12 @@ export default function AugmentSlotsQuad({ augments, onChange }: Props) {
               >
                 {aug ? (
                   <div className="flex flex-col items-center gap-0.5 w-full">
-                    <Image
-                      src={getAugmentImage(aug.icon)}
+                    <AugmentIcon
+                      icon={aug.icon}
                       alt={aug.name}
                       width={28}
                       height={28}
                       className="object-contain rounded"
-                      unoptimized
                     />
                     <span className="text-[9px] leading-tight line-clamp-1 w-full text-center px-0.5">
                       {aug.name}

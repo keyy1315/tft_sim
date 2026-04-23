@@ -1,9 +1,9 @@
 'use client';
 
-import Image from 'next/image';
 import { RawAugment } from '@/types';
-import { getAugmentImage, TIER_BORDER_COLORS } from '@/data/imageMap';
+import { TIER_BORDER_COLORS } from '@/data/imageMap';
 import { getAugmentTier, isStackable } from '@/lib/simulator/systems/augment';
+import AugmentIcon from './AugmentIcon';
 
 interface AugmentSlotsProps {
   augments: RawAugment[];
@@ -46,14 +46,12 @@ export default function AugmentSlots({ augments, augmentStacks, onOpenSelector, 
               className={`w-10 h-10 lg:w-14 lg:h-14 rounded-lg border-2 ${TIER_BORDER_COLORS[tier]} overflow-hidden relative flex items-center justify-center`}
               title={aug.name}
             >
-              <Image
-                src={getAugmentImage(aug.icon)}
+              <AugmentIcon
+                icon={aug.icon}
                 alt={aug.name}
                 className="w-full h-full object-contain"
-                loading="lazy"
                 width={56}
                 height={56}
-                unoptimized
               />
               {stackableAug && (
                 <div className="absolute bottom-0 right-0 bg-black/80 text-[9px] text-yellow-400 px-1 rounded-tl">
