@@ -3,6 +3,7 @@ import type { PvPRound } from '@/lib/actualData/types';
 import { useActualDataStore } from '@/store/actualDataSlice';
 import TeamEditor from './TeamEditor';
 import OpponentPanel from './OpponentPanel';
+import DamageChartInput from './DamageChartInput';
 
 export default function PvPRoundEditor({ index, round }: { index: number; round: PvPRound }) {
   const updateRoundMeta = useActualDataStore(s => s.updateRoundMeta);
@@ -53,6 +54,11 @@ export default function PvPRoundEditor({ index, round }: { index: number; round:
           </select>
         </label>
       </div>
+
+      <DamageChartInput
+        entries={round.unitDamageChart ?? []}
+        onChange={entries => updatePvPRound(index, { unitDamageChart: entries })}
+      />
     </div>
   );
 }
