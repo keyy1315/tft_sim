@@ -819,7 +819,7 @@
         "SecondStunSeconds": 18,
         "StunDuration": 1.5
       },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/ArcaneViktory_II.tex",
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/ArcaneViktory_II.TFT_Set16_ChampionAugments.tex",
       "associatedTraits": [],
       "tags": [
         "{ce1fd21c}",
@@ -855,7 +855,7 @@
       "effects": {
         "NumRerolls": 20
       },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/EpicRolldown_II.tex",
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/EpicRolldown_II.TFT_Set16_ChampionAugments.tex",
       "associatedTraits": [],
       "tags": [
         "{ce1fd21c}",
@@ -874,7 +874,7 @@
         "Gold": 4,
         "{831bb748}": 1
       },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/MaxBuild_II.tex",
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/MaxBuild_II.TFT_Set16_ChampionAugments.tex",
       "associatedTraits": [],
       "tags": [
         "{ce1fd21c}",
@@ -1758,7 +1758,7 @@
         "IncPerPlayerCombat": 1,
         "NumADAP": 4
       },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/EarlyLearning_II.tex",
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/EarlyLearning_II.TFT_Set16_ChampionAugments.tex",
       "associatedTraits": [],
       "tags": [
         "{ce1fd21c}",
@@ -4591,7 +4591,7 @@
       "effects": {
         "GoldAmount": 40
       },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/SpeedyDoubleKill_II.tex",
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/SpeedyDoubleKill_II.TFT_Set16_ChampionAugments.tex",
       "associatedTraits": [],
       "tags": [
         "{ce1fd21c}",
@@ -4976,7 +4976,7 @@
         "BonusHealth": 700,
         "DurabilityPct": 0.20000000298023224
       },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/TheGoldenDragon_II.tex",
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/TheGoldenDragon_II.TFT_Set16_ChampionAugments.tex",
       "associatedTraits": [],
       "tags": [
         "{ce1fd21c}",
@@ -5061,7 +5061,7 @@
         "GoldAmount": 3,
         "HealthPercent": 12
       },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/InfinityProtection_II.tex",
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/InfinityProtection_II.TFT_Set16_ChampionAugments.tex",
       "associatedTraits": [],
       "tags": [
         "{ce1fd21c}",
@@ -5359,7 +5359,7 @@
         "NumArtifacts": 1,
         "NumMoreArtifacts": 3
       },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/ForgedInStrength_III.tex",
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/ForgedInStrength_III.TFT_Set16_ChampionAugments.tex",
       "associatedTraits": [],
       "tags": [
         "{cf1fd3af}",
@@ -5518,7 +5518,7 @@
         "FirstLevelBreakpoint": 7,
         "SecondLevelBreakpoint": 9
       },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/BirthdayReunion_II.tex",
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/BirthdayReunion_II.TFT_Set16_ChampionAugments.tex",
       "associatedTraits": [],
       "tags": [
         "{ce1fd21c}",
@@ -6196,7 +6196,7 @@
         "BaseResistGained": 10,
         "ResistsPerLevel": 2
       },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/BodyguardsTraining_II.tex",
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/BodyguardsTraining_II.TFT_Set16_ChampionAugments.tex",
       "associatedTraits": [],
       "tags": [
         "{ce1fd21c}",
@@ -6313,7 +6313,7 @@
       "effects": {
         "ASPercent": 30
       },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/WeStickTogether_III.tex",
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/WeStickTogether_III.TFT_Set16_ChampionAugments.tex",
       "associatedTraits": [],
       "tags": [
         "{cf1fd3af}",
@@ -6880,7 +6880,7 @@
       "effects": {
         "HealthPerItem": 20
       },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/SweetTreats_III.tex",
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/SweetTreats_III.TFT_Set16_ChampionAugments.tex",
       "associatedTraits": [],
       "tags": [
         "{b72bd3bf}",
@@ -7055,7 +7055,7 @@
         "BonusHealth": 0.11999999731779099,
         "XPGain": 2
       },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/LateGameScaling_II.TFT_Set16.tex",
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/LateGameScaling_II.TFT_Set16_ChampionAugments.tex",
       "associatedTraits": [],
       "tags": [
         "{ce1fd21c}",
@@ -7836,7 +7836,7 @@
         "AS": 0.11999999731779099,
         "HealthAmount": 150
       },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/LegionofThrees_II.tex",
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/LegionofThrees_II.TFT_Set16_ChampionAugments.tex",
       "associatedTraits": [],
       "tags": [
         "{ce1fd21c}",
@@ -8107,7 +8107,7 @@
       "effects": {
         "NumItems": 3
       },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/CustomFitted_II.tex",
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/CustomFitted_II.TFT_Set13_Evolved.tex",
       "associatedTraits": [],
       "tags": [
         "{ce1fd21c}",
