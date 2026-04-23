@@ -1,5 +1,28 @@
 import type { PlacedChampion, RawChampion, RawItem } from '@/types';
+import { VOYAGER_SUMMON_CHAMPION, TIBBERS_CHAMPION, AZIR_SOLDIER_CHAMPION, FRELJORD_TURRET, SHEN_ARTIFACT_CHAMPION } from '@/data/specialUnits';
 import type { PlacedUnit } from './types';
+
+/**
+ * 시뮬의 소환체/보조 유닛은 public champions JSON에 없고 `src/data/specialUnits.ts`에 하드코딩.
+ * actual-data catalog에는 JSON 유닛만 들어가므로, 소환체 조회 시 이 매핑으로 fallback.
+ */
+const SPECIAL_CHAMPIONS: Record<string, RawChampion> = {
+  [VOYAGER_SUMMON_CHAMPION.apiName]: VOYAGER_SUMMON_CHAMPION,   // TFT17_Summon (비아와 바이엔)
+  [TIBBERS_CHAMPION.apiName]: TIBBERS_CHAMPION,
+  [AZIR_SOLDIER_CHAMPION.apiName]: AZIR_SOLDIER_CHAMPION,
+  [FRELJORD_TURRET.apiName]: FRELJORD_TURRET,
+  [SHEN_ARTIFACT_CHAMPION.apiName]: SHEN_ARTIFACT_CHAMPION,
+};
+
+const SUMMON_API_NAMES = new Set(Object.keys(SPECIAL_CHAMPIONS));
+
+/** actual-data championId → RawChampion. special units(소환체) fallback 포함. */
+export function resolveChampion(
+  championId: string,
+  championCatalog: Map<string, RawChampion>,
+): RawChampion | null {
+  return championCatalog.get(championId) ?? SPECIAL_CHAMPIONS[championId] ?? null;
+}
 
 /**
  * Convert actual-data PlacedUnit -> simulator PlacedChampion for rendering on SetupBoardCore.
@@ -13,7 +36,7 @@ export function toPlacedChampion(
   championCatalog: Map<string, RawChampion>,
   itemCatalog: Map<string, RawItem>,
 ): PlacedChampion | null {
-  const champion = championCatalog.get(u.championId);
+  const champion = championCatalog.get(u.championId) ?? SPECIAL_CHAMPIONS[u.championId];
   if (!champion) return null;
   const items: RawItem[] = [];
   for (const id of u.items) {
@@ -30,7 +53,7 @@ export function toPlacedChampion(
     mfMode: null,
     permanentStacks: null,
     isDummy: false,
-    isSummon: false,
+    isSummon: SUMMON_API_NAMES.has(u.championId),
   };
 }
 

@@ -3,6 +3,7 @@ import Image from 'next/image';
 import type { UnitDamageEntry, PlacedUnit, HexCoord } from '@/lib/actualData/types';
 import type { RawChampion } from '@/types';
 import { getChampionImage } from '@/data/imageMap';
+import { resolveChampion } from '@/lib/actualData/unitAdapter';
 
 interface Props {
   label: string;
@@ -51,7 +52,7 @@ export default function DamageChartInput({ label, units, entries, onChange, cham
           </thead>
           <tbody>
             {units.map((u) => {
-              const champ = championCatalog.get(u.championId);
+              const champ = resolveChampion(u.championId, championCatalog);
               const entry = entries.find(e => hexMatches(e.unitHex, u.hex));
               const damage = entry?.damage ?? 0;
               const key = `${u.hex.q},${u.hex.r}`;
