@@ -20,58 +20,40 @@ interface Props {
 }
 
 /**
- * Right-side collapsible panel for the actual-data editor.
+ * Right-side always-open panel for the actual-data editor.
  *
  * Mirrors /simulator's pool UX: champions + items in tabs, drag to place on board
  * (click also works when DnD activation threshold isn't met).
  */
 export default function ChampionItemSidebar({ champions, items, onChampionClick, onItemClick }: Props) {
-  const [collapsed, setCollapsed] = useState(false);
   const [tab, setTab] = useState<Tab>('champions');
 
   return (
-    <aside
-      className={`flex flex-col border-l border-gray-800 bg-[#0d1117] transition-[width] duration-200 ${
-        collapsed ? 'w-10' : 'w-[340px]'
-      }`}
-    >
-      <div className="flex items-center justify-between border-b border-gray-800 px-2 py-1.5">
-        {!collapsed && (
-          <div className="flex gap-1 text-xs">
-            <button
-              type="button"
-              className={`px-2 py-1 rounded ${tab === 'champions' ? 'bg-[#8b5cf6] text-white' : 'bg-[#1f2937] text-gray-400 hover:text-gray-200'}`}
-              onClick={() => setTab('champions')}
-            >
-              챔피언
-            </button>
-            <button
-              type="button"
-              className={`px-2 py-1 rounded ${tab === 'items' ? 'bg-[#8b5cf6] text-white' : 'bg-[#1f2937] text-gray-400 hover:text-gray-200'}`}
-              onClick={() => setTab('items')}
-            >
-              아이템
-            </button>
-          </div>
-        )}
-        <button
-          type="button"
-          onClick={() => setCollapsed(c => !c)}
-          className="text-gray-400 hover:text-gray-100 text-xs px-1"
-          title={collapsed ? '패널 열기' : '패널 접기'}
-          aria-label={collapsed ? '패널 열기' : '패널 접기'}
-        >
-          {collapsed ? '«' : '»'}
-        </button>
+    <aside className="flex flex-col border-l border-gray-800 bg-[#0d1117] w-[340px] flex-shrink-0">
+      <div className="flex items-center border-b border-gray-800 px-2 py-1.5">
+        <div className="flex gap-1 text-xs">
+          <button
+            type="button"
+            className={`px-2 py-1 rounded ${tab === 'champions' ? 'bg-[#8b5cf6] text-white' : 'bg-[#1f2937] text-gray-400 hover:text-gray-200'}`}
+            onClick={() => setTab('champions')}
+          >
+            챔피언
+          </button>
+          <button
+            type="button"
+            className={`px-2 py-1 rounded ${tab === 'items' ? 'bg-[#8b5cf6] text-white' : 'bg-[#1f2937] text-gray-400 hover:text-gray-200'}`}
+            onClick={() => setTab('items')}
+          >
+            아이템
+          </button>
+        </div>
       </div>
 
-      {!collapsed && (
-        <div className="flex-1 overflow-hidden">
-          {tab === 'champions'
-            ? <ChampionSection champions={champions} onChampionClick={onChampionClick} />
-            : <ItemSection items={items} onItemClick={onItemClick} />}
-        </div>
-      )}
+      <div className="flex-1 overflow-hidden">
+        {tab === 'champions'
+          ? <ChampionSection champions={champions} onChampionClick={onChampionClick} />
+          : <ItemSection items={items} onItemClick={onItemClick} />}
+      </div>
     </aside>
   );
 }

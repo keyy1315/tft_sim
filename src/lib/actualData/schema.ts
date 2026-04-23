@@ -82,6 +82,7 @@ export const OpponentSnapshotSchema = TeamSnapshotSchema.extend({
 });
 
 export const UnitDamageEntrySchema = z.object({
+  unitHex: HexCoordSchema,
   championId: z.string(),
   damage: z.number().min(0),
 });
@@ -99,7 +100,8 @@ export const PvPRoundSchema = z.object({
   playerTeam: TeamSnapshotSchema,
   opponent: OpponentSnapshotSchema,
   winner: z.enum(['player', 'opponent', 'draw']),
-  unitDamageChart: z.array(UnitDamageEntrySchema).optional(),
+  playerDamageChart: z.array(UnitDamageEntrySchema).optional(),
+  opponentDamageChart: z.array(UnitDamageEntrySchema).optional(),
 }).refine(
   (r) => r.videoEndTime === undefined || r.videoEndTime >= r.videoStartTime,
   { message: 'videoEndTime must be >= videoStartTime', path: ['videoEndTime'] },

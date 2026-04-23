@@ -156,10 +156,22 @@ export default function PvPRoundEditor({ index, round }: { index: number; round:
             </label>
           </div>
 
-          <DamageChartInput
-            entries={round.unitDamageChart ?? []}
-            onChange={entries => updatePvPRound(index, { unitDamageChart: entries })}
-          />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+            <DamageChartInput
+              label="내 팀 데미지"
+              units={round.playerTeam.units}
+              entries={round.playerDamageChart ?? []}
+              onChange={entries => updatePvPRound(index, { playerDamageChart: entries })}
+              championCatalog={championCatalog}
+            />
+            <DamageChartInput
+              label="상대 팀 데미지"
+              units={round.opponent.units}
+              entries={round.opponentDamageChart ?? []}
+              onChange={entries => updatePvPRound(index, { opponentDamageChart: entries })}
+              championCatalog={championCatalog}
+            />
+          </div>
         </div>
 
         {/* Right-side sidebar */}
