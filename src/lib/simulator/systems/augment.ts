@@ -39,9 +39,14 @@ const EMPTY_MOD: PerUnitAugmentMod = {
 // === Tier helpers ===
 
 export function getAugmentTier(aug: RawAugment): AugmentTier {
+  // 1. 명시적 tier 태그
   for (const tag of aug.tags) {
     if (tag in AUGMENT_TIER_TAGS) return AUGMENT_TIER_TAGS[tag];
   }
+  // 2. apiName heuristic — 태그 없는 prismatic 케이스 (신 은총, 캐리 증강, 야스오 칸 변형)
+  const api = aug.apiName;
+  if (api.includes('GodAugment')) return 'prismatic';
+  if (api.endsWith('Carry') || api.includes('_Carry')) return 'prismatic';
   return 'silver';
 }
 

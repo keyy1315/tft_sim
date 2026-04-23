@@ -52,6 +52,7 @@ export default function AugmentSlotsQuad({ augments, onChange }: Props) {
                 {aug ? (
                   <div className="flex flex-col items-center gap-0.5 w-full">
                     <AugmentIcon
+                      key={aug.icon}
                       icon={aug.icon}
                       alt={aug.name}
                       width={28}

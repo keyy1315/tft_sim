@@ -124,6 +124,7 @@ export default function AugmentSelector({ augments, onSelect, selectedApiNames }
                 }`}
               >
                 <AugmentIcon
+                  key={aug.icon}
                   icon={aug.icon}
                   alt={aug.name}
                   className="w-10 h-10 object-contain rounded"
@@ -149,6 +150,7 @@ export default function AugmentSelector({ augments, onSelect, selectedApiNames }
           >
             <div className="flex items-center gap-2 mb-2">
               <AugmentIcon
+                key={tooltip.aug.icon}
                 icon={tooltip.aug.icon}
                 alt=""
                 className="w-8 h-8 object-contain rounded"

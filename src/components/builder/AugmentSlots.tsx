@@ -47,6 +47,7 @@ export default function AugmentSlots({ augments, augmentStacks, onOpenSelector, 
               title={aug.name}
             >
               <AugmentIcon
+                key={aug.icon}
                 icon={aug.icon}
                 alt={aug.name}
                 className="w-full h-full object-contain"

@@ -542,6 +542,7 @@ export const AUGMENT_TIER_TAGS: Record<string, AugmentTier> = {
   '{d11fd6d5}': 'silver',
   '{ce1fd21c}': 'gold',
   '{cf1fd3af}': 'prismatic',
+  '{719abef1}': 'prismatic', // Set 17 신 은총 (GodAugment) 태그
 };
 
 export const COST_COLORS: Record<number, string> = {

@@ -44,6 +44,7 @@ export default function AugmentDetailPopup({ augment, stacks, onStacksChange, on
         <div className="flex items-center gap-4">
           <div className={`w-16 h-16 rounded-lg border-2 ${TIER_BORDER_COLORS[tier]} overflow-hidden shrink-0 flex items-center justify-center`}>
             <AugmentIcon
+              key={augment.icon}
               icon={augment.icon}
               alt={augment.name}
               className="w-full h-full object-contain"
