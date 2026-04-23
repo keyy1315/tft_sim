@@ -6,7 +6,8 @@ import { useAugments } from '@/hooks/useGameData';
 import { getAugmentImage } from '@/data/imageMap';
 import AugmentPickerModal from './AugmentPickerModal';
 
-type AugmentQuad = [AugmentId | undefined, AugmentId | undefined, AugmentId | undefined, AugmentId | undefined];
+type AugmentSlot = AugmentId | null | undefined;
+type AugmentQuad = [AugmentSlot, AugmentSlot, AugmentSlot, AugmentSlot];
 
 interface Props {
   augments: AugmentQuad;

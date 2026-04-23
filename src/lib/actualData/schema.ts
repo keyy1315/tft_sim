@@ -34,15 +34,14 @@ export const UnitGrantSchema = z.object({
   effectId: z.string(),
 });
 
+// 빈 슬롯은 undefined 또는 null (JSON.stringify로 undefined → null 변환 대응)
+const OptionalSlot = z.string().nullable().optional();
+
 export const PlacedUnitSchema = z.object({
   championId: z.string(),
   hex: HexCoordSchema,
   starLevel: z.union([z.literal(1), z.literal(2), z.literal(3)]),
-  items: z.tuple([
-    z.string().optional(),
-    z.string().optional(),
-    z.string().optional(),
-  ]),
+  items: z.tuple([OptionalSlot, OptionalSlot, OptionalSlot]),
   grants: z.array(UnitGrantSchema).optional(),
 });
 
@@ -62,12 +61,7 @@ export const TeamFactoryNewStateSchema = z.object({
 
 export const TeamSnapshotSchema = z.object({
   units: z.array(PlacedUnitSchema),
-  augments: z.tuple([
-    z.string().optional(),
-    z.string().optional(),
-    z.string().optional(),
-    z.string().optional(),
-  ]),
+  augments: z.tuple([OptionalSlot, OptionalSlot, OptionalSlot, OptionalSlot]),
   level: z.number().int().min(1).max(10),
   hp: z.number().min(0),
   hexModifiers: z.array(HexModifierSchema),
