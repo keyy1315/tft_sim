@@ -1,8 +1,14 @@
 import { create } from 'zustand';
+import { buildNextPvPRound } from '@/lib/actualData/roundFactory';
 import type {
   ActualGameData,
   ActualGameSummary,
   NewGameMeta,
+  PvPRound,
+  ShrineRound,
+  TeamSnapshot,
+  OpponentSnapshot,
+  ActualGameMeta,
 } from '@/lib/actualData/types';
 
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
@@ -22,6 +28,25 @@ interface ActualDataState {
   deleteGame: (gameId: string) => Promise<void>;
   saveCurrentGame: () => Promise<void>;
   refreshGameList: () => Promise<void>;
+
+  // Round navigation
+  setCurrentRound: (index: number) => void;
+  addPvPRound: (roundName: string) => void;
+  addShrineRound: (roundName: string) => void;
+  removeRound: (index: number) => void;
+
+  // Round field updates
+  updateRoundMeta: (index: number, patch: Partial<{ roundName: string; videoStartTime: number; videoEndTime: number; notes: string }>) => void;
+  updatePvPRound: (index: number, patch: Partial<Omit<PvPRound, 'type'>>) => void;
+  updateShrineRound: (index: number, patch: Partial<Omit<ShrineRound, 'type'>>) => void;
+  updatePlayerTeam: (index: number, patch: Partial<TeamSnapshot>) => void;
+  updateOpponent: (index: number, patch: Partial<OpponentSnapshot>) => void;
+
+  // Game meta
+  updateGameMeta: (patch: Partial<ActualGameMeta>) => void;
+
+  // UI helper
+  copyOpponentFromPreviousMeeting: (index: number, riotId: string) => void;
 
   // Internal setter used by future tasks
   _patchGame: (patch: Partial<ActualGameData>) => void;
@@ -116,5 +141,131 @@ export const useActualDataStore = create<ActualDataState>((set, get) => ({
     const g = get().currentGame;
     if (!g) return;
     set({ currentGame: { ...g, ...patch }, isDirty: true });
+  },
+
+  setCurrentRound: (index) => set({ currentRoundIndex: index }),
+
+  addPvPRound: (roundName) => {
+    const g = get().currentGame;
+    if (!g) return;
+    let prevPvP: PvPRound | null = null;
+    const shrinesBetween: ShrineRound[] = [];
+    for (let i = g.rounds.length - 1; i >= 0; i--) {
+      const r = g.rounds[i];
+      if (r.type === 'pvp') { prevPvP = r; break; }
+      if (r.type === 'shrine') shrinesBetween.unshift(r);
+    }
+    const newRound = buildNextPvPRound(roundName, prevPvP, shrinesBetween);
+    const nextRounds = [...g.rounds, newRound];
+    set({
+      currentGame: { ...g, rounds: nextRounds },
+      currentRoundIndex: nextRounds.length - 1,
+      isDirty: true,
+    });
+  },
+
+  addShrineRound: (roundName) => {
+    const g = get().currentGame;
+    if (!g) return;
+    const lastRound = g.rounds.length > 0 ? g.rounds[g.rounds.length - 1] : undefined;
+    const newRound: ShrineRound = {
+      type: 'shrine',
+      roundName,
+      videoStartTime: lastRound?.videoEndTime ?? 0,
+      playerChosenShrine: g.shrinesInPlay[0],
+    };
+    const nextRounds = [...g.rounds, newRound];
+    set({
+      currentGame: { ...g, rounds: nextRounds },
+      currentRoundIndex: nextRounds.length - 1,
+      isDirty: true,
+    });
+  },
+
+  removeRound: (index) => {
+    const g = get().currentGame;
+    if (!g) return;
+    const nextRounds = g.rounds.filter((_, i) => i !== index);
+    set({
+      currentGame: { ...g, rounds: nextRounds },
+      currentRoundIndex: nextRounds.length > 0 ? Math.max(0, Math.min(index, nextRounds.length - 1)) : null,
+      isDirty: true,
+    });
+  },
+
+  updateRoundMeta: (index, patch) => {
+    const g = get().currentGame;
+    if (!g) return;
+    const nextRounds = g.rounds.map((r, i) => i === index ? { ...r, ...patch } : r);
+    set({ currentGame: { ...g, rounds: nextRounds }, isDirty: true });
+  },
+
+  updatePvPRound: (index, patch) => {
+    const g = get().currentGame;
+    if (!g) return;
+    const target = g.rounds[index];
+    if (!target || target.type !== 'pvp') return;
+    const nextRounds = g.rounds.map((r, i) =>
+      i === index && r.type === 'pvp' ? { ...r, ...patch } : r,
+    );
+    set({ currentGame: { ...g, rounds: nextRounds }, isDirty: true });
+  },
+
+  updateShrineRound: (index, patch) => {
+    const g = get().currentGame;
+    if (!g) return;
+    const target = g.rounds[index];
+    if (!target || target.type !== 'shrine') return;
+    const nextRounds = g.rounds.map((r, i) =>
+      i === index && r.type === 'shrine' ? { ...r, ...patch } : r,
+    );
+    set({ currentGame: { ...g, rounds: nextRounds }, isDirty: true });
+  },
+
+  updatePlayerTeam: (index, patch) => {
+    const g = get().currentGame;
+    if (!g) return;
+    const target = g.rounds[index];
+    if (!target || target.type !== 'pvp') return;
+    const nextRounds = g.rounds.map((r, i) =>
+      i === index && r.type === 'pvp' ? { ...r, playerTeam: { ...r.playerTeam, ...patch } } : r,
+    );
+    set({ currentGame: { ...g, rounds: nextRounds }, isDirty: true });
+  },
+
+  updateOpponent: (index, patch) => {
+    const g = get().currentGame;
+    if (!g) return;
+    const target = g.rounds[index];
+    if (!target || target.type !== 'pvp') return;
+    const nextRounds = g.rounds.map((r, i) =>
+      i === index && r.type === 'pvp' ? { ...r, opponent: { ...r.opponent, ...patch } } : r,
+    );
+    set({ currentGame: { ...g, rounds: nextRounds }, isDirty: true });
+  },
+
+  updateGameMeta: (patch) => {
+    const g = get().currentGame;
+    if (!g) return;
+    set({ currentGame: { ...g, ...patch }, isDirty: true });
+  },
+
+  copyOpponentFromPreviousMeeting: (index, riotId) => {
+    const g = get().currentGame;
+    if (!g) return;
+    let src: OpponentSnapshot | null = null;
+    for (let i = index - 1; i >= 0; i--) {
+      const r = g.rounds[i];
+      if (r.type === 'pvp' && r.opponent.riotId === riotId) {
+        src = r.opponent;
+        break;
+      }
+    }
+    if (!src) return;
+    const snapshot = src;
+    const nextRounds = g.rounds.map((r, i) =>
+      i === index && r.type === 'pvp' ? { ...r, opponent: { ...snapshot } } : r,
+    );
+    set({ currentGame: { ...g, rounds: nextRounds }, isDirty: true });
   },
 }));
