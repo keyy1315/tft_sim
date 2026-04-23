@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { buildNextPvPRound } from '@/lib/actualData/roundFactory';
 import { saveDraft, loadDraft, clearDraft } from '@/lib/actualData/draftStorage';
-import { withAutoSummons } from '@/lib/actualData/autoSummons';
+import { withAutoSummons, syncVoyagerSummon } from '@/lib/actualData/autoSummons';
 import type {
   ActualGameData,
   ActualGameSummary,
@@ -29,6 +29,9 @@ interface ActualDataState {
   championCatalog: Map<string, RawChampion>;
   traitsCatalog: RawTrait[];
   setGameDataCatalogs: (champions: RawChampion[], traits: RawTrait[]) => void;
+
+  // 모든 PvP 라운드의 소환체 상태를 다시 계산 (로드 직후/catalog 주입 후 self-heal 용도)
+  resyncAllRounds: () => void;
 
   // Game lifecycle
   loadGame: (gameId: string) => Promise<void>;
@@ -68,6 +71,32 @@ export const useActualDataStore = create<ActualDataState>((set, get) => ({
   setGameDataCatalogs: (champions, traits) => {
     const map = new Map(champions.map(c => [c.apiName, c]));
     set({ championCatalog: map, traitsCatalog: traits });
+    // catalog가 준비된 직후 한 번 resync — 로드된 게임의 구 좌표/티어 불일치를 self-heal
+    get().resyncAllRounds();
+  },
+
+  resyncAllRounds: () => {
+    const g = get().currentGame;
+    if (!g) return;
+    const { championCatalog, traitsCatalog } = get();
+    if (championCatalog.size === 0 || traitsCatalog.length === 0) return;
+
+    let mutated = false;
+    const nextRounds = g.rounds.map(r => {
+      if (r.type !== 'pvp') return r;
+      const playerUnits = syncVoyagerSummon(r.playerTeam.units, championCatalog, traitsCatalog);
+      const opponentUnits = syncVoyagerSummon(r.opponent.units, championCatalog, traitsCatalog);
+      if (playerUnits === r.playerTeam.units && opponentUnits === r.opponent.units) return r;
+      mutated = true;
+      return {
+        ...r,
+        playerTeam: { ...r.playerTeam, units: playerUnits },
+        opponent: { ...r.opponent, units: opponentUnits },
+      };
+    });
+    if (!mutated) return;
+    // self-heal은 사용자 저장 이전에 반영되어야 하므로 isDirty = true
+    set({ currentGame: { ...g, rounds: nextRounds }, isDirty: true });
   },
   isDirty: false,
   saveStatus: 'idle',
@@ -99,6 +128,8 @@ export const useActualDataStore = create<ActualDataState>((set, get) => ({
       saveStatus: 'idle',
       lastSavedAt: data.updatedAt,
     });
+    // catalog가 이미 주입돼 있으면 이 시점에 self-heal. 아니면 setGameDataCatalogs가 추후 호출.
+    get().resyncAllRounds();
   },
 
   createGame: async (meta) => {
