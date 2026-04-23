@@ -1,10 +1,13 @@
 'use client';
 import type { PvPRound } from '@/lib/actualData/types';
 import { useActualDataStore } from '@/store/actualDataSlice';
+import TeamEditor from './TeamEditor';
 
 export default function PvPRoundEditor({ index, round }: { index: number; round: PvPRound }) {
   const updateRoundMeta = useActualDataStore(s => s.updateRoundMeta);
   const updatePvPRound = useActualDataStore(s => s.updatePvPRound);
+  const updatePlayerTeam = useActualDataStore(s => s.updatePlayerTeam);
+  const updateOpponent = useActualDataStore(s => s.updateOpponent);
 
   return (
     <div className="space-y-4">
@@ -30,14 +33,10 @@ export default function PvPRoundEditor({ index, round }: { index: number; round:
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <div className="border rounded p-2">
-          <h3 className="font-semibold mb-2">내 팀</h3>
-          <p className="text-sm text-gray-500">TeamEditor는 Task 16에서 추가</p>
-        </div>
-        <div className="border rounded p-2">
-          <h3 className="font-semibold mb-2">상대</h3>
-          <p className="text-sm text-gray-500">OpponentPanel은 Task 20에서 추가</p>
-        </div>
+        <TeamEditor label="내 팀" team={round.playerTeam}
+          onChange={t => updatePlayerTeam(index, t)} />
+        <TeamEditor label="상대" team={round.opponent}
+          onChange={t => updateOpponent(index, t)} />
       </div>
 
       <div>
