@@ -104,7 +104,7 @@ export const PvPRoundSchema = z.object({
 export const ShrineRoundSchema = z.object({
   type: z.literal('shrine'),
   ...RoundBase,
-  playerChosenShrine: ShrineNameSchema,
+  playerChosenShrine: ShrineNameSchema.optional(),
   playerYasuoTile: YasuoTilePlacementSchema.optional(),
 }).refine(
   (r) => r.videoEndTime === undefined || r.videoEndTime >= r.videoStartTime,

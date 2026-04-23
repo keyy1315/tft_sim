@@ -33,12 +33,23 @@ export default function ShrineRoundEditor({ index, round }: { index: number; rou
 
       <label className="flex flex-col">
         <span className="text-sm text-gray-300">선택한 신</span>
-        <select value={round.playerChosenShrine}
-          onChange={e => updateShrineRound(index, { playerChosenShrine: e.target.value as ShrineName })}
+        <select value={round.playerChosenShrine ?? ''}
+          onChange={e => {
+            const v = e.target.value;
+            updateShrineRound(index, { playerChosenShrine: v === '' ? undefined : (v as ShrineName) });
+          }}
           className="border border-gray-700 bg-gray-900 text-gray-100 p-1 rounded w-40">
+          <option value="">선택...</option>
           {shrinesInPlay.map(s => <option key={s} value={s}>{s}</option>)}
         </select>
       </label>
+
+      {round.playerChosenShrine && !shrinesInPlay.includes(round.playerChosenShrine) && (
+        <p className="text-xs text-amber-400">
+          ⚠ 현재 shrinesInPlay({shrinesInPlay.join(', ')})에 없는 신 (&quot;{round.playerChosenShrine}&quot;) 선택됨.
+          메타데이터를 수정했다면 드롭다운에서 다시 선택해주세요.
+        </p>
+      )}
 
       {round.playerChosenShrine === 'yasuo' && (
         <div>

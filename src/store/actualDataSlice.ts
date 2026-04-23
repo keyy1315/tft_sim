@@ -232,7 +232,7 @@ export const useActualDataStore = create<ActualDataState>((set, get) => ({
       type: 'shrine',
       roundName,
       videoStartTime: lastRound?.videoEndTime ?? 0,
-      playerChosenShrine: g.shrinesInPlay[0],
+      // playerChosenShrine 미설정 — 사용자가 드롭다운에서 명시적으로 선택해야 함
     };
     const nextRounds = [...g.rounds, newRound];
     set({

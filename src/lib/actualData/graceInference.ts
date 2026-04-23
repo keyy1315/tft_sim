@@ -9,6 +9,7 @@ export function inferGraceFromShrines(shrines: ShrineRound[]): GraceInference | 
 
   const counts = new Map<ShrineName, number>();
   for (const r of shrines) {
+    if (!r.playerChosenShrine) continue;   // 미선택 라운드는 집계 제외
     counts.set(r.playerChosenShrine, (counts.get(r.playerChosenShrine) ?? 0) + 1);
   }
 
