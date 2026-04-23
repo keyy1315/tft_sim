@@ -26,6 +26,7 @@
     "@types/node": "^25.4.0",
     "@types/react": "^19.2.14",
     "babel-plugin-react-compiler": "^1.0.0",
+    "nanoid": "^5.1.9",
     "next": "^16.2.0",
     "postcss": "^8.5.8",
     "react": "^19.2.4",
@@ -33,6 +34,7 @@
     "recharts": "^3.8.0",
     "tailwindcss": "^4.2.1",
     "typescript": "^5.9.3",
+    "zod": "^3.25.76",
     "zustand": "^5.0.11"
   },
   "devDependencies": {
