@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { buildNextPvPRound } from '@/lib/actualData/roundFactory';
+import { saveDraft, loadDraft, clearDraft } from '@/lib/actualData/draftStorage';
 import type {
   ActualGameData,
   ActualGameSummary,
@@ -65,6 +66,19 @@ export const useActualDataStore = create<ActualDataState>((set, get) => ({
     const res = await fetch(`/api/actual-data/${gameId}`);
     if (!res.ok) throw new Error(`loadGame failed: ${res.status}`);
     const data = (await res.json()) as ActualGameData;
+
+    const draft = loadDraft(gameId);
+    if (draft && typeof window !== 'undefined' && window.confirm('저장 안 된 변경사항이 있습니다. 복구할까요?')) {
+      set({
+        currentGame: draft,
+        currentRoundIndex: draft.rounds.length > 0 ? 0 : null,
+        isDirty: true,
+        saveStatus: 'idle',
+        lastSavedAt: data.updatedAt,
+      });
+      return;
+    }
+
     set({
       currentGame: data,
       currentRoundIndex: data.rounds.length > 0 ? 0 : null,
@@ -118,11 +132,13 @@ export const useActualDataStore = create<ActualDataState>((set, get) => ({
         isDirty: false,
         currentGame: { ...game, updatedAt },
       });
+      clearDraft(game.gameId);
       // transition saved → idle after 2s
       setTimeout(() => {
         if (get().saveStatus === 'saved') set({ saveStatus: 'idle' });
       }, 2000);
     } catch (err) {
+      saveDraft(game);
       set({
         saveStatus: 'error',
         saveError: err instanceof Error ? err.message : String(err),
