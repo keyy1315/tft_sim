@@ -11,12 +11,12 @@ interface Props {
 
 export default function OpponentPanel({ index, opponent, onChange }: Props) {
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 text-gray-100">
       <label className="flex items-center gap-2 text-sm">
-        <span>상대 Riot ID:</span>
+        <span className="text-gray-300">상대 Riot ID:</span>
         <input value={opponent.riotId ?? ''}
           onChange={e => onChange({ ...opponent, riotId: e.target.value || undefined })}
-          className="border p-1 rounded" placeholder="name#TAG" />
+          className="border border-gray-700 bg-gray-900 text-gray-100 p-1 rounded" placeholder="name#TAG" />
       </label>
       <OpponentQuickFill roundIndex={index} />
       <TeamEditor label="상대 팀" team={opponent}

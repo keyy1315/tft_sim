@@ -34,21 +34,21 @@ export default function TeamEditor({ label, team, onChange, showGrace }: Props) 
   };
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 text-gray-100">
       <h3 className="font-semibold">{label}</h3>
 
       <div className="flex gap-2">
         <label className="flex flex-col">
-          <span className="text-xs">Level</span>
+          <span className="text-xs text-gray-300">Level</span>
           <input type="number" min={1} max={10} value={team.level}
             onChange={e => onChange({ ...team, level: Number(e.target.value) })}
-            className="border p-1 rounded w-16 text-sm" />
+            className="border border-gray-700 bg-gray-900 text-gray-100 p-1 rounded w-16 text-sm" />
         </label>
         <label className="flex flex-col">
-          <span className="text-xs">HP</span>
+          <span className="text-xs text-gray-300">HP</span>
           <input type="number" min={0} value={team.hp}
             onChange={e => onChange({ ...team, hp: Number(e.target.value) })}
-            className="border p-1 rounded w-20 text-sm" />
+            className="border border-gray-700 bg-gray-900 text-gray-100 p-1 rounded w-20 text-sm" />
         </label>
       </div>
 
@@ -61,19 +61,19 @@ export default function TeamEditor({ label, team, onChange, showGrace }: Props) 
 
       {showGrace && <GraceStatus currentRoundIndex={showGrace.roundIndex} />}
 
-      <div className="border rounded p-2 space-y-1 text-xs">
+      <div className="border border-gray-700 rounded p-2 space-y-1 text-xs">
         <div className="flex justify-between items-center">
           <span className="font-semibold">유닛 배치</span>
           <button
             type="button"
             onClick={addUnit}
-            className="text-blue-600 underline"
+            className="text-blue-400 underline"
           >
             + 유닛 추가
           </button>
         </div>
         {team.units.length === 0 && (
-          <p className="text-gray-500">유닛이 없습니다.</p>
+          <p className="text-gray-400">유닛이 없습니다.</p>
         )}
         {team.units.map((u, i) => (
           <div key={i} className="flex gap-1 items-center">
@@ -81,26 +81,26 @@ export default function TeamEditor({ label, team, onChange, showGrace }: Props) 
               value={u.championId}
               onChange={e => updateUnit(i, { championId: e.target.value })}
               placeholder="championId"
-              className="border p-0.5 w-28"
+              className="border border-gray-700 bg-gray-900 text-gray-100 p-0.5 w-28"
             />
             <input
               type="number"
               value={u.hex.q}
               onChange={e => updateUnit(i, { hex: { ...u.hex, q: Number(e.target.value) } })}
-              className="border p-0.5 w-12"
+              className="border border-gray-700 bg-gray-900 text-gray-100 p-0.5 w-12"
               placeholder="q"
             />
             <input
               type="number"
               value={u.hex.r}
               onChange={e => updateUnit(i, { hex: { ...u.hex, r: Number(e.target.value) } })}
-              className="border p-0.5 w-12"
+              className="border border-gray-700 bg-gray-900 text-gray-100 p-0.5 w-12"
               placeholder="r"
             />
             <select
               value={u.starLevel}
               onChange={e => updateUnit(i, { starLevel: Number(e.target.value) as 1 | 2 | 3 })}
-              className="border p-0.5"
+              className="border border-gray-700 bg-gray-900 text-gray-100 p-0.5"
             >
               <option value={1}>★</option>
               <option value={2}>★★</option>
@@ -109,7 +109,7 @@ export default function TeamEditor({ label, team, onChange, showGrace }: Props) 
             <button
               type="button"
               onClick={() => removeUnit(i)}
-              className="text-red-600"
+              className="text-red-400"
               aria-label="유닛 제거"
             >
               ×

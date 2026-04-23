@@ -19,9 +19,9 @@ export default function OpponentQuickFill({ roundIndex }: { roundIndex: number }
 
   return (
     <label className="flex items-center gap-2 text-sm">
-      <span>이전 만남 복사:</span>
+      <span className="text-gray-300">이전 만남 복사:</span>
       <select onChange={e => { if (e.target.value) copy(roundIndex, e.target.value); }}
-        defaultValue="" className="border p-1 rounded">
+        defaultValue="" className="border border-gray-700 bg-gray-900 text-gray-100 p-1 rounded">
         <option value="">선택...</option>
         {options.map(id => <option key={id} value={id}>{id}</option>)}
       </select>

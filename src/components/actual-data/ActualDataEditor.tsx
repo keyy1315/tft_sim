@@ -16,19 +16,19 @@ export default function ActualDataEditor({ gameId }: { gameId: string }) {
     loadGame(gameId).catch(console.error);
   }, [gameId, loadGame]);
 
-  if (!game) return <div className="p-4">Loading...</div>;
+  if (!game) return <div className="p-4 text-gray-300">Loading...</div>;
 
   const currentRound = currentRoundIndex !== null ? game.rounds[currentRoundIndex] : null;
 
   return (
-    <div className="flex flex-col h-screen">
-      <header className="border-b p-2 flex justify-between items-center">
+    <div className="flex flex-col h-screen bg-[#0a0e1a] text-gray-100">
+      <header className="border-b border-gray-700 p-2 flex justify-between items-center">
         <h1 className="font-bold">{game.gameId}</h1>
         <div className="flex items-center gap-3">
           <SaveStatusBar />
           <button
             onClick={() => setMetaOpen(true)}
-            className="px-2 py-1 border rounded text-sm"
+            className="px-2 py-1 border border-gray-700 text-gray-200 hover:bg-gray-700 rounded text-sm"
           >
             게임 메타 편집
           </button>
@@ -40,7 +40,7 @@ export default function ActualDataEditor({ gameId }: { gameId: string }) {
           {currentRound ? (
             <RoundEditor />
           ) : (
-            <p className="text-gray-500">좌측에서 라운드를 선택하거나 &quot;+ PvP&quot;/&quot;+ Shrine&quot;으로 추가하세요.</p>
+            <p className="text-gray-400">좌측에서 라운드를 선택하거나 &quot;+ PvP&quot;/&quot;+ Shrine&quot;으로 추가하세요.</p>
           )}
         </main>
       </div>

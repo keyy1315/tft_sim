@@ -12,34 +12,34 @@ export default function ShrineRoundEditor({ index, round }: { index: number; rou
   const shrinesInPlay = game.shrinesInPlay;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 text-gray-100">
       <div className="flex gap-2 items-end">
         <label className="flex flex-col">
-          <span className="text-sm">라운드명</span>
+          <span className="text-sm text-gray-300">라운드명</span>
           <input value={round.roundName}
             onChange={e => updateRoundMeta(index, { roundName: e.target.value })}
-            className="border p-1 rounded w-20" />
+            className="border border-gray-700 bg-gray-900 text-gray-100 p-1 rounded w-20" />
         </label>
         <label className="flex flex-col">
-          <span className="text-sm">영상 시작 (초)</span>
+          <span className="text-sm text-gray-300">영상 시작 (초)</span>
           <input type="number" value={round.videoStartTime}
             onChange={e => updateRoundMeta(index, { videoStartTime: Number(e.target.value) })}
-            className="border p-1 rounded w-24" />
+            className="border border-gray-700 bg-gray-900 text-gray-100 p-1 rounded w-24" />
         </label>
       </div>
 
       <label className="flex flex-col">
-        <span className="text-sm">선택한 신</span>
+        <span className="text-sm text-gray-300">선택한 신</span>
         <select value={round.playerChosenShrine}
           onChange={e => updateShrineRound(index, { playerChosenShrine: e.target.value as ShrineName })}
-          className="border p-1 rounded w-40">
+          className="border border-gray-700 bg-gray-900 text-gray-100 p-1 rounded w-40">
           {shrinesInPlay.map(s => <option key={s} value={s}>{s}</option>)}
         </select>
       </label>
 
       {round.playerChosenShrine === 'yasuo' && (
         <div>
-          <span className="text-sm block mb-1">야스오 칸 설치</span>
+          <span className="text-sm block mb-1 text-gray-300">야스오 칸 설치</span>
           <YasuoTilePicker
             stage={Number(round.roundName.split('-')[0]) as 2 | 3 | 4}
             value={round.playerYasuoTile}

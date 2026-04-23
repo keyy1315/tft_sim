@@ -18,26 +18,26 @@ export default function DamageChartInput({ entries, onChange }: Props) {
   }
 
   return (
-    <div className="border rounded p-2 space-y-1">
+    <div className="border border-gray-700 rounded p-2 space-y-1 text-gray-100">
       <div className="flex justify-between items-center">
         <h4 className="text-sm font-semibold">데미지 차트</h4>
-        <button onClick={addRow} className="text-xs px-2 py-0.5 border rounded">+ 추가</button>
+        <button onClick={addRow} className="text-xs px-2 py-0.5 border border-gray-700 hover:bg-gray-700 rounded">+ 추가</button>
       </div>
       {entries.length === 0 ? (
-        <p className="text-xs text-gray-500">유닛별 데미지 입력 (선택)</p>
+        <p className="text-xs text-gray-400">유닛별 데미지 입력 (선택)</p>
       ) : (
         <table className="w-full text-xs">
-          <thead>
+          <thead className="text-gray-300">
             <tr><th className="text-left">유닛 ID</th><th>데미지</th><th /></tr>
           </thead>
           <tbody>
             {entries.map((e, i) => (
               <tr key={i}>
                 <td><input value={e.championId} onChange={ev => updateRow(i, { championId: ev.target.value })}
-                  className="border p-0.5 w-full text-xs" /></td>
+                  className="border border-gray-700 bg-gray-900 text-gray-100 p-0.5 w-full text-xs" /></td>
                 <td><input type="number" value={e.damage} onChange={ev => updateRow(i, { damage: Number(ev.target.value) })}
-                  className="border p-0.5 w-full text-xs text-right" /></td>
-                <td><button onClick={() => removeRow(i)} className="text-red-600">×</button></td>
+                  className="border border-gray-700 bg-gray-900 text-gray-100 p-0.5 w-full text-xs text-right" /></td>
+                <td><button onClick={() => removeRow(i)} className="text-red-400">×</button></td>
               </tr>
             ))}
           </tbody>

@@ -21,29 +21,29 @@ export default function GameMetaEditor({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-40">
-      <div className="bg-white p-6 rounded shadow-lg w-[420px] space-y-3">
+      <div className="bg-gray-800 border border-gray-700 text-gray-100 p-6 rounded shadow-lg w-[420px] space-y-3">
         <h2 className="font-bold text-lg">게임 메타 편집</h2>
 
         <label className="flex flex-col text-sm">
-          <span>Patch</span>
+          <span className="text-gray-300">Patch</span>
           <input
             value={game.patchVersion}
             onChange={(e) => updateGameMeta({ patchVersion: e.target.value })}
-            className="border p-1 rounded"
+            className="border border-gray-700 bg-gray-900 text-gray-100 p-1 rounded"
           />
         </label>
 
         <label className="flex flex-col text-sm">
-          <span>Player Riot ID</span>
+          <span className="text-gray-300">Player Riot ID</span>
           <input
             value={game.playerRiotId}
             onChange={(e) => updateGameMeta({ playerRiotId: e.target.value })}
-            className="border p-1 rounded"
+            className="border border-gray-700 bg-gray-900 text-gray-100 p-1 rounded"
           />
         </label>
 
         <label className="flex flex-col text-sm">
-          <span>Final Placement (1~8)</span>
+          <span className="text-gray-300">Final Placement (1~8)</span>
           <input
             type="number"
             min={1}
@@ -57,13 +57,13 @@ export default function GameMetaEditor({ onClose }: { onClose: () => void }) {
                 ) as ActualGameData['finalPlacement'],
               })
             }
-            className="border p-1 rounded w-20"
+            className="border border-gray-700 bg-gray-900 text-gray-100 p-1 rounded w-20"
           />
         </label>
 
         <div className="flex gap-2">
           <label className="flex-1">
-            <span className="text-xs">신 1</span>
+            <span className="text-xs text-gray-300">신 1</span>
             <select
               value={game.shrinesInPlay[0]}
               onChange={(e) =>
@@ -71,7 +71,7 @@ export default function GameMetaEditor({ onClose }: { onClose: () => void }) {
                   shrinesInPlay: [e.target.value as ShrineName, game.shrinesInPlay[1]],
                 })
               }
-              className="w-full border p-1 rounded"
+              className="w-full border border-gray-700 bg-gray-900 text-gray-100 p-1 rounded"
             >
               {SHRINES.map((s) => (
                 <option key={s} value={s}>
@@ -81,7 +81,7 @@ export default function GameMetaEditor({ onClose }: { onClose: () => void }) {
             </select>
           </label>
           <label className="flex-1">
-            <span className="text-xs">신 2</span>
+            <span className="text-xs text-gray-300">신 2</span>
             <select
               value={game.shrinesInPlay[1]}
               onChange={(e) =>
@@ -89,7 +89,7 @@ export default function GameMetaEditor({ onClose }: { onClose: () => void }) {
                   shrinesInPlay: [game.shrinesInPlay[0], e.target.value as ShrineName],
                 })
               }
-              className="w-full border p-1 rounded"
+              className="w-full border border-gray-700 bg-gray-900 text-gray-100 p-1 rounded"
             >
               {SHRINES.map((s) => (
                 <option key={s} value={s}>
@@ -101,7 +101,7 @@ export default function GameMetaEditor({ onClose }: { onClose: () => void }) {
         </div>
 
         <div className="flex justify-end">
-          <button onClick={onClose} className="px-3 py-1 border rounded">
+          <button onClick={onClose} className="px-3 py-1 border border-gray-700 text-gray-200 hover:bg-gray-700 rounded">
             닫기
           </button>
         </div>

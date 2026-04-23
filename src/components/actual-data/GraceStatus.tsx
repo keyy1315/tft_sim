@@ -16,23 +16,23 @@ export default function GraceStatus({ currentRoundIndex }: { currentRoundIndex: 
   const isAfter47 = currentRound ? isRoundAfter(currentRound.roundName, '4-7') : false;
 
   if (!inference) {
-    return <p className="text-xs text-gray-500">은총 없음 (야스오 3회 또는 다른 신 2회 이상 필요)</p>;
+    return <p className="text-xs text-gray-400">은총 없음 (야스오 3회 또는 다른 신 2회 이상 필요)</p>;
   }
 
   if (!isAfter47) {
-    return <p className="text-xs text-gray-500">
+    return <p className="text-xs text-gray-400">
       은총 예고: {inference.kind === 'yasuo_grace' ? '야스오 (칸 위력 ×1.5)' : `${inference.shrine}의 은총 증강`}
       (4-7 이후 적용)
     </p>;
   }
 
   if (inference.kind === 'yasuo_grace') {
-    return <p className="text-xs text-amber-700 font-semibold">
+    return <p className="text-xs text-amber-300 font-semibold">
       🌀 야스오의 은총 발동: 설치된 모든 칸 위력 +50% (graceApplied=true)
     </p>;
   }
 
-  return <p className="text-xs text-amber-700">
+  return <p className="text-xs text-amber-300">
     🌀 {inference.shrine}의 은총 증강 → 4번째 증강 슬롯 후보
   </p>;
 }

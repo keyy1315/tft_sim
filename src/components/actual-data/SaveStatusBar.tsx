@@ -33,18 +33,18 @@ export default function SaveStatusBar() {
   }, [isDirty]);
 
   let label: string;
-  let color = 'text-gray-600';
+  let color = 'text-gray-400';
   if (status === 'saving') {
     label = '저장 중...';
   } else if (status === 'saved') {
     label = '✓ 저장됨';
-    color = 'text-green-600';
+    color = 'text-green-400';
   } else if (status === 'error') {
     label = `⚠ ${saveError ?? '저장 실패'}`;
-    color = 'text-red-600';
+    color = 'text-red-400';
   } else if (isDirty) {
     label = '● 변경됨 (30초 후 자동 저장)';
-    color = 'text-amber-600';
+    color = 'text-amber-300';
   } else {
     label = lastSavedAt ? `저장됨 ${new Date(lastSavedAt).toLocaleTimeString()}` : '';
   }
@@ -55,7 +55,7 @@ export default function SaveStatusBar() {
       {(isDirty || status === 'error') && (
         <button
           onClick={() => save()}
-          className="px-2 py-0.5 border rounded text-xs"
+          className="px-2 py-0.5 border border-gray-700 text-gray-200 hover:bg-gray-700 rounded text-xs"
         >
           {status === 'error' ? '재시도' : '지금 저장'}
         </button>

@@ -4,7 +4,7 @@ import type { HexModifier } from '@/lib/actualData/types';
 export default function HexModifierOverlay({ modifiers }: { modifiers: HexModifier[] }) {
   if (modifiers.length === 0) return null;
   return (
-    <div className="text-xs bg-yellow-50 border border-yellow-200 rounded p-1">
+    <div className="text-xs bg-yellow-900/30 border border-yellow-700 text-gray-100 rounded p-1">
       <strong>야스오 칸:</strong>
       <ul className="ml-2">
         {modifiers.map((m, i) => (

@@ -28,25 +28,25 @@ export default function YasuoTilePicker({ stage, value, onChange }: Props) {
   }
 
   return (
-    <div className="border rounded p-2 space-y-2">
+    <div className="border border-gray-700 rounded p-2 space-y-2 text-gray-100">
       <label className="flex items-center gap-2 text-sm">
-        <span>칸:</span>
+        <span className="text-gray-300">칸:</span>
         <select value={value?.tileId ?? ''} onChange={e => setTileId(e.target.value as YasuoTileId)}
-          className="border p-1 rounded">
+          className="border border-gray-700 bg-gray-900 text-gray-100 p-1 rounded">
           <option value="" disabled>선택</option>
           {tileOptions.map(t => <option key={t} value={t}>{t}</option>)}
         </select>
       </label>
       <div className="flex items-center gap-2 text-sm">
-        <span>위치:</span>
+        <span className="text-gray-300">위치:</span>
         <input type="number" value={value?.hex.q ?? 0}
           onChange={e => setHex({ q: Number(e.target.value) })}
-          className="border p-1 rounded w-16" placeholder="q" />
+          className="border border-gray-700 bg-gray-900 text-gray-100 p-1 rounded w-16" placeholder="q" />
         <input type="number" value={value?.hex.r ?? 0}
           onChange={e => setHex({ r: Number(e.target.value) })}
-          className="border p-1 rounded w-16" placeholder="r" />
+          className="border border-gray-700 bg-gray-900 text-gray-100 p-1 rounded w-16" placeholder="r" />
         <button type="button" onClick={() => onChange(undefined)}
-          className="text-xs text-red-600 underline">지우기</button>
+          className="text-xs text-red-400 underline">지우기</button>
       </div>
     </div>
   );

@@ -12,25 +12,25 @@ export default function PvPRoundEditor({ index, round }: { index: number; round:
   const updateOpponent = useActualDataStore(s => s.updateOpponent);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 text-gray-100">
       <div className="flex gap-2 items-end">
         <label className="flex flex-col">
-          <span className="text-sm">라운드명</span>
+          <span className="text-sm text-gray-300">라운드명</span>
           <input value={round.roundName}
             onChange={e => updateRoundMeta(index, { roundName: e.target.value })}
-            className="border p-1 rounded w-20" />
+            className="border border-gray-700 bg-gray-900 text-gray-100 p-1 rounded w-20" />
         </label>
         <label className="flex flex-col">
-          <span className="text-sm">영상 시작 (초)</span>
+          <span className="text-sm text-gray-300">영상 시작 (초)</span>
           <input type="number" value={round.videoStartTime}
             onChange={e => updateRoundMeta(index, { videoStartTime: Number(e.target.value) })}
-            className="border p-1 rounded w-24" />
+            className="border border-gray-700 bg-gray-900 text-gray-100 p-1 rounded w-24" />
         </label>
         <label className="flex flex-col">
-          <span className="text-sm">영상 종료 (초)</span>
+          <span className="text-sm text-gray-300">영상 종료 (초)</span>
           <input type="number" value={round.videoEndTime ?? ''}
             onChange={e => updateRoundMeta(index, { videoEndTime: e.target.value ? Number(e.target.value) : undefined })}
-            className="border p-1 rounded w-24" />
+            className="border border-gray-700 bg-gray-900 text-gray-100 p-1 rounded w-24" />
         </label>
       </div>
 
@@ -44,10 +44,10 @@ export default function PvPRoundEditor({ index, round }: { index: number; round:
 
       <div>
         <label className="flex items-center gap-2">
-          <span className="text-sm">승자:</span>
+          <span className="text-sm text-gray-300">승자:</span>
           <select value={round.winner}
             onChange={e => updatePvPRound(index, { winner: e.target.value as 'player' | 'opponent' | 'draw' })}
-            className="border p-1 rounded">
+            className="border border-gray-700 bg-gray-900 text-gray-100 p-1 rounded">
             <option value="player">내 팀</option>
             <option value="opponent">상대</option>
             <option value="draw">무승부</option>

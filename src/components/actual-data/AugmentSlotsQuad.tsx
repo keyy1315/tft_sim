@@ -21,7 +21,7 @@ export default function AugmentSlotsQuad({ augments, onChange }: Props) {
           value={augments[i] ?? ''}
           onChange={e => updateSlot(i, e.target.value)}
           placeholder={i === 3 ? '은총' : `증강 ${i + 1}`}
-          className={`border p-1 rounded text-xs w-20 ${i === 3 ? 'border-amber-400 bg-amber-50' : ''}`}
+          className={`border p-1 rounded text-xs w-20 bg-gray-900 text-gray-100 ${i === 3 ? 'border-amber-500 bg-amber-900/30' : 'border-gray-700'}`}
         />
       ))}
     </div>

@@ -26,12 +26,12 @@ export default function RoundList() {
   }
 
   return (
-    <div className="border-r p-2 w-48">
+    <div className="border-r border-gray-700 p-2 w-48 text-gray-100">
       <ul className="space-y-1">
         {game.rounds.map((r, i) => (
           <li key={i}>
             <button onClick={() => setCurrentRound(i)}
-              className={`w-full text-left p-1 rounded ${currentIndex === i ? 'bg-blue-100 font-bold' : 'hover:bg-gray-50'}`}>
+              className={`w-full text-left p-1 rounded ${currentIndex === i ? 'bg-blue-900/50 font-bold' : 'hover:bg-gray-700'}`}>
               {r.roundName} {r.type === 'shrine' ? '◇' : '⚔'}
             </button>
           </li>
@@ -39,9 +39,9 @@ export default function RoundList() {
       </ul>
       <div className="mt-4 space-y-1">
         <button onClick={() => addPvPRound(suggestNextRoundName('pvp'))}
-          className="w-full text-sm border rounded p-1 hover:bg-gray-50">+ PvP</button>
+          className="w-full text-sm border border-gray-700 rounded p-1 hover:bg-gray-700">+ PvP</button>
         <button onClick={() => addShrineRound(suggestNextRoundName('shrine'))}
-          className="w-full text-sm border rounded p-1 hover:bg-gray-50">+ Shrine</button>
+          className="w-full text-sm border border-gray-700 rounded p-1 hover:bg-gray-700">+ Shrine</button>
       </div>
     </div>
   );
