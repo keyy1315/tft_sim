@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { buildNextPvPRound } from '@/lib/actualData/roundFactory';
 import { saveDraft, loadDraft, clearDraft } from '@/lib/actualData/draftStorage';
+import { withAutoSummons } from '@/lib/actualData/autoSummons';
 import type {
   ActualGameData,
   ActualGameSummary,
@@ -11,6 +12,7 @@ import type {
   OpponentSnapshot,
   ActualGameMeta,
 } from '@/lib/actualData/types';
+import type { RawChampion, RawTrait } from '@/types';
 
 type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 
@@ -22,6 +24,11 @@ interface ActualDataState {
   saveError: string | null;
   lastSavedAt: string | null;
   gameListCache: ActualGameSummary[] | null;
+
+  // Game data catalogs (외부에서 주입 — ActualDataEditor가 useGameData 결과를 useEffect로 sync)
+  championCatalog: Map<string, RawChampion>;
+  traitsCatalog: RawTrait[];
+  setGameDataCatalogs: (champions: RawChampion[], traits: RawTrait[]) => void;
 
   // Game lifecycle
   loadGame: (gameId: string) => Promise<void>;
@@ -56,6 +63,12 @@ interface ActualDataState {
 export const useActualDataStore = create<ActualDataState>((set, get) => ({
   currentGame: null,
   currentRoundIndex: null,
+  championCatalog: new Map(),
+  traitsCatalog: [],
+  setGameDataCatalogs: (champions, traits) => {
+    const map = new Map(champions.map(c => [c.apiName, c]));
+    set({ championCatalog: map, traitsCatalog: traits });
+  },
   isDirty: false,
   saveStatus: 'idle',
   saveError: null,
@@ -243,8 +256,10 @@ export const useActualDataStore = create<ActualDataState>((set, get) => ({
     if (!g) return;
     const target = g.rounds[index];
     if (!target || target.type !== 'pvp') return;
+    const { championCatalog, traitsCatalog } = get();
+    const syncedPatch = withAutoSummons(patch, championCatalog, traitsCatalog);
     const nextRounds = g.rounds.map((r, i) =>
-      i === index && r.type === 'pvp' ? { ...r, playerTeam: { ...r.playerTeam, ...patch } } : r,
+      i === index && r.type === 'pvp' ? { ...r, playerTeam: { ...r.playerTeam, ...syncedPatch } } : r,
     );
     set({ currentGame: { ...g, rounds: nextRounds }, isDirty: true });
   },
@@ -254,8 +269,10 @@ export const useActualDataStore = create<ActualDataState>((set, get) => ({
     if (!g) return;
     const target = g.rounds[index];
     if (!target || target.type !== 'pvp') return;
+    const { championCatalog, traitsCatalog } = get();
+    const syncedPatch = withAutoSummons(patch, championCatalog, traitsCatalog);
     const nextRounds = g.rounds.map((r, i) =>
-      i === index && r.type === 'pvp' ? { ...r, opponent: { ...r.opponent, ...patch } } : r,
+      i === index && r.type === 'pvp' ? { ...r, opponent: { ...r.opponent, ...syncedPatch } } : r,
     );
     set({ currentGame: { ...g, rounds: nextRounds }, isDirty: true });
   },

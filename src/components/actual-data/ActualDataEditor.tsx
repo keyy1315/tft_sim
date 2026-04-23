@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useActualDataStore } from '@/store/actualDataSlice';
+import { useGameData } from '@/hooks/useGameData';
 import RoundList from './RoundList';
 import RoundEditor from './RoundEditor';
 import GameMetaEditor from './GameMetaEditor';
@@ -11,6 +12,14 @@ export default function ActualDataEditor({ gameId }: { gameId: string }) {
   const loadGame = useActualDataStore(s => s.loadGame);
   const currentRoundIndex = useActualDataStore(s => s.currentRoundIndex);
   const [metaOpen, setMetaOpen] = useState(false);
+
+  // 길잡이 소환체 자동 싱크 등을 위해 catalog를 슬라이스에 주입
+  const { champions, traits } = useGameData();
+  useEffect(() => {
+    if (champions.length > 0 && traits.length > 0) {
+      useActualDataStore.getState().setGameDataCatalogs(champions, traits);
+    }
+  }, [champions, traits]);
 
   useEffect(() => {
     loadGame(gameId).catch(console.error);
