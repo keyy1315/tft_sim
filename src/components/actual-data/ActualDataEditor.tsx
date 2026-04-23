@@ -4,6 +4,7 @@ import { useActualDataStore } from '@/store/actualDataSlice';
 import RoundList from './RoundList';
 import RoundEditor from './RoundEditor';
 import GameMetaEditor from './GameMetaEditor';
+import SaveStatusBar from './SaveStatusBar';
 
 export default function ActualDataEditor({ gameId }: { gameId: string }) {
   const game = useActualDataStore(s => s.currentGame);
@@ -23,12 +24,15 @@ export default function ActualDataEditor({ gameId }: { gameId: string }) {
     <div className="flex flex-col h-screen">
       <header className="border-b p-2 flex justify-between items-center">
         <h1 className="font-bold">{game.gameId}</h1>
-        <button
-          onClick={() => setMetaOpen(true)}
-          className="px-2 py-1 border rounded text-sm"
-        >
-          게임 메타 편집
-        </button>
+        <div className="flex items-center gap-3">
+          <SaveStatusBar />
+          <button
+            onClick={() => setMetaOpen(true)}
+            className="px-2 py-1 border rounded text-sm"
+          >
+            게임 메타 편집
+          </button>
+        </div>
       </header>
       <div className="flex flex-1 overflow-hidden">
         <RoundList />
