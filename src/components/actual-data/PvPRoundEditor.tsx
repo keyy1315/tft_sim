@@ -34,7 +34,8 @@ export default function PvPRoundEditor({ index, round }: { index: number; round:
 
       <div className="grid grid-cols-2 gap-4">
         <TeamEditor label="내 팀" team={round.playerTeam}
-          onChange={t => updatePlayerTeam(index, t)} />
+          onChange={t => updatePlayerTeam(index, t)}
+          showGrace={{ roundIndex: index }} />
         <TeamEditor label="상대" team={round.opponent}
           onChange={t => updateOpponent(index, t)} />
       </div>

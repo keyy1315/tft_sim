@@ -1,15 +1,17 @@
 'use client';
 import type { PlacedUnit, TeamSnapshot } from '@/lib/actualData/types';
 import AugmentSlotsQuad from './AugmentSlotsQuad';
+import GraceStatus from './GraceStatus';
 import HexModifierOverlay from './HexModifierOverlay';
 
 interface Props {
   label: string;
   team: TeamSnapshot;
   onChange: (team: TeamSnapshot) => void;
+  showGrace?: { roundIndex: number };
 }
 
-export default function TeamEditor({ label, team, onChange }: Props) {
+export default function TeamEditor({ label, team, onChange, showGrace }: Props) {
   const updateUnit = (index: number, patch: Partial<PlacedUnit>) => {
     onChange({
       ...team,
@@ -56,6 +58,8 @@ export default function TeamEditor({ label, team, onChange }: Props) {
       />
 
       <HexModifierOverlay modifiers={team.hexModifiers} />
+
+      {showGrace && <GraceStatus currentRoundIndex={showGrace.roundIndex} />}
 
       <div className="border rounded p-2 space-y-1 text-xs">
         <div className="flex justify-between items-center">
