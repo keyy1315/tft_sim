@@ -5105,7 +5105,7 @@
         "{d12ae4b6}",
         "{d11fd6d5}"
       ],
-      "inSet17": true
+      "inSet17": false
     },
     {
       "name": "판도라의 주머니 보풀",
@@ -8357,7 +8357,7 @@
       "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/ConstructaCompanion_III.TFT_Set16.tex",
       "associatedTraits": [],
       "tags": [],
-      "inSet17": true
+      "inSet17": false
     },
     {
       "name": "혼돈의 부름",

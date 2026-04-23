@@ -56,6 +56,7 @@ const APINAME_TIER_OVERRIDES: Readonly<Record<string, AugmentTier>> = {
   'TFT17_Augment_PoppyCarry': 'silver',   // 정령단 속도
   'TFT17_Augment_IvernMinionCarry': 'gold', // 빅뱅
   'TFT17_Augment_JaxCarry': 'gold',       // 저 별을 향해
+  'TFT17_Augment_PykeCarry': 'gold',      // 청부 살인마
 
   // GodAugment suffix지만 실제는 일반 티어 (신 변형 중 일반 증강)
   'TFT17_Augment_EvelynnGodAugment_BloodPrice': 'gold',   // 피의 대가
@@ -123,6 +124,7 @@ const APINAME_TIER_OVERRIDES: Readonly<Record<string, AugmentTier>> = {
   'TFT7_Augment_BirthdayPresents': 'prismatic',              // 생일 선물
   'TFT9_Augment_GreaterJeweledLotus': 'prismatic',           // 보석 연꽃 II
   'TFT6_Augment_MaxLevel10': 'prismatic',                    // 레벨 업!
+  'TFT6_Augment_BandOfThieves2': 'prismatic',                // 도둑 무리 II
   'TFT6_Augment_BandOfThieves2Plus': 'prismatic',            // 도둑 무리 II+
   'TFT6_Augment_BandOfThieves2PlusPlus': 'prismatic',        // 도둑 무리 II++
   'TFT9_Augment_TiniestTitanPlus': 'prismatic',              // 꼬꼬마 거인
