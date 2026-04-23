@@ -1,12 +1,7 @@
 {
   "gameId": "game-20260423-001",
   "videoSource": {
-    "kind": "local",
-    "filename": "game-20260423-001.mp4",
-    "mimeType": "video/mp4",
-    "sizeBytes": 3800439938,
-    "durationSeconds": null,
-    "uploadedAt": "2026-04-23T08:55:29.027Z"
+    "kind": "none"
   },
   "patchVersion": "17.1",
   "playerRiotId": "무례한 친구#0129",
@@ -17,7 +12,7 @@
   ],
   "timeline": [],
   "createdAt": "2026-04-23T04:51:14.262Z",
-  "updatedAt": "2026-04-23T08:55:29.028Z",
+  "updatedAt": "2026-04-23T08:56:51.972Z",
   "rounds": [
     {
       "type": "pvp",
