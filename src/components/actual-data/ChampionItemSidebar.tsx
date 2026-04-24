@@ -6,8 +6,9 @@ import { getItemCategory, isDisabledItem } from '@/lib/simulator/systems/item';
 import DraggableChampionCard from '@/components/builder/DraggableChampionCard';
 import DraggableItemIcon from '@/components/builder/DraggableItemIcon';
 import SearchBar from '@/components/ui/SearchBar';
+import DraggableItemRemoverTool from './DraggableItemRemoverTool';
 
-type Tab = 'champions' | 'items';
+type Tab = 'champions' | 'items' | 'tools';
 type CostFilter = null | 1 | 2 | 3 | 4 | 5;
 type ItemTab = 'combined' | 'artifact' | 'radiant' | 'emblem' | 'all';
 
@@ -46,13 +47,20 @@ export default function ChampionItemSidebar({ champions, items, onChampionClick,
           >
             아이템
           </button>
+          <button
+            type="button"
+            className={`px-2 py-1 rounded ${tab === 'tools' ? 'bg-[#8b5cf6] text-white' : 'bg-[#1f2937] text-gray-400 hover:text-gray-200'}`}
+            onClick={() => setTab('tools')}
+          >
+            도구
+          </button>
         </div>
       </div>
 
       <div className="flex-1 overflow-hidden">
-        {tab === 'champions'
-          ? <ChampionSection champions={champions} onChampionClick={onChampionClick} />
-          : <ItemSection items={items} onItemClick={onItemClick} />}
+        {tab === 'champions' && <ChampionSection champions={champions} onChampionClick={onChampionClick} />}
+        {tab === 'items' && <ItemSection items={items} onItemClick={onItemClick} />}
+        {tab === 'tools' && <ToolsSection />}
       </div>
     </aside>
   );
@@ -155,6 +163,19 @@ function ItemSection({ items, onItemClick }: { items: RawItem[]; onItemClick?: (
         {filtered.length === 0 && (
           <div className="col-span-5 text-center text-gray-500 py-4 text-xs">검색 결과가 없습니다.</div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function ToolsSection() {
+  return (
+    <div className="flex flex-col h-full p-2 space-y-3">
+      <p className="text-[11px] text-gray-400 leading-relaxed">
+        유닛 위로 드래그해서 사용합니다.
+      </p>
+      <div className="grid grid-cols-5 gap-1.5">
+        <DraggableItemRemoverTool size={44} />
       </div>
     </div>
   );
