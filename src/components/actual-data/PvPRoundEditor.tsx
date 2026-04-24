@@ -1,6 +1,6 @@
 'use client';
 import { useCallback, useMemo, useState } from 'react';
-import { DndContext, DragOverlay, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { DndContext, DragOverlay, PointerSensor, useSensor, useSensors, pointerWithin, rectIntersection, type CollisionDetection } from '@dnd-kit/core';
 import type { PvPRound, PlacedUnit } from '@/lib/actualData/types';
 import { useActualDataStore } from '@/store/actualDataSlice';
 import { useGameData } from '@/hooks/useGameData';
@@ -27,6 +27,14 @@ export default function PvPRoundEditor({ index, round }: { index: number; round:
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
   );
+
+  // pointerWithin 으로 작은 슬롯 drop 을 우선 매칭하고, 포인터가 헥스 밖으로 살짝 벗어나면
+  // rectIntersection 으로 fallback 해 기존 헥스 본체 drop 을 잃지 않는다.
+  const collisionDetection: CollisionDetection = (args) => {
+    const pointerHits = pointerWithin(args);
+    if (pointerHits.length > 0) return pointerHits;
+    return rectIntersection(args);
+  };
 
   const [activeDrag, setActiveDrag] = useState<DragData | null>(null);
 
@@ -78,6 +86,7 @@ export default function PvPRoundEditor({ index, round }: { index: number; round:
   return (
     <DndContext
       sensors={sensors}
+      collisionDetection={collisionDetection}
       onDragStart={(e) => {
         const data = e.active.data.current as DragData | undefined;
         if (data) setActiveDrag(data);

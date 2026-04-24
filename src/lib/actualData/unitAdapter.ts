@@ -28,8 +28,10 @@ export function resolveChampion(
  * Convert actual-data PlacedUnit -> simulator PlacedChampion for rendering on SetupBoardCore.
  * Requires champion/item catalog lookups. Returns null if champion is not found in the catalog.
  *
- * PlacedUnit.items is a 3-tuple of optional item apiName strings; any missing / unresolved slot
- * is dropped (PlacedChampion.items is a plain RawItem[] with no slot semantics).
+ * PlacedUnit.items is a 3-tuple of optional item apiName strings.
+ *  - `items`: compacted RawItem[] (legacy 호환 — 빈/미해결 슬롯 제거)
+ *  - `itemSlots`: 3-tuple (RawItem | null) — 슬롯 좌표 보존. SetupBoardCore 가 고정 3-슬롯
+ *    레이아웃으로 렌더링할 때 ActualItemSlotsOverlay 의 droppable/X 버튼 위치와 정확히 겹치게 한다.
  */
 export function toPlacedChampion(
   u: PlacedUnit,
@@ -38,17 +40,22 @@ export function toPlacedChampion(
 ): PlacedChampion | null {
   const champion = championCatalog.get(u.championId) ?? SPECIAL_CHAMPIONS[u.championId];
   if (!champion) return null;
+  const itemSlots: Array<RawItem | null> = [null, null, null];
   const items: RawItem[] = [];
-  for (const id of u.items) {
+  for (let i = 0; i < 3; i++) {
+    const id = u.items[i];
     if (!id) continue;
     const item = itemCatalog.get(id);
-    if (item) items.push(item);
+    if (!item) continue;
+    itemSlots[i] = item;
+    items.push(item);
   }
   return {
     champion,
     position: u.hex,
     starLevel: u.starLevel,
     items,
+    itemSlots,
     voidItem: null,
     mfMode: null,
     permanentStacks: null,

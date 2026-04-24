@@ -305,7 +305,46 @@ export default function SetupBoardCore({
                   );
                 })()
               )}
-              {result && result.placed.items.length > 0 && (
+              {result && result.placed.itemSlots && (
+                <g>
+                  {(() => {
+                    const slots = result.placed.itemSlots;
+                    const itemSize = 16;
+                    // 고정 3-슬롯 레이아웃 — ActualItemSlotsOverlay 의 droppable 위치와 정확히 일치.
+                    const totalWidth = 3 * itemSize + 2 * 2;
+                    const startX = cx - totalWidth / 2 + itemSize / 2;
+                    const iy = cy + HEX_R - 12;
+                    const nodes = [];
+                    for (let i = 0; i < 3; i++) {
+                      const item = slots[i];
+                      if (!item) continue;
+                      const ix = startX + i * (itemSize + 2);
+                      const patId = `item-${row}-${col}-${i}`;
+                      nodes.push(
+                        <g key={i}>
+                          <defs>
+                            <pattern id={patId} width="1" height="1" patternContentUnits="objectBoundingBox">
+                              <image href={getItemImage(item.apiName)} width="1" height="1" preserveAspectRatio="xMidYMid slice" />
+                            </pattern>
+                          </defs>
+                          <rect
+                            x={ix - itemSize / 2}
+                            y={iy - itemSize / 2}
+                            width={itemSize}
+                            height={itemSize}
+                            rx={2}
+                            fill={`url(#${patId})`}
+                            stroke="#111"
+                            strokeWidth={0.5}
+                          />
+                        </g>
+                      );
+                    }
+                    return nodes;
+                  })()}
+                </g>
+              )}
+              {result && !result.placed.itemSlots && result.placed.items.length > 0 && (
                 <g>
                   {result.placed.items.slice(0, 3).map((item, i) => {
                     const itemSize = 16;

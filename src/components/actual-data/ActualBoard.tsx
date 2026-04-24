@@ -9,6 +9,7 @@ import DroppableHexCell from '@/components/battle/DroppableHexCell';
 import { useActualDataStore } from '@/store/actualDataSlice';
 import { toPlacedChampion } from '@/lib/actualData/unitAdapter';
 import type { PlacedUnit, TeamSnapshot, OpponentSnapshot } from '@/lib/actualData/types';
+import ActualItemSlotsOverlay from './ActualItemSlotsOverlay';
 
 interface ActualBoardProps {
   roundIndex: number;
@@ -64,6 +65,19 @@ export default function ActualBoard({ roundIndex, champions, items, cellSize = 4
       const nextUnits = round.opponent.units.filter((_, i) => i !== index);
       updateOpponent(roundIndex, { units: nextUnits });
     }
+  };
+
+  /** Clear a single item slot on a unit at the given hex. */
+  const handleRemoveItemSlot = (team: 'player' | 'enemy', hexKey: string, slotIdx: 0 | 1 | 2) => {
+    const units = team === 'player' ? round.playerTeam.units : round.opponent.units;
+    const unitIdx = units.findIndex(u => `${u.hex.q},${u.hex.r}` === hexKey);
+    if (unitIdx < 0) return;
+    const target = units[unitIdx];
+    const nextItems = [...target.items] as PlacedUnit['items'];
+    nextItems[slotIdx] = undefined;
+    const nextUnits = units.map((u, i) => (i === unitIdx ? { ...u, items: nextItems } : u));
+    if (team === 'player') updatePlayerTeam(roundIndex, { units: nextUnits });
+    else updateOpponent(roundIndex, { units: nextUnits });
   };
 
   /** 1★ → 2★ → 3★ → 1★ cycle on unit click (matches /simulator). */
@@ -127,6 +141,16 @@ export default function ActualBoard({ roundIndex, champions, items, cellSize = 4
             );
           })
         )}
+      </div>
+
+      {/* Item slot overlay — placed on top so slot droppables win pointer events over the hex cell. */}
+      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+        <ActualItemSlotsOverlay
+          playerUnits={round.playerTeam.units}
+          opponentUnits={round.opponent.units}
+          cellSize={cellSize}
+          onRemoveItem={handleRemoveItemSlot}
+        />
       </div>
     </div>
   );

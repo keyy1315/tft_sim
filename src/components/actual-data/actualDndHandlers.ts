@@ -40,6 +40,31 @@ function setItemInSlot(u: PlacedUnit, item: RawItem): PlacedUnit | null {
   return null; // max 3 items
 }
 
+/** Parse an item-slot droppable id `item-slot-{team}-{q}-{r}-{slotIdx}`. */
+export function parseSlotId(id: string): { team: 'player' | 'enemy'; hex: HexCoord; slotIdx: 0 | 1 | 2 } | null {
+  const match = id.match(/^item-slot-(player|enemy)-(-?\d+)-(-?\d+)-(\d+)$/);
+  if (!match) return null;
+  const slotIdx = Number(match[4]);
+  if (slotIdx !== 0 && slotIdx !== 1 && slotIdx !== 2) return null;
+  return {
+    team: match[1] as 'player' | 'enemy',
+    hex: { q: Number(match[2]), r: Number(match[3]) },
+    slotIdx,
+  };
+}
+
+/** Replace or fill a specific slot (0..2) with the given item apiName. Returns a new unit. */
+export function setItemAtSlot(u: PlacedUnit, itemApiName: string, slotIdx: 0 | 1 | 2): PlacedUnit {
+  const next = [...u.items] as PlacedUnit['items'];
+  next[slotIdx] = itemApiName;
+  return { ...u, items: next };
+}
+
+/** Clear all three item slots of a unit. Returns a new unit. */
+export function clearUnitItems(u: PlacedUnit): PlacedUnit {
+  return { ...u, items: [undefined, undefined, undefined] as PlacedUnit['items'] };
+}
+
 export interface ActualDndContext {
   round: PvPRound;
   roundIndex: number;
@@ -80,10 +105,13 @@ export function createActualDragEndHandler(ctx: () => ActualDndContext | null) {
       return;
     }
 
-    const cellInfo = parseCellId(over.id as string);
-    if (!cellInfo) return;
-    const destTeam = getTeamFromRow(cellInfo.row);
-    const destHex = cellToHex(cellInfo.row, cellInfo.col);
+    // Resolve target: item slot first, then hex cell.
+    const slotInfo = parseSlotId(over.id as string);
+    const cellInfo = slotInfo ? null : parseCellId(over.id as string);
+    if (!slotInfo && !cellInfo) return;
+
+    const destTeam: 'player' | 'enemy' = slotInfo ? slotInfo.team : getTeamFromRow(cellInfo!.row);
+    const destHex: HexCoord = slotInfo ? slotInfo.hex : cellToHex(cellInfo!.row, cellInfo!.col);
     const destUnits = destTeam === 'player' ? round.playerTeam.units : round.opponent.units;
     const setDest = (nextUnits: PlacedUnit[]) => {
       if (destTeam === 'player') updatePlayerTeam(roundIndex, { units: nextUnits });
@@ -91,6 +119,15 @@ export function createActualDragEndHandler(ctx: () => ActualDndContext | null) {
     };
     const existingDestIdx = findUnitIndexAt(destUnits, destHex);
 
+    // Tool: remove-all — clears all items on the target unit.
+    if (dragData.type === 'tool' && dragData.toolKind === 'remove-all') {
+      if (existingDestIdx < 0) return;
+      const cleared = clearUnitItems(destUnits[existingDestIdx]);
+      setDest(destUnits.map((u, i) => (i === existingDestIdx ? cleared : u)));
+      return;
+    }
+
+    // Champion drop (sidebar → empty hex only). Slot id resolves to its parent hex via destHex.
     if (dragData.type === 'champion') {
       if (existingDestIdx >= 0) return;
       const newUnit: PlacedUnit = {
@@ -103,6 +140,8 @@ export function createActualDragEndHandler(ctx: () => ActualDndContext | null) {
       return;
     }
 
+    // Placed unit drag — slot id resolves to its parent hex via destHex (supports drops onto
+    // the lower item-row region of another occupied hex under pointerWithin collision detection).
     if (dragData.type === 'placed-unit') {
       const srcTeam = dragData.team;
       const srcUnits = srcTeam === 'player' ? round.playerTeam.units : round.opponent.units;
@@ -133,18 +172,26 @@ export function createActualDragEndHandler(ctx: () => ActualDndContext | null) {
         });
         setDest(nextUnits);
       } else if (existingDestIdx < 0) {
-        const nextUnits = destUnits.map((u, i) => i === srcIdx ? { ...u, hex: destHex } : u);
+        const nextUnits = destUnits.map((u, i) => (i === srcIdx ? { ...u, hex: destHex } : u));
         setDest(nextUnits);
       }
       return;
     }
 
+    // Item drop
     if (dragData.type === 'item') {
       if (existingDestIdx < 0) return;
       const target = destUnits[existingDestIdx];
-      const updated = setItemInSlot(target, dragData.item);
-      if (!updated) return;
-      setDest(destUnits.map((u, i) => i === existingDestIdx ? updated : u));
+      if (slotInfo) {
+        // Explicit slot → replace or fill that exact slot.
+        const updated = setItemAtSlot(target, dragData.item.apiName, slotInfo.slotIdx);
+        setDest(destUnits.map((u, i) => (i === existingDestIdx ? updated : u)));
+      } else {
+        // Hex body → first empty slot (legacy fast-attach).
+        const updated = setItemInSlot(target, dragData.item);
+        if (!updated) return;
+        setDest(destUnits.map((u, i) => (i === existingDestIdx ? updated : u)));
+      }
     }
   };
 }
