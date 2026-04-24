@@ -6,8 +6,6 @@ import {
 } from '@/components/actual-data/actualDndHandlers';
 import type { PlacedUnit } from '@/lib/actualData/types';
 
-const sampleItem = { apiName: 'TFT_Item_BFSword' } as const;
-
 describe('parseSlotId', () => {
   it('player 팀 슬롯 id 를 파싱한다', () => {
     expect(parseSlotId('item-slot-player-1-2-0')).toEqual({
