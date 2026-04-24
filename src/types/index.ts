@@ -557,7 +557,8 @@ export const COST_COLORS: Record<number, string> = {
 export type DragData =
   | { type: 'champion'; champion: RawChampion }
   | { type: 'placed-unit'; team: 'player' | 'enemy'; position: HexCoord }
-  | { type: 'item'; item: RawItem };
+  | { type: 'item'; item: RawItem }
+  | { type: 'tool'; toolKind: 'remove-all' };
 
 export const STAR_SCALING: Record<number, number> = {
   1: 1,
