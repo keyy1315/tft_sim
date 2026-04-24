@@ -11,6 +11,7 @@ import type {
   TeamSnapshot,
   OpponentSnapshot,
   ActualGameMeta,
+  VideoSource,
 } from '@/lib/actualData/types';
 import type { RawChampion, RawTrait } from '@/types';
 
@@ -55,6 +56,11 @@ interface ActualDataState {
 
   // Game meta
   updateGameMeta: (patch: Partial<ActualGameMeta>) => void;
+
+  // Video upload / delete / metadata
+  uploadVideo: (file: File, onProgress?: (ratio: number) => void) => Promise<void>;
+  deleteVideo: () => Promise<void>;
+  reportVideoDuration: (durationSeconds: number) => Promise<void>;
 
   // UI helper
   copyOpponentFromPreviousMeeting: (index: number, riotId: string) => void;
@@ -314,6 +320,46 @@ export const useActualDataStore = create<ActualDataState>((set, get) => ({
     set({ currentGame: { ...g, ...patch }, isDirty: true });
   },
 
+  uploadVideo: async (file, onProgress) => {
+    const g = get().currentGame;
+    if (!g) throw new Error('no game loaded');
+    const mime = file.type;
+    if (mime !== 'video/mp4' && mime !== 'video/webm') {
+      throw new Error(`지원하지 않는 형식입니다: ${mime || '(unknown)'} — mp4 또는 webm만 가능합니다`);
+    }
+    const url = `/api/actual-data/${g.gameId}/video`;
+    const { videoSource, updatedAt } = await uploadWithProgress(url, file, mime, onProgress);
+    set({ currentGame: { ...g, videoSource, updatedAt }, lastSavedAt: updatedAt });
+  },
+
+  deleteVideo: async () => {
+    const g = get().currentGame;
+    if (!g) return;
+    const res = await fetch(`/api/actual-data/${g.gameId}/video`, { method: 'DELETE' });
+    if (!res.ok) {
+      const body = (await res.json().catch(() => ({}))) as { message?: string };
+      throw new Error(body.message ?? `deleteVideo failed: ${res.status}`);
+    }
+    const { videoSource, updatedAt } = (await res.json()) as { videoSource: VideoSource; updatedAt: string };
+    set({ currentGame: { ...g, videoSource, updatedAt }, lastSavedAt: updatedAt });
+  },
+
+  reportVideoDuration: async (durationSeconds) => {
+    const g = get().currentGame;
+    if (!g || g.videoSource.kind !== 'local') return;
+    if (g.videoSource.durationSeconds !== null) return; // already set (ffprobe)
+    const res = await fetch(`/api/actual-data/${g.gameId}/video`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ durationSeconds }),
+    });
+    if (!res.ok) return; // non-critical — silently ignore
+    const { videoSource, updatedAt } = (await res.json()) as { videoSource: VideoSource; updatedAt: string };
+    const cur = get().currentGame;
+    if (!cur || cur.gameId !== g.gameId) return;
+    set({ currentGame: { ...cur, videoSource, updatedAt }, lastSavedAt: updatedAt });
+  },
+
   copyOpponentFromPreviousMeeting: (index, riotId) => {
     const g = get().currentGame;
     if (!g) return;
@@ -333,3 +379,33 @@ export const useActualDataStore = create<ActualDataState>((set, get) => ({
     set({ currentGame: { ...g, rounds: nextRounds }, isDirty: true });
   },
 }));
+
+async function uploadWithProgress(
+  url: string,
+  file: File,
+  mime: string,
+  onProgress?: (ratio: number) => void,
+): Promise<{ videoSource: VideoSource; updatedAt: string }> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', url);
+    xhr.responseType = 'json';
+    xhr.setRequestHeader('Content-Type', mime);
+    if (onProgress) {
+      xhr.upload.addEventListener('progress', (e) => {
+        if (e.lengthComputable) onProgress(e.loaded / e.total);
+      });
+    }
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve(xhr.response as { videoSource: VideoSource; updatedAt: string });
+      } else {
+        const body = xhr.response as { message?: string } | null;
+        reject(new Error(body?.message ?? `upload failed (${xhr.status})`));
+      }
+    };
+    xhr.onerror = () => reject(new Error('network error'));
+    xhr.onabort = () => reject(new Error('upload aborted'));
+    xhr.send(file);
+  });
+}

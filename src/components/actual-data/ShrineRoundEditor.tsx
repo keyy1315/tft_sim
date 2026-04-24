@@ -27,6 +27,7 @@ export default function ShrineRoundEditor({ index, round }: { index: number; rou
             value={round.videoStartTime}
             onChange={v => updateRoundMeta(index, { videoStartTime: v ?? 0 })}
             className="w-24"
+            showCaptureButton
           />
         </label>
       </div>

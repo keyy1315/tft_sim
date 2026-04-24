@@ -1,11 +1,15 @@
 'use client';
 
+import { useVideoPlayer } from './videoPlayerContext';
+
 interface Props {
   value: number | undefined;        // 초 단위
   onChange: (seconds: number | undefined) => void;
   placeholder?: string;
   className?: string;
   allowEmpty?: boolean;              // videoEndTime 처럼 비어있을 수 있는 경우
+  /** true 이면 입력 옆에 "📹 현재" 버튼이 표시되어 영상 현재 시각을 주입한다. */
+  showCaptureButton?: boolean;
 }
 
 /**
@@ -28,7 +32,9 @@ export default function VideoTimeInput({
   placeholder = 'mm:ss',
   className = '',
   allowEmpty = false,
+  showCaptureButton = false,
 }: Props) {
+  const player = useVideoPlayer();
   const initialText = secondsToMMSS(value);
 
   function commit(raw: string) {
@@ -41,7 +47,7 @@ export default function VideoTimeInput({
     if (seconds !== null && seconds >= 0) onChange(seconds);
   }
 
-  return (
+  const input = (
     <input
       key={initialText}
       type="text"
@@ -54,6 +60,46 @@ export default function VideoTimeInput({
       placeholder={placeholder}
       className={`border border-gray-700 bg-gray-900 text-gray-100 p-1 rounded ${className}`}
     />
+  );
+
+  if (!showCaptureButton) return input;
+
+  const captureEnabled = player.isReady();
+  const seekEnabled = player.isReady() && value !== undefined;
+
+  function captureFromPlayer() {
+    const cur = player.getCurrentTime();
+    if (cur === null) return;
+    onChange(Math.max(0, Math.round(cur * 10) / 10));
+  }
+
+  function seekToValue() {
+    if (value === undefined) return;
+    player.seekTo(value);
+  }
+
+  return (
+    <span className="inline-flex items-center gap-1">
+      {input}
+      <button
+        type="button"
+        onClick={captureFromPlayer}
+        disabled={!captureEnabled}
+        title={captureEnabled ? '현재 영상 시점을 이 값에 기록' : '영상을 먼저 업로드하세요'}
+        className="text-xs px-1.5 py-1 rounded border border-gray-700 bg-gray-800 text-gray-200 hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed"
+      >
+        📹 현재
+      </button>
+      <button
+        type="button"
+        onClick={seekToValue}
+        disabled={!seekEnabled}
+        title={seekEnabled ? '영상을 이 시각으로 이동' : '영상 업로드 및 시각 지정 필요'}
+        className="text-xs px-1.5 py-1 rounded border border-gray-700 bg-gray-800 text-gray-200 hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed"
+      >
+        ⇥ 이동
+      </button>
+    </span>
   );
 }
 

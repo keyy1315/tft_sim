@@ -24,7 +24,7 @@
 ### 포함
 1. `/actual-data` 게임 리스트 + `/actual-data/[gameId]` 편집 페이지
 2. 게임 생성/편집/삭제/목록 API (`GET`/`POST`/`PUT`/`DELETE`)
-3. **영상 업로드/스트림/삭제 API** (`POST`/`GET`/`DELETE /api/actual-data/[gameId]/video`) — 로컬 파일시스템 저장, 최대 3GB, mp4/webm
+3. **영상 업로드/스트림/삭제 API** (`POST`/`GET`/`DELETE /api/actual-data/[gameId]/video`) — 로컬 파일시스템 저장, 최대 4GB, mp4/webm
 4. **편집 페이지 내장 비디오 플레이어** (`<video>` 태그 기반, 타임라인 바 + 라운드 구간 시각화)
 5. **타임라인 마커** (`event` / `note` / `issue` 3종, 게임 레벨 배열)
 6. **라운드별 `videoStartTime` + `videoEndTime`** + "현재 영상 시점 지정" 버튼
@@ -326,7 +326,7 @@ generateGameId(existingIds): string
 - `Content-Type: multipart/form-data` 또는 `application/octet-stream` 스트리밍
 - Next.js route는 **Node.js runtime** (Edge 아님) + `export const runtime = 'nodejs'`
 - 서버:
-  1. 파일 크기 확인 (헤더 기반 pre-check, 3GB 초과 시 413)
+  1. 파일 크기 확인 (헤더 기반 pre-check, 4GB 초과 시 413)
   2. MIME 체크 (`video/mp4`, `video/webm`만 허용)
   3. 확장자 결정: mime → ext (`mp4`/`webm`)
   4. 기존 업로드 파일 있으면 먼저 삭제 (중복 확장자 방지)
@@ -561,7 +561,7 @@ interface ActualDataState {
 - POST 동시 gameId 충돌(writeFile `wx` 플래그) → 서버가 한 번 재시도 (NNN+1). 두 번째도 실패 시 500
 
 ### 영상 업로드 에러
-- **413 too_large**: 3GB 초과 → "파일이 너무 큽니다 (최대 3GB)" 토스트. 업로드 중이면 abort.
+- **413 too_large**: 4GB 초과 → "파일이 너무 큽니다 (최대 4GB)" 토스트. 업로드 중이면 abort.
 - **400 unsupported_media**: mp4/webm/mov 외 → "지원하지 않는 포맷" 토스트
 - **네트워크 중단**: `XMLHttpRequest.abort()` 또는 `AbortController` → "업로드 취소됨" + 재시도 버튼
 - **중간 실패 시 부분 파일 정리**: 서버가 `try/finally`로 실패 시 `fs.unlink` 호출
@@ -593,7 +593,7 @@ interface ActualDataState {
 
 ### 영상 업로드
 1. 편집 페이지의 VideoUploader 드롭존에 파일 드롭 or "파일 선택"
-2. 클라이언트 pre-check: 크기 ≤ 3GB, mime ∈ {mp4, webm, mov}
+2. 클라이언트 pre-check: 크기 ≤ 4GB, mime ∈ {mp4, webm, mov}
 3. `POST /api/actual-data/[gameId]/video` — 진행률 표시 (%, 전송된 바이트)
 4. 완료 시 서버가 업데이트한 `videoSource` 수신 → 슬라이스 반영 → 플레이어 자동 로드
 5. `<video>` `onLoadedMetadata`에서 실제 duration 확인 → 서버값 없으면 `patchVideoDuration` 호출 → PUT
@@ -672,7 +672,7 @@ interface ActualDataState {
    - 플레이어가 **원하는 헥스에 자유 배치** (보드 범위 내 어디든)
    - 헥스에 **유닛이 없어도** 배치 가능
    - 일단 설치되면 **위치 변경 불가**(영구). 후속 라운드에서 `YasuoTilePlacement.hex`는 readonly 렌더
-4. **영상 업로드 최대 크기**: **3GB** 확정
+4. **영상 업로드 최대 크기**: **4GB** 확정
 5. **영상 없는 게임**: 영구 허용. 승/패 + 데미지만 기록해도 시뮬 검증 가치 유지
 6. **외부 URL**: **지원하지 않음**. `VideoSource = 'none' | 'local'`만
 

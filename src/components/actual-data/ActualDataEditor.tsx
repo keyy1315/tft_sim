@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useActualDataStore } from '@/store/actualDataSlice';
 import { useGameData } from '@/hooks/useGameData';
 import type { ActualGameData } from '@/lib/actualData/types';
@@ -7,6 +8,8 @@ import RoundList from './RoundList';
 import RoundEditor from './RoundEditor';
 import GameMetaEditor from './GameMetaEditor';
 import SaveStatusBar from './SaveStatusBar';
+import VideoPlayerShell from './VideoPlayer';
+import VideoUploader from './VideoUploader';
 
 export default function ActualDataEditor({ gameId }: { gameId: string }) {
   const game = useActualDataStore(s => s.currentGame);
@@ -35,6 +38,13 @@ export default function ActualDataEditor({ gameId }: { gameId: string }) {
     <div className="flex flex-col h-screen bg-[#0a0e1a] text-gray-100">
       <header className="border-b border-gray-700 p-2 flex justify-between items-center">
         <div className="flex items-center gap-3">
+          <Link
+            href="/actual-data"
+            className="text-sm px-2 py-1 border border-gray-700 text-gray-200 hover:bg-gray-700 rounded"
+            title="게임 목록으로 돌아가기"
+          >
+            ← 목록
+          </Link>
           <h1 className="font-bold">{game.gameId}</h1>
           <label className="flex items-center gap-1 text-sm text-gray-300">
             <span>최종 순위</span>
@@ -67,13 +77,16 @@ export default function ActualDataEditor({ gameId }: { gameId: string }) {
       </header>
       <div className="flex flex-1 overflow-hidden">
         <RoundList />
-        <main className="flex-1 p-4 overflow-auto">
-          {currentRound ? (
-            <RoundEditor />
-          ) : (
-            <p className="text-gray-400">좌측에서 라운드를 선택하거나 &quot;+ PvP&quot;/&quot;+ Shrine&quot;으로 추가하세요.</p>
-          )}
-        </main>
+        <VideoPlayerShell>
+          <main className="flex-1 min-h-0 p-4 overflow-auto flex flex-col gap-3">
+            {game.videoSource.kind === 'none' && <VideoUploader />}
+            {currentRound ? (
+              <RoundEditor />
+            ) : (
+              <p className="text-gray-400">좌측에서 라운드를 선택하거나 &quot;+ PvP&quot;/&quot;+ Shrine&quot;으로 추가하세요.</p>
+            )}
+          </main>
+        </VideoPlayerShell>
       </div>
       {metaOpen && <GameMetaEditor onClose={() => setMetaOpen(false)} />}
     </div>

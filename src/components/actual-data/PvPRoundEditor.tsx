@@ -104,6 +104,7 @@ export default function PvPRoundEditor({ index, round }: { index: number; round:
                 value={round.videoStartTime}
                 onChange={v => updateRoundMeta(index, { videoStartTime: v ?? 0 })}
                 className="w-24"
+                showCaptureButton
               />
             </label>
             <label className="flex flex-col">
@@ -113,6 +114,7 @@ export default function PvPRoundEditor({ index, round }: { index: number; round:
                 onChange={v => updateRoundMeta(index, { videoEndTime: v })}
                 className="w-24"
                 allowEmpty
+                showCaptureButton
               />
             </label>
           </div>

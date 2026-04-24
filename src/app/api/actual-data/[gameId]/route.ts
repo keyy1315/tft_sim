@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { readGame, writeGame, deleteGame } from '@/lib/actualData/server/gameStore';
+import { deleteExistingVideos } from '@/lib/actualData/server/videoStore';
 import { ActualGameDataSchema } from '@/lib/actualData/schema';
 
 export const runtime = 'nodejs';
@@ -60,5 +61,6 @@ export async function DELETE(_req: Request, { params }: Ctx) {
   if (!deleted) {
     return NextResponse.json({ error: 'not_found' }, { status: 404 });
   }
+  await deleteExistingVideos(gameId);
   return new NextResponse(null, { status: 204 });
 }
