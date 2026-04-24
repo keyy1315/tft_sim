@@ -162,33 +162,54 @@ export const useActualDataStore = create<ActualDataState>((set, get) => ({
   },
 
   saveCurrentGame: async () => {
-    const game = get().currentGame;
-    if (!game) return;
+    const snapshot = get().currentGame;
+    if (!snapshot) return;
     set({ saveStatus: 'saving', saveError: null });
     try {
-      const res = await fetch(`/api/actual-data/${game.gameId}`, {
+      const res = await fetch(`/api/actual-data/${snapshot.gameId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(game),
+        body: JSON.stringify(snapshot),
       });
       if (!res.ok) {
         const body = (await res.json().catch(() => ({}))) as { message?: string };
         throw new Error(body.message ?? `save failed: ${res.status}`);
       }
       const { updatedAt } = (await res.json()) as { updatedAt: string };
-      set({
-        saveStatus: 'saved',
-        lastSavedAt: updatedAt,
-        isDirty: false,
-        currentGame: { ...game, updatedAt },
-      });
-      clearDraft(game.gameId);
-      // transition saved → idle after 2s
-      setTimeout(() => {
-        if (get().saveStatus === 'saved') set({ saveStatus: 'idle' });
-      }, 2000);
+
+      // Save 진행 중 사용자가 편집했을 수 있으므로 완료 시점의 state 를 다시 확인한다.
+      // snapshot 은 PUT body 로 직렬화된 버전 — 서버에 반영된 내용이다.
+      // current 는 지금 메모리상의 버전 — 새 편집이 있으면 snapshot 과 reference 가 다르다.
+      const current = get().currentGame;
+      if (!current || current.gameId !== snapshot.gameId) {
+        // 저장 도중 게임이 바뀜(목록으로 이동 등). 결과만 반영하고 현재 상태는 건드리지 않음.
+        set({ saveStatus: 'idle', lastSavedAt: updatedAt });
+        clearDraft(snapshot.gameId);
+        return;
+      }
+      const hasNewEdits = current !== snapshot;
+      if (hasNewEdits) {
+        // 새 편집이 있음 — snapshot 으로 덮어쓰지 말고 isDirty 를 유지.
+        // currentGame.updatedAt 은 이 새 편집을 아직 저장한 게 아니므로 그대로 둔다.
+        // 새 편집분은 다음 save 주기에서 커밋됨.
+        set({ saveStatus: 'idle', lastSavedAt: updatedAt, isDirty: true });
+        saveDraft(current);
+      } else {
+        // Clean save — updatedAt 반영 + dirty 클리어
+        set({
+          saveStatus: 'saved',
+          lastSavedAt: updatedAt,
+          isDirty: false,
+          currentGame: { ...current, updatedAt },
+        });
+        clearDraft(snapshot.gameId);
+        setTimeout(() => {
+          if (get().saveStatus === 'saved') set({ saveStatus: 'idle' });
+        }, 2000);
+      }
     } catch (err) {
-      saveDraft(game);
+      // 저장 실패 시 현재 메모리 상태를 draft 로 보관. (진행 중 편집도 포함)
+      saveDraft(get().currentGame ?? snapshot);
       set({
         saveStatus: 'error',
         saveError: err instanceof Error ? err.message : String(err),

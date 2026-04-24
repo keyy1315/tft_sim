@@ -213,9 +213,17 @@ function syncTeam(team: PlacedChampion[], traits: RawTrait[]): PlacedChampion[] 
   // resolveTraits 결과의 count는 champion.traits + emblem을 모두 반영하므로
   // "6 길잡이 + 상징 = 7 길잡이" 시나리오에서도 3성 소환이 정확히 나옴.
   // 단, 기존 소환체(TFT17_Summon)는 길잡이 trait를 가지지 않으므로 count에서 자연 제외됨.
-  const active = resolveTraits(intermediate, traits);
-  const voyagerCount = active.find(t => t.trait.name === '길잡이')?.count ?? 0;
-  const withVoyager = syncVoyagerSummonInTeam(intermediate, voyagerCount);
+  //
+  // ⚠️ traits 카탈로그가 아직 비어 있으면(비동기 로드 진행 중) voyagerCount 가 실제와
+  // 무관하게 0 으로 계산되어 기존 TFT17_Summon 이 잘못 제거될 수 있다. 이 경우 길잡이
+  // 동기화 단계를 건너뛰고 기존 상태를 보존 — traits 도착 후 useTeamManagement 훅의
+  // 1회성 resync 및 다음 사용자 편집에서 자연 정합화된다.
+  const withVoyager = traits.length === 0
+    ? intermediate
+    : syncVoyagerSummonInTeam(
+        intermediate,
+        resolveTraits(intermediate, traits).find(t => t.trait.name === '길잡이')?.count ?? 0,
+      );
 
   // 3단계: 쉔 아티팩트
   return syncShenArtifactInTeam(withVoyager);
@@ -231,19 +239,29 @@ export interface UseTeamManagementArgs {
 }
 
 export function useTeamManagement({ traits }: UseTeamManagementArgs) {
-  const [playerTeam, setPlayerTeamRaw] = useState<PlacedChampion[]>([]);
-  const [enemyTeam, setEnemyTeamRaw] = useState<PlacedChampion[]>([]);
+  // 원본 상태는 사용자 의도(배치/이동/아이템 등) 그대로 보관. 자동 소환체는 derived 에서 적용.
+  // 이렇게 하면 traits 카탈로그가 비동기 로드된 뒤 자동으로 재계산되어 voyagerCount 기반
+  // TFT17_Summon 이 복원/조정된다 (useEffect 로 setState 를 재호출하지 않아도 됨).
+  const [rawPlayerTeam, setRawPlayerTeam] = useState<PlacedChampion[]>([]);
+  const [rawEnemyTeam, setRawEnemyTeam] = useState<PlacedChampion[]>([]);
 
+  const playerTeam = useMemo(() => syncTeam(rawPlayerTeam, traits), [rawPlayerTeam, traits]);
+  const enemyTeam = useMemo(() => syncTeam(rawEnemyTeam, traits), [rawEnemyTeam, traits]);
+
+  // updater 의 prev 는 callers 가 보는 synced 뷰와 동일해야 DnD srcIdx 등이 일치한다.
+  // 저장은 raw 에 하지만 updater 에는 syncTeam(raw, traits) 결과를 주입.
+  // syncTeam 은 idempotent(summon 존재 여부를 existingIdx 로 감지)하므로 raw 에 synced 가
+  // 다시 들어와도 중복 누적 없이 재계산 가능.
   const updatePlayerTeam = (action: PlacedChampion[] | ((prev: PlacedChampion[]) => PlacedChampion[])) => {
-    setPlayerTeamRaw(prev => {
-      const updated = typeof action === 'function' ? action(prev) : action;
-      return syncTeam(updated, traits);
+    setRawPlayerTeam(rawPrev => {
+      const syncedPrev = syncTeam(rawPrev, traits);
+      return typeof action === 'function' ? action(syncedPrev) : action;
     });
   };
   const updateEnemyTeam = (action: PlacedChampion[] | ((prev: PlacedChampion[]) => PlacedChampion[])) => {
-    setEnemyTeamRaw(prev => {
-      const updated = typeof action === 'function' ? action(prev) : action;
-      return syncTeam(updated, traits);
+    setRawEnemyTeam(rawPrev => {
+      const syncedPrev = syncTeam(rawPrev, traits);
+      return typeof action === 'function' ? action(syncedPrev) : action;
     });
   };
 
