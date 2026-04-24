@@ -36,6 +36,28 @@
 
 ---
 
+## 데이터 정합 이슈 (v1 구현 중 발견, 2026-04-24)
+
+### `ioniaPath` 필드 — Set 17에 아이오니아 trait 없음
+
+**발견**: `public/data/tft_set17_champions.json` 트레잇 목록에 "아이오니아" 없음. Set 17 trait는
+동물특공대/태고족/불한당/도전자/습격자/기동총격여신/파멸자 등. `TFT17_Yasuo` 챔피언도 데이터에 없음.
+
+**현 상태**: 스펙과 schema 확장에 `ioniaPath` 포함됐으나 Set 17에선 활성 트레잇이 없어 쓰임 없음.
+- schemaAdapter의 ionia warning은 방어적으로 처리 — 트레잇 없으면 조용히 스킵
+- 엔진 `SimulateOptions.playerIoniaPath`는 이전 세트 잔존 옵션
+- 해가 없음 (optional 필드)
+
+**재고 트리거**: Set 18 이후 아이오니아 재등장 시 자동 활성. 그 전엔 놔둬도 무해.
+혹시 Set 17 데이터 업데이트로 아이오니아 재추가되면 schema와 adapter는 그대로 작동.
+
+**대안 판단**: v1 끝난 후 사용자가 "Set 17 전용으로 정돈하고 싶다" 판단 시:
+1. schema 에서 `ioniaPath` 제거
+2. schemaAdapter에서 `playerIoniaPath` 매핑 제거
+3. 관련 warning 룰 제거
+
+---
+
 ## 후속 (6) — 시스템별 오차 귀속 (Attribution)
 
 **스코프:**
