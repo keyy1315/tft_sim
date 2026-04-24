@@ -40,6 +40,31 @@ function setItemInSlot(u: PlacedUnit, item: RawItem): PlacedUnit | null {
   return null; // max 3 items
 }
 
+/** Parse an item-slot droppable id `item-slot-{team}-{q}-{r}-{slotIdx}`. */
+export function parseSlotId(id: string): { team: 'player' | 'enemy'; hex: HexCoord; slotIdx: 0 | 1 | 2 } | null {
+  const match = id.match(/^item-slot-(player|enemy)-(-?\d+)-(-?\d+)-(\d+)$/);
+  if (!match) return null;
+  const slotIdx = Number(match[4]);
+  if (slotIdx !== 0 && slotIdx !== 1 && slotIdx !== 2) return null;
+  return {
+    team: match[1] as 'player' | 'enemy',
+    hex: { q: Number(match[2]), r: Number(match[3]) },
+    slotIdx,
+  };
+}
+
+/** Replace or fill a specific slot (0..2) with the given item apiName. Returns a new unit. */
+export function setItemAtSlot(u: PlacedUnit, itemApiName: string, slotIdx: 0 | 1 | 2): PlacedUnit {
+  const next = [...u.items] as PlacedUnit['items'];
+  next[slotIdx] = itemApiName;
+  return { ...u, items: next };
+}
+
+/** Clear all three item slots of a unit. Returns a new unit. */
+export function clearUnitItems(u: PlacedUnit): PlacedUnit {
+  return { ...u, items: [undefined, undefined, undefined] as PlacedUnit['items'] };
+}
+
 export interface ActualDndContext {
   round: PvPRound;
   roundIndex: number;
