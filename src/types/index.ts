@@ -147,6 +147,12 @@ export interface RawAugment {
   icon: string;
   associatedTraits: string[];
   tags: string[];
+  /**
+   * Set 17에서 실제 사용되는 증강 여부 (CommunityDragon 기준).
+   * false면 이전 시즌 잔재이거나 비활성 증강.
+   * 누락된 경우 기본 false 취급.
+   */
+  inSet17?: boolean;
 }
 
 export interface RawAugmentsData {
@@ -530,12 +536,13 @@ export interface TickSnapshot {
 }
 
 // === Augment Tier Types ===
-export type AugmentTier = 'silver' | 'gold' | 'prismatic';
+export type AugmentTier = 'silver' | 'gold' | 'prismatic' | 'boon';
 
 export const AUGMENT_TIER_TAGS: Record<string, AugmentTier> = {
   '{d11fd6d5}': 'silver',
   '{ce1fd21c}': 'gold',
   '{cf1fd3af}': 'prismatic',
+  '{719abef1}': 'boon', // Set 17 신 은총 (GodAugment) 고유 티어
 };
 
 export const COST_COLORS: Record<number, string> = {

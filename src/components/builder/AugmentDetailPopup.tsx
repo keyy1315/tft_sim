@@ -1,11 +1,11 @@
 'use client';
 
-import Image from 'next/image';
 import { RawAugment } from '@/types';
-import { getAugmentImage, TIER_BORDER_COLORS } from '@/data/imageMap';
+import { TIER_BORDER_COLORS } from '@/data/imageMap';
 import { getAugmentTier, isStackable, getMaxStacks } from '@/lib/simulator/systems/augment';
 import { CARRY_AUGMENTS } from '@/data/carryAugments';
 import Modal from '@/components/ui/Modal';
+import AugmentIcon from './AugmentIcon';
 
 interface AugmentDetailPopupProps {
   augment: RawAugment | null;
@@ -43,13 +43,13 @@ export default function AugmentDetailPopup({ augment, stacks, onStacksChange, on
         {/* Header */}
         <div className="flex items-center gap-4">
           <div className={`w-16 h-16 rounded-lg border-2 ${TIER_BORDER_COLORS[tier]} overflow-hidden shrink-0 flex items-center justify-center`}>
-            <Image
-              src={getAugmentImage(augment.icon)}
+            <AugmentIcon
+              key={augment.icon}
+              icon={augment.icon}
               alt={augment.name}
               className="w-full h-full object-contain"
               width={64}
               height={64}
-              unoptimized
             />
           </div>
           <div>

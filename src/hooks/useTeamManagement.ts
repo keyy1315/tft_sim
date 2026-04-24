@@ -132,30 +132,53 @@ function syncAzirSoldiersInTeam(team: PlacedChampion[]): PlacedChampion[] {
   return result;
 }
 
-function syncVoyagerSummonInTeam(team: PlacedChampion[]): PlacedChampion[] {
-  const voyagerCount = team.filter(p =>
-    p.champion.traits.includes('길잡이') && p.champion.apiName !== 'TFT17_Summon'
-  ).length;
-  const hasSummon = team.some(p => p.champion.apiName === 'TFT17_Summon');
+/**
+ * 길잡이 활성 시너지 티어 → 비아와 바이엔 소환체 별 레벨 매핑.
+ *   3 길잡이 → 1성
+ *   5 길잡이 → 2성
+ *   7 길잡이 (6명 + 상징) → 3성
+ *   < 3 → 소환하지 않음
+ *
+ * 길잡이 수는 active trait count(상징 포함)를 사용한다.
+ */
+function getVoyagerSummonStarLevel(activeVoyagerCount: number): 1 | 2 | 3 | null {
+  if (activeVoyagerCount >= 7) return 3;
+  if (activeVoyagerCount >= 5) return 2;
+  if (activeVoyagerCount >= 3) return 1;
+  return null;
+}
 
-  if (voyagerCount >= 3 && !hasSummon) {
-    const occupied = new Set(team.map(p => `${p.position.q},${p.position.r}`));
-    const pos = findEmptyAdjacentHex({ q: 2, r: 2 }, occupied, 3);
-    if (!pos) return team;
-    return [...team, {
-      champion: VOYAGER_SUMMON_CHAMPION,
-      position: pos,
-      starLevel: 1,
-      items: [],
-      isSummon: true,
-    }];
+function syncVoyagerSummonInTeam(
+  team: PlacedChampion[],
+  activeVoyagerCount: number,
+): PlacedChampion[] {
+  const targetStar = getVoyagerSummonStarLevel(activeVoyagerCount);
+  const existingIdx = team.findIndex(p => p.champion.apiName === 'TFT17_Summon');
+
+  // 시너지 비활성 → 기존 소환체 제거
+  if (targetStar === null) {
+    return existingIdx >= 0 ? team.filter((_, i) => i !== existingIdx) : team;
   }
 
-  if (voyagerCount < 3 && hasSummon) {
-    return team.filter(p => p.champion.apiName !== 'TFT17_Summon');
+  // 이미 존재하면 별 레벨만 맞춤
+  if (existingIdx >= 0) {
+    if (team[existingIdx].starLevel === targetStar) return team;
+    return team.map((p, i) =>
+      i === existingIdx ? { ...p, starLevel: targetStar } : p,
+    );
   }
 
-  return team;
+  // 신규 소환
+  const occupied = new Set(team.map(p => `${p.position.q},${p.position.r}`));
+  const pos = findEmptyAdjacentHex({ q: 2, r: 2 }, occupied, 3);
+  if (!pos) return team;
+  return [...team, {
+    champion: VOYAGER_SUMMON_CHAMPION,
+    position: pos,
+    starLevel: targetStar,
+    items: [],
+    isSummon: true,
+  }];
 }
 
 /** 쉔이 있으면 옆칸에 "유물"(TFT17_ShenProp) 을 자동 소환, 쉔이 없으면 제거. 보루 시너지 unique trait. */
@@ -182,8 +205,28 @@ function syncShenArtifactInTeam(team: PlacedChampion[]): PlacedChampion[] {
   return team;
 }
 
-function syncTeam(team: PlacedChampion[]): PlacedChampion[] {
-  return syncShenArtifactInTeam(syncVoyagerSummonInTeam(syncFreljordTurretsInTeam(syncAzirSoldiersInTeam(syncTibbersInTeam(team)))));
+function syncTeam(team: PlacedChampion[], traits: RawTrait[]): PlacedChampion[] {
+  // 1단계: 일반 소환체 보정 (아지르/애니/프렐요드)
+  const intermediate = syncFreljordTurretsInTeam(syncAzirSoldiersInTeam(syncTibbersInTeam(team)));
+
+  // 2단계: 길잡이 active 카운트 계산 후 소환체 반영.
+  // resolveTraits 결과의 count는 champion.traits + emblem을 모두 반영하므로
+  // "6 길잡이 + 상징 = 7 길잡이" 시나리오에서도 3성 소환이 정확히 나옴.
+  // 단, 기존 소환체(TFT17_Summon)는 길잡이 trait를 가지지 않으므로 count에서 자연 제외됨.
+  //
+  // ⚠️ traits 카탈로그가 아직 비어 있으면(비동기 로드 진행 중) voyagerCount 가 실제와
+  // 무관하게 0 으로 계산되어 기존 TFT17_Summon 이 잘못 제거될 수 있다. 이 경우 길잡이
+  // 동기화 단계를 건너뛰고 기존 상태를 보존 — traits 도착 후 useTeamManagement 훅의
+  // 1회성 resync 및 다음 사용자 편집에서 자연 정합화된다.
+  const withVoyager = traits.length === 0
+    ? intermediate
+    : syncVoyagerSummonInTeam(
+        intermediate,
+        resolveTraits(intermediate, traits).find(t => t.trait.name === '길잡이')?.count ?? 0,
+      );
+
+  // 3단계: 쉔 아티팩트
+  return syncShenArtifactInTeam(withVoyager);
 }
 
 // === Exported helpers used by DnD ===
@@ -196,19 +239,29 @@ export interface UseTeamManagementArgs {
 }
 
 export function useTeamManagement({ traits }: UseTeamManagementArgs) {
-  const [playerTeam, setPlayerTeamRaw] = useState<PlacedChampion[]>([]);
-  const [enemyTeam, setEnemyTeamRaw] = useState<PlacedChampion[]>([]);
+  // 원본 상태는 사용자 의도(배치/이동/아이템 등) 그대로 보관. 자동 소환체는 derived 에서 적용.
+  // 이렇게 하면 traits 카탈로그가 비동기 로드된 뒤 자동으로 재계산되어 voyagerCount 기반
+  // TFT17_Summon 이 복원/조정된다 (useEffect 로 setState 를 재호출하지 않아도 됨).
+  const [rawPlayerTeam, setRawPlayerTeam] = useState<PlacedChampion[]>([]);
+  const [rawEnemyTeam, setRawEnemyTeam] = useState<PlacedChampion[]>([]);
 
+  const playerTeam = useMemo(() => syncTeam(rawPlayerTeam, traits), [rawPlayerTeam, traits]);
+  const enemyTeam = useMemo(() => syncTeam(rawEnemyTeam, traits), [rawEnemyTeam, traits]);
+
+  // updater 의 prev 는 callers 가 보는 synced 뷰와 동일해야 DnD srcIdx 등이 일치한다.
+  // 저장은 raw 에 하지만 updater 에는 syncTeam(raw, traits) 결과를 주입.
+  // syncTeam 은 idempotent(summon 존재 여부를 existingIdx 로 감지)하므로 raw 에 synced 가
+  // 다시 들어와도 중복 누적 없이 재계산 가능.
   const updatePlayerTeam = (action: PlacedChampion[] | ((prev: PlacedChampion[]) => PlacedChampion[])) => {
-    setPlayerTeamRaw(prev => {
-      const updated = typeof action === 'function' ? action(prev) : action;
-      return syncTeam(updated);
+    setRawPlayerTeam(rawPrev => {
+      const syncedPrev = syncTeam(rawPrev, traits);
+      return typeof action === 'function' ? action(syncedPrev) : action;
     });
   };
   const updateEnemyTeam = (action: PlacedChampion[] | ((prev: PlacedChampion[]) => PlacedChampion[])) => {
-    setEnemyTeamRaw(prev => {
-      const updated = typeof action === 'function' ? action(prev) : action;
-      return syncTeam(updated);
+    setRawEnemyTeam(rawPrev => {
+      const syncedPrev = syncTeam(rawPrev, traits);
+      return typeof action === 'function' ? action(syncedPrev) : action;
     });
   };
 

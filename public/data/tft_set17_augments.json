@@ -17,7 +17,8 @@
       "associatedTraits": [],
       "tags": [
         "{719abef1}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "소라카의 은총",
@@ -31,7 +32,8 @@
       "associatedTraits": [],
       "tags": [
         "{719abef1}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "동물특공대 지휘관",
@@ -53,7 +55,8 @@
         "{4529fead}",
         "{84a6d904}",
         "{77b330ea}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "방패 여전사",
@@ -69,7 +72,8 @@
         "{d22ae649}",
         "{ec068228}",
         "{84a6d904}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "아우렐리온 솔의 은총",
@@ -86,48 +90,52 @@
       "associatedTraits": [],
       "tags": [
         "{719abef1}"
-      ]
+      ],
+      "inSet17": true
     },
     {
-      "name": "아군이 공격력 및 주문력을 @SmallQuestADAP@ 얻습니다.",
+      "name": "아우솔의 은총 퀘스트 I",
       "apiName": "TFT17_Augment_AurelionSolGodAugment_SmallQuest",
       "desc": "아군이 공격력 및 주문력을 @SmallQuestADAP@ 얻습니다.",
       "effects": {
         "SmallQuestADAP": 15
       },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/ChoiceUI/ADMIN_Armorery_Icon.tex",
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Missing-T2.tex",
       "associatedTraits": [],
       "tags": [
         "{ea82f47d}"
-      ]
+      ],
+      "inSet17": true
     },
     {
-      "name": "플레이어 대상 전투 @MedQuestRounds@회 후, 완성 아이템 모루와 @MedQuestGold@골드를 획득합니다.",
+      "name": "아우솔의 은총 퀘스트 II",
       "apiName": "TFT17_Augment_AurelionSolGodAugment_MediumQuest",
-      "desc": "",
+      "desc": "플레이어 대상 전투 @MedQuestRounds@회 후, 완성 아이템 모루와 @MedQuestGold@골드를 획득합니다.",
       "effects": {
         "MedQuestGold": 22,
         "MedQuestRounds": 3,
         "{7c96bf44}": 1
       },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/ChoiceUI/ADMIN_Armorery_Icon.tex",
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Missing-T2.tex",
       "associatedTraits": [],
       "tags": [
         "{ea82f47d}"
-      ]
+      ],
+      "inSet17": true
     },
     {
-      "name": "플레이어 대상 전투 @LargeQuestRounds@회 후, 고유 특성이 아닌 모든 특성에 +1을 추가합니다.",
+      "name": "아우솔의 은총 퀘스트 III",
       "apiName": "TFT17_Augment_AurelionSolGodAugment_LargeQuest",
-      "desc": "",
+      "desc": "플레이어 대상 전투 @LargeQuestRounds@회 후, 고유 특성이 아닌 모든 특성에 +1을 추가합니다.",
       "effects": {
         "LargeQuestRounds": 8
       },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/ChoiceUI/ADMIN_Armorery_Icon.tex",
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Missing-T2.tex",
       "associatedTraits": [],
       "tags": [
         "{ea82f47d}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "뜨거운 죽음",
@@ -143,7 +151,8 @@
         "{d22ae649}",
         "{ec068228}",
         "{84a6d904}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "침략자 제드",
@@ -162,7 +171,8 @@
         "{d22ae649}",
         "{ec068228}",
         "{84a6d904}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "아리의 은총",
@@ -176,7 +186,8 @@
       "associatedTraits": [],
       "tags": [
         "{719abef1}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "부활의 은총",
@@ -185,7 +196,8 @@
       "effects": {},
       "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Missing-T2.tex",
       "associatedTraits": [],
-      "tags": []
+      "tags": [],
+      "inSet17": true
     },
     {
       "name": "신성한 개정",
@@ -204,7 +216,8 @@
         "{d22ae649}",
         "{84a6d904}",
         "{38baf02e}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "별빛 연계",
@@ -220,7 +233,8 @@
         "{d22ae649}",
         "{ec068228}",
         "{84a6d904}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "야스오의 스포트라이트 공유",
@@ -231,7 +245,8 @@
       },
       "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/ShareSpotlight2.tex",
       "associatedTraits": [],
-      "tags": []
+      "tags": [],
+      "inSet17": true
     },
     {
       "name": "정령단 속도",
@@ -247,7 +262,8 @@
         "{d22ae649}",
         "{ec068228}",
         "{84a6d904}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "빅뱅",
@@ -263,7 +279,8 @@
         "{d22ae649}",
         "{ec068228}",
         "{84a6d904}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "청부 살인마",
@@ -279,7 +296,8 @@
         "{d22ae649}",
         "{ec068228}",
         "{84a6d904}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "야스오의 황금 칸",
@@ -292,7 +310,8 @@
       },
       "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/FindYourCenter_I.TFT_Set12.tex",
       "associatedTraits": [],
-      "tags": []
+      "tags": [],
+      "inSet17": true
     },
     {
       "name": "쓰레쉬의 은총",
@@ -311,7 +330,8 @@
       "associatedTraits": [],
       "tags": [
         "{719abef1}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "저 별을 향해",
@@ -327,7 +347,8 @@
         "{d22ae649}",
         "{ec068228}",
         "{84a6d904}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "저격수의 은신처",
@@ -348,7 +369,8 @@
         "{3754d0ae}",
         "{84a6d904}",
         "{38baf02e}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "신성한 대장간",
@@ -361,7 +383,8 @@
         "{ce1fd21c}",
         "{8fba48a3}",
         "{b72bd3bf}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "길잡이의 노래",
@@ -382,7 +405,8 @@
         "{d12ae4b6}",
         "{84a6d904}",
         "{39baf1c1}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "이블린의 은총",
@@ -396,7 +420,8 @@
       "associatedTraits": [],
       "tags": [
         "{719abef1}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "은하계 여행",
@@ -419,7 +444,8 @@
         "{3754d0ae}",
         "{84a6d904}",
         "{38baf02e}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "꽁!",
@@ -435,7 +461,8 @@
         "{d22ae649}",
         "{ec068228}",
         "{84a6d904}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "케일의 은총",
@@ -452,7 +479,8 @@
       "associatedTraits": [],
       "tags": [
         "{719abef1}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "야스오의 은총",
@@ -466,7 +494,8 @@
       "associatedTraits": [],
       "tags": [
         "{719abef1}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "고철 수집가의 은총",
@@ -478,7 +507,8 @@
       },
       "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Missing-T2.tex",
       "associatedTraits": [],
-      "tags": []
+      "tags": [],
+      "inSet17": true
     },
     {
       "name": "자폭",
@@ -494,7 +524,8 @@
         "{d22ae649}",
         "{ec068228}",
         "{84a6d904}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "바루스의 은총",
@@ -508,7 +539,8 @@
       "associatedTraits": [],
       "tags": [
         "{719abef1}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "피의 대가",
@@ -519,7 +551,8 @@
       },
       "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Missing-T2.tex",
       "associatedTraits": [],
-      "tags": []
+      "tags": [],
+      "inSet17": true
     },
     {
       "name": "이륙",
@@ -543,7 +576,8 @@
         "{d12ae4b6}",
         "{d22ae649}",
         "{84a6d904}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "군체의 심장",
@@ -562,7 +596,8 @@
         "{d12ae4b6}",
         "{d22ae649}",
         "{84a6d904}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "변형의 마법",
@@ -573,7 +608,8 @@
       "associatedTraits": [],
       "tags": [
         "Consumable"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "변형의 마법",
@@ -584,7 +620,8 @@
       "associatedTraits": [],
       "tags": [
         "Consumable"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "변형의 마법",
@@ -595,7 +632,8 @@
       "associatedTraits": [],
       "tags": [
         "Consumable"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "변형의 마법",
@@ -606,7 +644,8 @@
       "associatedTraits": [],
       "tags": [
         "Consumable"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "변형의 마법",
@@ -617,7 +656,8 @@
       "associatedTraits": [],
       "tags": [
         "Consumable"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "성장 끝<br><tftitemrules>변신을 중단하고 별 레벨 상승이 가능한 상태가 됩니다.</tftitemrules>",
@@ -629,7 +669,8 @@
       "tags": [
         "{ea82f47d}",
         "{86ebf6e7}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "반짝이는 것들+",
@@ -649,7 +690,8 @@
         "{d02ae323}",
         "{7aaa3b47}",
         "{8fba48a3}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "아이템 수집가 II",
@@ -669,7 +711,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{807eed8a}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "아이템 수집가 I",
@@ -688,7 +731,8 @@
         "{d11fd6d5}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "슈퍼스타 I",
@@ -707,7 +751,8 @@
         "{d22ae649}",
         "{92e7310e}",
         "{d12ae4b6}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "응징",
@@ -724,7 +769,8 @@
         "{8fba48a3}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "최적화",
@@ -740,7 +786,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{d22ae649}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "우유부단 II",
@@ -760,7 +807,8 @@
         "{cf1fd3af}",
         "{53220453}",
         "{24d36c27}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "아케인 빅토르이!",
@@ -771,14 +819,15 @@
         "SecondStunSeconds": 18,
         "StunDuration": 1.5
       },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/ArcaneViktory_II.tex",
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/ArcaneViktory_II.TFT_Set16_ChampionAugments.tex",
       "associatedTraits": [],
       "tags": [
         "{ce1fd21c}",
         "{b72bd3bf}",
         "{d02ae323}",
         "{807eed8a}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "수련 I",
@@ -796,7 +845,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{0d98debd}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "서사적 새로고침",
@@ -805,7 +855,7 @@
       "effects": {
         "NumRerolls": 20
       },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/EpicRolldown_II.tex",
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/EpicRolldown_II.TFT_Set16_ChampionAugments.tex",
       "associatedTraits": [],
       "tags": [
         "{ce1fd21c}",
@@ -813,7 +863,8 @@
         "{d02ae323}",
         "{d22ae649}",
         "{24d36c27}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "극대화 빌드",
@@ -823,7 +874,7 @@
         "Gold": 4,
         "{831bb748}": 1
       },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/MaxBuild_II.tex",
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/MaxBuild_II.TFT_Set16_ChampionAugments.tex",
       "associatedTraits": [],
       "tags": [
         "{ce1fd21c}",
@@ -832,7 +883,8 @@
         "{d02ae323}",
         "{ef273b4c}",
         "{d22ae649}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "급매",
@@ -852,7 +904,8 @@
         "{d02ae323}",
         "{7aaa3b47}",
         "{d12ae4b6}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "뻗어가는 뿌리",
@@ -872,7 +925,8 @@
         "{d12ae4b6}",
         "{92e7310e}",
         "{38bcced7}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "우유부단 I",
@@ -892,7 +946,8 @@
         "{d22ae649}",
         "{53220453}",
         "{24d36c27}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "생존자",
@@ -915,7 +970,8 @@
         "{b72bd3bf}",
         "{77b330ea}",
         "{94b91e70}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "지원 골렘 II",
@@ -931,7 +987,8 @@
         "{cf1fd3af}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "원거리 딜러의 공구함",
@@ -948,7 +1005,8 @@
         "{d02ae323}",
         "{7b2d141a}",
         "{86d6da1b}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "작은 꾸러미",
@@ -964,7 +1022,8 @@
         "{b72bd3bf}",
         "{8fba48a3}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "몸 키우기 I",
@@ -983,7 +1042,8 @@
         "{d12ae4b6}",
         "{7aaa3b47}",
         "{4529fead}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "대장군의 명예",
@@ -1001,7 +1061,8 @@
         "{b72bd3bf}",
         "{d22ae649}",
         "{807eed8a}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "몸 키우기 II",
@@ -1020,7 +1081,8 @@
         "{d12ae4b6}",
         "{7aaa3b47}",
         "{4529fead}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "벼락",
@@ -1036,7 +1098,8 @@
       "tags": [
         "{ce1fd21c}",
         "{b72bd3bf}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "아이템 새로고침",
@@ -1050,7 +1113,8 @@
       "tags": [
         "{ce1fd21c}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "전략가의 주방",
@@ -1072,7 +1136,8 @@
         "{d22ae649}",
         "{382a7131}",
         "{38bcced7}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "지원 채굴+",
@@ -1090,7 +1155,8 @@
         "{d22ae649}",
         "{7aaa3b47}",
         "{8fba48a3}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "훈련 봇 가방",
@@ -1103,7 +1169,8 @@
         "{d11fd6d5}",
         "{b72bd3bf}",
         "{0d98debd}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "큰 1단계",
@@ -1121,7 +1188,8 @@
         "{b72bd3bf}",
         "{d22ae649}",
         "{66fe0140}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "앞날 예측",
@@ -1138,7 +1206,8 @@
         "{d22ae649}",
         "{0d98debd}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "거대하고 강력한",
@@ -1156,7 +1225,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{807eed8a}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "백병전",
@@ -1173,7 +1243,8 @@
         "{cf1fd3af}",
         "{b72bd3bf}",
         "{92e7310e}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "복제",
@@ -1190,7 +1261,8 @@
         "{b72bd3bf}",
         "{d22ae649}",
         "{8fba48a3}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "즉각적인 만족",
@@ -1207,7 +1279,8 @@
         "{d22ae649}",
         "{d12ae4b6}",
         "{ce1fd21c}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "고통으로부터 얻는 힘",
@@ -1222,7 +1295,8 @@
       "tags": [
         "{ce1fd21c}",
         "{0d98debd}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "삼인방 I",
@@ -1246,7 +1320,8 @@
         "{ee609993}",
         "{807eed8a}",
         "{66fe0140}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "분노 조절 문제",
@@ -1265,7 +1340,8 @@
         "{d02ae323}",
         "{92e7310e}",
         "{a7b22c38}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "훈련 봇 변환",
@@ -1286,7 +1362,8 @@
         "{d22ae649}",
         "{c5c463aa}",
         "{807eed8a}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "자랑할 권한",
@@ -1300,7 +1377,8 @@
         "{b72bd3bf}",
         "{77b330ea}",
         "{1b38016d}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "속임수 잔치",
@@ -1320,7 +1398,8 @@
         "{b72bd3bf}",
         "{0d98debd}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "참는 자에게 복을",
@@ -1340,7 +1419,8 @@
         "{d22ae649}",
         "{d12ae4b6}",
         "{7aaa3b47}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "더욱 치명적인 모자",
@@ -1360,7 +1440,8 @@
         "{0d98debd}",
         "{d12ae4b6}",
         "{cf1fd3af}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "야수를 풀어라",
@@ -1378,7 +1459,8 @@
         "{d22ae649}",
         "{7b2d141a}",
         "{8fba48a3}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "증강된 힘",
@@ -1391,7 +1473,8 @@
         "{d11fd6d5}",
         "{b72bd3bf}",
         "{d22ae649}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "훈련 교범",
@@ -1411,7 +1494,8 @@
         "{d22ae649}",
         "{86d6da1b}",
         "{92e7310e}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "끝없는 발화",
@@ -1427,7 +1511,8 @@
         "{ce1fd21c}",
         "{8fba48a3}",
         "{ee04db7b}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "급식소",
@@ -1450,7 +1535,8 @@
         "{0d98debd}",
         "{d02ae323}",
         "{807eed8a}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "남작의 소굴",
@@ -1467,7 +1553,8 @@
         "{cf1fd3af}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "성취",
@@ -1488,7 +1575,8 @@
         "{d22ae649}",
         "{d02ae323}",
         "{7aaa3b47}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "치명적 성공",
@@ -1507,7 +1595,8 @@
         "{d22ae649}",
         "{d12ae4b6}",
         "{8fba48a3}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "새로고침 이월",
@@ -1528,7 +1617,8 @@
         "{d22ae649}",
         "{b72bd3bf}",
         "{4529fead}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "영원한 브론즈 II",
@@ -1545,7 +1635,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{807eed8a}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "주문 검",
@@ -1560,7 +1651,8 @@
       "tags": [
         "{ce1fd21c}",
         "{b72bd3bf}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "전방의 토대",
@@ -1575,7 +1667,8 @@
         "{d12ae4b6}",
         "{d22ae649}",
         "{ef273b4c}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "주문 칼날",
@@ -1591,7 +1684,8 @@
         "{ce1fd21c}",
         "{b72bd3bf}",
         "{b2be200a}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "왕관의 의지",
@@ -1609,7 +1703,8 @@
         "{8fba48a3}",
         "{807eed8a}",
         "{b2be200a}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "삼인방 I",
@@ -1634,7 +1729,8 @@
         "{807eed8a}",
         "{66fe0140}",
         "{faddeb83}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "체력이 곧 재산 III",
@@ -1651,7 +1747,8 @@
         "{cf1fd3af}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "조기 교육",
@@ -1661,7 +1758,7 @@
         "IncPerPlayerCombat": 1,
         "NumADAP": 4
       },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/EarlyLearning_II.tex",
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/EarlyLearning_II.TFT_Set16_ChampionAugments.tex",
       "associatedTraits": [],
       "tags": [
         "{ce1fd21c}",
@@ -1670,7 +1767,8 @@
         "{d22ae649}",
         "{4529fead}",
         "{807eed8a}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "지원 채굴",
@@ -1689,7 +1787,8 @@
         "{7aaa3b47}",
         "{94b91e70}",
         "{8fba48a3}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "도굴꾼 II",
@@ -1710,7 +1809,8 @@
         "{86d6da1b}",
         "{77b330ea}",
         "{ef273b4c}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "성장형 사고방식",
@@ -1727,7 +1827,8 @@
         "{d02ae323}",
         "{d12ae4b6}",
         "{24d36c27}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "체력이 곧 재산 II",
@@ -1745,7 +1846,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{807eed8a}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "연속 타격",
@@ -1761,7 +1863,8 @@
         "{cf1fd3af}",
         "{8fba48a3}",
         "{ee609993}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "후방 설계도",
@@ -1776,7 +1879,8 @@
         "{d12ae4b6}",
         "{d22ae649}",
         "{ef273b4c}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "체력이 곧 재산 I",
@@ -1793,7 +1897,8 @@
         "{d11fd6d5}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "희생양",
@@ -1810,7 +1915,8 @@
         "{b72bd3bf}",
         "{d22ae649}",
         "{d12ae4b6}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "프리즘 운명+",
@@ -1827,7 +1933,8 @@
         "{d02ae323}",
         "{d22ae649}",
         "{92e7310e}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "프리즘 공급",
@@ -1844,7 +1951,8 @@
         "{d22ae649}",
         "{382a7131}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "삼인방 II",
@@ -1868,7 +1976,8 @@
         "{807eed8a}",
         "{66fe0140}",
         "{faddeb83}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "혼돈의 진화",
@@ -1890,7 +1999,8 @@
         "{d12ae4b6}",
         "{d22ae649}",
         "{4529fead}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "인지세",
@@ -1908,7 +2018,8 @@
         "{d22ae649}",
         "{d12ae4b6}",
         "{24d36c27}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "도굴꾼 I",
@@ -1929,7 +2040,8 @@
         "{86d6da1b}",
         "{77b330ea}",
         "{ef273b4c}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "붉고 푸른 효과",
@@ -1944,7 +2056,8 @@
         "{d02ae323}",
         "{8fba48a3}",
         "{ee04db7b}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "유리 대포 I",
@@ -1964,7 +2077,8 @@
         "{8e758f9d}",
         "{92e7310e}",
         "{807eed8a}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "십자 포화",
@@ -1980,7 +2094,8 @@
       "tags": [
         "{d11fd6d5}",
         "{0d98debd}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "꿰뚫는 연꽃 II",
@@ -1998,7 +2113,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{807eed8a}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "배부른 주문술사",
@@ -2017,7 +2133,8 @@
         "{b2be200a}",
         "{d02ae323}",
         "{807eed8a}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "웅장한 장송곡",
@@ -2033,7 +2150,8 @@
         "{ce1fd21c}",
         "{b72bd3bf}",
         "{0d98debd}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "꿰뚫는 연꽃 I",
@@ -2051,7 +2169,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{807eed8a}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "관통하는 시각",
@@ -2069,7 +2188,8 @@
         "{0d98debd}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "인지세+",
@@ -2087,7 +2207,8 @@
         "{d22ae649}",
         "{d02ae323}",
         "{24d36c27}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "마나순환 I",
@@ -2103,7 +2224,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{ee609993}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "마나순환 II",
@@ -2120,7 +2242,8 @@
         "{d02ae323}",
         "{ee609993}",
         "{807eed8a}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "최대치",
@@ -2140,7 +2263,8 @@
         "{faddeb83}",
         "{92e7310e}",
         "{7aaa3b47}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "이세계",
@@ -2158,7 +2282,8 @@
         "{d02ae323}",
         "{37baee9b}",
         "{84a6d904}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "출세가도",
@@ -2177,7 +2302,8 @@
         "{7aaa3b47}",
         "{77b330ea}",
         "{24d36c27}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "이세계",
@@ -2193,7 +2319,8 @@
         "{d02ae323}",
         "{37baee9b}",
         "{84a6d904}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "만개한 연꽃 II",
@@ -2209,7 +2336,8 @@
         "{cf1fd3af}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "하나 더!",
@@ -2229,7 +2357,8 @@
         "{8fba48a3}",
         "{0d98debd}",
         "{d22ae649}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "거울의 전당",
@@ -2246,7 +2375,8 @@
         "{92e7310e}",
         "{d02ae323}",
         "{a7b22c38}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "만개한 연꽃 I",
@@ -2262,7 +2392,8 @@
         "{ce1fd21c}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "폭발적인 성장+",
@@ -2281,7 +2412,8 @@
         "{d12ae4b6}",
         "{24d36c27}",
         "{7aaa3b47}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "정상을 노려라!",
@@ -2300,7 +2432,8 @@
         "{d22ae649}",
         "{92e7310e}",
         "{84a6d904}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "조작된 상점+",
@@ -2317,7 +2450,8 @@
         "{b72bd3bf}",
         "{d22ae649}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "수익 구간",
@@ -2336,7 +2470,8 @@
         "{d02ae323}",
         "{92e7310e}",
         "{d22ae649}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "은빛 운명",
@@ -2354,7 +2489,8 @@
         "{d22ae649}",
         "{92e7310e}",
         "{53220453}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "폭발적인 성장",
@@ -2373,7 +2509,8 @@
         "{d22ae649}",
         "{24d36c27}",
         "{7aaa3b47}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "포탑 방어",
@@ -2393,7 +2530,8 @@
         "{d22ae649}",
         "{ee609993}",
         "{92e7310e}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "정확하고 우아하게",
@@ -2411,7 +2549,8 @@
         "{7b2d141a}",
         "{d02ae323}",
         "{807eed8a}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "초능력 대장간",
@@ -2426,7 +2565,8 @@
         "{0d98debd}",
         "{8fba48a3}",
         "{d22ae649}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "별이 빛나는 밤+",
@@ -2453,7 +2593,8 @@
         "{d22ae649}",
         "{24d36c27}",
         "{ee609993}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "은빛 운명+",
@@ -2471,7 +2612,8 @@
         "{d22ae649}",
         "{92e7310e}",
         "{53220453}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "왕관의 무게",
@@ -2487,7 +2629,8 @@
         "{8fba48a3}",
         "{92e7310e}",
         "{77b330ea}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "극진한 헌신",
@@ -2506,7 +2649,8 @@
         "{d12ae4b6}",
         "{382a7131}",
         "{38bcced7}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "고위천사의 지팡이",
@@ -2524,7 +2668,8 @@
         "{b72bd3bf}",
         "{d22ae649}",
         "{8fba48a3}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "단체 포옹 II",
@@ -2540,7 +2685,8 @@
         "{b72bd3bf}",
         "{1062df02}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "마지막 세이브",
@@ -2557,7 +2703,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{807eed8a}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "7의 전설",
@@ -2575,7 +2722,8 @@
         "{d12ae4b6}",
         "{92e7310e}",
         "{4529fead}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "울부짖는 돌풍",
@@ -2593,7 +2741,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{d12ae4b6}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "단체 포옹 I",
@@ -2609,7 +2758,8 @@
         "{b72bd3bf}",
         "{1062df02}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "얽힌 마법",
@@ -2626,7 +2776,8 @@
         "{b72bd3bf}",
         "{d22ae649}",
         "{d12ae4b6}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "탐사",
@@ -2647,7 +2798,8 @@
         "{77b330ea}",
         "{4529fead}",
         "{92e7310e}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "특성 나무+",
@@ -2667,7 +2819,8 @@
         "{d02ae323}",
         "{92e7310e}",
         "{38bcced7}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "해적",
@@ -2683,7 +2836,8 @@
         "{24d36c27}",
         "{d22ae649}",
         "{d12ae4b6}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "이세계",
@@ -2701,7 +2855,8 @@
         "{d02ae323}",
         "{84a6d904}",
         "{37baee9b}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "부스러기",
@@ -2721,7 +2876,8 @@
         "{d12ae4b6}",
         "{d22ae649}",
         "{4529fead}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "서열 상승 II",
@@ -2741,7 +2897,8 @@
         "{d02ae323}",
         "{ee609993}",
         "{807eed8a}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "황금빛 퀘스트",
@@ -2758,7 +2915,8 @@
         "{d22ae649}",
         "{d02ae323}",
         "{86d6da1b}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "서열 상승 I",
@@ -2776,7 +2934,8 @@
         "{d11fd6d5}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "금빛 운명",
@@ -2794,7 +2953,8 @@
         "{d22ae649}",
         "{92e7310e}",
         "{53220453}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "마지막 저항",
@@ -2812,7 +2972,8 @@
         "{d11fd6d5}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "종목 분산 투자+",
@@ -2832,7 +2993,8 @@
         "{d22ae649}",
         "{7aaa3b47}",
         "{24d36c27}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "조작된 상점",
@@ -2849,7 +3011,8 @@
         "{b72bd3bf}",
         "{d22ae649}",
         "{d12ae4b6}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "대관식",
@@ -2866,7 +3029,8 @@
         "{cf1fd3af}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "종목 분산 투자",
@@ -2886,7 +3050,8 @@
         "{d22ae649}",
         "{7aaa3b47}",
         "{24d36c27}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "수송 경로",
@@ -2902,7 +3067,8 @@
         "{cf1fd3af}",
         "{d22ae649}",
         "{92e7310e}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "도금 강철",
@@ -2919,7 +3085,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{d12ae4b6}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "주문 마검",
@@ -2934,7 +3101,8 @@
         "{ce1fd21c}",
         "{b72bd3bf}",
         "{b2be200a}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "9개의 목숨",
@@ -2955,7 +3123,8 @@
         "{0d98debd}",
         "{92e7310e}",
         "{4529fead}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "기다림의 미학",
@@ -2975,7 +3144,8 @@
         "{d22ae649}",
         "{d12ae4b6}",
         "{92e7310e}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "가지 뻗기+",
@@ -2993,7 +3163,8 @@
         "{d22ae649}",
         "{d02ae323}",
         "{38bcced7}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "두드리는 자",
@@ -3008,7 +3179,8 @@
         "{cf1fd3af}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "화학공학 폭주",
@@ -3028,7 +3200,8 @@
         "{92e7310e}",
         "{a7b22c38}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "지팡이 제작자",
@@ -3046,7 +3219,8 @@
         "{d02ae323}",
         "{d12ae4b6}",
         "{b2be200a}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "예상된 예상 밖의 결과",
@@ -3070,7 +3244,8 @@
         "{92e7310e}",
         "{7aaa3b47}",
         "{382a7131}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "지배",
@@ -3092,7 +3267,8 @@
         "{7aaa3b47}",
         "{d12ae4b6}",
         "{d22ae649}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "페트리사이트 방어구 I",
@@ -3107,7 +3283,8 @@
         "{d11fd6d5}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "위약 효과+",
@@ -3125,7 +3302,8 @@
         "{d22ae649}",
         "{d02ae323}",
         "{24d36c27}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "정신 결속 II",
@@ -3143,7 +3321,8 @@
         "{92e7310e}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "급매",
@@ -3161,7 +3340,8 @@
         "{d22ae649}",
         "{d12ae4b6}",
         "{7aaa3b47}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "조용한 사직",
@@ -3180,7 +3360,8 @@
         "{d02ae323}",
         "{d22ae649}",
         "{b72bd3bf}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "공허의 무리",
@@ -3200,7 +3381,8 @@
         "{d22ae649}",
         "{c762cf50}",
         "{77b330ea}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "진형 유지",
@@ -3218,7 +3400,8 @@
         "{d02ae323}",
         "{0d98debd}",
         "{807eed8a}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "전략가의 주방",
@@ -3239,7 +3422,8 @@
         "{d12ae4b6}",
         "{d22ae649}",
         "{382a7131}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "정신 결속",
@@ -3258,7 +3442,8 @@
         "{7aaa3b47}",
         "{807eed8a}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "두둑한 새로고침",
@@ -3281,7 +3466,8 @@
         "{d22ae649}",
         "{92e7310e}",
         "{66fe0140}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "땔감 제공",
@@ -3297,7 +3483,8 @@
         "{b72bd3bf}",
         "{8fba48a3}",
         "{d22ae649}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "편식",
@@ -3315,7 +3502,8 @@
         "{d12ae4b6}",
         "{d11fd6d5}",
         "{4529fead}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "투자",
@@ -3336,7 +3524,8 @@
         "{d12ae4b6}",
         "{d22ae649}",
         "{7aaa3b47}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "지원 골렘 I",
@@ -3352,7 +3541,8 @@
         "{ce1fd21c}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "즉각적인 만족",
@@ -3368,7 +3558,8 @@
         "{d22ae649}",
         "{d12ae4b6}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "경쟁",
@@ -3388,7 +3579,8 @@
         "{24d36c27}",
         "{92e7310e}",
         "{7aaa3b47}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "불타는 영혼 II",
@@ -3406,7 +3598,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{807eed8a}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "금빛 운명+",
@@ -3424,7 +3617,8 @@
         "{d22ae649}",
         "{92e7310e}",
         "{53220453}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "돈독+",
@@ -3444,7 +3638,8 @@
         "{d02ae323}",
         "{7aaa3b47}",
         "{ef273b4c}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "복제 시설",
@@ -3464,7 +3659,8 @@
         "{92e7310e}",
         "{8e758f9d}",
         "{807eed8a}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "유리한 조건",
@@ -3485,7 +3681,8 @@
         "{d22ae649}",
         "{4529fead}",
         "{77b330ea}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "경품 추첨",
@@ -3503,7 +3700,8 @@
         "{8fba48a3}",
         "{d12ae4b6}",
         "{d22ae649}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "훈련 교범",
@@ -3514,7 +3712,8 @@
       "associatedTraits": [],
       "tags": [
         "Consumable"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "백댄서",
@@ -3535,7 +3734,8 @@
         "{92e7310e}",
         "{77b330ea}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "2만한 가치",
@@ -3564,7 +3764,8 @@
         "{4529fead}",
         "{66fe0140}",
         "{92e7310e}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "영웅 꾸러미+",
@@ -3582,7 +3783,8 @@
         "{d22ae649}",
         "{d02ae323}",
         "{66fe0140}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "기다려",
@@ -3597,7 +3799,8 @@
       "tags": [
         "{ce1fd21c}",
         "{0d98debd}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "변덕쟁이",
@@ -3617,7 +3820,8 @@
         "{b72bd3bf}",
         "{d22ae649}",
         "{0d98debd}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "예비 활",
@@ -3636,7 +3840,8 @@
         "{d22ae649}",
         "{d12ae4b6}",
         "{8fba48a3}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "스포트라이트 공유",
@@ -3654,7 +3859,8 @@
         "{b72bd3bf}",
         "{92e7310e}",
         "{a7b22c38}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "모험을 떠나는 영웅",
@@ -3670,7 +3876,8 @@
         "{92e7310e}",
         "{d12ae4b6}",
         "{d22ae649}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "주인공 버프",
@@ -3688,7 +3895,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{807eed8a}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "별이 수놓인 모험",
@@ -3707,7 +3915,8 @@
         "{d12ae4b6}",
         "{84a6d904}",
         "{7aaa3b47}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "휴대용 대격변 생성기",
@@ -3724,7 +3933,8 @@
         "{d22ae649}",
         "{d12ae4b6}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "검의 시종",
@@ -3737,7 +3947,8 @@
         "{d11fd6d5}",
         "{d02ae323}",
         "{8fba48a3}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "강철의 심장",
@@ -3755,7 +3966,8 @@
         "{8fba48a3}",
         "{d12ae4b6}",
         "{b72bd3bf}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "전하 이동 I",
@@ -3771,7 +3983,8 @@
         "{d11fd6d5}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "영웅 꾸러미++",
@@ -3789,7 +4002,8 @@
         "{d02ae323}",
         "{d12ae4b6}",
         "{66fe0140}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "주식 시장",
@@ -3804,7 +4018,8 @@
         "{92e7310e}",
         "{d12ae4b6}",
         "{d22ae649}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "수련 II",
@@ -3822,7 +4037,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{0d98debd}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "전하 이동 II",
@@ -3838,7 +4054,8 @@
         "{ce1fd21c}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "큰손",
@@ -3855,7 +4072,8 @@
         "{d02ae323}",
         "{7aaa3b47}",
         "{d12ae4b6}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "금방 올게",
@@ -3877,7 +4095,8 @@
         "{c5c463aa}",
         "{77b330ea}",
         "{8fba48a3}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "우르프의 갬빗",
@@ -3893,7 +4112,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{d22ae649}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "불운 방지",
@@ -3912,7 +4132,8 @@
         "{7b2d141a}",
         "{c5c463aa}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "투자 전략 II",
@@ -3933,7 +4154,8 @@
         "{7aaa3b47}",
         "{66fe0140}",
         "{4529fead}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "영원한 브론즈 I",
@@ -3951,7 +4173,8 @@
         "{d02ae323}",
         "{ee609993}",
         "{807eed8a}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "투자 전략 I",
@@ -3970,7 +4193,8 @@
         "{7aaa3b47}",
         "{66fe0140}",
         "{4529fead}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "공허의 무리",
@@ -3989,7 +4213,8 @@
         "{d12ae4b6}",
         "{d22ae649}",
         "{7aaa3b47}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "우주적 재시작",
@@ -4008,7 +4233,8 @@
         "{d02ae323}",
         "{d22ae649}",
         "{92e7310e}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "두 가지 목적",
@@ -4026,7 +4252,8 @@
         "{7aaa3b47}",
         "{d22ae649}",
         "{24d36c27}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "고전압",
@@ -4044,7 +4271,8 @@
         "{b72bd3bf}",
         "{d22ae649}",
         "{8fba48a3}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "나 혼자 레벨업",
@@ -4071,7 +4299,8 @@
         "{d12ae4b6}",
         "{d22ae649}",
         "{4529fead}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "마법사의 공구함",
@@ -4088,7 +4317,8 @@
         "{d02ae323}",
         "{b2be200a}",
         "{8fba48a3}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "효율적인 소비자 II",
@@ -4109,7 +4339,8 @@
         "{0d98debd}",
         "{4529fead}",
         "{ce1fd21c}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "보물 사냥",
@@ -4129,7 +4360,8 @@
         "{8fba48a3}",
         "{b72bd3bf}",
         "{66fe0140}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "슈퍼스타 II",
@@ -4150,7 +4382,8 @@
         "{d12ae4b6}",
         "{ee609993}",
         "{807eed8a}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "조합 아이템 전문가",
@@ -4167,7 +4400,8 @@
         "{b72bd3bf}",
         "{d22ae649}",
         "{92e7310e}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "약간 신비한 주사위",
@@ -4187,7 +4421,8 @@
         "{b72bd3bf}",
         "{d12ae4b6}",
         "{d22ae649}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "이중 기술",
@@ -4202,7 +4437,8 @@
         "{d12ae4b6}",
         "{d22ae649}",
         "{b72bd3bf}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "스승 I",
@@ -4220,7 +4456,8 @@
         "{92e7310e}",
         "{8e758f9d}",
         "{1062df02}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "스승 II",
@@ -4239,7 +4476,8 @@
         "{ee609993}",
         "{807eed8a}",
         "{1062df02}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "불타는 영혼 I",
@@ -4257,7 +4495,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{807eed8a}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "굶주린 친구",
@@ -4284,7 +4523,8 @@
         "{d02ae323}",
         "{d22ae649}",
         "{0d98debd}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "중심 잡기",
@@ -4302,7 +4542,8 @@
         "{d02ae323}",
         "{8e758f9d}",
         "{807eed8a}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "파쇄 확산",
@@ -4321,7 +4562,8 @@
         "{ce1fd21c}",
         "{8fba48a3}",
         "{b2be200a}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "구원의 영혼",
@@ -4339,7 +4581,8 @@
         "{b72bd3bf}",
         "{d22ae649}",
         "{8fba48a3}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "재빠른 더블 킬",
@@ -4348,7 +4591,7 @@
       "effects": {
         "GoldAmount": 40
       },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/SpeedyDoubleKill_II.tex",
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/SpeedyDoubleKill_II.TFT_Set16_ChampionAugments.tex",
       "associatedTraits": [],
       "tags": [
         "{ce1fd21c}",
@@ -4357,7 +4600,8 @@
         "{d22ae649}",
         "{77b330ea}",
         "{4529fead}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "미래 지향적 사고",
@@ -4382,7 +4626,8 @@
         "{c5c463aa}",
         "{24d36c27}",
         "{ee609993}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "흡혈의 활력 I",
@@ -4401,7 +4646,8 @@
         "{d02ae323}",
         "{807eed8a}",
         "{d11fd6d5}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "흡혈의 활력 II",
@@ -4420,7 +4666,8 @@
         "{7aaa3b47}",
         "{d02ae323}",
         "{807eed8a}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "유연함",
@@ -4442,7 +4689,8 @@
         "{382a7131}",
         "{cf1fd3af}",
         "{38bcced7}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "임무 재시작",
@@ -4465,7 +4713,8 @@
         "{7aaa3b47}",
         "{b72bd3bf}",
         "{c5c463aa}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "2인조",
@@ -4484,7 +4733,8 @@
         "{d12ae4b6}",
         "{8fba48a3}",
         "{ef273b4c}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "신의 버드나무 숲",
@@ -4497,7 +4747,8 @@
         "{ce1fd21c}",
         "{b72bd3bf}",
         "{92e7310e}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "피의 격노",
@@ -4515,7 +4766,8 @@
         "{b72bd3bf}",
         "{0d98debd}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "흐르는 눈물",
@@ -4534,7 +4786,8 @@
         "{d22ae649}",
         "{d12ae4b6}",
         "{8fba48a3}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "유물 제작소",
@@ -4552,7 +4805,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{92e7310e}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "수익 구간+",
@@ -4571,7 +4825,8 @@
         "{d02ae323}",
         "{92e7310e}",
         "{d12ae4b6}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "함정꾼의 선물",
@@ -4594,7 +4849,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{0d98debd}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "쌍둥이 수호자",
@@ -4614,7 +4870,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{807eed8a}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "경품 추첨+",
@@ -4632,7 +4889,8 @@
         "{8fba48a3}",
         "{d02ae323}",
         "{d22ae649}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "고귀한 모험",
@@ -4653,7 +4911,8 @@
         "{7aaa3b47}",
         "{382a7131}",
         "{92e7310e}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "오각별",
@@ -4670,7 +4929,8 @@
         "{d12ae4b6}",
         "{d22ae649}",
         "{24d36c27}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "행운의 기운",
@@ -4687,7 +4947,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{d22ae649}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "대출 선지급",
@@ -4704,7 +4965,8 @@
         "{d22ae649}",
         "{d12ae4b6}",
         "{24d36c27}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "황금 드래곤",
@@ -4714,7 +4976,7 @@
         "BonusHealth": 700,
         "DurabilityPct": 0.20000000298023224
       },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/TheGoldenDragon_II.tex",
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/TheGoldenDragon_II.TFT_Set16_ChampionAugments.tex",
       "associatedTraits": [],
       "tags": [
         "{ce1fd21c}",
@@ -4724,7 +4986,8 @@
         "{8fba48a3}",
         "{807eed8a}",
         "{d12ae4b6}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "연속 주문 사용",
@@ -4743,7 +5006,8 @@
         "{d22ae649}",
         "{d12ae4b6}",
         "{8fba48a3}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "특성 추적자",
@@ -4762,7 +5026,8 @@
         "{d02ae323}",
         "{7aaa3b47}",
         "{ee609993}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "삼인방 II",
@@ -4785,7 +5050,8 @@
         "{92e7310e}",
         "{807eed8a}",
         "{66fe0140}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "무한한 보호",
@@ -4795,7 +5061,7 @@
         "GoldAmount": 3,
         "HealthPercent": 12
       },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/InfinityProtection_II.tex",
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/InfinityProtection_II.TFT_Set16_ChampionAugments.tex",
       "associatedTraits": [],
       "tags": [
         "{ce1fd21c}",
@@ -4803,7 +5069,8 @@
         "{d22ae649}",
         "{b72bd3bf}",
         "{8fba48a3}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "행운은 용감한 자의 편",
@@ -4820,7 +5087,8 @@
         "{77b330ea}",
         "{84a6d904}",
         "{7aaa3b47}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "친구 만들기",
@@ -4836,7 +5104,8 @@
         "{d02ae323}",
         "{d12ae4b6}",
         "{d11fd6d5}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "판도라의 주머니 보풀",
@@ -4853,7 +5122,8 @@
         "{8fba48a3}",
         "{0d98debd}",
         "{d22ae649}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "선물 꾸러미",
@@ -4873,7 +5143,8 @@
         "{7aaa3b47}",
         "{d22ae649}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "검 제작자",
@@ -4891,7 +5162,8 @@
         "{d02ae323}",
         "{d12ae4b6}",
         "{7b2d141a}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "계산된 강화",
@@ -4910,7 +5182,8 @@
         "{d02ae323}",
         "{ee609993}",
         "{807eed8a}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "마지막 손질",
@@ -4926,7 +5199,8 @@
         "{d02ae323}",
         "{d12ae4b6}",
         "{8fba48a3}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "에너지 파동",
@@ -4943,7 +5217,8 @@
         "{7b2d141a}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "원칙의 원형낫 III",
@@ -4959,7 +5234,8 @@
         "{cf1fd3af}",
         "{b72bd3bf}",
         "{a7b22c38}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "예견 II",
@@ -4976,7 +5252,8 @@
         "{92e7310e}",
         "{a7b22c38}",
         "{77b330ea}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "조합 아이템 강탈",
@@ -4994,7 +5271,8 @@
         "{d12ae4b6}",
         "{7aaa3b47}",
         "{8fba48a3}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "활 제작자",
@@ -5011,7 +5289,8 @@
         "{8fba48a3}",
         "{d02ae323}",
         "{d12ae4b6}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "요지부동",
@@ -5029,7 +5308,8 @@
         "{8e758f9d}",
         "{807eed8a}",
         "{8fba48a3}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "오라 축적",
@@ -5049,7 +5329,8 @@
         "{d22ae649}",
         "{d12ae4b6}",
         "{92e7310e}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "넘치는 허리띠",
@@ -5066,7 +5347,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{8fba48a3}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "힘을 실은 제련",
@@ -5077,7 +5359,7 @@
         "NumArtifacts": 1,
         "NumMoreArtifacts": 3
       },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/ForgedInStrength_III.tex",
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/ForgedInStrength_III.TFT_Set16_ChampionAugments.tex",
       "associatedTraits": [],
       "tags": [
         "{cf1fd3af}",
@@ -5085,7 +5367,8 @@
         "{d12ae4b6}",
         "{d22ae649}",
         "{4529fead}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "눈에는 눈",
@@ -5107,7 +5390,8 @@
         "{94b91e70}",
         "{8fba48a3}",
         "{4529fead}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "테슬라 코일",
@@ -5127,7 +5411,8 @@
         "{b72bd3bf}",
         "{0d98debd}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "특성 나무",
@@ -5147,7 +5432,8 @@
         "{d12ae4b6}",
         "{92e7310e}",
         "{38bcced7}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "예금 계좌",
@@ -5168,7 +5454,8 @@
         "{d12ae4b6}",
         "{d22ae649}",
         "{4529fead}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "대장장이 훈련",
@@ -5184,7 +5471,8 @@
         "{d11fd6d5}",
         "{b72bd3bf}",
         "{d22ae649}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "정교한 공예",
@@ -5201,7 +5489,8 @@
         "{d22ae649}",
         "{b72bd3bf}",
         "{24d36c27}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "도화선 점화",
@@ -5218,7 +5507,8 @@
         "{0d98debd}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "생일 모임",
@@ -5228,7 +5518,7 @@
         "FirstLevelBreakpoint": 7,
         "SecondLevelBreakpoint": 9
       },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/BirthdayReunion_II.tex",
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/BirthdayReunion_II.TFT_Set16_ChampionAugments.tex",
       "associatedTraits": [],
       "tags": [
         "{ce1fd21c}",
@@ -5236,7 +5526,8 @@
         "{d12ae4b6}",
         "{d22ae649}",
         "{4529fead}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "특별 맞춤 설정 II",
@@ -5256,7 +5547,8 @@
         "{d02ae323}",
         "{d12ae4b6}",
         "{cf1fd3af}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "특별 맞춤 설정",
@@ -5274,7 +5566,8 @@
         "{8fba48a3}",
         "{0d98debd}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "투자++",
@@ -5295,7 +5588,8 @@
         "{d12ae4b6}",
         "{d02ae323}",
         "{7aaa3b47}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "전투 붕대 I",
@@ -5313,7 +5607,8 @@
       "tags": [
         "{d11fd6d5}",
         "{b72bd3bf}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "넘치는 지팡이",
@@ -5331,7 +5626,8 @@
         "{d02ae323}",
         "{b2be200a}",
         "{8fba48a3}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "환한 달빛",
@@ -5353,7 +5649,8 @@
         "{d12ae4b6}",
         "{848ab891}",
         "{807eed8a}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "전투 붕대 II",
@@ -5371,7 +5668,8 @@
       "tags": [
         "{ce1fd21c}",
         "{b72bd3bf}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "추가 버클",
@@ -5390,7 +5688,8 @@
         "{d22ae649}",
         "{d12ae4b6}",
         "{8fba48a3}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "뻗어가는 뿌리+",
@@ -5410,7 +5709,8 @@
         "{d02ae323}",
         "{92e7310e}",
         "{38bcced7}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "모두를 위한 하나 II",
@@ -5437,7 +5737,8 @@
         "{ee609993}",
         "{807eed8a}",
         "{66fe0140}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "정렬",
@@ -5454,7 +5755,8 @@
         "{d02ae323}",
         "{8e758f9d}",
         "{807eed8a}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "호화로운 정기 구독",
@@ -5472,7 +5774,8 @@
         "{d02ae323}",
         "{d22ae649}",
         "{7aaa3b47}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "부스터 팩",
@@ -5489,7 +5792,8 @@
         "{b72bd3bf}",
         "{d12ae4b6}",
         "{d22ae649}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "경품 추첨++",
@@ -5507,7 +5811,8 @@
         "{8fba48a3}",
         "{d02ae323}",
         "{d12ae4b6}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "유리 대포 II",
@@ -5527,7 +5832,8 @@
         "{8e758f9d}",
         "{807eed8a}",
         "{92e7310e}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "뒷골목 거래",
@@ -5544,7 +5850,8 @@
         "{d22ae649}",
         "{d02ae323}",
         "{8fba48a3}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "효율적인 소비자",
@@ -5565,7 +5872,8 @@
         "{d22ae649}",
         "{0d98debd}",
         "{4529fead}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "과다치유",
@@ -5585,7 +5893,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{807eed8a}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "가시 박힌 갑옷",
@@ -5605,7 +5914,8 @@
         "{ce1fd21c}",
         "{d22ae649}",
         "{8fba48a3}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "시간 건너뛰기",
@@ -5623,7 +5933,8 @@
         "{d12ae4b6}",
         "{d22ae649}",
         "{4529fead}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "대출 선지급+",
@@ -5640,7 +5951,8 @@
         "{d22ae649}",
         "{d02ae323}",
         "{24d36c27}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "예비 활",
@@ -5659,7 +5971,8 @@
         "{d22ae649}",
         "{d12ae4b6}",
         "{8fba48a3}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "편협한 정신",
@@ -5681,7 +5994,8 @@
         "{d22ae649}",
         "{77b330ea}",
         "{7aaa3b47}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "한 우물 파기",
@@ -5697,7 +6011,8 @@
         "{ce1fd21c}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "두 번째 대관식",
@@ -5714,7 +6029,8 @@
         "{b72bd3bf}",
         "{d22ae649}",
         "{8fba48a3}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "결과 예측",
@@ -5733,7 +6049,8 @@
         "{d11fd6d5}",
         "{7aaa3b47}",
         "{24d36c27}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "눈에는 눈+",
@@ -5753,7 +6070,8 @@
         "{d22ae649}",
         "{8fba48a3}",
         "{7aaa3b47}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "별이 수놓인 모험",
@@ -5772,7 +6090,8 @@
         "{d12ae4b6}",
         "{84a6d904}",
         "{7aaa3b47}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "화력 집중",
@@ -5791,7 +6110,8 @@
         "{d02ae323}",
         "{7b2d141a}",
         "{807eed8a}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "부작용",
@@ -5808,7 +6128,8 @@
         "{ce1fd21c}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "투자+",
@@ -5829,7 +6150,8 @@
         "{d02ae323}",
         "{d22ae649}",
         "{7aaa3b47}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "우정과 유령",
@@ -5849,7 +6171,8 @@
         "{d12ae4b6}",
         "{d22ae649}",
         "{7aaa3b47}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "준비된 골렘",
@@ -5862,7 +6185,8 @@
         "{ce1fd21c}",
         "{b72bd3bf}",
         "{0d98debd}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "경호대 훈련",
@@ -5872,7 +6196,7 @@
         "BaseResistGained": 10,
         "ResistsPerLevel": 2
       },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/BodyguardsTraining_II.tex",
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/BodyguardsTraining_II.TFT_Set16_ChampionAugments.tex",
       "associatedTraits": [],
       "tags": [
         "{ce1fd21c}",
@@ -5880,7 +6204,8 @@
         "{d12ae4b6}",
         "{d22ae649}",
         "{4529fead}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "실컷 울어봐라",
@@ -5900,7 +6225,8 @@
         "{d22ae649}",
         "{8fba48a3}",
         "{b2be200a}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "배송 지연",
@@ -5918,7 +6244,8 @@
         "{d12ae4b6}",
         "{0d98debd}",
         "{7aaa3b47}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "마법 주사위",
@@ -5940,7 +6267,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{d22ae649}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "넘치는 대검",
@@ -5958,7 +6286,8 @@
         "{d02ae323}",
         "{7b2d141a}",
         "{8fba48a3}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "탑",
@@ -5974,7 +6303,8 @@
       "tags": [
         "{d11fd6d5}",
         "{b72bd3bf}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "하나로 뭉치는 거지",
@@ -5983,7 +6313,7 @@
       "effects": {
         "ASPercent": 30
       },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/WeStickTogether_III.tex",
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/WeStickTogether_III.TFT_Set16_ChampionAugments.tex",
       "associatedTraits": [],
       "tags": [
         "{cf1fd3af}",
@@ -5993,7 +6323,8 @@
         "{4529fead}",
         "{92e7310e}",
         "{38bcced7}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "은빛 운명++",
@@ -6011,7 +6342,8 @@
         "{d12ae4b6}",
         "{92e7310e}",
         "{53220453}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "길을 내라",
@@ -6030,7 +6362,8 @@
         "{d22ae649}",
         "{d12ae4b6}",
         "{8fba48a3}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "치밀한 계획",
@@ -6047,7 +6380,8 @@
         "{d11fd6d5}",
         "{4529fead}",
         "{7aaa3b47}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "기다림의 미학 II",
@@ -6068,7 +6402,8 @@
         "{d12ae4b6}",
         "{84a6d904}",
         "{382a7131}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "거대한 거인",
@@ -6086,7 +6421,8 @@
         "{d22ae649}",
         "{77b330ea}",
         "{7aaa3b47}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "성장형 아이템",
@@ -6103,7 +6439,8 @@
         "{7aaa3b47}",
         "{b72bd3bf}",
         "{d22ae649}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "반항아",
@@ -6119,7 +6456,8 @@
         "{b72bd3bf}",
         "{92e7310e}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "후발 주자",
@@ -6142,7 +6480,8 @@
         "{b72bd3bf}",
         "{c5c463aa}",
         "{4529fead}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "시계태엽 윤활유",
@@ -6159,7 +6498,8 @@
         "{b72bd3bf}",
         "{807eed8a}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "주인공",
@@ -6179,7 +6519,8 @@
         "{4529fead}",
         "{84a6d904}",
         "{53220453}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "쌍두마차",
@@ -6198,7 +6539,8 @@
         "{92e7310e}",
         "{d22ae649}",
         "{66fe0140}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "국왕시해자",
@@ -6218,7 +6560,8 @@
         "{d22ae649}",
         "{7aaa3b47}",
         "{24d36c27}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "용암 바닥",
@@ -6235,7 +6578,8 @@
         "{b72bd3bf}",
         "{ce1fd21c}",
         "{ee04db7b}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "숭고한 희생",
@@ -6252,7 +6596,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{807eed8a}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "별이 빛나는 밤",
@@ -6279,7 +6624,8 @@
         "{d22ae649}",
         "{24d36c27}",
         "{ee609993}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "부식",
@@ -6296,7 +6642,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{807eed8a}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "무료 서비스",
@@ -6315,7 +6662,8 @@
         "{24d36c27}",
         "{d22ae649}",
         "{d12ae4b6}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "권투 교습",
@@ -6331,7 +6679,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{807eed8a}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "골렘화",
@@ -6354,7 +6703,8 @@
         "{c5c463aa}",
         "{ee609993}",
         "{807eed8a}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "성장",
@@ -6371,7 +6721,8 @@
         "{ce1fd21c}",
         "{d12ae4b6}",
         "{d22ae649}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "불장난",
@@ -6388,7 +6739,8 @@
         "{d22ae649}",
         "{8fba48a3}",
         "{ee04db7b}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "무차별적 살인자",
@@ -6402,7 +6754,8 @@
         "{8fba48a3}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "빛비늘 정수",
@@ -6421,7 +6774,8 @@
         "{7aaa3b47}",
         "{8fba48a3}",
         "{24d36c27}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "흐르는 눈물",
@@ -6440,7 +6794,8 @@
         "{d22ae649}",
         "{d12ae4b6}",
         "{8fba48a3}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "요리용 냄비",
@@ -6459,7 +6814,8 @@
         "{d22ae649}",
         "{92e7310e}",
         "{8e758f9d}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "가지 뻗기",
@@ -6477,7 +6833,8 @@
         "{d22ae649}",
         "{d12ae4b6}",
         "{38bcced7}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "연속 주문 사용",
@@ -6496,7 +6853,8 @@
         "{d22ae649}",
         "{d12ae4b6}",
         "{8fba48a3}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "고독한 방패",
@@ -6512,7 +6870,8 @@
         "{b72bd3bf}",
         "{d22ae649}",
         "{8fba48a3}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "달콤한 간식",
@@ -6521,14 +6880,15 @@
       "effects": {
         "HealthPerItem": 20
       },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/SweetTreats_III.tex",
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/SweetTreats_III.TFT_Set16_ChampionAugments.tex",
       "associatedTraits": [],
       "tags": [
         "{b72bd3bf}",
         "{cf1fd3af}",
         "{d02ae323}",
         "{8fba48a3}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "정밀한 세공",
@@ -6547,7 +6907,8 @@
         "{8fba48a3}",
         "{d22ae649}",
         "{d12ae4b6}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "구독 서비스",
@@ -6565,7 +6926,8 @@
         "{d12ae4b6}",
         "{7aaa3b47}",
         "{b72bd3bf}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "프리즘 운명",
@@ -6583,7 +6945,8 @@
         "{d22ae649}",
         "{92e7310e}",
         "{53220453}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "창의 의지",
@@ -6601,7 +6964,8 @@
         "{8fba48a3}",
         "{807eed8a}",
         "{7b2d141a}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "집중 공격",
@@ -6616,7 +6980,8 @@
         "{ce1fd21c}",
         "{b72bd3bf}",
         "{8fba48a3}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "단일 조합 사수",
@@ -6641,7 +7006,8 @@
         "{ee609993}",
         "{77b330ea}",
         "{4529fead}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "후방 지원",
@@ -6658,7 +7024,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{ee609993}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "황금 더미",
@@ -6676,7 +7043,8 @@
         "{d22ae649}",
         "{d12ae4b6}",
         "{7aaa3b47}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "후반 성장",
@@ -6687,7 +7055,7 @@
         "BonusHealth": 0.11999999731779099,
         "XPGain": 2
       },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/LateGameScaling_II.TFT_Set16.tex",
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/LateGameScaling_II.TFT_Set16_ChampionAugments.tex",
       "associatedTraits": [],
       "tags": [
         "{ce1fd21c}",
@@ -6696,7 +7064,8 @@
         "{d22ae649}",
         "{4529fead}",
         "{24d36c27}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "양보다 질",
@@ -6713,7 +7082,8 @@
         "{cf1fd3af}",
         "{b72bd3bf}",
         "{d22ae649}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "강력한 보호막",
@@ -6734,7 +7104,8 @@
         "{ce1fd21c}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "돈독",
@@ -6754,7 +7125,8 @@
         "{d12ae4b6}",
         "{7aaa3b47}",
         "{ef273b4c}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "승승장구",
@@ -6772,7 +7144,8 @@
         "{24d36c27}",
         "{d22ae649}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "위약 효과",
@@ -6790,7 +7163,8 @@
         "{d22ae649}",
         "{d12ae4b6}",
         "{24d36c27}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "묻고 두 배로 가",
@@ -6806,7 +7180,8 @@
         "{b72bd3bf}",
         "{d12ae4b6}",
         "{d22ae649}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "악의적 수익 창출",
@@ -6825,7 +7200,8 @@
         "{d02ae323}",
         "{d12ae4b6}",
         "{24d36c27}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "무한한 힘",
@@ -6841,7 +7217,8 @@
         "{8fba48a3}",
         "{b2be200a}",
         "{0d98debd}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "요리용 냄비",
@@ -6860,7 +7237,8 @@
         "{d22ae649}",
         "{92e7310e}",
         "{8e758f9d}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "쓰레기 청소부",
@@ -6875,7 +7253,8 @@
         "{ce1fd21c}",
         "{b72bd3bf}",
         "{807eed8a}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "4가 함께하길",
@@ -6893,7 +7272,8 @@
         "{d02ae323}",
         "{d12ae4b6}",
         "{db57774d}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "슬쩍하기",
@@ -6912,7 +7292,8 @@
         "{7aaa3b47}",
         "{24d36c27}",
         "{d22ae649}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "3단계 셋",
@@ -6930,7 +7311,8 @@
         "{24d36c27}",
         "{d02ae323}",
         "{d12ae4b6}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "치명적 성공",
@@ -6949,7 +7331,8 @@
         "{d22ae649}",
         "{d12ae4b6}",
         "{8fba48a3}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "길을 내라",
@@ -6968,7 +7351,8 @@
         "{d22ae649}",
         "{d12ae4b6}",
         "{8fba48a3}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "동료 제작",
@@ -6985,7 +7369,8 @@
         "{d22ae649}",
         "{ce1fd21c}",
         "{ef273b4c}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "협동 원기회복 II",
@@ -7001,7 +7386,8 @@
         "{ce1fd21c}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "빌붙기",
@@ -7018,7 +7404,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{8e758f9d}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "협동 원기회복 I",
@@ -7034,7 +7421,8 @@
         "{d11fd6d5}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "페트리사이트 방어구 II",
@@ -7049,7 +7437,8 @@
         "{ce1fd21c}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "달빛",
@@ -7072,7 +7461,8 @@
         "{818ab3d8}",
         "{ee609993}",
         "{807eed8a}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "가늠할 수 없는 악",
@@ -7088,7 +7478,8 @@
         "{b72bd3bf}",
         "{0d98debd}",
         "{66fe0140}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "이세계",
@@ -7106,7 +7497,8 @@
         "{d02ae323}",
         "{38baf02e}",
         "{84a6d904}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "홀수 기피",
@@ -7121,7 +7513,8 @@
         "{cf1fd3af}",
         "{d22ae649}",
         "{d12ae4b6}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "영혼 각성",
@@ -7139,7 +7532,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{807eed8a}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "떠난 이를 위한 앙갚음",
@@ -7158,7 +7552,8 @@
         "{ce1fd21c}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "일상물",
@@ -7184,7 +7579,8 @@
         "{d22ae649}",
         "{4529fead}",
         "{24d36c27}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "돈 폭풍",
@@ -7203,7 +7599,8 @@
         "{d12ae4b6}",
         "{7aaa3b47}",
         "{ef273b4c}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "상점 오류",
@@ -7224,7 +7621,8 @@
         "{24d36c27}",
         "{d12ae4b6}",
         "{c5c463aa}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "임무 재시작+",
@@ -7245,7 +7643,8 @@
         "{7aaa3b47}",
         "{b72bd3bf}",
         "{c5c463aa}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "출정",
@@ -7269,7 +7668,8 @@
         "{7aaa3b47}",
         "{77b330ea}",
         "{4529fead}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "덩치 큰 친구들 II",
@@ -7289,7 +7689,8 @@
         "{ee609993}",
         "{807eed8a}",
         "{1062df02}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "덩치 큰 친구들 III",
@@ -7309,7 +7710,8 @@
         "{ee609993}",
         "{807eed8a}",
         "{1062df02}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "영웅 등장!",
@@ -7327,7 +7729,8 @@
         "{cf1fd3af}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "피의 공물",
@@ -7346,7 +7749,8 @@
         "{b72bd3bf}",
         "{d22ae649}",
         "{8fba48a3}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "덩치 큰 친구들 I",
@@ -7364,7 +7768,8 @@
         "{b72bd3bf}",
         "{8e758f9d}",
         "{1062df02}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "하나 더!+",
@@ -7382,7 +7787,8 @@
         "{d02ae323}",
         "{8fba48a3}",
         "{0d98debd}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "추가 버클",
@@ -7401,7 +7807,8 @@
         "{d22ae649}",
         "{d12ae4b6}",
         "{8fba48a3}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "철퇴의 의지",
@@ -7418,7 +7825,8 @@
         "{b72bd3bf}",
         "{8fba48a3}",
         "{807eed8a}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "3단계 군단",
@@ -7428,7 +7836,7 @@
         "AS": 0.11999999731779099,
         "HealthAmount": 150
       },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/LegionofThrees_II.tex",
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/LegionofThrees_II.TFT_Set16_ChampionAugments.tex",
       "associatedTraits": [],
       "tags": [
         "{ce1fd21c}",
@@ -7437,7 +7845,8 @@
         "{d22ae649}",
         "{4529fead}",
         "{38bcced7}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "@Gold@골드 획득",
@@ -7454,7 +7863,8 @@
         "{24d36c27}",
         "{d22ae649}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "이제 내가 주인공이야",
@@ -7471,7 +7881,8 @@
         "{b72bd3bf}",
         "{cf1fd3af}",
         "{807eed8a}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "크기의 중요성",
@@ -7489,7 +7900,8 @@
         "{d22ae649}",
         "{ef273b4c}",
         "{8fba48a3}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "부스터 팩++",
@@ -7507,7 +7919,8 @@
         "{d02ae323}",
         "{d12ae4b6}",
         "{7aaa3b47}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "고독한 영웅",
@@ -7522,7 +7935,8 @@
       "tags": [
         "{d11fd6d5}",
         "{b72bd3bf}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "부스터 팩+",
@@ -7539,7 +7953,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{d22ae649}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "암살자의 공구함",
@@ -7557,7 +7972,8 @@
         "{7b2d141a}",
         "{d22ae649}",
         "{8fba48a3}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "4단계 한 쌍",
@@ -7583,7 +7999,8 @@
         "{ee609993}",
         "{807eed8a}",
         "{db57774d}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "4단계 한 쌍",
@@ -7608,7 +8025,8 @@
         "{d12ae4b6}",
         "{ee609993}",
         "{807eed8a}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "훈련 교범",
@@ -7630,7 +8048,8 @@
         "{92e7310e}",
         "{0d98debd}",
         "{7aaa3b47}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "5등급",
@@ -7652,7 +8071,8 @@
         "{ee609993}",
         "{d02ae323}",
         "{d12ae4b6}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "모두를 위한 하나 I",
@@ -7677,7 +8097,8 @@
         "{d12ae4b6}",
         "{d22ae649}",
         "{66fe0140}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "맞춤 제작",
@@ -7686,14 +8107,15 @@
       "effects": {
         "NumItems": 3
       },
-      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/CustomFitted_II.tex",
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/CustomFitted_II.TFT_Set13_Evolved.tex",
       "associatedTraits": [],
       "tags": [
         "{ce1fd21c}",
         "{b72bd3bf}",
         "{d12ae4b6}",
         "{d02ae323}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "인지 과부하",
@@ -7715,7 +8137,8 @@
         "{d02ae323}",
         "{d22ae649}",
         "{24d36c27}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "시동 걸기",
@@ -7733,7 +8156,8 @@
         "{d22ae649}",
         "{4529fead}",
         "{ef273b4c}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "역전의 서막",
@@ -7752,7 +8176,8 @@
         "{d22ae649}",
         "{4529fead}",
         "{807eed8a}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "약속된 보호",
@@ -7768,7 +8193,8 @@
         "{b72bd3bf}",
         "{8fba48a3}",
         "{d22ae649}"
-      ]
+      ],
+      "inSet17": false
     },
     {
       "name": "치명적인 칼날",
@@ -7787,7 +8213,8 @@
         "{0d98debd}",
         "{d12ae4b6}",
         "{cf1fd3af}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "그냥 눌러",
@@ -7806,7 +8233,8 @@
         "{d12ae4b6}",
         "{24d36c27}",
         "{d22ae649}"
-      ]
+      ],
+      "inSet17": true
     },
     {
       "name": "약자",
@@ -7821,7 +8249,1207 @@
       "tags": [
         "{d11fd6d5}",
         "{b72bd3bf}"
-      ]
+      ],
+      "inSet17": false
+    },
+    {
+      "name": "충돌 시험용 봇",
+      "apiName": "TFT10_Augment_CrashTestDummies",
+      "desc": "훈련 봇 @Numdummies@개를 획득합니다. 전투 시작: 아군 훈련 봇이 적 무리로 날아가 @stun@초 동안 기절시킵니다. ",
+      "effects": {
+        "NumDummies": 2,
+        "SearchRange": 4,
+        "Stun": 1
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Crash-Test-Dummies-II.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "장기 투자",
+      "apiName": "TFT10_Augment_GoingLong",
+      "desc": "더 이상 이자를 획득하지 않으며, 지금 바로 @Gold@골드를 획득합니다. 라운드 시작 시 @XP@의 경험치를 획득합니다.<br><br><rules>이자는 저축한 10골드당 추가로 획득하는 골드입니다.</rules>",
+      "effects": {
+        "Gold": 13,
+        "XP": 4
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Going-Long-III.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "다 쓸 데가 있다니까 I",
+      "apiName": "TFT10_Augment_GoodForSomethingSilver",
+      "desc": "아이템을 장착하지 않은 챔피언이 사망하면 @dropchance*100@% 확률로 @Gold@골드를 떨어뜨립니다.",
+      "effects": {
+        "DropChance": 0.4000000059604645,
+        "Gold": 1
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Good-For-Something-I.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "영웅 꾸러미",
+      "apiName": "TFT10_Augment_HeroicGrabBag",
+      "desc": "하급 챔피언 복제기 @LesserDuplicatorAmount@개와 @Gold@골드를 획득합니다.<br><br><rules>3단계 이하의 챔피언을 복제할 수 있습니다.</rules>",
+      "effects": {
+        "Gold": 5,
+        "LesserDuplicatorAmount": 2
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Heroic-Grab-Bag-II.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "작은 친구들",
+      "apiName": "TFT10_Augment_LittleBuddies",
+      "desc": "아군 4단계 및 5단계 챔피언이 전장에 있는 아군 1단계 및 2단계 챔피언 1명당 체력을 @health@, 공격 속도를 @AttackSpeed*100@% 얻습니다.<br><br>@TFTUnitProperty.item:TFT_Augment_LittleBuddies_Tooltip@",
+      "effects": {
+        "AttackSpeed": 0.05999999865889549,
+        "Health": 55,
+        "{0d14760d}": 4,
+        "{82aeb8a7}": 2
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Little-Buddies-II.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "응당한 대가",
+      "apiName": "TFT11_Augment_AtWhatCost",
+      "desc": "즉시 @Level@레벨이 되고 경험치를 @XP@ 얻습니다. 추후 증강이 자동으로 선택됩니다.",
+      "effects": {
+        "Gold": null,
+        "Level": 6,
+        "XP": 12
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/AtWhatCost_III.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "점심값",
+      "apiName": "TFT11_Augment_BloodBank",
+      "desc": "적 전략가에게 @Damage@의 피해를 입힐 때마다 @Gold@골드를 획득합니다.<br>획득량: 총 @TFTUnitProperty.item:TFT11_BloodBankPayoutTotal@골드<br>",
+      "effects": {
+        "Damage": 8,
+        "Gold": 2
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/BloodBank_I.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "친구 만들기",
+      "apiName": "TFT11_Augment_Buildabud",
+      "desc": "무작위 3성 1단계 챔피언 1명을 획득합니다. @Gold@골드를 획득합니다.",
+      "effects": {
+        "Gold": 8
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/ConstructaCompanion_III.TFT_Set16.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": false
+    },
+    {
+      "name": "혼돈의 부름",
+      "apiName": "TFT11_Augment_Calltochaos",
+      "desc": "강력한 무작위 보상을 획득합니다.<br><br>보상: @TFTUnitProperty.item:TFT11_Augment_CallToChaos@",
+      "effects": {
+        "EggTurns": 11,
+        "Gold": 58,
+        "NumEmblems": 5,
+        "Rerolls": 40,
+        "ThreeStarGold": 20,
+        "XP": 64,
+        "numtg": 3,
+        "{4ffe8c09}": 0.20000000298023224,
+        "{8c58ac06}": 3,
+        "{8f15cad2}": 3,
+        "{917f9e2f}": 0.20000000298023224,
+        "{927f9fc2}": 50,
+        "{96847027}": 40,
+        "{96f12d22}": 3,
+        "{b0384f7a}": 15,
+        "{c35cc688}": 6
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/CallToChaos_III.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "새로운 시대",
+      "apiName": "TFT11_Augment_Epoch",
+      "desc": "즉시 및 이후 매 스테이지 시작 시 경험치를 @XP@ 획득하고 무료 새로고침을 @Rerolls@회 얻습니다.",
+      "effects": {
+        "Rerolls": 2,
+        "XP": 4
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Epoch_II.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "새로운 시대+",
+      "apiName": "TFT11_Augment_EpochPlus",
+      "desc": "즉시 및 이후 매 스테이지 시작 시 경험치를 @XP@ 획득하고 무료 새로고침을 @Rerolls@회 얻습니다.",
+      "effects": {
+        "Rerolls": 2,
+        "XP": 8
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Epoch_II.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "파이트 머니",
+      "apiName": "TFT11_Augment_Prizefighter",
+      "desc": "조합 아이템 @component@개를 획득합니다. @WinsNeeded@회 승리할 때마다 조합 아이템을 획득합니다.",
+      "effects": {
+        "WinsNeeded": 5,
+        "component": 2
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/PrizeFighter_II.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "4후지원",
+      "apiName": "TFT11_Augment_Reinfourcement",
+      "desc": "다음에 골드로 구매하는 4단계 챔피언이 즉시 2성으로 업그레이드됩니다. @Gold@골드를 획득합니다.",
+      "effects": {
+        "Gold": 5
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Reinfourcement_II.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "재빠른 무장",
+      "apiName": "TFT11_Augment_Slammin",
+      "desc": "@Gold@골드를 획득합니다. 플레이어 대상 전투를 마친 후 대기석에 아이템(소모품 제외)이 없을 때마다 @XP@의 경험치를 획득합니다.",
+      "effects": {
+        "Gold": 3,
+        "XP": 2,
+        "XPNow": null,
+        "components": null
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Slammin_II.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "재빠른 무장+",
+      "apiName": "TFT11_Augment_Slammin_Plus",
+      "desc": "즉시 @Gold@골드를 획득하고 경험치를 @XPNow@ 얻습니다. 플레이어 대상 전투를 마친 후 대기석에 아이템(소모품 제외)이 없을 때마다 @XP@의 경험치를 획득합니다.",
+      "effects": {
+        "Gold": 8,
+        "XP": 2,
+        "XPNow": 10,
+        "components": null
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Slammin_II.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "작지만 치명적인",
+      "apiName": "TFT11_Augment_TinyButDeadly",
+      "desc": "아군의 크기가 작아져 공격 속도와 이동 속도를 @AttackSpeed*100@% 얻습니다.",
+      "effects": {
+        "AttackSpeed": 0.30000001192092896,
+        "MoveSpeed": 0.75,
+        "TooltipSizeScale": 0.5,
+        "{858a62b6}": 0.30000001192092896
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/TinyButDeadly_III.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "U.R.F",
+      "apiName": "TFT16_Augment_UltraRapidFire",
+      "desc": "뒤집개 1개를 획득합니다. 뒤집개 또는 프라이팬 아이템을 장착한 챔피언이 공격 속도를 @AttackSpeed*100@%, 마나 재생을 @ManaRegen@ 얻습니다.",
+      "effects": {
+        "AttackSpeed": 0.15000000596046448,
+        "ManaRegen": 2
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/UltraRapidFire_II.TFT_Set16.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "도둑 무리 II",
+      "apiName": "TFT6_Augment_BandOfThieves2",
+      "desc": "도적의 장갑 @NumGloves@개를 획득합니다. 플레이어 대상 전투 @DelayTurns@회 후 1개 더 획득합니다.",
+      "effects": {
+        "DelayTurns": 8,
+        "NumGloves": 2
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/BandThieves3.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "도둑 무리 II+",
+      "apiName": "TFT6_Augment_BandOfThieves2Plus",
+      "desc": "도적의 장갑 @NumGloves@개를 획득합니다. 플레이어 대상 전투 @DelayTurns@회 후 1개 더 획득합니다.",
+      "effects": {
+        "DelayTurns": 6,
+        "NumGloves": 2
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/BandThieves3.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "도둑 무리 II++",
+      "apiName": "TFT6_Augment_BandOfThieves2PlusPlus",
+      "desc": "도적의 장갑 @NumGloves@개를 획득합니다. 플레이어 대상 전투 @DelayTurns@회 후 1개 더 획득합니다.",
+      "effects": {
+        "DelayTurns": 3,
+        "NumGloves": 2
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/BandThieves3.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "계산된 패배",
+      "apiName": "TFT6_Augment_CalculatedLoss",
+      "desc": "전투에서 패배한 후 @Gold@골드와 무료 상점 새로고침 1회를 획득합니다.",
+      "effects": {
+        "Gold": 2
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/CalculatedLoss2.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "맑은 정신",
+      "apiName": "TFT6_Augment_ClearMind",
+      "desc": "플레이어 대상 전투 종료 시 아군 대기석에 챔피언이 없다면 @XP@의 경험치를 획득합니다.",
+      "effects": {
+        "XP": 3
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/ClearMind2.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "사이버네틱 이식술",
+      "apiName": "TFT6_Augment_CyberneticImplants2",
+      "desc": "아이템을 장착한 아군이 체력을 @HP@, 공격력을 @AD*100@% 얻습니다. B.F. 대검을 획득합니다.",
+      "effects": {
+        "AD": 0.15000000596046448,
+        "HP": 100
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Cybernetic2.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "사이버네틱 통신",
+      "apiName": "TFT6_Augment_CyberneticUplink2",
+      "desc": "아이템을 장착한 아군이 체력을 @Health@, 마나 재생을 @ManaRegen@ 얻습니다. 여신의 눈물을 획득합니다.",
+      "effects": {
+        "Health": 100,
+        "ManaRegen": 2
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Cybernetic-Uplink-II.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "추방자 I",
+      "apiName": "TFT6_Augment_Distancing",
+      "desc": "인접한 챔피언 없이 전투를 시작하는 아군 챔피언이 @ShieldDuration@초 동안 최대 체력의 @MaxHealthShield@%에 해당하는 보호막을 획득합니다.",
+      "effects": {
+        "MaxHealthShield": 20,
+        "ShieldDuration": 10
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Exiles1.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "추방자 II",
+      "apiName": "TFT6_Augment_Distancing2",
+      "desc": "인접한 챔피언 없이 전투를 시작하는 아군 챔피언이 @ShieldDuration@초 동안 최대 체력의 @MaxHealthShield@%에 해당하는 보호막을 획득합니다.",
+      "effects": {
+        "MaxHealthShield": 30,
+        "ShieldDuration": 10
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Exiles2.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "단결된 의지",
+      "apiName": "TFT6_Augment_Diversify1",
+      "desc": "고유 특성이 아닌 전체적으로 활성화된 특성 하나당 공격력을 @AD*100@%, 주문력을 @AP@% 얻습니다.<br><br>현재 추가 효과: @TFTUnitProperty.item:TFT_Augment_Diversify_ADCounter@% %i:scaleAD%  @TFTUnitProperty.item:TFT_Augment_Diversify_APCounter@% %i:scaleAP%<br>",
+      "effects": {
+        "AD": 0.014999999664723873,
+        "AP": 1.5
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/StandUnited1.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "고전압 I",
+      "apiName": "TFT6_Augment_Electrocharge1",
+      "desc": "아군이 @AttacksToProc@번 공격당할 때마다 주변 적에게 @Damage1@~@Damage4@(현재 스테이지 비례)의 마법 피해를 입힙니다. (재사용 대기시간 @ICD@초)",
+      "effects": {
+        "AttacksToProc": 4,
+        "Damage1": 30,
+        "Damage2": 50,
+        "Damage3": 70,
+        "Damage4": 90,
+        "ICD": 1
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Electrocharge-I.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "고전압 II",
+      "apiName": "TFT6_Augment_Electrocharge2",
+      "desc": "아군이 @AttacksToProc@번 공격당할 때마다 주변 적에게 @Damage1@~@Damage4@(현재 스테이지 비례)의 마법 피해를 입힙니다. (재사용 대기시간 @ICD@초)",
+      "effects": {
+        "AttacksToProc": 4,
+        "Damage1": 50,
+        "Damage2": 80,
+        "Damage3": 110,
+        "Damage4": 140,
+        "ICD": 1
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Electrocharge-II.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "신병",
+      "apiName": "TFT6_Augment_ForceOfNature",
+      "desc": "최대 팀 규모가 @MaxArmySizeIncrease@ 증가하고 챔피언 복제기를 획득합니다.",
+      "effects": {
+        "MaxArmySizeIncrease": 1,
+        "{4a99a5b2}": 1
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/NewRecruit3.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "프리즘 티켓",
+      "apiName": "TFT6_Augment_GachaAddict",
+      "desc": "상점을 새로고침할 때마다 @RerollPercent@% 확률로 무료 새로고침을 획득합니다.",
+      "effects": {
+        "RerollPercent": 50
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/GoldenTicket3.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "수완가",
+      "apiName": "TFT6_Augment_HyperRoll",
+      "desc": "이자가 없는 대신 플레이어 대상 전투 라운드를 시작할 때마다 @Gold@골드를 획득합니다. 즉시 @InitialGold@골드를 획득합니다.<br><br><rules>이자는 저축한 10골드당 추가로 획득하는 골드입니다.</rules>",
+      "effects": {
+        "Gold": 3,
+        "InitialGold": 3,
+        "XP": null
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Hyperroll2.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "아이템 꾸러미",
+      "apiName": "TFT6_Augment_ItemGrabBag1",
+      "desc": "무작위 완성 아이템 @NumItems@개를 획득합니다.",
+      "effects": {
+        "NumItems": 1
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/ItemGrabBag1.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "임시변통 방어구 I",
+      "apiName": "TFT6_Augment_MakeshiftArmor1",
+      "desc": "아이템이 없는 아군이 방어력과 마법 저항력을 @Resists@ 얻습니다.",
+      "effects": {
+        "Resists": 30
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Makeshift1.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "임시변통 방어구 II",
+      "apiName": "TFT6_Augment_MakeshiftArmor2",
+      "desc": "아이템이 없는 아군이 방어력과 마법 저항력을 @Resists@ 얻습니다.",
+      "effects": {
+        "Resists": 50
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Makeshift2.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "레벨 업!",
+      "apiName": "TFT6_Augment_MaxLevel10",
+      "desc": "경험치를 구매하면 @XP@의 추가 경험치를 얻습니다. 즉시 @InitialXP@의 경험치를 얻습니다.",
+      "effects": {
+        "InitialXP": 10,
+        "XP": 2
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/LevelUp3.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "하나, 둘, 다섯!",
+      "apiName": "TFT6_Augment_OneTwoFive",
+      "desc": "무작위 조합 아이템 @NumComponents@개, @Gold@골드, 무작위 5단계 챔피언 @NumChamps@명을 획득합니다.",
+      "effects": {
+        "Gold": 2,
+        "NumChamps": 1,
+        "NumComponents": 1
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/One-Two-Five-I.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "판도라의 아이템",
+      "apiName": "TFT6_Augment_PandorasItems",
+      "desc": "라운드 시작: 대기석의 아이템이 무작위로 변합니다. <br><br>무작위 조합 아이템 @NumComponents@개를 획득합니다.",
+      "effects": {
+        "NumComponents": 1
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Pandora1.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "휴대용 대장간",
+      "apiName": "TFT6_Augment_PortableForge",
+      "desc": "유물 @ArmoryChoiceCount@개 중 하나를 선택합니다.<br><br><rules>유물은 고유한 효과를 지닌 강력한 아이템입니다.</rules>",
+      "effects": {
+        "ArmoryChoiceCount": 4
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/PortableForge2.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "대격변 생성기",
+      "apiName": "TFT6_Augment_Recombobulator",
+      "desc": "전장의 챔피언들이 1단계 더 높은 무작위 챔피언으로 영구히 바뀝니다. (최대 5단계) 자석 제거기 @NumRemovers@개를 획득합니다.",
+      "effects": {
+        "NumRemovers": 2
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Recombobulator-I.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "재활용 쓰레기통",
+      "apiName": "TFT6_Augment_SalvageBin",
+      "desc": "지금 무작위 완성 아이템 1개를 획득하고 플레이어 대상 전투 @NumRounds@회 후에 조합 아이템 1개를 획득합니다. 챔피언을 판매하면 완성 아이템이 조합 아이템으로 분해됩니다. (전략가의 아이템 및 상징 제외)",
+      "effects": {
+        "NumRounds": 8
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Salvage2.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "재생의 바람",
+      "apiName": "TFT6_Augment_SecondWind1",
+      "desc": "전투 시작 @Delay@초 후 아군이 잃은 체력의 @HealPercent@%를 회복합니다.",
+      "effects": {
+        "Delay": 10,
+        "HealPercent": 40
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Second--Wind-I.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "재생의 바람 II",
+      "apiName": "TFT6_Augment_SecondWind2",
+      "desc": "전투 시작 @Delay@초 후 아군이 잃은 체력의 @HealPercent@%를 회복합니다.",
+      "effects": {
+        "Delay": 10,
+        "HealPercent": 60
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Second--Wind-II.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "태양불꽃판",
+      "apiName": "TFT6_Augment_SunfireBoard",
+      "desc": "전투 시작: 모든 적을 불태워 @Duration@초 동안 대상 최대 체력의 @TotalBurnPercent@%만큼 피해를 입히고 받는 회복 효과를 @GrievousWoundsPercent@% 감소시킵니다.",
+      "effects": {
+        "Duration": 15,
+        "GrievousWoundsPercent": 33,
+        "TotalBurnPercent": 15
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/SunfireBoard2.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "황금 알",
+      "apiName": "TFT6_Augment_TheGoldenEgg",
+      "desc": "@EggTurns@턴 후 부화하는 황금 알을 획득합니다. 알이 부화하면 막대한 전리품을 얻습니다. 플레이어 대상 전투에서 승리하면 부화기 타이머를 한 턴만큼 가속합니다.",
+      "effects": {
+        "EggTurns": 11,
+        "{ecb4463d}": null
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/The-Golden-Egg-III.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "현명한 소비",
+      "apiName": "TFT6_Augment_ThriftShop",
+      "desc": "더 이상 경험치를 구매할 수 없습니다. 상점 새로고침으로 골드를 소모할 때마다 경험치를 @XP@ 얻습니다. 즉시 @Gold@골드를 획득합니다.",
+      "effects": {
+        "Gold": 3,
+        "Numrolls": 1,
+        "XP": 2
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/WiseSpending3.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "꼬마 거인",
+      "apiName": "TFT6_Augment_TinyTitans",
+      "desc": "현재 및 최대 플레이어 체력이 @heal@ 증가합니다.",
+      "effects": {
+        "Heal": 30
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Tiny-Titans-I.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "교환의 장",
+      "apiName": "TFT6_Augment_TradeSector",
+      "desc": "라운드마다 무료 상점 새로고침을 획득합니다. @Gold@골드를 획득합니다.",
+      "effects": {
+        "Gold": 2,
+        "RerollCount": 1,
+        "RerollsNow": 1
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Trade2.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "거래 중심지",
+      "apiName": "TFT6_Augment_TradeSector2",
+      "desc": "즉시 무료 상점 새로고침 @RerollsNow@회를 얻고 게임이 끝날 때까지 라운드마다 @RerollCount@회를 얻습니다.",
+      "effects": {
+        "Gold": null,
+        "RerollCount": 3,
+        "RerollsNow": 16
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Trade3.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "자리 비움",
+      "apiName": "TFT7_Augment_AFK",
+      "desc": "다음 @RoundsToSkip@라운드 동안 아무 행동을 취할 수 없습니다. 이후 @Gold@골드를 얻습니다.",
+      "effects": {
+        "Gold": 20,
+        "RoundsToSkip": 3
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/AFK-I.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "도둑 무리",
+      "apiName": "TFT7_Augment_BandOfThieves1",
+      "desc": "도적의 장갑 @NumGloves@개를 획득합니다.",
+      "effects": {
+        "NumGloves": 1
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/BandThieves1.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "단짝 I",
+      "apiName": "TFT7_Augment_BestFriends1",
+      "desc": "둘이서 고립된 아군이 전투 시작 시 공격 속도를 @AS*100@%, 방어력을 @Armor@ 얻습니다.",
+      "effects": {
+        "AS": 0.10000000149011612,
+        "Armor": 13
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Best-Friends-I.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "단짝 II",
+      "apiName": "TFT7_Augment_BestFriends2",
+      "desc": "둘이서 고립된 아군이 전투 시작 시 공격 속도를 @AS*100@%, 방어력을 @Armor@ 얻습니다.",
+      "effects": {
+        "AS": 0.15000000596046448,
+        "Armor": 22
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Best-Friends-II.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "생일 선물",
+      "apiName": "TFT7_Augment_BirthdayPresents",
+      "desc": "레벨 업할 때마다 2성 챔피언과 @Gold@골드를 획득합니다. 획득하는 챔피언의 단계는 상점 레벨보다 4 낮습니다. (최대 5단계)",
+      "effects": {
+        "Gold": 1
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Golden-Gifts-III.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "어수선한 마음",
+      "apiName": "TFT7_Augment_ClutteredMind",
+      "desc": "즉시 무작위 1단계 챔피언 @Units@명을 획득합니다. 플레이어 대상 전투 라운드 종료 시 대기석에 챔피언이 가득 찼다면 @XP@의 경험치를 획득합니다. ",
+      "effects": {
+        "Units": 4,
+        "XP": 3
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Dizzy-II.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "저주받은 왕관",
+      "apiName": "TFT7_Augment_CursedCrown",
+      "desc": "최대 팀 규모가 +@MaxArmySizeIncrease@ 증가하고 아군이 내구력을 @DurabilityBonus*100@% 얻지만, 플레이어 대상 전투 패배 시 플레이어가 받는 피해량이 두 배 증가합니다.",
+      "effects": {
+        "DurabilityBonus": 0.03999999910593033,
+        "MaxArmySizeIncrease": 2,
+        "PlayerCombatDamageIncrease": 100
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/CursedCrown-III.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "후반 전문가",
+      "apiName": "TFT7_Augment_LategameSpecialist",
+      "desc": "@LevelReq@레벨에 도달하면 @Gold@골드를 획득합니다.",
+      "effects": {
+        "Gold": 36,
+        "LevelReq": 9
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Late-Game-Specialist-I.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "간이 대장간",
+      "apiName": "TFT7_Augment_LivingForge",
+      "desc": "지금 그리고 플레이어 대상 전투 @NumberOfCombats@번마다 유물 모루를 획득합니다.<br><br><rules>유물은 고유한 효과를 지닌 강력한 아이템입니다.</rules>",
+      "effects": {
+        "Numberofcombats": 8
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Living-Forge-III.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "행운의 장갑",
+      "apiName": "TFT7_Augment_LuckyGloves",
+      "desc": "도적의 장갑이 항상 챔피언에게 최적의 아이템을 제공합니다. 연습용 장갑 @NumGloves@개를 획득합니다.",
+      "effects": {
+        "NumGloves": 2,
+        "NumRounds": 9999
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Lucky-Gloves-III.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "행운의 장갑+",
+      "apiName": "TFT7_Augment_LuckyGlovesPlus",
+      "desc": "도적의 장갑이 항상 챔피언에게 추천 아이템을 제공합니다. 지금 연습용 장갑 @NumGloves@개를 획득하고 플레이어 대상 전투 @DelayTurns@회 후 1개 더 획득합니다.",
+      "effects": {
+        "DelayTurns": 4,
+        "NumGloves": 2
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Lucky-Gloves-III.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "판도라의 대기석",
+      "apiName": "TFT7_Augment_PandorasBench",
+      "desc": "라운드가 시작될 때마다 대기석 가장 오른쪽 @BenchSlots@명의 챔피언이 동일한 단계의 무작위 챔피언으로 변신합니다. @Gold@골드를 획득합니다.",
+      "effects": {
+        "BenchSlots": 3,
+        "Gold": 6,
+        "LesserDuplicatorAmount": null
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Pandoras-Bench-II.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "우르프의 꾸러미",
+      "apiName": "TFT7_Augment_UrfsGrabBag2",
+      "desc": "뒤집개 @NumSpatulas@개, 무작위 조합 아이템 @NumComponents@개, @NumGold@골드를 획득합니다.",
+      "effects": {
+        "NumComponents": 3,
+        "NumGold": 5,
+        "NumSpatulas": 1
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Urfs-Grab-Bag-III.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "재활용 쓰레기통+",
+      "apiName": "TFT8_Augment_SalvageBinPlus",
+      "desc": "지금 무작위 완성 아이템 1개를 획득하고 플레이어 대상 전투 @NumRounds@회 후에 조합 아이템 1개를 획득합니다. 챔피언을 판매하면 완성 아이템이 조합 아이템으로 분해됩니다. (전략가의 아이템 및 상징 제외)",
+      "effects": {
+        "NumRounds": 4
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Salvage2.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "끈끈한 우정",
+      "apiName": "TFT9_Augment_ArmyBuilding",
+      "desc": "하급 챔피언 복제기를 획득합니다. 플레이어 대상 전투를 @PlayerCombatNum@회 치른 후 다시 획득합니다.<br><br><rules>3단계 이하의 챔피언을 복제할 수 있습니다.</rules>",
+      "effects": {
+        "PlayerCombatNum": 5
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Building-an-army-I.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "수호자의 친구",
+      "apiName": "TFT9_Augment_BardPlaybook1",
+      "desc": "즉시 무작위 @UnitTier@단계 챔피언을 1명 획득합니다. 레벨 업할 때마다 동일한 챔피언을 1명 획득합니다.<br><br>챔피언: @TFTUnitProperty.item:TFT_Augment_WorthTheWait@",
+      "effects": {
+        "UnitTier": 2
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Caretaker_s-Chosen-I.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "큰 꾸러미",
+      "apiName": "TFT9_Augment_BigGrabBag",
+      "desc": "무작위 조합 아이템 @NumItems@개, @Gold@골드, 재조합기를 획득합니다. <br><br><rules>재조합기로 어떤 아이템이든 다시 만들 수 있습니다.</rules>",
+      "effects": {
+        "Gold": 2,
+        "NumItems": 3,
+        "NumReforgers": 1
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Grab-Bag-II.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "파묻힌 보물",
+      "apiName": "TFT9_Augment_BuildingACollectionPlusPlus",
+      "desc": "즉시 및 다음 @roundsofbonusitems@번의 라운드 시작 시 무작위 조합 아이템 1개를 획득합니다.",
+      "effects": {
+        "Gold": null,
+        "UpfrontItems": 1,
+        "roundsofbonusitems": 5
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Buried-Treasures-III.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "초월",
+      "apiName": "TFT9_Augment_Commander_Ascension",
+      "desc": "전투 시작 @Delay@초 후 아군이 피해 증폭을 @DamageAmp@% 얻습니다.",
+      "effects": {
+        "DamageAmp": 35,
+        "Delay": 12
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Ascension2.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "불완전한 초월",
+      "apiName": "TFT9_Augment_Commander_PartialAscension",
+      "desc": "전투 시작 @Delay@초 후 아군이 피해 증폭을 @DamageAmp@% 얻습니다.",
+      "effects": {
+        "DamageAmp": 20,
+        "Delay": 12
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Ascension1.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "새로고침의 날 I",
+      "apiName": "TFT9_Augment_Commander_RollingForDays",
+      "desc": "무료 상점 새로고침을 @Numrolls@회 얻습니다.",
+      "effects": {
+        "Numrolls": 10
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Rolling-For-Days-I.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "협력",
+      "apiName": "TFT9_Augment_Commander_TeamingUp1",
+      "desc": "무작위 조합 아이템 @NumComponents@개와 무작위 3단계 챔피언 @NumChamps@명을 획득합니다.",
+      "effects": {
+        "NumChamps": 2,
+        "NumComponents": 1
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Teaming-Up-I.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "보석 연꽃 II",
+      "apiName": "TFT9_Augment_GreaterJeweledLotus",
+      "desc": "아군이 치명타 확률 @CritChance@%, 치명타 피해량 @CritDamage*100@%, <TFTKeyword>정밀</TFTKeyword>을 얻습니다.<br><br>{{TFT_Keyword_Precision}}",
+      "effects": {
+        "CritChance": 25,
+        "CritDamage": 0.10000000149011612
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Jeweled-Lotus-III.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "회복의 구 I",
+      "apiName": "TFT9_Augment_HealingOrbsI",
+      "desc": "적이 사망하면 가장 가까운 아군이 체력을 @Heal@ 회복합니다.",
+      "effects": {
+        "Heal": 220
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Healing-Orbs-I.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "회복의 구 II",
+      "apiName": "TFT9_Augment_HealingOrbsII",
+      "desc": "적이 사망하면 가장 가까운 아군이 체력을 @Heal@ 회복합니다.",
+      "effects": {
+        "Heal": 500
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Healing-Orbs-II.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "헤지 펀드",
+      "apiName": "TFT9_Augment_HedgeFund",
+      "desc": "@Gold@골드를 획득합니다. 최대 이자가 @InterestCap@골드로 증가합니다.<br><br><rules>이자는 저축한 10골드당 추가로 획득하는 골드입니다.</rules>",
+      "effects": {
+        "Gold": 25,
+        "InterestCap": 10
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/RichGetRicher3.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "헤지 펀드+",
+      "apiName": "TFT9_Augment_HedgeFundPlus",
+      "desc": "@Gold@골드를 획득합니다. 최대 이자가 @InterestCap@골드로 증가합니다.<br><br><rules>이자는 저축한 10골드당 추가로 획득하는 골드입니다.</rules>",
+      "effects": {
+        "Gold": 30,
+        "InterestCap": 10
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/RichGetRicher3.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "유용한 금속",
+      "apiName": "TFT9_Augment_IronAssets",
+      "desc": "조합 아이템 모루 1개와 @Gold@골드를 획득합니다.",
+      "effects": {
+        "Gold": 3
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Iron-Assets-I.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "보석 연꽃 I",
+      "apiName": "TFT9_Augment_JeweledLotus",
+      "desc": "아군이 치명타 확률 @CritChance@% 및 <TFTKeyword>정밀</TFTKeyword>을 얻습니다.<br><br>{{TFT_Keyword_Precision}}",
+      "effects": {
+        "CritChance": 20,
+        "CritDamage": null
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Jeweled-Lotus-II.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "끈질긴 연구",
+      "apiName": "TFT9_Augment_LearningFromExperience2",
+      "desc": "플레이어 대상 전투가 끝나고 승리 시 @winxp@의 경험치, 패배 시 @lossxp@의 경험치를 획득합니다.",
+      "effects": {
+        "lossxp": 3,
+        "winxp": 2
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Learning-From-Experience-II.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "흥청망청",
+      "apiName": "TFT9_Augment_Legend_HighEndSector",
+      "desc": "레벨 업하면 레벨+@BonusRollPerLevel@만큼 무료 상점 새로고침 기회를 얻습니다. @Gold@골드를 획득합니다.",
+      "effects": {
+        "BonusRollPerLevel": 1,
+        "Gold": 2,
+        "{a9ad6d1b}": 8
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Silver-ticket-III.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "신중한 제작",
+      "apiName": "TFT9_Augment_LongTimeCrafting",
+      "desc": "플레이어 대상 전투를 @NumberOfCombats@번 치른 후 유물 모루를 획득합니다. <br><br><rules>모루가 4가지 선택지를 제시합니다. 유물은 고유한 효과를 지닌 강력한 아이템입니다.</rules>",
+      "effects": {
+        "Numberofcombats": 8
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Long-time-Crafting-I.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "연결 불가",
+      "apiName": "TFT9_Augment_MissedConnections",
+      "desc": "1단계 챔피언의 복사본을 1명씩 획득합니다.",
+      "effects": {},
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Missed-Connections-I.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "하나, 둘, 셋",
+      "apiName": "TFT9_Augment_OneTwosThree",
+      "desc": "1단계 챔피언 @tier1champs@명, 2단계 챔피언 @numchamps@명, 3단계 챔피언 1명을 획득합니다.",
+      "effects": {
+        "NumChamps": 1,
+        "tier1champs": 1
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Threes-Company-I.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "판도라의 아이템 II",
+      "apiName": "TFT9_Augment_PandorasItems2",
+      "desc": "라운드 시작: 대기석의 아이템이 무작위로 변합니다.<br><br>무작위 조합 아이템 @NumComponents@개를 획득합니다.",
+      "effects": {
+        "NumCompletedItems": null,
+        "NumComponents": 2
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Pandora2.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "판도라의 아이템 III",
+      "apiName": "TFT9_Augment_PandorasRadiantBox",
+      "desc": "라운드 시작: 대기석의 아이템이 무작위로 변합니다. <br><br>무작위 찬란한 아이템 1개를 획득합니다.",
+      "effects": {},
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Pandora3.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "위험한 행보",
+      "apiName": "TFT9_Augment_RiskyMoves",
+      "desc": "아군 전략가가 체력을 @Health@ 잃지만, 플레이어 대상 전투를 @PlayerCombatNum@번 치른 후 @Gold@골드를 획득합니다.",
+      "effects": {
+        "Gold": 30,
+        "Health": 20,
+        "PlayerCombatNum": 7
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Risky-Moves-I.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "찬란한 장난꾸러기",
+      "apiName": "TFT9_Augment_RollTheDice",
+      "desc": "장난꾸러기의 장갑을 획득합니다. 장난꾸러기의 장갑은 라운드마다 두 개의 무작위 찬란한 아이템을 장착시킵니다.<br><br><rules>찬란한 아이템은 매우 강력한 완성 아이템입니다.</rules>",
+      "effects": {},
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Roll-the-Dice-III.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "은수저",
+      "apiName": "TFT9_Augment_SilverSpoon",
+      "desc": "@Experience@의 경험치를 획득합니다.<br>",
+      "effects": {
+        "Experience": 10
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Silver-Spoon-I.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "꼬꼬마 거인",
+      "apiName": "TFT9_Augment_TiniestTitanPlus",
+      "desc": "플레이어 대상 전투가 끝날 때마다 플레이어 체력을 @Heal@ 얻고 @Gold@골드를 획득합니다. 또한 전략가의 이동 속도가 증가합니다. 즉시 @InitialGold@골드를 획득합니다.",
+      "effects": {
+        "Gold": 2,
+        "Heal": 2,
+        "InitialGold": 10
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Tiniest-TitanIII.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "엄청나게 이로운 효과!",
+      "apiName": "TFT9_Augment_TonsOfStats",
+      "desc": "아군이 체력을 @Health@, 공격력을 @AttackDamage@%, 주문력을 @AbilityPower@%, 방어력을 @Armor@, 마법 저항력을 @MR@, 공격 속도를 @AttackSpeed@%, 마나를 @Mana@ 얻습니다.",
+      "effects": {
+        "AbilityPower": 4,
+        "Armor": 4,
+        "AttackDamage": 4,
+        "AttackSpeed": 4,
+        "Health": 44,
+        "MR": 4,
+        "Mana": 4
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Tons-of-Stats-II.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
+    },
+    {
+      "name": "활의 수호자",
+      "apiName": "TFT9_Augment_YouHaveMyBow",
+      "desc": "곡궁을 획득합니다. 아군이 공격 속도를 @AS@% 얻습니다. ",
+      "effects": {
+        "AS": 12
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/You-Have-My-Bow-II.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "inSet17": true
     }
   ]
 }

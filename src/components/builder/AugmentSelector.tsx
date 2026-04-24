@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useRef } from 'react';
-import Image from 'next/image';
+import { useState } from 'react';
 import { RawAugment, AugmentTier } from '@/types';
-import { getAugmentImage, TIER_BORDER_COLORS } from '@/data/imageMap';
+import { TIER_BORDER_COLORS } from '@/data/imageMap';
+import AugmentIcon from './AugmentIcon';
 import { getAugmentTier } from '@/lib/simulator/systems/augment';
 import SearchBar from '@/components/ui/SearchBar';
 
@@ -11,6 +11,8 @@ interface AugmentSelectorProps {
   augments: RawAugment[];
   onSelect: (aug: RawAugment) => void;
   selectedApiNames: string[];
+  /** 모달 open 시 기본 티어 필터 (예: 은총 슬롯 클릭 시 'boon'). */
+  initialTierFilter?: AugmentTier | null;
 }
 
 const TIER_FILTERS: { label: string; value: AugmentTier | null }[] = [
@@ -18,18 +20,21 @@ const TIER_FILTERS: { label: string; value: AugmentTier | null }[] = [
   { label: '실버', value: 'silver' },
   { label: '골드', value: 'gold' },
   { label: '프리즘', value: 'prismatic' },
+  { label: '은총', value: 'boon' },
 ];
 
 const TIER_FILTER_COLORS: Record<string, string> = {
   silver: 'bg-gray-500',
   gold: 'bg-yellow-600',
   prismatic: 'bg-fuchsia-500',
+  boon: 'bg-amber-500',
 };
 
 const TIER_LABELS: Record<AugmentTier, string> = {
   silver: '실버',
   gold: '골드',
   prismatic: '프리즘',
+  boon: '은총',
 };
 
 function formatDesc(desc: string, effects: Record<string, number>): string {
@@ -47,13 +52,14 @@ interface TooltipState {
   y: number;
 }
 
-export default function AugmentSelector({ augments, onSelect, selectedApiNames }: AugmentSelectorProps) {
+export default function AugmentSelector({ augments, onSelect, selectedApiNames, initialTierFilter = null }: AugmentSelectorProps) {
   const [search, setSearch] = useState('');
-  const [tierFilter, setTierFilter] = useState<AugmentTier | null>(null);
+  const [tierFilter, setTierFilter] = useState<AugmentTier | null>(initialTierFilter);
+  const [showInactive, setShowInactive] = useState(false);
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
-  const gridRef = useRef<HTMLDivElement>(null);
 
   const filtered = augments.filter((aug) => {
+    if (!showInactive && aug.inSet17 === false) return false;
     if (search) {
       const s = search.toLowerCase();
       if (!aug.name.toLowerCase().includes(s) && !aug.apiName.toLowerCase().includes(s)) return false;
@@ -63,26 +69,28 @@ export default function AugmentSelector({ augments, onSelect, selectedApiNames }
   });
 
   const sorted = [...filtered].sort((a, b) => {
-    const tierOrder: Record<AugmentTier, number> = { silver: 0, gold: 1, prismatic: 2 };
+    const tierOrder: Record<AugmentTier, number> = { silver: 0, gold: 1, prismatic: 2, boon: 3 };
     return tierOrder[getAugmentTier(a)] - tierOrder[getAugmentTier(b)] || a.name.localeCompare(b.name);
   });
 
   const handleMouseEnter = (aug: RawAugment, e: React.MouseEvent) => {
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    const gridRect = gridRef.current?.getBoundingClientRect();
-    if (!gridRect) return;
-    setTooltip({
-      aug,
-      x: rect.right - gridRect.left + 8,
-      y: rect.top - gridRect.top,
-    });
+    // 툴팁 기본: 버튼 오른쪽에 표시. 오른쪽 여백 부족하면 왼쪽에 표시.
+    const TOOLTIP_WIDTH = 240;
+    const GAP = 8;
+    const viewportW = typeof window !== 'undefined' ? window.innerWidth : 1024;
+    const rightX = rect.right + GAP;
+    const x = rightX + TOOLTIP_WIDTH > viewportW
+      ? Math.max(8, rect.left - TOOLTIP_WIDTH - GAP)
+      : rightX;
+    const y = Math.max(8, rect.top);
+    setTooltip({ aug, x, y });
   };
 
   return (
     <div className="space-y-3">
-      <p className="text-[11px] text-gray-500">능력치에 변동이 있거나 훈련봇을 획득하는 증강만 표시됩니다.</p>
       <SearchBar value={search} onChange={setSearch} placeholder="증강 검색..." />
-      <div className="flex gap-1">
+      <div className="flex gap-1 items-center">
         {TIER_FILTERS.map((f) => (
           <button
             key={f.label}
@@ -96,8 +104,13 @@ export default function AugmentSelector({ augments, onSelect, selectedApiNames }
             {f.label}
           </button>
         ))}
+        <label className="ml-auto flex items-center gap-1 text-[11px] text-gray-400 cursor-pointer select-none">
+          <input type="checkbox" checked={showInactive} onChange={e => setShowInactive(e.target.checked)}
+            className="accent-[#8b5cf6]" />
+          <span>미사용(이전 시즌) 포함</span>
+        </label>
       </div>
-      <div className="relative" ref={gridRef}>
+      <div className="relative">
         <div className="grid grid-cols-6 gap-2 max-h-[400px] overflow-y-auto p-1">
           {sorted.map((aug) => {
             const tier = getAugmentTier(aug);
@@ -115,14 +128,13 @@ export default function AugmentSelector({ augments, onSelect, selectedApiNames }
                     : `${TIER_BORDER_COLORS[tier]} hover:bg-[#1f2937] cursor-pointer`
                 }`}
               >
-                <Image
-                  src={getAugmentImage(aug.icon)}
+                <AugmentIcon
+                  key={aug.icon}
+                  icon={aug.icon}
                   alt={aug.name}
                   className="w-10 h-10 object-contain rounded"
-                  loading="lazy"
                   width={40}
                   height={40}
-                  unoptimized
                 />
                 <span className="text-[9px] text-gray-300 text-center leading-tight line-clamp-2 w-full">
                   {aug.name}
@@ -132,29 +144,30 @@ export default function AugmentSelector({ augments, onSelect, selectedApiNames }
           })}
         </div>
 
-        {/* Hover tooltip */}
+        {/* Hover tooltip — fixed 포지셔닝으로 모달의 overflow 밖까지 표시 */}
         {tooltip && (
           <div
-            className="absolute z-50 w-56 bg-[#1a1f2e] border border-gray-600 rounded-lg shadow-xl p-3 pointer-events-none"
+            className="fixed z-[100] w-56 bg-[#1a1f2e] border border-gray-600 rounded-lg shadow-xl p-3 pointer-events-none"
             style={{
-              left: Math.min(tooltip.x, 280),
-              top: Math.max(tooltip.y, 0),
+              left: tooltip.x,
+              top: tooltip.y,
             }}
           >
             <div className="flex items-center gap-2 mb-2">
-              <Image
-                src={getAugmentImage(tooltip.aug.icon)}
+              <AugmentIcon
+                key={tooltip.aug.icon}
+                icon={tooltip.aug.icon}
                 alt=""
                 className="w-8 h-8 object-contain rounded"
                 width={32}
                 height={32}
-                unoptimized
               />
               <div>
                 <div className="text-sm font-bold text-gray-100">{tooltip.aug.name}</div>
                 <span className={`text-[10px] px-1.5 py-0.5 rounded ${
                   getAugmentTier(tooltip.aug) === 'silver' ? 'bg-gray-600 text-gray-200' :
                   getAugmentTier(tooltip.aug) === 'gold' ? 'bg-yellow-700 text-yellow-200' :
+                  getAugmentTier(tooltip.aug) === 'boon' ? 'bg-amber-700 text-amber-200' :
                   'bg-fuchsia-700 text-fuchsia-200'
                 }`}>
                   {TIER_LABELS[getAugmentTier(tooltip.aug)]}

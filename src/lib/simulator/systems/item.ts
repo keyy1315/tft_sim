@@ -115,7 +115,7 @@ function isSystemItem(item: RawItem): boolean {
   if (api.startsWith('TFT17_DRXSelector')) return true;        // DRX 내부 선택자
   if (api === 'TFT17_AnimaSquad_Gold') return true;            // 애니마 스쿼드 골드 토큰
   if (/^TFT17_Item_MissFortuneUnique.+Stance$/.test(api)) return true; // 미스 포츈 스탠스 내부 상태
-  if (/^TFT\d+_.+Offering_AnomalyItem$/.test(api)) return true; // 이상 현상 (시스템 아이템 — 효과 복원 불가)
+  if (api === 'TFT17_MarketOffering_Anomaly') return true;      // 이상현상 선택자 (choice selector)
 
   return false;
 }
@@ -132,6 +132,8 @@ export function getItemCategory(item: RawItem): ItemCategory {
   // Set 17 실제 장착 가능한 특수 세트 아이템 (composition이 비어도 조합 완성품 취급)
   if (item.apiName.startsWith('TFT17_Item_PsyOps_')) return 'combined';
   if (item.apiName.startsWith('TFT17_AnimaSquadItem_')) return 'combined';
+  // 에코 이상현상 아이템 (실제 장착 가능, 효과 복원 불가 — 기록 용도)
+  if (item.apiName.includes('Anomaly')) return 'combined';
   if (isBaseComponent(item)) return 'component';
   if (isCombinedItem(item)) return 'combined';
   if (item.apiName.includes('Piltover')) return 'piltover';

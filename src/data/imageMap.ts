@@ -162,12 +162,14 @@ export const TIER_BORDER_COLORS: Record<AugmentTier, string> = {
   silver: 'border-gray-400',
   gold: 'border-yellow-500',
   prismatic: 'border-fuchsia-400',
+  boon: 'border-amber-400',
 };
 
 export const TIER_BG_COLORS: Record<AugmentTier, string> = {
   silver: 'from-gray-600 to-gray-500',
   gold: 'from-yellow-700 to-yellow-500',
   prismatic: 'from-fuchsia-700 to-fuchsia-400',
+  boon: 'from-amber-700 to-amber-400',
 };
 
 export const COST_BORDER_COLORS: Record<number, string> = {
