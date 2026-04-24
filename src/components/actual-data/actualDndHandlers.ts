@@ -127,9 +127,8 @@ export function createActualDragEndHandler(ctx: () => ActualDndContext | null) {
       return;
     }
 
-    // Champion drop (sidebar → empty hex only). Slot drops are ignored for champion type.
+    // Champion drop (sidebar → empty hex only). Slot id resolves to its parent hex via destHex.
     if (dragData.type === 'champion') {
-      if (slotInfo) return;
       if (existingDestIdx >= 0) return;
       const newUnit: PlacedUnit = {
         championId: dragData.champion.apiName,
@@ -141,9 +140,9 @@ export function createActualDragEndHandler(ctx: () => ActualDndContext | null) {
       return;
     }
 
-    // Placed unit drag — movement only on hex cells, not item slots.
+    // Placed unit drag — slot id resolves to its parent hex via destHex (supports drops onto
+    // the lower item-row region of another occupied hex under pointerWithin collision detection).
     if (dragData.type === 'placed-unit') {
-      if (slotInfo) return;
       const srcTeam = dragData.team;
       const srcUnits = srcTeam === 'player' ? round.playerTeam.units : round.opponent.units;
       const srcIdx = findUnitIndexAt(srcUnits, dragData.position);
