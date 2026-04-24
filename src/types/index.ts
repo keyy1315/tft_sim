@@ -327,6 +327,12 @@ export interface PlacedChampion {
   position: HexCoord;
   starLevel: number; // 1, 2, 3
   items: RawItem[];
+  /**
+   * actual-data 경로에서 슬롯 좌표를 보존하기 위한 선택적 3-tuple.
+   * 길이 3(빈 슬롯은 null). 존재하면 SetupBoardCore 의 고정 3-슬롯 레이아웃 렌더링에 사용된다.
+   * /simulator 등 legacy 경로에서는 undefined → 기존 compacted items 기반 렌더링 유지.
+   */
+  itemSlots?: Array<RawItem | null>;
   voidItem?: RawItem | null;
   mfMode?: MfMode | null;
   permanentStacks?: PermanentStack | null;
