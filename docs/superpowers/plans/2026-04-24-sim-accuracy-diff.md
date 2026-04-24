@@ -22,6 +22,54 @@ The spec (`docs/superpowers/specs/2026-04-24-sim-accuracy-diff-design.md`) assum
 
 Net effect: schema-side work is smaller; the 3 remaining additions (`survivors`, `augmentStacks`, `ioniaPath`) are the only schema changes.
 
+## Execution-time Corrections (mid-flight, apply to all subsequent tasks)
+
+These supersede the task text wherever they conflict:
+
+### E1. Data catalogs must be loaded via `fs`, not `fetch`
+
+`src/data/loader.ts` exposes `loadChampions`, `loadAllChampions`, `loadItems`, `loadTraits`, `loadAugments`. **All use `fetch('/data/...')` which only works in the browser** — they fail in Vitest (node env) and Next.js API routes (node runtime).
+
+**There is no `loadAllTraits` export.** Use `loadTraits` (loader-processed) in browser code, or `fs.readFileSync` in tests/server code.
+
+**Server-side / test pattern** (mirrors `tests/calibration/calibrate-dps.test.ts:40-60`):
+
+```typescript
+import fs from 'node:fs';
+import path from 'node:path';
+import type { RawChampion, RawItem, RawItemsData, RawTrait, RawTraitsData } from '@/types';
+
+const PUBLIC_DATA = path.join(process.cwd(), 'public', 'data');
+
+function readJson<T>(rel: string): T {
+  return JSON.parse(fs.readFileSync(path.join(PUBLIC_DATA, rel), 'utf-8')) as T;
+}
+
+function loadChampionsSync(): RawChampion[] {
+  const raw = readJson<RawChampion[] | { champions?: RawChampion[] }>('tft_set17_champions.json');
+  return Array.isArray(raw) ? raw : raw.champions ?? [];
+}
+function loadTraitsSync(): RawTrait[] { return readJson<RawTraitsData>('tft_set17_traits.json').traits; }
+function loadItemsSync(): RawItem[]   { return readJson<RawItemsData>('tft_set17_items.json').items; }
+// Augments: verify filename at impl time (likely 'tft_set17_augments.json' with { augments: [...] })
+```
+
+**Recommended refactor to stay DRY**: create `src/lib/validation/serverCatalogs.ts` with `loadServerCatalogs()` that any server-side or test code imports. Create this helper as the first step of Phase 1 (before schemaAdapter tests need it). Phase 0 (bench) can inline its own minimal loader since it runs first.
+
+In all task code blocks referencing `loadAllChampions`, `loadAllTraits`, `loadAllAugments`, `loadAllItems` (plan-invented wrappers), substitute with the sync fs pattern above (or import from `serverCatalogs` once it exists).
+
+### E2. Fixture game file
+
+Plan text references `actual-data/game-20260424-001.json` in tests, but that file is **untracked** in the parent repo and not in this worktree. Use `actual-data/game-20260423-001.json` instead — committed, 22 PvP rounds, last round has 8 units per side. Wherever the plan says `game-20260424-001.json`, read it as `game-20260423-001.json`.
+
+### E3. Console output in calibration tests
+
+CLAUDE.md forbids `console.log` in committed production code. Calibration benchmarks under `tests/calibration/` are the documented exception (see `calibrate-dps.test.ts`). Mark each bench `console.log` line with `// eslint-disable-next-line no-console` and a brief inline comment ("pure measurement") — do NOT add a repo-wide rule or a disable for the whole file.
+
+### E4. `gameDiffer.ts` server-side data loading
+
+Task 4.1 `gameDiffer.ts` is imported by `/api/actual-data/[gameId]/compare/route.ts` (node runtime). Do NOT import `loadAllChampions`/etc. Instead `import { loadServerCatalogs } from '@/lib/validation/serverCatalogs'`. The impl in the plan body uses `loadAllChampions`, `loadAllTraits`, etc. — substitute per E1.
+
 ---
 
 ## File Structure
