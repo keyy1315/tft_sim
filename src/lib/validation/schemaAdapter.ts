@@ -7,7 +7,11 @@ import type {
   PlacedChampion,
   ArbiterLaw,
 } from '@/types';
-import type { PvPRound, PlacedUnit } from '@/lib/actualData/types';
+import type {
+  PvPRound,
+  PlacedUnit,
+  StargazerConstellationId,
+} from '@/lib/actualData/types';
 import { isStackable } from '@/lib/simulator/systems/augment';
 import { loadServerCatalogs } from '@/lib/validation/serverCatalogs';
 
@@ -47,6 +51,8 @@ interface TeamSnapshotExt {
 export interface ToNRunInputOptions {
   /** 0-based 인덱스. 자동 stack 추론에 사용. 미지정 시 자동 추론 안 함. */
   pvpRoundIndex?: number;
+  /** game-level 별돌보미 별자리. resolveTraits 가 변종 trait 활성에 사용. */
+  stargazerConstellation?: StargazerConstellationId;
 }
 
 /**
@@ -186,6 +192,7 @@ export function toNRunInput(
         enemyAugmentStacks: opponentStacks,
         playerArbiterLaw,
         enemyArbiterLaw,
+        stargazerConstellation: options.stargazerConstellation,
         skipMirror: true,
         stageNumber,
       },

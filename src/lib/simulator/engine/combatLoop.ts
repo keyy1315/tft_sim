@@ -76,6 +76,12 @@ export interface SimulateOptions {
   /** 중재자 법률 */
   playerArbiterLaw?: ArbiterLaw;
   enemyArbiterLaw?: ArbiterLaw;
+  /**
+   * 별돌보미 별자리 — 게임마다 randomized 7 변종 중 하나.
+   * 미지정 시 base trait (`TFT17_Stargazer`) 활성, 변종 effect 미적용.
+   * 양 팀 동일 (게임-level state) — 배치된 별돌보미 챔프가 있는 팀만 효과 받음.
+   */
+  stargazerConstellation?: 'altar' | 'boar' | 'huntress' | 'medal' | 'mountain' | 'snake' | 'well';
 }
 
 function createCombatUnit(
@@ -591,6 +597,64 @@ function applyJuggernautDR(activeTraits: ActiveTrait[], units: CombatUnit[]): vo
   for (const u of units) {
     if (u.champion.traits.includes('전쟁기계')) {
       u.damageReduction += baseDR;
+    }
+  }
+}
+
+/**
+ * 별돌보미 변종 effects 적용. 활성 trait 가 변종 (TFT17_Stargazer_*) 인 경우만
+ * 해당 변종의 effect 변수를 별돌보미 유닛에 적용. base TFT17_Stargazer 활성
+ * (변종 미지정) 시 효과 미적용.
+ *
+ * "강화된 칸" (revealedTiles) 개념은 단순화: 별돌보미 trait 보유 유닛 (champion
+ * trait 또는 Stargazer Emblem) 모두에 적용. 정밀한 hex-별 적용은 후속 PR.
+ *
+ * 현재 PR 스코프: Mountain 변종만 effects 처리. 나머지 6 변종 (Wolf/Medallion/
+ * Huntress/Serpent/Shield/Fountain) 은 후속 PR 에서 추가 — 활성은 되지만 effect
+ * 미적용 상태.
+ */
+function applyStargazerEffects(traits: ActiveTrait[], units: CombatUnit[]): void {
+  const stargazer = traits.find((t) => t.trait.name === '별돌보미');
+  if (!stargazer || !stargazer.activeEffect || stargazer.style === 0) return;
+
+  const apiName = stargazer.trait.apiName;
+  // base trait 또는 변종 미구현 시 skip
+  if (apiName === 'TFT17_Stargazer') return;
+
+  const eff = stargazer.activeEffect.variables;
+
+  const isStargazerUnit = (u: CombatUnit): boolean => {
+    const champTraits = u.resolvedTraits ?? u.champion.traits;
+    if (champTraits.includes('별돌보미')) return true;
+    return u.items.some((it) => it.apiName === 'TFT17_Item_StargazerEmblemItem');
+  };
+
+  // === Mountain 변종 ===
+  if (apiName === 'TFT17_Stargazer_Mountain') {
+    // fraction (0.12 = 12%) 단위 변수들
+    const hpPct = (eff.Mountain_Health ?? 0) as number;
+    const adapPct = (eff.Mountain_ADAP ?? 0) as number;
+    const asPct = (eff.Mountain_AS ?? 0) as number;
+    const drPct = (eff.Mountain_DR ?? 0) as number;
+    // absolute 단위 (12 = +12 armor/MR)
+    const resistsFlat = (eff.Mountain_Resists ?? 0) as number;
+
+    for (const u of units) {
+      if (!isStargazerUnit(u)) continue;
+      if (hpPct > 0) {
+        u.maxHp = Math.round(u.maxHp * (1 + hpPct));
+        u.currentHp = u.maxHp;
+      }
+      if (adapPct > 0) {
+        u.stats.damage = Math.round(u.stats.damage * (1 + adapPct));
+        u.stats.ap = (u.stats.ap ?? 0) + adapPct;
+      }
+      if (asPct > 0) u.stats.attackSpeed *= (1 + asPct);
+      if (drPct > 0) u.damageReduction += drPct;
+      if (resistsFlat > 0) {
+        u.stats.armor += resistsFlat;
+        u.stats.magicResist += resistsFlat;
+      }
     }
   }
 }
@@ -1293,8 +1357,12 @@ export function simulateCombat(
   const playerInCombatEffects = resolveInCombatAugmentEffects(playerAugsWithStacks);
   const enemyInCombatEffects = resolveInCombatAugmentEffects(enemyAugsWithStacks);
 
-  const playerActiveTraits = resolveTraits(allyTeam, allTraits);
-  const enemyActiveTraits = resolveTraits(enemyTeam, allTraits);
+  const playerActiveTraits = resolveTraits(allyTeam, allTraits, {
+    stargazerConstellation: options.stargazerConstellation,
+  });
+  const enemyActiveTraits = resolveTraits(enemyTeam, allTraits, {
+    stargazerConstellation: options.stargazerConstellation,
+  });
 
   // Bilgewater stat effects — merge into augmentEffects for bilgewater units
   const playerBWEffects = options.playerBilgewaterEffects ?? {};
@@ -1398,6 +1466,8 @@ export function simulateCombat(
   applyShenBastionAura(enemyActiveTraits, enemies);
   applyJhinAnnihilator(playerActiveTraits, enemies);  // 적 대상
   applyJhinAnnihilator(enemyActiveTraits, playerUnits);
+  applyStargazerEffects(playerActiveTraits, playerUnits);
+  applyStargazerEffects(enemyActiveTraits, enemies);
   applyMorganaDarklight(playerActiveTraits, playerUnits);
   applyMorganaDarklight(enemyActiveTraits, enemies);
 
