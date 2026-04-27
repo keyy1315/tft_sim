@@ -1,4 +1,6 @@
 import type { StargazerConstellationId } from './types';
+import type { HexCoord } from '@/types';
+import { offsetToAxial } from '@/types';
 
 /**
  * 별돌보미 별자리 (게임 데이터 schema enum) ↔ trait apiName 매핑.
@@ -44,4 +46,97 @@ export function traitApiToConstellationId(apiName: string): StargazerConstellati
     if (api === apiName) return id as StargazerConstellationId;
   }
   return null;
+}
+
+/**
+ * 별자리별 강화 칸 (offset) 패턴.
+ * 4 행 × 7 열 (player half-board). 각 row 의 col 0~6 중 활성 칸을 명시.
+ *
+ * 단순화 (PR-3 v1):
+ * - 게임 진행 중 player level 따라 점진 추가되지만 현재는 **고정 풀 패턴** 으로
+ *   적용. 정밀화는 후속 PR.
+ * - 별돌보미 trait 활성된 팀만 적용 (minUnits >= 3).
+ *
+ * 좌표 시스템 (`src/types/index.ts:offsetToAxial`):
+ *   q = col - floor(row / 2), r = row
+ *
+ * 이미지 출처: docs/sim-accuracy/stargazer-tile-images.* (사용자 제공)
+ */
+const TILE_PATTERNS_OFFSET: Record<StargazerConstellationId, ReadonlyArray<readonly [row: number, col: number]>> = {
+  // 멧돼지 (Wolf) — 좌측·중앙 집중 17칸
+  // r=0 ·X·XXX· / r=1 XXXXX·· / r=2 XXXXX·· / r=3 X·XX···
+  boar: [
+    [0, 1], [0, 3], [0, 4], [0, 5],
+    [1, 0], [1, 1], [1, 2], [1, 3], [1, 4],
+    [2, 0], [2, 1], [2, 2], [2, 3], [2, 4],
+    [3, 0], [3, 2], [3, 3],
+  ],
+  // 메달 (Medallion) — 보드 전반 분산 17칸
+  // r=0 ··XXXX· / r=1 XX···X· / r=2 XXXX··X / r=3 XX·XXX·
+  medal: [
+    [0, 2], [0, 3], [0, 4], [0, 5],
+    [1, 0], [1, 1], [1, 5],
+    [2, 0], [2, 1], [2, 2], [2, 3], [2, 6],
+    [3, 0], [3, 1], [3, 3], [3, 4], [3, 5],
+  ],
+  // 여사냥꾼 (Huntress) — 중앙·후열 carry 보호 14칸
+  // r=0 ··X··X· / r=1 ·XXXXX· / r=2 ··X·XX· / r=3 ···XXXX
+  huntress: [
+    [0, 2], [0, 5],
+    [1, 1], [1, 2], [1, 3], [1, 4], [1, 5],
+    [2, 2], [2, 4], [2, 5],
+    [3, 3], [3, 4], [3, 5], [3, 6],
+  ],
+  // 뱀 (Serpent) — 바둑판 분산 14칸
+  // r=0 ··XX·XX / r=1 ·X·X·X· / r=2 ··X·X·X / r=3 XX··XX·
+  snake: [
+    [0, 2], [0, 3], [0, 5], [0, 6],
+    [1, 1], [1, 3], [1, 5],
+    [2, 2], [2, 4], [2, 6],
+    [3, 0], [3, 1], [3, 4], [3, 5],
+  ],
+  // 제단 (Shield) — 보드 대칭 + 전열 풀 18칸
+  // r=0 ·X·XX·X / r=1 X·X·X·X / r=2 ·X·XX·X / r=3 XXX·XXX
+  altar: [
+    [0, 1], [0, 3], [0, 4], [0, 6],
+    [1, 0], [1, 2], [1, 4], [1, 6],
+    [2, 1], [2, 3], [2, 4], [2, 6],
+    [3, 0], [3, 1], [3, 2], [3, 4], [3, 5], [3, 6],
+  ],
+  // 우물 (Fountain) — 후열·전열 풀, 행 2 거의 비음 14칸
+  // r=0 ·XX·XX· / r=1 X·XX·X· / r=2 ···X··· / r=3 XXXXXX·
+  well: [
+    [0, 1], [0, 2], [0, 4], [0, 5],
+    [1, 0], [1, 2], [1, 3], [1, 5],
+    [2, 3],
+    [3, 0], [3, 1], [3, 2], [3, 3], [3, 4], [3, 5],
+  ],
+  // 산 (Mountain) — 중앙 라인 + 양 가장자리 12칸
+  // r=0 ··XXXX· / r=1 ·X···X· / r=2 ·X····X / r=3 XX···XX
+  mountain: [
+    [0, 2], [0, 3], [0, 4], [0, 5],
+    [1, 1], [1, 5],
+    [2, 1], [2, 6],
+    [3, 0], [3, 1], [3, 5], [3, 6],
+  ],
+};
+
+/**
+ * 별자리별 강화 칸 axial 좌표 (q, r) 배열. 사용자 측은 hex 의 q/r 로 검사.
+ */
+export const CONSTELLATION_TILE_PATTERN: Record<StargazerConstellationId, ReadonlyArray<HexCoord>> = (() => {
+  const out = {} as Record<StargazerConstellationId, ReadonlyArray<HexCoord>>;
+  for (const id of Object.keys(TILE_PATTERNS_OFFSET) as StargazerConstellationId[]) {
+    out[id] = TILE_PATTERNS_OFFSET[id].map(([row, col]) => offsetToAxial({ row, col }));
+  }
+  return out;
+})();
+
+/** 주어진 unit position 이 별자리의 강화 칸인지 검사. O(N) — N=12~18 작음. */
+export function isOnEmpoweredTile(
+  position: HexCoord,
+  constellation: StargazerConstellationId,
+): boolean {
+  const tiles = CONSTELLATION_TILE_PATTERN[constellation];
+  return tiles.some((t) => t.q === position.q && t.r === position.r);
 }

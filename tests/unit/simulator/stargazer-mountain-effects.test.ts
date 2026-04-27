@@ -27,15 +27,16 @@ function placed(c: RawChampion, q: number, r: number, extraItems: RawItem[] = []
 }
 
 describe('Mountain — AP 단위 + StatIncrease 증폭', () => {
-  it('minUnits=6 활성 시 별돌보미 AP 가 +12 (percentage points), AD 는 ×1.12', () => {
-    // player 6 별돌보미 (champion 3 + emblem 3)
+  it('minUnits=6 활성 + 강화 칸 안 별돌보미 AP +12 (pts), AD ×1.12', () => {
+    // player 6 별돌보미 (champion 3 + emblem 3) — 모두 mountain 강화 칸 axial 좌표:
+    // (2,0)(3,0)(4,0)(5,0)(1,1)(5,1) 등. 강화 칸 외엔 효과 안 받음 — 별도 케이스 검증.
     const ally: PlacedChampion[] = [
-      placed(apTwistedFate, 0, 0),
-      placed(apTalon, 1, 0),
-      placed(apJax, 2, 0),
-      placed(apAatrox, 3, 0, [STARGAZER_EMBLEM]),
-      placed(apMilio, 4, 0, [STARGAZER_EMBLEM]),
-      placed(apCorki, 5, 0, [STARGAZER_EMBLEM]),
+      placed(apTwistedFate, 2, 0),
+      placed(apTalon, 3, 0),
+      placed(apJax, 4, 0),
+      placed(apAatrox, 5, 0, [STARGAZER_EMBLEM]),
+      placed(apMilio, 1, 1, [STARGAZER_EMBLEM]),
+      placed(apCorki, 5, 1, [STARGAZER_EMBLEM]),
     ];
     const enemy: PlacedChampion[] = [placed(dummyEnemy, 6, 3)];
 
@@ -64,17 +65,18 @@ describe('Mountain — AP 단위 + StatIncrease 증폭', () => {
     }
   });
 
-  it('비-별돌보미 unit 의 AD/AP 변화 없음', () => {
+  it('비-별돌보미 unit (강화 칸 무관) 변화 없음 — Mountain 은 teamwide 없음', () => {
     const ally: PlacedChampion[] = [
-      // 별돌보미 6명 (위 setup) + 비-별돌보미 2명
-      placed(apTwistedFate, 0, 0),
-      placed(apTalon, 1, 0),
-      placed(apJax, 2, 0),
-      placed(apAatrox, 3, 0, [STARGAZER_EMBLEM]),
-      placed(apMilio, 4, 0, [STARGAZER_EMBLEM]),
-      placed(apCorki, 5, 0, [STARGAZER_EMBLEM]),
-      placed(apCaitlyn, 0, 1),
-      placed(apRiven, 1, 1),
+      // 별돌보미 6명 (강화 칸 안)
+      placed(apTwistedFate, 2, 0),
+      placed(apTalon, 3, 0),
+      placed(apJax, 4, 0),
+      placed(apAatrox, 5, 0, [STARGAZER_EMBLEM]),
+      placed(apMilio, 1, 1, [STARGAZER_EMBLEM]),
+      placed(apCorki, 5, 1, [STARGAZER_EMBLEM]),
+      // 비-별돌보미 2명 — 강화 칸 안에 있더라도 Mountain teamwide 없으니 영향 없음.
+      placed(apCaitlyn, 0, 2),
+      placed(apRiven, 5, 2),
     ];
     const enemy: PlacedChampion[] = [placed(dummyEnemy, 6, 3)];
 
