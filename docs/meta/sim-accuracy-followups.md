@@ -72,6 +72,62 @@ warning 경로 (schemaAdapter) 가 missing 값을 graceful 처리. UI 추가 비
 
 ---
 
+## 후속 — Set 17 trait 시스템 미구현 (2026-04-27 발견)
+
+v1 측정 도구로 game-20260423-001 (N=10) 돌려본 결과 **모든 player 챔프가
+sim 에서 -50% ~ -94% 데미지** (TwistedFate 만 +28% 예외). 이 systemic 적자의
+주 원인은 **Set 17 핵심 trait 4개가 sim 엔진에 미구현**.
+
+### 챔프별 평균 diff (Caitlyn fix + NoScoutNoPivot fix 후 baseline)
+
+| 챔프 | actual 평균 | sim 평균 | avg diff | 비고 |
+|------|------|------|------|------|
+| Corki | 4884 | 256 | -94% | 정령족·운명술사 미구현 직접 영향 |
+| Milio | 2191 | 374 | -78% | 시간 균열자·운명술사 |
+| Jax | 1444 | 511 | -63% | 별돌보미·요새 |
+| Talon | 2603 | 1280 | -60% | 별돌보미·불한당 |
+| Caitlyn | 1531 | 576 | -57% | N.O.V.A.·운명술사 |
+| Aatrox | 762 | 311 | -53% | N.O.V.A.·요새 |
+| TwistedFate | 5111 | 4698 | +28% | 별돌보미·운명술사 |
+
+### grep 검증
+
+`grep -rln "Stargazer|Fateweaver|N.O.V.A|Astronaut" src/lib/simulator/` → **0 hits**.
+(`src/lib/actualData/{schema,types}.ts` 에서만 언급 — data layer 만 인식, 엔진 무시.)
+
+### 미구현 trait 우선순위
+
+| trait | apiName | player 활성 | 핵심 효과 | 영향 추정 |
+|------|---------|------------|---------|---------|
+| **별돌보미** | TFT17_Stargazer_Wolf 외 | 6명 (3명 + Emblem 3개) | Wolf_ADAP=10%, Wolf_Health=2%, Teamwide=8% | 매우 큼 |
+| **운명술사** | TFT17_Fateweaver | 4명 | "행운: ProcChance 두 번 시도" + CritDamage | Corki/Caitlyn ProcChance 1.8x |
+| **N.O.V.A.** | (capstone) | 2명 | 표식 + 헤드샷 추가 | 중간 |
+| **정령족** | (Astronaut) | 1명 (Corki) | 8초마다 Meep 폭발 (★3 = 180/8s = 22.5dps × 26s = 585 추가) | Corki 단독 큼 |
+
+### 다음 PR 권장 순서
+
+1. **별돌보미 (Stargazer) Wolf 컨스텔레이션** — 가장 영향 큼. effects key (Wolf_ADAP/Wolf_Health/Wolf_Health_Teamwide) 가산 처리.
+2. **운명술사 (Fateweaver)** — ProcChance 호출 지점 (Caitlyn line 1786, Corki/Milio 추가) 에 trait 활성 시 best-of-2 RNG 로직.
+3. **N.O.V.A. capstone** — Caitlyn description 의 "<ShowIf.TFT17_DRX_CapstoneActive>" 분기 처리. 표식 시스템 추가 필요.
+4. **정령족 (Astronaut)** — Meep 8초 cooldown 폭발. 챔프별 onAttack 패시브 시스템에 추가.
+
+### 재고 트리거
+
+trait 4개 중 하나라도 구현 후 diff cache 재실행 시 game-20260423-001 의
+winnerMatchRate 가 50% 넘기면 다음 trait 으로 진행 결정.
+
+### 추적 메트릭 (재실행 시 기록)
+
+baseline (2026-04-27 trait 4개 모두 미구현):
+- winnerMatchRate: **40.9%**
+- avgPlayerDamageErrorPct: **-44.8%**
+- avgSurvivorHpErrorPts: 9.4 pt
+- weakSignalRoundCount: 0
+
+각 trait fix 후 위 4개 값 추가 기록.
+
+---
+
 ## 후속 (6) — 시스템별 오차 귀속 (Attribution)
 
 **스코프:**
