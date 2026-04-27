@@ -21,7 +21,26 @@ import { EventBus } from '@/lib/simulator/events/eventBus';
 import { ItemEffectRuntime } from '@/lib/simulator/systems/items';
 import type { ActionDeps, DamageType } from '@/lib/simulator/systems/items';
 import { ROLE_OMNIVAMP, getFighterASBonus } from '@/lib/simulator/models/unit';
-import { resolveTraits } from '@/lib/simulator/systems/trait';
+import { resolveTraits, getEmblemTraitNames } from '@/lib/simulator/systems/trait';
+
+/**
+ * unit 의 trait 멤버십 검사 헬퍼. champion.traits 직접 조회는 emblem 으로 부여된
+ * trait 를 누락 — `resolvedTraits` 가 항상 createCombatUnit 시점에 emblem 까지
+ * 합산해 둔 진짜 멤버십 list. fallback 은 champion.traits (resolvedTraits 미설정
+ * 시 기본 traits 와 동일).
+ */
+function unitHasTrait(u: CombatUnit, traitName: string): boolean {
+  return (u.resolvedTraits ?? u.champion.traits).includes(traitName);
+}
+
+/**
+ * PlacedChampion (createCombatUnit 전 시점) 의 trait 멤버십 — champion.traits +
+ * emblem 합산. unit 생성 후엔 unitHasTrait 사용.
+ */
+function placedHasTrait(p: PlacedChampion, traitName: string): boolean {
+  if (p.champion.traits.includes(traitName)) return true;
+  return getEmblemTraitNames(p.items).includes(traitName);
+}
 import { resolveAugmentEffects, resolveInCombatAugmentEffects, resolvePerUnitMods, applyPerUnitMods, AugmentWithStacks } from '@/lib/simulator/systems/augment';
 import type { IoniaPathType } from '@/data/traitModules';
 import { computeSpellCanCrit } from '@/lib/combat/spellCrit';
@@ -132,10 +151,22 @@ function createCombatUnit(
     spellCanCrit: computeSpellCanCrit(allItems, activeTraits),
   };
 
-  // MF 특성 선택 → 실제 트레이트로 치환
+  // MF 특성 선택 → 실제 트레이트로 치환 + emblem 으로 부여된 trait 합산.
+  // resolvedTraits 가 unit 의 진짜 trait 멤버십 — combat-time 효과 (시너지 per-unit
+  // bonus / arbiter law) 가 emblem 보유 unit 도 일관되게 인식하도록 한다.
+  const emblemTraits = getEmblemTraitNames(allItems);
+  let baseTraits = placed.champion.traits;
   if (placed.champion.apiName === 'TFT17_MissFortune' && placed.mfMode) {
     const modeCfg = MF_MODE_CONFIG[placed.mfMode];
-    unit.resolvedTraits = placed.champion.traits.map(t => t === '특성 선택' ? modeCfg.name : t);
+    baseTraits = baseTraits.map(t => t === '특성 선택' ? modeCfg.name : t);
+  }
+  if (emblemTraits.length > 0 || baseTraits !== placed.champion.traits) {
+    // dedup — 동일 trait 가 champion 에 이미 있으면 emblem 으로 재추가하지 않음
+    const merged = [...baseTraits];
+    for (const t of emblemTraits) {
+      if (!merged.includes(t)) merged.push(t);
+    }
+    unit.resolvedTraits = merged;
   }
 
   // 공허 돌연변이 전투 효과 적용
@@ -200,7 +231,7 @@ function applySet17SynergyBuffs(traits: ActiveTrait[], units: CombatUnit[]): voi
     const tierIdx = at.trait.effects.findIndex(e => e === at.activeEffect);
     const ti = Math.max(0, tierIdx);
 
-    const isChampTrait = (u: CombatUnit) => (u.resolvedTraits ?? u.champion.traits).includes(at.trait.name);
+    const isChampTrait = (u: CombatUnit) => unitHasTrait(u, at.trait.name);
 
     // 도전자: 아군 AS + 도전자 추가 AS
     if (sc.teamwideAS) {
@@ -408,7 +439,7 @@ function applyIoniaPath(
   const vars = ionia.activeEffect.variables;
 
   const ioniaUnits = teamUnits.filter(u =>
-    u.state !== 'dead' && u.champion.traits.includes('아이오니아')
+    u.state !== 'dead' && unitHasTrait(u, '아이오니아')
   );
   if (ioniaUnits.length === 0) return;
 
@@ -516,7 +547,7 @@ function applyDefenderBonus(activeTraits: ActiveTrait[], units: CombatUnit[]): v
   const bonus = (defender.activeEffect.variables['BonusArmorMR'] ?? 0) as number;
   if (bonus <= 0) return;
   for (const u of units) {
-    if (u.champion.traits.includes('엄호대')) {
+    if (unitHasTrait(u, '엄호대')) {
       u.stats.armor += bonus;
       u.stats.magicResist += bonus;
     }
@@ -530,7 +561,7 @@ function applySorcererBonus(activeTraits: ActiveTrait[], units: CombatUnit[]): v
   const bonusAP = (sorc.activeEffect.variables['BonusAP'] ?? 0) as number;
   if (bonusAP <= 0) return;
   for (const u of units) {
-    if (u.champion.traits.includes('비전 마법사')) {
+    if (unitHasTrait(u, '비전 마법사')) {
       u.stats.ap += bonusAP;
     }
   }
@@ -595,7 +626,7 @@ function applyJuggernautDR(activeTraits: ActiveTrait[], units: CombatUnit[]): vo
   const baseDR = (jugg.activeEffect.variables['BaseDR'] ?? 0) as number;
   if (baseDR <= 0) return;
   for (const u of units) {
-    if (u.champion.traits.includes('전쟁기계')) {
+    if (unitHasTrait(u, '전쟁기계')) {
       u.damageReduction += baseDR;
     }
   }
@@ -623,11 +654,9 @@ function applyStargazerEffects(traits: ActiveTrait[], units: CombatUnit[]): void
 
   const eff = stargazer.activeEffect.variables;
 
-  const isStargazerUnit = (u: CombatUnit): boolean => {
-    const champTraits = u.resolvedTraits ?? u.champion.traits;
-    if (champTraits.includes('별돌보미')) return true;
-    return u.items.some((it) => it.apiName === 'TFT17_Item_StargazerEmblemItem');
-  };
+  // resolvedTraits 가 createCombatUnit 에서 champion.traits + emblem 합산으로
+  // 설정되므로 unitHasTrait 한 번으로 emblem 보유 unit 도 정확히 인식.
+  const isStargazerUnit = (u: CombatUnit): boolean => unitHasTrait(u, '별돌보미');
 
   // === Mountain 변종 ===
   if (apiName === 'TFT17_Stargazer_Mountain') {
@@ -983,7 +1012,7 @@ function trySpawnGalio(
   const enemyTrueDamage = (dVars['EnemyTrueDamage'] ?? 0) as number;
 
   for (const u of teamUnits) {
-    if (!u.champion.traits.includes('데마시아') || u.state === 'dead') continue;
+    if (!unitHasTrait(u, '데마시아') || u.state === 'dead') continue;
     u.stats.armor += rallyArmorMR;
     u.stats.magicResist += rallyArmorMR;
     if (manaReductionPct > 0) {
@@ -1104,7 +1133,7 @@ function applyPiltoverInvention(
     if (moduleKey === 'VoltageConduit') {
       const reduction = (item.effects['ManaReduction'] ?? 0.30) as number;
       for (const ally of aliveTeam) {
-        if (ally.champion.traits.includes('필트오버')) {
+        if (unitHasTrait(ally, '필트오버')) {
           ally.maxMana = Math.round(ally.maxMana * (1 - reduction));
         }
       }
@@ -1402,7 +1431,7 @@ export function simulateCombat(
     : options.enemyGalio ?? null;
 
   const playerUnits = playerTeamFiltered.map((p, i) => {
-    const isBW = p.champion.traits.includes('빌지워터');
+    const isBW = placedHasTrait(p, '빌지워터');
     const effects = isBW ? mergeEffects(playerAugmentEffects, playerBWEffects) : playerAugmentEffects;
     const unit = createCombatUnit(p, 'player', i, playerActiveTraits, effects);
     const mod = resolvePerUnitMods(playerAugsWithStacks, p.champion);
@@ -1414,7 +1443,7 @@ export function simulateCombat(
   });
   const enemies = enemyTeamFiltered.map((p, i) => {
     const positioned = options.skipMirror ? p : { ...p, position: mirrorPosition(p.position) };
-    const isBW = p.champion.traits.includes('빌지워터');
+    const isBW = placedHasTrait(p, '빌지워터');
     const effects = isBW ? mergeEffects(enemyAugmentEffects, enemyBWEffects) : enemyAugmentEffects;
     const unit = createCombatUnit(positioned, 'enemy', i, enemyActiveTraits, effects);
     const mod = resolvePerUnitMods(enemyAugsWithStacks, p.champion);
@@ -1500,7 +1529,7 @@ export function simulateCombat(
     if (manaPerKill <= 0 && armorMRReduction <= 0) return;
     eventBus.on('on_death', 'harvester', () => {
       for (const u of killerTeam) {
-        if (u.champion.traits.includes('수확자') && u.state !== 'dead') {
+        if (unitHasTrait(u, '수확자') && u.state !== 'dead') {
           u.currentMana = Math.min(u.maxMana, u.currentMana + manaPerKill);
         }
       }
@@ -1542,8 +1571,8 @@ export function simulateCombat(
   const enemyGalioFlag = { spawned: false };
 
   // 중재자 법률 런타임
-  const playerArbiterUnits = playerUnits.filter(u => u.champion.traits.includes('중재자'));
-  const enemyArbiterUnits = enemies.filter(u => u.champion.traits.includes('중재자'));
+  const playerArbiterUnits = playerUnits.filter(u => unitHasTrait(u, '중재자'));
+  const enemyArbiterUnits = enemies.filter(u => unitHasTrait(u, '중재자'));
   const playerLawResolved = options.playerArbiterLaw && playerArbiterUnits.length >= 2
     ? resolveArbiterValue(options.playerArbiterLaw, playerArbiterUnits.length) : null;
   const enemyLawResolved = options.enemyArbiterLaw && enemyArbiterUnits.length >= 2
@@ -1711,12 +1740,12 @@ export function simulateCombat(
     const challengerIds = new Set<string>();
     if (playerChallengerActive) {
       for (const u of playerUnits) {
-        if ((u.resolvedTraits ?? u.champion.traits).includes('도전자')) challengerIds.add(u.id);
+        if (unitHasTrait(u, '도전자')) challengerIds.add(u.id);
       }
     }
     if (enemyChallengerActive) {
       for (const u of enemies) {
-        if ((u.resolvedTraits ?? u.champion.traits).includes('도전자')) challengerIds.add(u.id);
+        if (unitHasTrait(u, '도전자')) challengerIds.add(u.id);
       }
     }
 
@@ -1856,7 +1885,7 @@ export function simulateCombat(
           unit.attackCount++;
 
           // 중재자 법률 카운터 업데이트
-          if (unit.champion.traits.includes('중재자')) {
+          if (unitHasTrait(unit, '중재자')) {
             const arbState = unit.team === 'player' ? playerArbiterState : enemyArbiterState;
             arbState.hitCount++;
             arbState.attackCount++;
@@ -1946,7 +1975,7 @@ export function simulateCombat(
             unit.currentMana = 0;
             unit.state = 'casting';
             unit.castCount++;
-            if (unit.champion.traits.includes('중재자')) {
+            if (unitHasTrait(unit, '중재자')) {
               (unit.team === 'player' ? playerArbiterState : enemyArbiterState).manaSpent += unit.maxMana;
             }
             // 마나 소모 시점 — PsyOps 공감 임플란트 등

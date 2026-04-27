@@ -1,5 +1,6 @@
 import { RawItem, ItemEffect, ItemCategory, EquipValidation, PlacedChampion, ActiveTrait } from '@/types';
 import { ITEM_EFFECT_KEYS } from '@/lib/simulator/models/constants';
+import { getEmblemTraitNames } from '@/lib/simulator/systems/trait';
 
 /** 비활성(disable) 아이템 — UI에서 숨김 처리 */
 const DISABLED_ITEMS = new Set([
@@ -170,7 +171,11 @@ export function canEquipItem(
     if (!voidTrait || !voidTrait.activeEffect) {
       return { canEquip: false, reason: '공허 시너지가 활성화되어야 합니다' };
     }
-    if (!champion.champion.traits.includes('공허')) {
+    // emblem 으로 공허 부여받은 unit 도 장착 가능 (champion.traits + emblem 합산)
+    const hasVoid =
+      champion.champion.traits.includes('공허') ||
+      getEmblemTraitNames(champion.items).includes('공허');
+    if (!hasVoid) {
       return { canEquip: false, reason: '공허 챔피언만 돌연변이를 장착할 수 있습니다' };
     }
     if (champion.voidItem) {
