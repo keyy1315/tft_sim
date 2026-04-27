@@ -12,6 +12,7 @@ import ItemIcon from '@/components/builder/ItemIcon';
 import TeamEditor from './TeamEditor';
 import OpponentPanel from './OpponentPanel';
 import DamageChartInput from './DamageChartInput';
+import SurvivorListPanel from './SurvivorListPanel';
 import VideoTimeInput from './VideoTimeInput';
 import ActualBoard from './ActualBoard';
 import ChampionItemSidebar from './ChampionItemSidebar';
@@ -180,6 +181,21 @@ export default function PvPRoundEditor({ index, round }: { index: number; round:
               units={round.opponent.units}
               entries={round.opponentDamageChart ?? []}
               onChange={entries => updatePvPRound(index, { opponentDamageChart: entries })}
+              championCatalog={championCatalog}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+            <SurvivorListPanel
+              label="내 팀 라운드 종료 상태"
+              team={round.playerTeam}
+              onChange={t => updatePlayerTeam(index, t)}
+              championCatalog={championCatalog}
+            />
+            <SurvivorListPanel
+              label="상대 팀 라운드 종료 상태"
+              team={round.opponent}
+              onChange={o => updateOpponent(index, o)}
               championCatalog={championCatalog}
             />
           </div>
