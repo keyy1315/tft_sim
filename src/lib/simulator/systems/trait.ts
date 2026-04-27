@@ -51,6 +51,11 @@ function emblemTraitFromItems(items: RawItem[] | undefined): string[] {
   return out;
 }
 
+/** Public helper: emblem 아이템 배열로부터 부여 trait 한글명 목록 추출. */
+export function getEmblemTraitNames(items: RawItem[] | undefined): string[] {
+  return emblemTraitFromItems(items);
+}
+
 export interface ResolveTraitsOptions {
   /** 별돌보미 변종 — game-level state. 지정 시 base 대신 specific 변종 trait 활성. */
   stargazerConstellation?: StargazerConstellationId;

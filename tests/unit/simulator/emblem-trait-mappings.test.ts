@@ -91,6 +91,34 @@ describe('Emblem 19종 → trait 카운트 매핑', () => {
     expect(active.find((t) => t.trait.name === '동물특공대')?.count).toBe(1);
   });
 
+  it('emblem 보유 unit 의 resolvedTraits 에 부여 trait 가 포함되어야 함 (champion 자체 trait 미보유 케이스)', async () => {
+    // codex P1: trait 카운트는 +1 되지만 unit 의 resolvedTraits 에 emblem trait 가
+    // 누락되면 combat-time per-unit 효과 (도전자/불한당/시너지 buff / arbiter law)
+    // 가 그 unit 자체를 제외 — sim 모순. createCombatUnit 시점에 emblem trait 합산
+    // 되어 있어야 unitHasTrait 일관성 유지.
+    const { simulateCombat } = await import('@/lib/simulator/engine/combatLoop');
+    const challengerEmblem = findItem('TFT17_Item_ASTraitEmblemItem');
+    // Caitlyn 은 도전자 trait 미보유. emblem 으로 도전자 받음.
+    const ally = [
+      { champion: baselineChamp, starLevel: 2 as const, position: { q: 0, r: 3 }, items: [challengerEmblem] },
+    ];
+    const enemy = [
+      { champion: findChamp('TFT17_Aatrox'), starLevel: 1 as const, position: { q: 6, r: 3 }, items: [] },
+    ];
+    const result = simulateCombat(ally, enemy, {
+      seed: 0,
+      allTraits: traits,
+      skipMirror: true,
+      stageNumber: 5,
+    });
+    const unit = result.playerUnits.find((u) => u.champion.apiName === 'TFT17_Caitlyn')!;
+    expect(unit.resolvedTraits).toBeDefined();
+    expect(unit.resolvedTraits).toContain('도전자');
+    // champion 의 기본 trait (N.O.V.A., 운명술사) 도 보존
+    expect(unit.resolvedTraits).toContain('N.O.V.A.');
+    expect(unit.resolvedTraits).toContain('운명술사');
+  });
+
   it('emblem 외 일반 아이템은 trait 카운트 무영향', () => {
     const team = [
       {
