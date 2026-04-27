@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { runN } from '@/lib/validation/nRunSimulator';
 import { loadServerCatalogs } from '@/lib/validation/serverCatalogs';
+import type { RawChampion } from '@/types';
 import type { NRunInput } from '@/types/validation';
 
 const { champions, traits } = loadServerCatalogs();
@@ -54,4 +55,47 @@ describe('nRunSimulator.runN', () => {
     expect(leonaHp!.aliveCount).toBeGreaterThanOrEqual(0);
     expect(leonaHp!.aliveCount).toBeLessThanOrEqual(3);
   });
+});
+
+describe('runN smoke test with real late-game round', () => {
+  it('completes late-game round within 5s at N=3', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const raw = fs.readFileSync(
+      path.join(process.cwd(), 'actual-data', 'game-20260423-001.json'),
+      'utf-8',
+    );
+    const data = JSON.parse(raw);
+    const pvpRounds = data.rounds.filter((r: { type: string }) => r.type === 'pvp');
+    const late = pvpRounds[pvpRounds.length - 1];
+
+    // Smoke test — items empty for speed. Real adapter test is in schemaAdapter.test.ts
+    const ally = late.playerTeam.units
+      .map((u: { championId: string; starLevel: 1 | 2 | 3; hex: { q: number; r: number } }) => ({
+        champion: champions.find(c => c.apiName === u.championId)!,
+        starLevel: u.starLevel,
+        position: u.hex,
+        items: [],
+      }))
+      .filter((p: { champion: RawChampion | undefined }) => !!p.champion);
+    const enemy = late.opponent.units
+      .map((u: { championId: string; starLevel: 1 | 2 | 3; hex: { q: number; r: number } }) => ({
+        champion: champions.find(c => c.apiName === u.championId)!,
+        starLevel: u.starLevel,
+        position: u.hex,
+        items: [],
+      }))
+      .filter((p: { champion: RawChampion | undefined }) => !!p.champion);
+
+    const t0 = performance.now();
+    const dist = runN(
+      { playerTeam: ally, opponentTeam: enemy, simulateOptions: { allTraits: traits, skipMirror: true, stageNumber: 5 } },
+      3,
+      0,
+    );
+    const ms = performance.now() - t0;
+
+    expect(dist.nRuns).toBe(3);
+    expect(ms).toBeLessThan(5000);
+  }, 10_000);
 });
