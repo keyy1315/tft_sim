@@ -1,7 +1,12 @@
 {
   "gameId": "game-20260423-001",
   "videoSource": {
-    "kind": "none"
+    "kind": "local",
+    "filename": "game-20260423-001.mp4",
+    "mimeType": "video/mp4",
+    "sizeBytes": 3800439938,
+    "durationSeconds": 2005.985,
+    "uploadedAt": "2026-04-24T00:26:32.041Z"
   },
   "patchVersion": "17.1",
   "playerRiotId": "무례한 친구#0129",
