@@ -24,15 +24,23 @@ function numStats(samples: number[]): NumStats {
 
 /**
  * Build a stable id → initial-hexKey map for one team.
+ *
  * CombatUnit.id format from createCombatUnit: `${team}-${index}` where index
- * matches the team-array index. We use the input PlacedChampion[].position
- * as the canonical hex key, since CombatUnit.position is mutated during combat
- * (movement) and would not be stable across runs.
+ * matches the **post-filter** team-array index inside simulateCombat
+ * (`combatLoop.ts:1313-1314` filters out TFT16_Galio before assigning ids).
+ * If we naively walked the unfiltered PlacedChampion[] here, every id after
+ * a Galio entry would be off by one and damage/survivor stats would be
+ * attributed to the wrong hex.
+ *
+ * Mirror the same filter so id alignment stays correct.
  */
+const FILTERED_API_NAMES = new Set<string>(['TFT16_Galio']);
+
 function buildIdToHexKey(team: 'player' | 'enemy', placed: PlacedChampion[]): Map<string, string> {
   const out = new Map<string, string>();
-  for (let i = 0; i < placed.length; i++) {
-    out.set(`${team}-${i}`, hexKey(placed[i].position));
+  const filtered = placed.filter((p) => !FILTERED_API_NAMES.has(p.champion.apiName));
+  for (let i = 0; i < filtered.length; i++) {
+    out.set(`${team}-${i}`, hexKey(filtered[i].position));
   }
   return out;
 }

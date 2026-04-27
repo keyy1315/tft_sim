@@ -55,6 +55,33 @@ describe('nRunSimulator.runN', () => {
     expect(leonaHp!.aliveCount).toBeGreaterThanOrEqual(0);
     expect(leonaHp!.aliveCount).toBeLessThanOrEqual(3);
   });
+
+  it('TFT16_Galio entry 가 앞에 있어도 hex key 가 올바른 유닛에 매핑됨', () => {
+    // simulateCombat 는 TFT16_Galio 를 placed 배열에서 필터링 후 인덱스로
+    // CombatUnit.id 부여. nRunSimulator 도 같은 필터를 거쳐 id→hexKey 매핑을
+    // 만들지 않으면 모든 후속 unit 의 stat 가 잘못된 hex 에 귀속.
+    const jinx = champions.find(c => c.apiName === 'TFT17_Jinx')!;
+    const leona = champions.find(c => c.apiName === 'TFT17_Leona')!;
+    // Galio raw stub — sim 이 필터링하므로 stats/ability 정확성은 무관하지만
+    // RawChampion 타입은 충족해야 한다.
+    const galio: RawChampion = {
+      name: 'Galio', apiName: 'TFT16_Galio', cost: 0, traits: [], role: null,
+      stats: { armor: 0, attackSpeed: 0.5, critChance: 0, critMultiplier: 1.4, damage: 0, hp: 1, initialMana: 0, magicResist: 0, mana: 0, range: 1 },
+      ability: { name: '', desc: '', icon: '', variables: [] },
+    };
+    const input: NRunInput = {
+      playerTeam: [
+        { champion: galio, starLevel: 1, position: { q: -2, r: 3 }, items: [] },  // 인덱스 0 — 필터 대상
+        { champion: jinx, starLevel: 2, position: { q: 0, r: 3 }, items: [] },     // 필터 후 인덱스 0
+      ],
+      opponentTeam: [{ champion: leona, starLevel: 2, position: { q: 3, r: 3 }, items: [] }],
+      simulateOptions: { allTraits: traits, skipMirror: true, stageNumber: 3 },
+    };
+    const dist = runN(input, 1, 0);
+    // jinx 는 필터 후 player-0 → hexKey '0,3' 로 등록돼야 함.
+    expect(dist.playerDamage.has('0,3')).toBe(true);
+    expect(dist.playerDamage.has('-2,3')).toBe(false);
+  });
 });
 
 describe('runN smoke test with real late-game round', () => {

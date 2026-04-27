@@ -46,7 +46,11 @@ function computeSummary(rounds: RoundDiff[]): GameDiff['summary'] {
   const matched = rounds.filter((r) => r.winner.matched).length;
   const weak = rounds.filter((r) => r.winner.weakSignal).length;
 
-  const allPlayerDmg = rounds.flatMap((r) => r.playerDamage);
+  // diffPct=null (actual=0 + simMean>0) 인 entry 는 정의 불가 — 평균에서 제외.
+  // 포함하면 zero-actual outlier 가 평균을 0 쪽으로 왜곡해 model error 를
+  // systematically underreport 함.
+  const allPlayerDmg = rounds.flatMap((r) => r.playerDamage)
+    .filter((d): d is typeof d & { diffPct: number } => d.diffPct !== null);
   const avgPlayerDamageErrorPct = allPlayerDmg.length > 0
     ? allPlayerDmg.reduce((a, b) => a + b.diffPct, 0) / allPlayerDmg.length
     : 0;

@@ -52,8 +52,15 @@ export interface DamageDiff {
   simMean: number;
   simMedian: number;
   simRange: [number, number];
-  /** (simMean - actual) / actual */
-  diffPct: number;
+  /**
+   * (simMean - actual) / actual.
+   * actual === 0 인 경우:
+   *   - simMean === 0 → 0 (정상 일치)
+   *   - simMean > 0 → null (분모 0 — 정의 불가, summary 평균에서 제외)
+   *
+   * UI 는 null 일 때 "—" 또는 "actual 0" 으로 표시.
+   */
+  diffPct: number | null;
 }
 
 export interface SurvivorDiff {

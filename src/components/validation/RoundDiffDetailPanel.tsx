@@ -5,6 +5,18 @@ interface Props {
   round: RoundDiff;
 }
 
+function formatDiffPct(p: number | null): string {
+  if (p === null) return '—';
+  return `${(p * 100).toFixed(0)}%`;
+}
+
+function diffPctColorClass(p: number | null): string {
+  if (p === null) return 'text-gray-500';
+  if (p < -0.1) return 'text-red-400';
+  if (p > 0.1) return 'text-green-400';
+  return '';
+}
+
 export default function RoundDiffDetailPanel({ round }: Props) {
   return (
     <div className="border border-gray-700 rounded p-4 bg-gray-900/50 text-gray-100 text-sm space-y-3">
@@ -25,7 +37,7 @@ export default function RoundDiffDetailPanel({ round }: Props) {
                   <td>{d.championId.replace(/^TFT\d+_/, '')} ({d.hex.q},{d.hex.r})</td>
                   <td className="text-right">{Math.round(d.actual)}</td>
                   <td className="text-right">{Math.round(d.simMean)} ({Math.round(d.simRange[0])}-{Math.round(d.simRange[1])})</td>
-                  <td className={`text-right ${d.diffPct < -0.1 ? 'text-red-400' : d.diffPct > 0.1 ? 'text-green-400' : ''}`}>{(d.diffPct * 100).toFixed(0)}%</td>
+                  <td className={`text-right ${diffPctColorClass(d.diffPct)}`} title={d.diffPct === null ? 'actual=0 — 비율 정의 불가' : undefined}>{formatDiffPct(d.diffPct)}</td>
                 </tr>
               ))}
             </tbody>
@@ -44,7 +56,7 @@ export default function RoundDiffDetailPanel({ round }: Props) {
                   <td>{d.championId.replace(/^TFT\d+_/, '')} ({d.hex.q},{d.hex.r})</td>
                   <td className="text-right">{Math.round(d.actual)}</td>
                   <td className="text-right">{Math.round(d.simMean)}</td>
-                  <td className="text-right">{(d.diffPct * 100).toFixed(0)}%</td>
+                  <td className={`text-right ${diffPctColorClass(d.diffPct)}`} title={d.diffPct === null ? 'actual=0 — 비율 정의 불가' : undefined}>{formatDiffPct(d.diffPct)}</td>
                 </tr>
               ))}
             </tbody>

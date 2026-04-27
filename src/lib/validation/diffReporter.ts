@@ -40,7 +40,9 @@ function toDamageDiff(
     simMean: sim.mean,
     simMedian: sim.median,
     simRange: [sim.min, sim.max],
-    diffPct: actual === 0 ? 0 : (sim.mean - actual) / actual,
+    // actual=0 + simMean=0 → 정상 일치 (0). actual=0 + sim>0 → 정의 불가 (null)
+    // — 평균에서 제외돼야 model error 가 systematically underreport 되지 않음.
+    diffPct: actual === 0 ? (sim.mean === 0 ? 0 : null) : (sim.mean - actual) / actual,
   };
 }
 

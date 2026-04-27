@@ -1,7 +1,21 @@
 'use client';
 import { useCompareDiff } from '@/hooks/useCompareDiff';
 import RunCompareButton from './RunCompareButton';
-import type { RoundDiff } from '@/types/validation';
+import type { DamageDiff, RoundDiff } from '@/types/validation';
+
+/** actual=0 + simMean>0 인 entry (diffPct=null) 는 평균에서 제외. */
+function avgDiffPct(entries: ReadonlyArray<DamageDiff>): number | null {
+  const finite = entries.filter((e): e is DamageDiff & { diffPct: number } => e.diffPct !== null);
+  if (finite.length === 0) return null;
+  return finite.reduce((a, b) => a + b.diffPct, 0) / finite.length;
+}
+
+function formatAvgDiffPct(entries: ReadonlyArray<DamageDiff>, emptyLabel: string): string {
+  if (entries.length === 0) return emptyLabel;
+  const avg = avgDiffPct(entries);
+  if (avg === null) return '— actual 0';
+  return `평균 오차 ${(avg * 100).toFixed(0)}%`;
+}
 
 interface Props {
   gameId: string;
@@ -12,9 +26,7 @@ function RoundSummary({ round }: { round: RoundDiff }) {
   const winnerLine = round.winner.matched
     ? `actual=${round.winner.actual}, sim ${Math.round(round.winner.simPlayerWinRate * 100)}% ✅`
     : `actual=${round.winner.actual}, sim ${Math.round(round.winner.simPlayerWinRate * 100)}% ❌`;
-  const dmgAvg = round.playerDamage.length === 0
-    ? '— 데미지 기록 없음'
-    : `평균 오차 ${((round.playerDamage.reduce((a, b) => a + b.diffPct, 0) / round.playerDamage.length) * 100).toFixed(0)}%`;
+  const dmgAvg = formatAvgDiffPct(round.playerDamage, '— 데미지 기록 없음');
   const survLine = (() => {
     if (!round.survivors) return '— (데이터 없음)';
     const total = round.survivors.length;
@@ -25,7 +37,7 @@ function RoundSummary({ round }: { round: RoundDiff }) {
     <div className="space-y-1">
       <div><span className="text-gray-400">Winner:</span> {winnerLine}{round.winner.weakSignal && ' ⚠️ 엣지케이스'}</div>
       <div><span className="text-gray-400">내 딜량:</span> {dmgAvg}</div>
-      <div><span className="text-gray-400">상대 딜량:</span> {round.opponentDamage ? `오차 평균 ${((round.opponentDamage.reduce((a, b) => a + b.diffPct, 0) / round.opponentDamage.length) * 100).toFixed(0)}%` : '— (데이터 없음)'}</div>
+      <div><span className="text-gray-400">상대 딜량:</span> {round.opponentDamage ? formatAvgDiffPct(round.opponentDamage, '— 데이터 없음').replace('평균 오차', '오차 평균') : '— (데이터 없음)'}</div>
       <div><span className="text-gray-400">생존:</span> {survLine}</div>
       {round.warnings.length > 0 && (
         <div className="text-yellow-400">⚠️ {round.warnings.join(' · ')}</div>

@@ -114,4 +114,22 @@ describe('diffReporter.compareRound', () => {
     const diff = compareRound(fakeRound(), fakeDist(), ['warn1', 'warn2']);
     expect(diff.warnings).toEqual(['warn1', 'warn2']);
   });
+
+  it('returns diffPct=0 when both actual and sim are zero (정상 일치)', () => {
+    const round = fakeRound({
+      playerDamageChart: [{ unitHex: { q: 0, r: 3 }, championId: 'TFT17_Xayah', damage: 0 }],
+    });
+    const dist = fakeDist({ playerDamage: new Map([['0,3', fakeNumStats(0)]]) });
+    const diff = compareRound(round, dist, []);
+    expect(diff.playerDamage[0].diffPct).toBe(0);
+  });
+
+  it('returns diffPct=null when actual=0 but sim>0 (정의 불가, summary 평균 제외 대상)', () => {
+    const round = fakeRound({
+      playerDamageChart: [{ unitHex: { q: 0, r: 3 }, championId: 'TFT17_Xayah', damage: 0 }],
+    });
+    const dist = fakeDist({ playerDamage: new Map([['0,3', fakeNumStats(1500)]]) });
+    const diff = compareRound(round, dist, []);
+    expect(diff.playerDamage[0].diffPct).toBeNull();
+  });
 });

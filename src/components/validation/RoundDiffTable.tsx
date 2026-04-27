@@ -7,9 +7,11 @@ interface Props {
   onSelect: (roundName: string) => void;
 }
 
-function avgDamagePct(round: RoundDiff): number {
-  if (round.playerDamage.length === 0) return 0;
-  return round.playerDamage.reduce((a, b) => a + b.diffPct, 0) / round.playerDamage.length;
+/** actual=0 + simMean>0 (diffPct=null) entry 는 평균에서 제외. 전부 null 이면 null. */
+function avgDamagePct(round: RoundDiff): number | null {
+  const finite = round.playerDamage.filter((d): d is typeof d & { diffPct: number } => d.diffPct !== null);
+  if (finite.length === 0) return null;
+  return finite.reduce((a, b) => a + b.diffPct, 0) / finite.length;
 }
 
 function survSummary(round: RoundDiff): string {
@@ -44,7 +46,7 @@ export default function RoundDiffTable({ rounds, selectedRoundName, onSelect }: 
               <td className="py-1">{r.winner.actual}</td>
               <td className="py-1 text-right">{Math.round(r.winner.simPlayerWinRate * 100)}%{r.winner.weakSignal && ' ⚠️'}</td>
               <td className="py-1 text-center">{r.winner.matched ? '✅' : '❌'}</td>
-              <td className="py-1 text-right">{(avgDamagePct(r) * 100).toFixed(0)}%</td>
+              <td className="py-1 text-right">{(() => { const a = avgDamagePct(r); return a === null ? '—' : `${(a * 100).toFixed(0)}%`; })()}</td>
               <td className="py-1 text-center">{survSummary(r)}</td>
             </tr>
           );
