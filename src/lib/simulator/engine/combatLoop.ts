@@ -22,6 +22,7 @@ import { ItemEffectRuntime } from '@/lib/simulator/systems/items';
 import type { ActionDeps, DamageType } from '@/lib/simulator/systems/items';
 import { ROLE_OMNIVAMP, getFighterASBonus } from '@/lib/simulator/models/unit';
 import { resolveTraits, getEmblemTraitNames } from '@/lib/simulator/systems/trait';
+import { CONSTELLATION_TILE_PATTERN } from '@/lib/actualData/stargazerMapping';
 
 /**
  * unit 의 trait 멤버십 검사 헬퍼. champion.traits 직접 조회는 emblem 으로 부여된
@@ -634,69 +635,177 @@ function applyJuggernautDR(activeTraits: ActiveTrait[], units: CombatUnit[]): vo
 
 /**
  * 별돌보미 변종 effects 적용. 활성 trait 가 변종 (TFT17_Stargazer_*) 인 경우만
- * 해당 변종의 effect 변수를 별돌보미 유닛에 적용. base TFT17_Stargazer 활성
- * (변종 미지정) 시 효과 미적용.
+ * 해당 변종의 effect 변수를 적용. base TFT17_Stargazer 활성 (변종 미지정) 시
+ * 효과 미적용.
  *
- * "강화된 칸" (revealedTiles) 개념은 단순화: 별돌보미 trait 보유 유닛 (champion
- * trait 또는 Stargazer Emblem) 모두에 적용. 정밀한 hex-별 적용은 후속 PR.
+ * "강화된 칸" (empowered tiles) — `CONSTELLATION_TILE_PATTERN[id]` 의 hex 좌표
+ * 풀 패턴 적용 (PR-3 단순화 — player level 점진 추가는 후속).
  *
- * 현재 PR 스코프: Mountain 변종만 effects 처리. 나머지 6 변종 (Wolf/Medallion/
- * Huntress/Serpent/Shield/Fountain) 은 후속 PR 에서 추가 — 활성은 되지만 effect
- * 미적용 상태.
+ * 효과 분기:
+ *   - *_Teamwide 변수 (예: Wolf_Health_Teamwide) → **강화 칸의 모든 아군**
+ *     (별돌보미 trait 보유 무관)
+ *   - 비-Teamwide 변수 (예: Wolf_Health, Wolf_ADAP) → **강화 칸의 별돌보미만**
+ *     추가 stat
  */
-function applyStargazerEffects(traits: ActiveTrait[], units: CombatUnit[]): void {
+function applyStargazerEffects(
+  traits: ActiveTrait[],
+  units: CombatUnit[],
+  constellation: SimulateOptions['stargazerConstellation'],
+): void {
   const stargazer = traits.find((t) => t.trait.name === '별돌보미');
   if (!stargazer || !stargazer.activeEffect || stargazer.style === 0) return;
 
   const apiName = stargazer.trait.apiName;
-  // base trait 또는 변종 미구현 시 skip
-  if (apiName === 'TFT17_Stargazer') return;
+  if (apiName === 'TFT17_Stargazer') return; // base trait — 변종 미지정
+  if (!constellation) return;
 
   const eff = stargazer.activeEffect.variables;
-
-  // resolvedTraits 가 createCombatUnit 에서 champion.traits + emblem 합산으로
-  // 설정되므로 unitHasTrait 한 번으로 emblem 보유 unit 도 정확히 인식.
+  const empoweredTiles = CONSTELLATION_TILE_PATTERN[constellation];
   const isStargazerUnit = (u: CombatUnit): boolean => unitHasTrait(u, '별돌보미');
+  const isOnTile = (u: CombatUnit): boolean =>
+    empoweredTiles.some((t) => t.q === u.position.q && t.r === u.position.r);
 
-  // === Mountain 변종 ===
+  // 한 변종에 두 패스 — 강화 칸 모든 아군 + 강화 칸 별돌보미.
+  // helper: per-unit stat 적용 (% fraction)
+  const applyPctStats = (
+    u: CombatUnit,
+    hpPct: number,
+    adapPct: number,
+    asPct: number,
+    drPct: number,
+    resistsFlat: number,
+  ) => {
+    if (hpPct > 0) {
+      u.maxHp = Math.round(u.maxHp * (1 + hpPct));
+      u.currentHp = u.maxHp;
+    }
+    if (adapPct > 0) {
+      u.stats.damage = Math.round(u.stats.damage * (1 + adapPct));
+      // AP 는 percentage points 단위 — fraction × 100 가산 (다른 trait 컨벤션).
+      u.stats.ap = (u.stats.ap ?? 0) + adapPct * 100;
+    }
+    if (asPct > 0) u.stats.attackSpeed *= (1 + asPct);
+    if (drPct > 0) u.damageReduction += drPct;
+    if (resistsFlat > 0) {
+      u.stats.armor += resistsFlat;
+      u.stats.magicResist += resistsFlat;
+    }
+  };
+
+  // === Mountain 변종 (강화 칸 별돌보미만, teamwide 없음) ===
   if (apiName === 'TFT17_Stargazer_Mountain') {
-    // fraction (0.12 = 12%) 단위 변수들
     const hpPct = (eff.Mountain_Health ?? 0) as number;
     const adapPct = (eff.Mountain_ADAP ?? 0) as number;
     const asPct = (eff.Mountain_AS ?? 0) as number;
     const drPct = (eff.Mountain_DR ?? 0) as number;
-    // absolute 단위 (12 = +12 armor/MR)
     const resistsFlat = (eff.Mountain_Resists ?? 0) as number;
     // minUnits=8+ 활성 시 다른 모든 보너스를 (1 + StatIncrease) 배 증폭.
-    // 7 이하는 null → amp=1 (영향 없음).
     const statIncrease = (eff.Mountain_StatIncrease ?? 0) as number;
     const amp = 1 + statIncrease;
-
-    const hpPctEff = hpPct * amp;
-    const adapPctEff = adapPct * amp;
-    const asPctEff = asPct * amp;
-    const drPctEff = drPct * amp;
-    const resistsFlatEff = resistsFlat * amp;
-
     for (const u of units) {
-      if (!isStargazerUnit(u)) continue;
-      if (hpPctEff > 0) {
-        u.maxHp = Math.round(u.maxHp * (1 + hpPctEff));
+      if (!isStargazerUnit(u) || !isOnTile(u)) continue;
+      applyPctStats(u, hpPct * amp, adapPct * amp, asPct * amp, drPct * amp, resistsFlat * amp);
+    }
+    return;
+  }
+
+  // === Wolf (멧돼지) — Teamwide HP/AD/AP + 별돌보미 추가 HP/ADAP ===
+  if (apiName === 'TFT17_Stargazer_Wolf') {
+    const teamwide = (eff.Wolf_Health_Teamwide ?? 0) as number; // HP/AD/AP 동시
+    const ownerHp = (eff.Wolf_Health ?? 0) as number;
+    const ownerAdap = (eff.Wolf_ADAP ?? 0) as number; // percentage points (예: 10 = 10%)
+    for (const u of units) {
+      if (!isOnTile(u)) continue;
+      // 강화 칸 모든 아군: HP/AD/AP +teamwide
+      if (teamwide > 0) {
+        u.maxHp = Math.round(u.maxHp * (1 + teamwide));
         u.currentHp = u.maxHp;
+        u.stats.damage = Math.round(u.stats.damage * (1 + teamwide));
+        u.stats.ap = (u.stats.ap ?? 0) + teamwide * 100;
       }
-      if (adapPctEff > 0) {
-        u.stats.damage = Math.round(u.stats.damage * (1 + adapPctEff));
-        // AP 는 percentage points 단위 — fraction × 100 해서 가산.
-        // 다른 trait apply (예: 불한당 line 257) 와 동일 컨벤션.
-        u.stats.ap = (u.stats.ap ?? 0) + adapPctEff * 100;
-      }
-      if (asPctEff > 0) u.stats.attackSpeed *= (1 + asPctEff);
-      if (drPctEff > 0) u.damageReduction += drPctEff;
-      if (resistsFlatEff > 0) {
-        u.stats.armor += resistsFlatEff;
-        u.stats.magicResist += resistsFlatEff;
+      // 강화 칸 별돌보미: 추가 HP fraction + ADAP percentage points
+      if (isStargazerUnit(u)) {
+        if (ownerHp > 0) {
+          u.maxHp = Math.round(u.maxHp * (1 + ownerHp));
+          u.currentHp = u.maxHp;
+        }
+        if (ownerAdap > 0) {
+          u.stats.damage = Math.round(u.stats.damage * (1 + ownerAdap / 100));
+          u.stats.ap = (u.stats.ap ?? 0) + ownerAdap;
+        }
       }
     }
+    return;
+  }
+
+  // === Medallion (메달) — Teamwide DA + 3성당 IncreasePer3Star ===
+  if (apiName === 'TFT17_Stargazer_Medallion') {
+    const baseDA = (eff.Medallion_DA ?? 0) as number; // percentage points
+    const per3Star = (eff.Medallion_IncreasePer3Star ?? 0) as number;
+    const threeStarCount = units.filter((u) => u.starLevel === 3).length;
+    const totalDA = baseDA + per3Star * threeStarCount; // percentage points
+    if (totalDA <= 0) return;
+    const ampFraction = totalDA / 100;
+    for (const u of units) {
+      if (!isOnTile(u)) continue;
+      u.damageAmp += ampFraction;
+    }
+    return;
+  }
+
+  // === Huntress (여사냥꾼) — Teamwide AS + 별돌보미 추가 AS / Heal / 표식 ===
+  if (apiName === 'TFT17_Stargazer_Huntress') {
+    const teamwideAs = (eff.Huntress_AS_Teamwide ?? 0) as number;
+    const ownerAs = (eff.Huntress_AS ?? 0) as number;
+    // Huntress_Heal / NumMarks 는 표식 시스템 (PR-4 — 후속).
+    for (const u of units) {
+      if (!isOnTile(u)) continue;
+      if (teamwideAs > 0) u.stats.attackSpeed *= (1 + teamwideAs);
+      if (isStargazerUnit(u) && ownerAs > 0) u.stats.attackSpeed *= (1 + ownerAs);
+    }
+    return;
+  }
+
+  // === Serpent (뱀) — Teamwide DR + 별돌보미 추가 DR / 중독 ===
+  if (apiName === 'TFT17_Stargazer_Serpent') {
+    const teamwideDr = (eff.Serpent_DR_Teamwide ?? 0) as number;
+    const ownerDr = (eff.Serpent_DR ?? 0) as number;
+    // Serpent_Poison / Duration 은 중독 statusEffect (PR-4).
+    for (const u of units) {
+      if (!isOnTile(u)) continue;
+      if (teamwideDr > 0) u.damageReduction += teamwideDr;
+      if (isStargazerUnit(u) && ownerDr > 0) u.damageReduction += ownerDr;
+    }
+    return;
+  }
+
+  // === Shield (제단) — Teamwide HP/AS (percentage points) + 사망 트리거 cashout (PR-4) ===
+  if (apiName === 'TFT17_Stargazer_Shield') {
+    const teamwideHp = (eff.Shield_Health_Teamwide ?? 0) as number; // percentage points (예: 8 = 8%)
+    const teamwideAs = (eff.Shield_AS_Teamwide ?? 0) as number;
+    const hpFrac = teamwideHp / 100;
+    const asFrac = teamwideAs / 100;
+    for (const u of units) {
+      if (!isOnTile(u)) continue;
+      if (hpFrac > 0) {
+        u.maxHp = Math.round(u.maxHp * (1 + hpFrac));
+        u.currentHp = u.maxHp;
+      }
+      if (asFrac > 0) u.stats.attackSpeed *= (1 + asFrac);
+    }
+    return;
+  }
+
+  // === Fountain (우물) — Teamwide ManaRegen + 별돌보미 추가 / 스킬 힐 (PR-4) ===
+  if (apiName === 'TFT17_Stargazer_Fountain') {
+    const teamwide = (eff.Fountain_ManaRegen_Teamwide ?? 0) as number; // 단순 mana/sec
+    const ownerExtra = (eff.Fountain_ManaRegen ?? 0) as number;
+    for (const u of units) {
+      if (!isOnTile(u)) continue;
+      if (teamwide > 0) u.augmentManaRegen += teamwide;
+      if (isStargazerUnit(u) && ownerExtra > 0) u.augmentManaRegen += ownerExtra;
+    }
+    return;
   }
 }
 
@@ -1507,8 +1616,8 @@ export function simulateCombat(
   applyShenBastionAura(enemyActiveTraits, enemies);
   applyJhinAnnihilator(playerActiveTraits, enemies);  // 적 대상
   applyJhinAnnihilator(enemyActiveTraits, playerUnits);
-  applyStargazerEffects(playerActiveTraits, playerUnits);
-  applyStargazerEffects(enemyActiveTraits, enemies);
+  applyStargazerEffects(playerActiveTraits, playerUnits, options.stargazerConstellation);
+  applyStargazerEffects(enemyActiveTraits, enemies, options.stargazerConstellation);
   applyMorganaDarklight(playerActiveTraits, playerUnits);
   applyMorganaDarklight(enemyActiveTraits, enemies);
 
