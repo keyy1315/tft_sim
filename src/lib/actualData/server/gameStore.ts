@@ -7,7 +7,7 @@ const DIR = path.join(process.cwd(), 'actual-data');
 
 export async function listGameSummaries(): Promise<ActualGameSummary[]> {
   await ensureDir();
-  const files = (await fs.readdir(DIR)).filter((f) => f.endsWith('.json'));
+  const files = (await fs.readdir(DIR)).filter(isGameFile);
   const summaries: ActualGameSummary[] = [];
   for (const f of files) {
     try {
@@ -63,8 +63,16 @@ export async function deleteGame(gameId: string): Promise<boolean> {
 export async function listGameIds(): Promise<string[]> {
   await ensureDir();
   return (await fs.readdir(DIR))
-    .filter((f) => f.endsWith('.json'))
+    .filter(isGameFile)
     .map((f) => f.slice(0, -5));
+}
+
+/**
+ * `game-` 으로 시작하는 *.json 만 게임 파일로 인식.
+ * `diff-game-*.json` (validation 캐시) 등 다른 산출물은 제외.
+ */
+function isGameFile(name: string): boolean {
+  return name.startsWith('game-') && name.endsWith('.json');
 }
 
 function filePath(gameId: string): string {

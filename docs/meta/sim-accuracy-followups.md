@@ -36,6 +36,98 @@
 
 ---
 
+## 데이터 정합 이슈 (v1 구현 중 발견, 2026-04-24)
+
+### `ioniaPath` 필드 — Set 17에 아이오니아 trait 없음
+
+**발견**: `public/data/tft_set17_champions.json` 트레잇 목록에 "아이오니아" 없음. Set 17 trait는
+동물특공대/태고족/불한당/도전자/습격자/기동총격여신/파멸자 등. `TFT17_Yasuo` 챔피언도 데이터에 없음.
+
+**현 상태**: 스펙과 schema 확장에 `ioniaPath` 포함됐으나 Set 17에선 활성 트레잇이 없어 쓰임 없음.
+- schemaAdapter의 ionia warning은 방어적으로 처리 — 트레잇 없으면 조용히 스킵
+- 엔진 `SimulateOptions.playerIoniaPath`는 이전 세트 잔존 옵션
+- 해가 없음 (optional 필드)
+
+**재고 트리거**: Set 18 이후 아이오니아 재등장 시 자동 활성. 그 전엔 놔둬도 무해.
+혹시 Set 17 데이터 업데이트로 아이오니아 재추가되면 schema와 adapter는 그대로 작동.
+
+**대안 판단**: v1 끝난 후 사용자가 "Set 17 전용으로 정돈하고 싶다" 판단 시:
+1. schema 에서 `ioniaPath` 제거
+2. schemaAdapter에서 `playerIoniaPath` 매핑 제거
+3. 관련 warning 룰 제거
+
+---
+
+## 후속 — arbiterLaw 입력 UI (v1에서 보류)
+
+**현 상태**: `TeamSnapshotSchema` 에 `arbiterLaw: { triggerId, effectId }` optional 필드는
+존재하나, `src/components/actual-data/` 어디에도 입력 UI 가 없음 (2026-04-27 grep 확인).
+
+**v1에서 뺀 이유**: Phase 5 작업 시점에 arbiterLaw 가 활성화된 게임 데이터가 한 건도 없어서
+warning 경로 (schemaAdapter) 가 missing 값을 graceful 처리. UI 추가 비용 대비 즉시 효용 적음.
+
+**재고 트리거**: 사용자가 실제 라운드에서 arbiter law 발동을 기록하기 시작하면
+`public/data/arbiter_laws.json` 기반 dropdown (triggerId/effectId 페어) 추가 — TeamEditor 옆
+또는 PvPRoundEditor 의 winner 선택 옆에 작은 셀렉트 두 개.
+
+---
+
+## 후속 — Set 17 trait 시스템 미구현 (2026-04-27 발견)
+
+v1 측정 도구로 game-20260423-001 (N=10) 돌려본 결과 **모든 player 챔프가
+sim 에서 -50% ~ -94% 데미지** (TwistedFate 만 +28% 예외). 이 systemic 적자의
+주 원인은 **Set 17 핵심 trait 4개가 sim 엔진에 미구현**.
+
+### 챔프별 평균 diff (Caitlyn fix + NoScoutNoPivot fix 후 baseline)
+
+| 챔프 | actual 평균 | sim 평균 | avg diff | 비고 |
+|------|------|------|------|------|
+| Corki | 4884 | 256 | -94% | 정령족·운명술사 미구현 직접 영향 |
+| Milio | 2191 | 374 | -78% | 시간 균열자·운명술사 |
+| Jax | 1444 | 511 | -63% | 별돌보미·요새 |
+| Talon | 2603 | 1280 | -60% | 별돌보미·불한당 |
+| Caitlyn | 1531 | 576 | -57% | N.O.V.A.·운명술사 |
+| Aatrox | 762 | 311 | -53% | N.O.V.A.·요새 |
+| TwistedFate | 5111 | 4698 | +28% | 별돌보미·운명술사 |
+
+### grep 검증
+
+`grep -rln "Stargazer|Fateweaver|N.O.V.A|Astronaut" src/lib/simulator/` → **0 hits**.
+(`src/lib/actualData/{schema,types}.ts` 에서만 언급 — data layer 만 인식, 엔진 무시.)
+
+### 미구현 trait 우선순위
+
+| trait | apiName | player 활성 | 핵심 효과 | 영향 추정 |
+|------|---------|------------|---------|---------|
+| **별돌보미** | TFT17_Stargazer_Wolf 외 | 6명 (3명 + Emblem 3개) | Wolf_ADAP=10%, Wolf_Health=2%, Teamwide=8% | 매우 큼 |
+| **운명술사** | TFT17_Fateweaver | 4명 | "행운: ProcChance 두 번 시도" + CritDamage | Corki/Caitlyn ProcChance 1.8x |
+| **N.O.V.A.** | (capstone) | 2명 | 표식 + 헤드샷 추가 | 중간 |
+| **정령족** | (Astronaut) | 1명 (Corki) | 8초마다 Meep 폭발 (★3 = 180/8s = 22.5dps × 26s = 585 추가) | Corki 단독 큼 |
+
+### 다음 PR 권장 순서
+
+1. **별돌보미 (Stargazer) Wolf 컨스텔레이션** — 가장 영향 큼. effects key (Wolf_ADAP/Wolf_Health/Wolf_Health_Teamwide) 가산 처리.
+2. **운명술사 (Fateweaver)** — ProcChance 호출 지점 (Caitlyn line 1786, Corki/Milio 추가) 에 trait 활성 시 best-of-2 RNG 로직.
+3. **N.O.V.A. capstone** — Caitlyn description 의 "<ShowIf.TFT17_DRX_CapstoneActive>" 분기 처리. 표식 시스템 추가 필요.
+4. **정령족 (Astronaut)** — Meep 8초 cooldown 폭발. 챔프별 onAttack 패시브 시스템에 추가.
+
+### 재고 트리거
+
+trait 4개 중 하나라도 구현 후 diff cache 재실행 시 game-20260423-001 의
+winnerMatchRate 가 50% 넘기면 다음 trait 으로 진행 결정.
+
+### 추적 메트릭 (재실행 시 기록)
+
+baseline (2026-04-27 trait 4개 모두 미구현):
+- winnerMatchRate: **40.9%**
+- avgPlayerDamageErrorPct: **-44.8%**
+- avgSurvivorHpErrorPts: 9.4 pt
+- weakSignalRoundCount: 0
+
+각 trait fix 후 위 4개 값 추가 기록.
+
+---
+
 ## 후속 (6) — 시스템별 오차 귀속 (Attribution)
 
 **스코프:**

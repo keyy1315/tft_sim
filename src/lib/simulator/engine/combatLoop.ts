@@ -1856,7 +1856,10 @@ export function simulateCombat(
           logs.push(log);
           tickLogs.push(log);
 
-          if (unit.currentMana >= unit.maxMana) {
+          // mana=0/0 챔프 (예: Caitlyn) 는 main ability 가 패시브 — 평타 트리거 onAttack
+          // 핸들러로만 처리. cast 시스템에 진입하면 매 평타마다 ability "Damage" var 값이
+          // 한 번 더 가산되는 이중 발동 버그 발생.
+          if (unit.maxMana > 0 && unit.currentMana >= unit.maxMana) {
             const spentMana = unit.maxMana;
             unit.currentMana = 0;
             unit.state = 'casting';

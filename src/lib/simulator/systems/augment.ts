@@ -199,6 +199,21 @@ export function resolveAugmentEffects(augments: AugmentWithStacks[]): ItemEffect
     const hpBonus = ef(e, 'HPBonus');
     if (hpBonus != null) result.hp = (result.hp ?? 0) + hpBonus * stacks;
 
+    // NoScoutNoPivot 누적 — PvP 라운드 후 % HP / AD / AP 가산.
+    // stack = 거친 PvP 라운드 수 (사용자 augmentStacks 입력).
+    // ADScale=0.015 → +1.5% AD per stack. APScale 은 데이터에 1.5 (이미 % 단위)
+    // 로 들어와 있어 1 보다 크면 /100 으로 정규화.
+    const adScale = ef(e, 'ADScale');
+    if (adScale != null) {
+      const pct = (adScale > 1 ? adScale / 100 : adScale) * stacks;
+      result.ad = (result.ad ?? 0) + pct;
+    }
+    const apScale = ef(e, 'APScale');
+    if (apScale != null) {
+      const pct = (apScale > 1 ? apScale / 100 : apScale) * stacks;
+      result.ap = (result.ap ?? 0) + pct;
+    }
+
     // === Direct flat/percentage AD ===
     const ad = ef(e, 'AD');
     if (ad != null) result.ad = (result.ad ?? 0) + ad;
@@ -425,6 +440,13 @@ export function resolvePerUnitMods(
     // PercentHealth → fractional HP bonus
     const percentHealth = ef(e, 'PercentHealth');
     if (percentHealth != null && percentHealth < 1) mod.hpMultiplier *= (1 + percentHealth);
+
+    // NoScoutNoPivot HPScale — % HP per stack (raid 누적)
+    const hpScale = ef(e, 'HPScale');
+    if (hpScale != null) {
+      const perStack = hpScale > 1 ? hpScale / 100 : hpScale;
+      mod.hpMultiplier *= (1 + perStack * stackCount);
+    }
 
     // HealthIncrease → % HP bonus
     const healthIncrease = ef(e, 'HealthIncrease');

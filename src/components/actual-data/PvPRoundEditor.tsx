@@ -12,16 +12,19 @@ import ItemIcon from '@/components/builder/ItemIcon';
 import TeamEditor from './TeamEditor';
 import OpponentPanel from './OpponentPanel';
 import DamageChartInput from './DamageChartInput';
+import SurvivorListPanel from './SurvivorListPanel';
 import VideoTimeInput from './VideoTimeInput';
 import ActualBoard from './ActualBoard';
 import ChampionItemSidebar from './ChampionItemSidebar';
 import { createActualDragEndHandler } from './actualDndHandlers';
+import RoundDiffInlineCard from '@/components/validation/RoundDiffInlineCard';
 
 export default function PvPRoundEditor({ index, round }: { index: number; round: PvPRound }) {
   const updateRoundMeta = useActualDataStore(s => s.updateRoundMeta);
   const updatePvPRound = useActualDataStore(s => s.updatePvPRound);
   const updatePlayerTeam = useActualDataStore(s => s.updatePlayerTeam);
   const updateOpponent = useActualDataStore(s => s.updateOpponent);
+  const gameId = useActualDataStore(s => s.currentGame?.gameId);
   const { champions, items, loading } = useGameData();
 
   const sensors = useSensors(
@@ -183,6 +186,25 @@ export default function PvPRoundEditor({ index, round }: { index: number; round:
               championCatalog={championCatalog}
             />
           </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+            <SurvivorListPanel
+              label="내 팀 라운드 종료 상태"
+              team={round.playerTeam}
+              onChange={t => updatePlayerTeam(index, t)}
+              championCatalog={championCatalog}
+            />
+            <SurvivorListPanel
+              label="상대 팀 라운드 종료 상태"
+              team={round.opponent}
+              onChange={o => updateOpponent(index, o)}
+              championCatalog={championCatalog}
+            />
+          </div>
+
+          {gameId && (
+            <RoundDiffInlineCard gameId={gameId} currentRoundName={round.roundName} />
+          )}
         </div>
 
         {/* Right-side sidebar */}

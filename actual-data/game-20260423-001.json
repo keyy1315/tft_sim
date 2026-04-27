@@ -17,7 +17,7 @@
   ],
   "timeline": [],
   "createdAt": "2026-04-23T04:51:14.262Z",
-  "updatedAt": "2026-04-24T00:26:32.190Z",
+  "updatedAt": "2026-04-27T01:56:56.600Z",
   "rounds": [
     {
       "type": "pvp",
@@ -74,7 +74,36 @@
         ],
         "level": 3,
         "hp": 100,
-        "hexModifiers": []
+        "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 1,
+              "r": 1
+            },
+            "championId": "TFT17_Aatrox",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 0,
+              "r": 2
+            },
+            "championId": "TFT17_Talon",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "championId": "TFT17_TwistedFate",
+            "alive": false,
+            "hpPercent": 0
+          }
+        ]
       },
       "opponent": {
         "units": [
@@ -153,6 +182,44 @@
         "level": 4,
         "hp": 100,
         "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 4,
+              "r": 0
+            },
+            "championId": "TFT17_Teemo",
+            "alive": true,
+            "hpPercent": 90
+          },
+          {
+            "hex": {
+              "q": 5,
+              "r": 3
+            },
+            "championId": "TFT17_IvernMinion",
+            "alive": true,
+            "hpPercent": 85
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 2
+            },
+            "championId": "TFT17_Summon",
+            "alive": true,
+            "hpPercent": 70
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "championId": "TFT17_Mordekaiser",
+            "alive": false,
+            "hpPercent": 0
+          }
+        ],
         "riotId": "프리드리히 더 그레이트#rjsrl"
       },
       "winner": "opponent",
@@ -238,7 +305,18 @@
         ],
         "level": 3,
         "hp": 100,
-        "hexModifiers": []
+        "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 2,
+              "r": 0
+            },
+            "championId": "TFT17_Aatrox",
+            "alive": true,
+            "hpPercent": 60
+          }
+        ]
       },
       "opponent": {
         "units": [
@@ -278,6 +356,26 @@
         "level": 4,
         "hp": 95,
         "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 3,
+              "r": 1
+            },
+            "championId": "TFT17_Talon",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 0
+            },
+            "championId": "TFT17_TwistedFate",
+            "alive": false,
+            "hpPercent": 0
+          }
+        ],
         "riotId": "너쳐발릴듯#KR1"
       },
       "winner": "player",
@@ -376,7 +474,45 @@
         ],
         "level": 4,
         "hp": 100,
-        "hexModifiers": []
+        "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 2,
+              "r": 0
+            },
+            "championId": "TFT17_Aatrox",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 1,
+              "r": 1
+            },
+            "championId": "TFT17_Talon",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "championId": "TFT17_TwistedFate",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "championId": "TFT17_TwistedFate",
+            "alive": false,
+            "hpPercent": 0
+          }
+        ]
       },
       "opponent": {
         "units": [
@@ -441,7 +577,45 @@
         ],
         "level": 1,
         "hp": 100,
-        "hexModifiers": []
+        "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 1,
+              "r": 3
+            },
+            "championId": "TFT17_Maokai",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "championId": "TFT17_Jax",
+            "alive": true,
+            "hpPercent": 65
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 3
+            },
+            "championId": "TFT17_Aatrox",
+            "alive": true,
+            "hpPercent": 15
+          },
+          {
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "championId": "TFT17_TwistedFate",
+            "alive": true,
+            "hpPercent": 10
+          }
+        ]
       },
       "winner": "opponent",
       "playerDamageChart": [
@@ -553,7 +727,27 @@
         ],
         "level": 4,
         "hp": 90,
-        "hexModifiers": []
+        "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "championId": "TFT17_Talon",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 0
+            },
+            "championId": "TFT17_Jax",
+            "alive": true,
+            "hpPercent": 20
+          }
+        ]
       },
       "opponent": {
         "units": [
@@ -619,6 +813,44 @@
         "level": 4,
         "hp": 86,
         "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "championId": "TFT17_Lissandra",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "championId": "TFT17_Veigar",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 3
+            },
+            "championId": "TFT17_Chogath",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "championId": "TFT17_Rhaast",
+            "alive": false,
+            "hpPercent": 0
+          }
+        ],
         "riotId": "화성갈그니까아#KR1"
       },
       "winner": "player",
@@ -725,7 +957,45 @@
         ],
         "level": 4,
         "hp": 90,
-        "hexModifiers": []
+        "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 3,
+              "r": 0
+            },
+            "championId": "TFT17_Aatrox",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "championId": "TFT17_Talon",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "championId": "TFT17_TwistedFate",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 0
+            },
+            "championId": "TFT17_Jax",
+            "alive": false,
+            "hpPercent": 0
+          }
+        ]
       },
       "opponent": {
         "units": [
@@ -791,6 +1061,44 @@
         "level": 4,
         "hp": 90,
         "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 0,
+              "r": 0
+            },
+            "championId": "TFT17_TwistedFate",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 2
+            },
+            "championId": "TFT17_Talon",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "championId": "TFT17_Aatrox",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "championId": "TFT17_Caitlyn",
+            "alive": true,
+            "hpPercent": 45
+          }
+        ],
         "riotId": "더운날씨#더위조심"
       },
       "winner": "opponent",
@@ -897,7 +1205,45 @@
         ],
         "level": 4,
         "hp": 76,
-        "hexModifiers": []
+        "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 3,
+              "r": 0
+            },
+            "championId": "TFT17_Aatrox",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "championId": "TFT17_Talon",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "championId": "TFT17_TwistedFate",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 0
+            },
+            "championId": "TFT17_Jax",
+            "alive": false,
+            "hpPercent": 0
+          }
+        ]
       },
       "opponent": {
         "units": [
@@ -989,6 +1335,44 @@
         "level": 5,
         "hp": 86,
         "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 1,
+              "r": 3
+            },
+            "championId": "TFT17_Summon",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 4,
+              "r": 3
+            },
+            "championId": "TFT17_Illaoi",
+            "alive": true,
+            "hpPercent": 65
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 3
+            },
+            "championId": "TFT17_Leona",
+            "alive": true,
+            "hpPercent": 8
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "championId": "TFT17_Nasus",
+            "alive": true,
+            "hpPercent": 40
+          }
+        ],
         "riotId": "초보니까용서해#KR1"
       },
       "winner": "opponent",
@@ -1158,7 +1542,54 @@
         ],
         "level": 5,
         "hp": 76,
-        "hexModifiers": []
+        "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 0,
+              "r": 2
+            },
+            "championId": "TFT17_Talon",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "championId": "TFT17_TwistedFate",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 0
+            },
+            "championId": "TFT17_Jax",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 5,
+              "r": 3
+            },
+            "championId": "TFT17_Caitlyn",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 0
+            },
+            "championId": "TFT17_Aatrox",
+            "alive": false,
+            "hpPercent": 0
+          }
+        ]
       },
       "opponent": {
         "units": [
@@ -1237,6 +1668,44 @@
         "level": 5,
         "hp": 100,
         "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 3,
+              "r": 3
+            },
+            "championId": "TFT17_Poppy",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 1,
+              "r": 3
+            },
+            "championId": "TFT17_Pyke",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "championId": "TFT17_Illaoi",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "championId": "TFT17_IvernMinion",
+            "alive": true,
+            "hpPercent": 8
+          }
+        ],
         "riotId": "인천서구전완식#KR1"
       },
       "winner": "opponent",
@@ -1364,7 +1833,36 @@
         ],
         "level": 5,
         "hp": 68,
-        "hexModifiers": []
+        "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 3,
+              "r": 0
+            },
+            "championId": "TFT17_Aatrox",
+            "alive": true,
+            "hpPercent": 80
+          },
+          {
+            "hex": {
+              "q": 0,
+              "r": 2
+            },
+            "championId": "TFT17_Talon",
+            "alive": true,
+            "hpPercent": 82
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 0
+            },
+            "championId": "TFT17_Jax",
+            "alive": true,
+            "hpPercent": 92
+          }
+        ]
       },
       "opponent": {
         "units": [
@@ -1430,6 +1928,44 @@
         "level": 4,
         "hp": 43,
         "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 3,
+              "r": 1
+            },
+            "championId": "TFT17_Talon",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 0
+            },
+            "championId": "TFT17_TwistedFate",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 0
+            },
+            "championId": "TFT17_Ornn",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 2
+            },
+            "championId": "TFT17_Aatrox",
+            "alive": false,
+            "hpPercent": 0
+          }
+        ],
         "riotId": "너쳐발릴듯#KR1"
       },
       "winner": "player",
@@ -1597,7 +2133,45 @@
         ],
         "level": 5,
         "hp": 68,
-        "hexModifiers": []
+        "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 0,
+              "r": 2
+            },
+            "championId": "TFT17_Talon",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 0
+            },
+            "championId": "TFT17_Aatrox",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 5,
+              "r": 3
+            },
+            "championId": "TFT17_Caitlyn",
+            "alive": true,
+            "hpPercent": 60
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 0
+            },
+            "championId": "TFT17_Jax",
+            "alive": true,
+            "hpPercent": 8
+          }
+        ]
       },
       "opponent": {
         "units": [
@@ -1676,6 +2250,53 @@
         "level": 5,
         "hp": 58,
         "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "championId": "TFT17_Lissandra",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "championId": "TFT17_Veigar",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 3
+            },
+            "championId": "TFT17_Poppy",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "championId": "TFT17_IvernMinion",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 1,
+              "r": 3
+            },
+            "championId": "TFT17_Mordekaiser",
+            "alive": false,
+            "hpPercent": 0
+          }
+        ],
         "riotId": "화성갈그니까아#KR1"
       },
       "winner": "player",
@@ -1803,7 +2424,27 @@
         ],
         "level": 5,
         "hp": 68,
-        "hexModifiers": []
+        "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 3,
+              "r": 0
+            },
+            "championId": "TFT17_Aatrox",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 0
+            },
+            "championId": "TFT17_Jax",
+            "alive": true,
+            "hpPercent": 40
+          }
+        ]
       },
       "opponent": {
         "units": [
@@ -1882,6 +2523,53 @@
         "level": 4,
         "hp": 90,
         "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 0,
+              "r": 0
+            },
+            "championId": "TFT17_TwistedFate",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "championId": "TFT17_Caitlyn",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 2
+            },
+            "championId": "TFT17_Talon",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "championId": "TFT17_Aatrox",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 1,
+              "r": 3
+            },
+            "championId": "TFT17_RekSai",
+            "alive": false,
+            "hpPercent": 0
+          }
+        ],
         "riotId": "더운날씨#더위조심"
       },
       "winner": "draw",
@@ -2009,7 +2697,36 @@
         ],
         "level": 5,
         "hp": 68,
-        "hexModifiers": []
+        "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 0,
+              "r": 2
+            },
+            "championId": "TFT17_Talon",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 0
+            },
+            "championId": "TFT17_Jax",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 0
+            },
+            "championId": "TFT17_Aatrox",
+            "alive": false,
+            "hpPercent": 0
+          }
+        ]
       },
       "opponent": {
         "units": [
@@ -2101,6 +2818,62 @@
         "level": 4,
         "hp": 100,
         "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 4,
+              "r": 3
+            },
+            "championId": "TFT17_Rhaast",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "championId": "TFT17_Viktor",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 4,
+              "r": 0
+            },
+            "championId": "TFT17_Lissandra",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 1,
+              "r": 3
+            },
+            "championId": "TFT17_Pyke",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 3
+            },
+            "championId": "TFT17_IvernMinion",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "championId": "TFT17_Mordekaiser",
+            "alive": false,
+            "hpPercent": 0
+          }
+        ],
         "riotId": "프리드리히 더 그레이트#rjsrl"
       },
       "winner": "player",
@@ -2241,7 +3014,63 @@
         ],
         "level": 6,
         "hp": 68,
-        "hexModifiers": []
+        "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 0,
+              "r": 2
+            },
+            "championId": "TFT17_Talon",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 0
+            },
+            "championId": "TFT17_Jax",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 5,
+              "r": 3
+            },
+            "championId": "TFT17_Caitlyn",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "championId": "TFT17_TwistedFate",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 0
+            },
+            "championId": "TFT17_Aatrox",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "championId": "TFT17_Milio",
+            "alive": false,
+            "hpPercent": 0
+          }
+        ]
       },
       "opponent": {
         "units": [
@@ -2359,6 +3188,53 @@
         "level": 7,
         "hp": 100,
         "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 3,
+              "r": 3
+            },
+            "championId": "TFT17_Poppy",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "championId": "TFT17_Pyke",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 1,
+              "r": 3
+            },
+            "championId": "TFT17_Galio",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "championId": "TFT17_IvernMinion",
+            "alive": true,
+            "hpPercent": 70
+          },
+          {
+            "hex": {
+              "q": 0,
+              "r": 0
+            },
+            "championId": "TFT17_Lissandra",
+            "alive": true,
+            "hpPercent": 60
+          }
+        ],
         "riotId": "인천서구전완식#KR1"
       },
       "winner": "opponent",
@@ -2549,7 +3425,63 @@
         ],
         "level": 6,
         "hp": 56,
-        "hexModifiers": []
+        "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "championId": "TFT17_Milio",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 0
+            },
+            "championId": "TFT17_Aatrox",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 5,
+              "r": 3
+            },
+            "championId": "TFT17_Caitlyn",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 0
+            },
+            "championId": "TFT17_Jax",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 0,
+              "r": 2
+            },
+            "championId": "TFT17_Talon",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "championId": "TFT17_TwistedFate",
+            "alive": true,
+            "hpPercent": 40
+          }
+        ]
       },
       "opponent": {
         "units": [
@@ -2654,6 +3586,71 @@
         "level": 6,
         "hp": 31,
         "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "championId": "TFT17_Lissandra",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "championId": "TFT17_Veigar",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "championId": "TFT17_IvernMinion",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 1,
+              "r": 3
+            },
+            "championId": "TFT17_Mordekaiser",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 3
+            },
+            "championId": "TFT17_Poppy",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "championId": "TFT17_Illaoi",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 2
+            },
+            "championId": "TFT17_Summon",
+            "alive": false,
+            "hpPercent": 0
+          }
+        ],
         "riotId": "화성갈그니까아#KR1"
       },
       "winner": "player",
@@ -2808,7 +3805,63 @@
         ],
         "level": 6,
         "hp": 56,
-        "hexModifiers": []
+        "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 0,
+              "r": 2
+            },
+            "championId": "TFT17_Talon",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 0
+            },
+            "championId": "TFT17_Jax",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 5,
+              "r": 3
+            },
+            "championId": "TFT17_Caitlyn",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "championId": "TFT17_TwistedFate",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 0
+            },
+            "championId": "TFT17_Aatrox",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "championId": "TFT17_Milio",
+            "alive": false,
+            "hpPercent": 0
+          }
+        ]
       },
       "opponent": {
         "units": [
@@ -2926,6 +3979,62 @@
         "level": 4,
         "hp": 100,
         "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 4,
+              "r": 0
+            },
+            "championId": "TFT17_Lissandra",
+            "alive": true,
+            "hpPercent": 90
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 3
+            },
+            "championId": "TFT17_IvernMinion",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 4,
+              "r": 3
+            },
+            "championId": "TFT17_Rhaast",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "championId": "TFT17_Illaoi",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 5,
+              "r": 3
+            },
+            "championId": "TFT17_Summon",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "championId": "TFT17_Mordekaiser",
+            "alive": true,
+            "hpPercent": 30
+          }
+        ],
         "riotId": "프리드리히 더 그레이트#rjsrl"
       },
       "winner": "opponent",
@@ -3087,7 +4196,72 @@
         ],
         "level": 7,
         "hp": 45,
-        "hexModifiers": []
+        "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 0,
+              "r": 2
+            },
+            "championId": "TFT17_Talon",
+            "alive": true,
+            "hpPercent": 20
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 0
+            },
+            "championId": "TFT17_Jax",
+            "alive": true,
+            "hpPercent": 45
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 0
+            },
+            "championId": "TFT17_Aatrox",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 4,
+              "r": 3
+            },
+            "championId": "TFT17_Milio",
+            "alive": true,
+            "hpPercent": 70
+          },
+          {
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "championId": "TFT17_Corki",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 5,
+              "r": 3
+            },
+            "championId": "TFT17_Caitlyn",
+            "alive": true,
+            "hpPercent": 80
+          },
+          {
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "championId": "TFT17_TwistedFate",
+            "alive": true,
+            "hpPercent": 68
+          }
+        ]
       },
       "opponent": {
         "units": [
@@ -3205,6 +4379,80 @@
         "level": 7,
         "hp": 100,
         "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "championId": "TFT17_IvernMinion",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 3
+            },
+            "championId": "TFT17_Poppy",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 0,
+              "r": 0
+            },
+            "championId": "TFT17_Lissandra",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 1,
+              "r": 0
+            },
+            "championId": "TFT17_Aurora",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 1,
+              "r": 3
+            },
+            "championId": "TFT17_Galio",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "championId": "TFT17_Karma",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 4,
+              "r": 3
+            },
+            "championId": "TFT17_Pyke",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "championId": "TFT17_Rammus",
+            "alive": false,
+            "hpPercent": 0
+          }
+        ],
         "riotId": "인천서구전완식#KR1"
       },
       "winner": "draw",
@@ -3358,7 +4606,54 @@
         ],
         "level": 7,
         "hp": 45,
-        "hexModifiers": []
+        "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 5,
+              "r": 2
+            },
+            "championId": "TFT17_Talon",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 0
+            },
+            "championId": "TFT17_Jax",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 0
+            },
+            "championId": "TFT17_Aatrox",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "championId": "TFT17_Corki",
+            "alive": true,
+            "hpPercent": 70
+          },
+          {
+            "hex": {
+              "q": 4,
+              "r": 3
+            },
+            "championId": "TFT17_Milio",
+            "alive": true,
+            "hpPercent": 98
+          }
+        ]
       },
       "opponent": {
         "units": [
@@ -3463,6 +4758,71 @@
         "level": 6,
         "hp": 31,
         "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "championId": "TFT17_Lissandra",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "championId": "TFT17_Veigar",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "championId": "TFT17_IvernMinion",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 1,
+              "r": 3
+            },
+            "championId": "TFT17_Mordekaiser",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 3
+            },
+            "championId": "TFT17_Poppy",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "championId": "TFT17_Illaoi",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 2
+            },
+            "championId": "TFT17_Summon",
+            "alive": false,
+            "hpPercent": 0
+          }
+        ],
         "riotId": "화성갈그니까아#KR1"
       },
       "winner": "player",
@@ -3616,7 +4976,72 @@
         ],
         "level": 7,
         "hp": 45,
-        "hexModifiers": []
+        "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 5,
+              "r": 2
+            },
+            "championId": "TFT17_Talon",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 0
+            },
+            "championId": "TFT17_Aatrox",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 4,
+              "r": 3
+            },
+            "championId": "TFT17_Milio",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 0
+            },
+            "championId": "TFT17_Jax",
+            "alive": true,
+            "hpPercent": 30
+          },
+          {
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "championId": "TFT17_TwistedFate",
+            "alive": true,
+            "hpPercent": 25
+          },
+          {
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "championId": "TFT17_Corki",
+            "alive": true,
+            "hpPercent": 95
+          },
+          {
+            "hex": {
+              "q": 5,
+              "r": 3
+            },
+            "championId": "TFT17_Caitlyn",
+            "alive": true,
+            "hpPercent": 10
+          }
+        ]
       },
       "opponent": {
         "units": [
@@ -3747,6 +5172,89 @@
         "level": 9,
         "hp": 43,
         "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "championId": "TFT17_Vex",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "championId": "TFT17_Bard",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 4,
+              "r": 3
+            },
+            "championId": "TFT17_TahmKench",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 3
+            },
+            "championId": "TFT17_Blitzcrank",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "championId": "TFT17_Nunu",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "championId": "TFT17_Shen",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 2
+            },
+            "championId": "TFT17_Morgana",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 5,
+              "r": 2
+            },
+            "championId": "TFT17_Fiora",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 4,
+              "r": 0
+            },
+            "championId": "TFT17_Sona",
+            "alive": false,
+            "hpPercent": 0
+          }
+        ],
         "riotId": "초보니까용서해#KR1"
       },
       "winner": "player",
@@ -3958,7 +5466,72 @@
         ],
         "level": 7,
         "hp": 45,
-        "hexModifiers": []
+        "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 0,
+              "r": 2
+            },
+            "championId": "TFT17_Talon",
+            "alive": true,
+            "hpPercent": 10
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 0
+            },
+            "championId": "TFT17_Jax",
+            "alive": true,
+            "hpPercent": 37
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 0
+            },
+            "championId": "TFT17_Aatrox",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "championId": "TFT17_Milio",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 5,
+              "r": 3
+            },
+            "championId": "TFT17_TwistedFate",
+            "alive": true,
+            "hpPercent": 86
+          },
+          {
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "championId": "TFT17_Caitlyn",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 4,
+              "r": 3
+            },
+            "championId": "TFT17_Corki",
+            "alive": true,
+            "hpPercent": 27
+          }
+        ]
       },
       "opponent": {
         "units": [
@@ -4076,6 +5649,80 @@
         "level": 7,
         "hp": 88,
         "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 3,
+              "r": 3
+            },
+            "championId": "TFT17_Poppy",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 0,
+              "r": 0
+            },
+            "championId": "TFT17_Lissandra",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 1,
+              "r": 0
+            },
+            "championId": "TFT17_Aurora",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "championId": "TFT17_Karma",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "championId": "TFT17_Rammus",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 4,
+              "r": 3
+            },
+            "championId": "TFT17_Pyke",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 1,
+              "r": 3
+            },
+            "championId": "TFT17_Galio",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "championId": "TFT17_IvernMinion",
+            "alive": false,
+            "hpPercent": 0
+          }
+        ],
         "riotId": "인천서구전완식#KR1"
       },
       "winner": "player",
@@ -4287,7 +5934,72 @@
         ],
         "level": 7,
         "hp": 45,
-        "hexModifiers": []
+        "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 0,
+              "r": 2
+            },
+            "championId": "TFT17_Talon",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 0
+            },
+            "championId": "TFT17_Aatrox",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 4,
+              "r": 3
+            },
+            "championId": "TFT17_Milio",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 0
+            },
+            "championId": "TFT17_Jax",
+            "alive": true,
+            "hpPercent": 30
+          },
+          {
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "championId": "TFT17_TwistedFate",
+            "alive": true,
+            "hpPercent": 30
+          },
+          {
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "championId": "TFT17_Corki",
+            "alive": true,
+            "hpPercent": 50
+          },
+          {
+            "hex": {
+              "q": 5,
+              "r": 3
+            },
+            "championId": "TFT17_Caitlyn",
+            "alive": true,
+            "hpPercent": 7
+          }
+        ]
       },
       "opponent": {
         "units": [
@@ -4418,6 +6130,89 @@
         "level": 9,
         "hp": 8,
         "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "championId": "TFT17_Vex",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "championId": "TFT17_Bard",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 3
+            },
+            "championId": "TFT17_TahmKench",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "championId": "TFT17_Nunu",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 4,
+              "r": 0
+            },
+            "championId": "TFT17_Sona",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 1,
+              "r": 3
+            },
+            "championId": "TFT17_Shen",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 4,
+              "r": 3
+            },
+            "championId": "TFT17_Blitzcrank",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 5,
+              "r": 2
+            },
+            "championId": "TFT17_Fiora",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 2
+            },
+            "championId": "TFT17_Morgana",
+            "alive": false,
+            "hpPercent": 0
+          }
+        ],
         "riotId": "초보니까용서해#KR1"
       },
       "winner": "player",
@@ -4642,7 +6437,72 @@
         ],
         "level": 8,
         "hp": 45,
-        "hexModifiers": []
+        "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 0,
+              "r": 2
+            },
+            "championId": "TFT17_Talon",
+            "alive": true,
+            "hpPercent": 80
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 0
+            },
+            "championId": "TFT17_Jax",
+            "alive": true,
+            "hpPercent": 60
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 0
+            },
+            "championId": "TFT17_Aatrox",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "championId": "TFT17_Milio",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 4,
+              "r": 3
+            },
+            "championId": "TFT17_Corki",
+            "alive": true,
+            "hpPercent": 90
+          },
+          {
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "championId": "TFT17_Caitlyn",
+            "alive": true,
+            "hpPercent": 50
+          },
+          {
+            "hex": {
+              "q": 5,
+              "r": 2
+            },
+            "championId": "TFT17_Riven",
+            "alive": true,
+            "hpPercent": 20
+          }
+        ]
       },
       "opponent": {
         "units": [
@@ -4760,6 +6620,80 @@
         "level": 8,
         "hp": 58,
         "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 3,
+              "r": 3
+            },
+            "championId": "TFT17_Poppy",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 0,
+              "r": 0
+            },
+            "championId": "TFT17_Lissandra",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 1,
+              "r": 0
+            },
+            "championId": "TFT17_Aurora",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "championId": "TFT17_Karma",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "championId": "TFT17_Rammus",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 4,
+              "r": 3
+            },
+            "championId": "TFT17_Pyke",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 1,
+              "r": 3
+            },
+            "championId": "TFT17_Galio",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "championId": "TFT17_IvernMinion",
+            "alive": false,
+            "hpPercent": 0
+          }
+        ],
         "riotId": "인천서구전완식#KR1"
       },
       "winner": "player",
@@ -4934,7 +6868,81 @@
         ],
         "level": 8,
         "hp": 45,
-        "hexModifiers": []
+        "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 0,
+              "r": 2
+            },
+            "championId": "TFT17_Riven",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 5,
+              "r": 2
+            },
+            "championId": "TFT17_Talon",
+            "alive": true,
+            "hpPercent": 55
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 0
+            },
+            "championId": "TFT17_Jax",
+            "alive": true,
+            "hpPercent": 30
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 0
+            },
+            "championId": "TFT17_Aatrox",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "championId": "TFT17_Milio",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 5,
+              "r": 3
+            },
+            "championId": "TFT17_TwistedFate",
+            "alive": true,
+            "hpPercent": 60
+          },
+          {
+            "hex": {
+              "q": 4,
+              "r": 3
+            },
+            "championId": "TFT17_Corki",
+            "alive": true,
+            "hpPercent": 20
+          },
+          {
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "championId": "TFT17_Caitlyn",
+            "alive": true,
+            "hpPercent": 40
+          }
+        ]
       },
       "opponent": {
         "units": [
@@ -5226,7 +7234,81 @@
         ],
         "level": 8,
         "hp": 45,
-        "hexModifiers": []
+        "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 0,
+              "r": 2
+            },
+            "championId": "TFT17_Talon",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 0
+            },
+            "championId": "TFT17_Jax",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 0
+            },
+            "championId": "TFT17_Aatrox",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "championId": "TFT17_Milio",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 5,
+              "r": 3
+            },
+            "championId": "TFT17_TwistedFate",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 4,
+              "r": 3
+            },
+            "championId": "TFT17_Corki",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "championId": "TFT17_Caitlyn",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 4,
+              "r": 0
+            },
+            "championId": "TFT17_Riven",
+            "alive": false,
+            "hpPercent": 0
+          }
+        ]
       },
       "opponent": {
         "units": [
@@ -5288,7 +7370,7 @@
               "q": 1,
               "r": 3
             },
-            "starLevel": 1,
+            "starLevel": 2,
             "items": [
               "TFT17_Item_FlexTraitEmblemItem",
               "TFT_Item_RedBuff",
@@ -5344,6 +7426,62 @@
         "level": 8,
         "hp": 25,
         "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "championId": "TFT17_Karma",
+            "alive": true,
+            "hpPercent": 15
+          },
+          {
+            "hex": {
+              "q": 1,
+              "r": 3
+            },
+            "championId": "TFT17_Rammus",
+            "alive": true,
+            "hpPercent": 90
+          },
+          {
+            "hex": {
+              "q": 4,
+              "r": 3
+            },
+            "championId": "TFT17_Pyke",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "championId": "TFT17_Galio",
+            "alive": true,
+            "hpPercent": 95
+          },
+          {
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "championId": "TFT17_IvernMinion",
+            "alive": true,
+            "hpPercent": 90
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 3
+            },
+            "championId": "TFT17_Poppy",
+            "alive": false,
+            "hpPercent": 0
+          }
+        ],
         "riotId": "인천서구전완식#KR1"
       },
       "winner": "opponent",

@@ -5,6 +5,7 @@ import {
   ShrineRoundSchema,
   RoundSchema,
   HexCoordSchema,
+  TeamSnapshotSchema,
 } from '@/lib/actualData/schema';
 
 describe('ActualGameDataSchema', () => {
@@ -117,3 +118,38 @@ function minTeam() {
 function minOpp() {
   return minTeam();
 }
+
+describe('TeamSnapshotSchema v1 diff extensions', () => {
+  const base = {
+    units: [], augments: [null, null, null, null], level: 1, hp: 100, hexModifiers: [],
+  };
+
+  it('accepts survivors array', () => {
+    const res = TeamSnapshotSchema.safeParse({
+      ...base,
+      survivors: [{ hex: { q: 0, r: 0 }, championId: 'TFT17_Xayah', alive: true, hpPercent: 42 }],
+    });
+    expect(res.success).toBe(true);
+  });
+
+  it('rejects hpPercent > 100', () => {
+    const res = TeamSnapshotSchema.safeParse({
+      ...base,
+      survivors: [{ hex: { q: 0, r: 0 }, championId: 'x', alive: true, hpPercent: 101 }],
+    });
+    expect(res.success).toBe(false);
+  });
+
+  it('accepts augmentStacks record', () => {
+    const res = TeamSnapshotSchema.safeParse({
+      ...base,
+      augmentStacks: { 'TFT11_Augment_Slammin': 3 },
+    });
+    expect(res.success).toBe(true);
+  });
+
+  it('treats all 2 new fields as optional', () => {
+    const res = TeamSnapshotSchema.safeParse(base);
+    expect(res.success).toBe(true);
+  });
+});

@@ -33,7 +33,7 @@ v1 산출물:
 | Q2 | v1 경계 | **A안** — 1+2+4+5. 영상 자동 추출(3)·시스템 귀속(6)은 후속 스펙으로 분리 |
 | Q3 | 비결정성 처리 | **N-run + 분포 표시** (N=10 기본). winRate·damageDist·survivorDist 리턴 |
 | Q4 | 노출 위치 | **(4)** 편집 페이지 인라인 요약 + `/compare` 별도 페이지 + API 엔드포인트 |
-| Q5 | 시뮬 입력 누락 파라미터 | **(B)** `augmentStacks` + `ioniaPath` + `arbiterLaw` 3개만 스키마 추가. 필트오버·갈리오·bilgewater 등은 기본값 + 경고 |
+| Q5 | 시뮬 입력 누락 파라미터 | **(B)** Set 17 한정 `augmentStacks` + `arbiterLaw` 2개만 스키마 추가. ionia/필트오버/갈리오/bilgewater 등 Set 17 부재 trait 은 v1 범위 외 (E5 결정). |
 | Arch | 실행·캐싱 전략 | **A2** — POST 시 계산 + `actual-data/diff-<gameId>.json` 캐시. stale 감지 있고 재실행은 명시적 |
 
 ## 전체 아키텍처
@@ -128,8 +128,9 @@ interface TeamSnapshot {
   // ⭐ 신규 (모두 optional)
   survivors?: Survivor[];                // 라운드 종료 시 상태
   augmentStacks?: Record<string, number>;// apiName → 스택 수
-  ioniaPath?: 'purity' | 'balance' | 'chaos' | null;
-  arbiterLaw?: string | null;            // arbiter_laws.json apiName
+  arbiterLaw?: { triggerId: string; effectId: string } | null;
+  // E5: Set 17 에 ionia/필트오버/빌지워터 모두 부재 → 관련 필드 제외.
+  // 향후 Set 18+에서 재등장 시 schema·adapter·UI 함께 부활.
 }
 
 interface Survivor {
@@ -268,11 +269,9 @@ export function toNRunInput(
 - `ioniaPath`, `arbiterLaw`: 해당 trait 활성 시만 전달
 
 **경고 규칙 (warnings)**:
-- `augmentStacks` 누락 + 스택형 증강 존재 → `"'<name>' 스택 미입력 → 1로 가정"`
-- `ioniaPath` 누락 + 아이오니아 활성 → `"아이오니아 길 미선택 → 기본값 사용"`
-- `arbiterLaw` 누락 + 중재자 활성 → 동일 패턴
-- 필트오버 활성 + `piltoverModules` 미지원 → `"필트오버 모듈 정보 없음 — 시뮬 부정확 가능"`
-- 빌지워터 활성 → warning 없음 (trait 상태로부터 파생 가능)
+- `augmentStacks` 누락 + 스택형 증강 존재 → `"'<name>' 스택 미입력 → 기본값 사용"`
+- `arbiterLaw` 누락 + 중재자 활성 → `"중재자 법률 미선택 → 기본값 사용"`
+- (E5) ionia / 필트오버 / 빌지워터 — Set 17 에 부재. 경고 룰 없음.
 
 ### `diffReporter` — 라운드 비교
 

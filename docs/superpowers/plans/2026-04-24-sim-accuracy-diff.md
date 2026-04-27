@@ -22,6 +22,74 @@ The spec (`docs/superpowers/specs/2026-04-24-sim-accuracy-diff-design.md`) assum
 
 Net effect: schema-side work is smaller; the 3 remaining additions (`survivors`, `augmentStacks`, `ioniaPath`) are the only schema changes.
 
+## Execution-time Corrections (mid-flight, apply to all subsequent tasks)
+
+These supersede the task text wherever they conflict:
+
+### E1. Data catalogs must be loaded via `fs`, not `fetch`
+
+`src/data/loader.ts` exposes `loadChampions`, `loadAllChampions`, `loadItems`, `loadTraits`, `loadAugments`. **All use `fetch('/data/...')` which only works in the browser** — they fail in Vitest (node env) and Next.js API routes (node runtime).
+
+**There is no `loadAllTraits` export.** Use `loadTraits` (loader-processed) in browser code, or `fs.readFileSync` in tests/server code.
+
+**Server-side / test pattern** (mirrors `tests/calibration/calibrate-dps.test.ts:40-60`):
+
+```typescript
+import fs from 'node:fs';
+import path from 'node:path';
+import type { RawChampion, RawItem, RawItemsData, RawTrait, RawTraitsData } from '@/types';
+
+const PUBLIC_DATA = path.join(process.cwd(), 'public', 'data');
+
+function readJson<T>(rel: string): T {
+  return JSON.parse(fs.readFileSync(path.join(PUBLIC_DATA, rel), 'utf-8')) as T;
+}
+
+function loadChampionsSync(): RawChampion[] {
+  const raw = readJson<RawChampion[] | { champions?: RawChampion[] }>('tft_set17_champions.json');
+  return Array.isArray(raw) ? raw : raw.champions ?? [];
+}
+function loadTraitsSync(): RawTrait[] { return readJson<RawTraitsData>('tft_set17_traits.json').traits; }
+function loadItemsSync(): RawItem[]   { return readJson<RawItemsData>('tft_set17_items.json').items; }
+// Augments: verify filename at impl time (likely 'tft_set17_augments.json' with { augments: [...] })
+```
+
+**Recommended refactor to stay DRY**: create `src/lib/validation/serverCatalogs.ts` with `loadServerCatalogs()` that any server-side or test code imports. Create this helper as the first step of Phase 1 (before schemaAdapter tests need it). Phase 0 (bench) can inline its own minimal loader since it runs first.
+
+In all task code blocks referencing `loadAllChampions`, `loadAllTraits`, `loadAllAugments`, `loadAllItems` (plan-invented wrappers), substitute with the sync fs pattern above (or import from `serverCatalogs` once it exists).
+
+### E2. Fixture game file
+
+Plan text references `actual-data/game-20260424-001.json` in tests, but that file is **untracked** in the parent repo and not in this worktree. Use `actual-data/game-20260423-001.json` instead — committed, 22 PvP rounds, last round has 8 units per side. Wherever the plan says `game-20260424-001.json`, read it as `game-20260423-001.json`.
+
+### E3. Console output in calibration tests
+
+CLAUDE.md forbids `console.log` in committed production code. Calibration benchmarks under `tests/calibration/` are the documented exception (see `calibrate-dps.test.ts`). Mark each bench `console.log` line with `// eslint-disable-next-line no-console` and a brief inline comment ("pure measurement") — do NOT add a repo-wide rule or a disable for the whole file.
+
+### E4. `gameDiffer.ts` server-side data loading
+
+Task 4.1 `gameDiffer.ts` is imported by `/api/actual-data/[gameId]/compare/route.ts` (node runtime). Do NOT import `loadAllChampions`/etc. Instead `import { loadServerCatalogs } from '@/lib/validation/serverCatalogs'`. The impl in the plan body uses `loadAllChampions`, `loadAllTraits`, etc. — substitute per E1.
+
+### E5. Set 17 무관 trait 제거 (ionia / bilgewater / piltover)
+
+Set 17 trait 전수 확인 결과 **아이오니아·빌지워터·필트오버 모두 부재**. 사용자 결정으로 v1 범위에서 완전히 제거한다.
+
+**적용 사항** (이미 Phase 2 시작 전 정리 완료):
+- `src/lib/validation/schemaAdapter.ts`:
+  - `IONIA_TRAIT_KR`, `PILTOVER_TRAIT_KR` 상수 제거
+  - `IoniaPathType` import + `playerIoniaPath` / `enemyIoniaPath` 매핑 제거
+  - ionia/piltover warning 루프 제거 (arbiter는 유지 — Set 17에 존재)
+- `tests/unit/validation/schemaAdapter.test.ts`:
+  - "emits warning when ioniaPath missing but ionia trait active" 테스트 제거
+  - "passes ioniaPath when provided" 테스트 제거
+
+**Phase 5 / File Structure 적용 규칙**:
+- Schema 확장 추가 필드는 `survivors` + `augmentStacks` 2개만. `ioniaPath` 추가 금지.
+- PvPRoundEditor / TeamEditor 의 ioniaPath 드롭다운 추가 항목 무시.
+- `traitModules.ts` 의 `IoniaPathType` / `IONIA_PATH_NAMES` 는 시뮬레이터 자체에선 여전히 사용됨 — 건드리지 말 것. validation 모듈만 사용 안 함.
+
+`docs/meta/sim-accuracy-followups.md` 의 "Set 17에 Ionia 없음" 블록은 Set 18 재등장 대비로 유지.
+
 ---
 
 ## File Structure
@@ -52,11 +120,11 @@ Net effect: schema-side work is smaller; the 3 remaining additions (`survivors`,
 
 | File | What changes |
 |------|-------------|
-| `src/lib/actualData/schema.ts` | Add `SurvivorSchema`; extend `TeamSnapshotSchema` with optional `survivors`, `augmentStacks`, `ioniaPath` |
+| `src/lib/actualData/schema.ts` | Add `SurvivorSchema`; extend `TeamSnapshotSchema` with optional `survivors`, `augmentStacks` (E5: ioniaPath 제외) |
 | `src/lib/actualData/types.ts` | Re-exports / derived types if any (verify during task) |
-| `src/components/actual-data/PvPRoundEditor.tsx` | Add ioniaPath dropdown, augmentStacks input, survivor input UI; mount `RoundDiffInlineCard` |
-| `src/components/actual-data/TeamEditor.tsx` | Add team-level meta block (ioniaPath + stack inputs) |
-| `src/data/traitModules.ts` | No change. Reuse existing `IoniaPathType` + `IONIA_PATH_NAMES` for dropdown |
+| `src/components/actual-data/PvPRoundEditor.tsx` | Add augmentStacks input, survivor input UI; mount `RoundDiffInlineCard` (E5: ioniaPath 드롭다운 제외) |
+| `src/components/actual-data/TeamEditor.tsx` | Add team-level meta block (stack inputs only — E5: ioniaPath 제외) |
+| `src/data/traitModules.ts` | No change. Set 17 범위에선 `traitModules` 의 ionia/piltover/bilgewater 미사용 (시뮬레이터 자체 코드는 잔존, validation 모듈은 arbiter 만 처리) |
 
 ---
 
@@ -1594,7 +1662,7 @@ No commit for this task (verification only).
 
 Adds the 3 new optional fields and the UI to populate them. Independent of Phases 1-4 (API works without these — they're just all-optional), so can run anytime.
 
-### Task 5.1: Schema — add survivors, augmentStacks, ioniaPath
+### Task 5.1: Schema — add survivors, augmentStacks (E5: ioniaPath 제외)
 
 **Files:**
 - Modify: `src/lib/actualData/schema.ts`
@@ -1636,17 +1704,7 @@ describe('TeamSnapshotSchema v1 diff extensions', () => {
     expect(res.success).toBe(true);
   });
 
-  it('accepts ioniaPath blades', () => {
-    const res = TeamSnapshotSchema.safeParse({ ...base, ioniaPath: 'blades' });
-    expect(res.success).toBe(true);
-  });
-
-  it('rejects unknown ioniaPath value', () => {
-    const res = TeamSnapshotSchema.safeParse({ ...base, ioniaPath: 'purity' });
-    expect(res.success).toBe(false);
-  });
-
-  it('treats all 3 new fields as optional', () => {
+  it('treats all 2 new fields as optional', () => {
     const res = TeamSnapshotSchema.safeParse(base);
     expect(res.success).toBe(true);
   });
@@ -1676,7 +1734,6 @@ Then locate `TeamSnapshotSchema = z.object({ ... })` and add these optional fiel
 ```typescript
   survivors: z.array(SurvivorSchema).optional(),
   augmentStacks: z.record(z.string(), z.number().int().nonnegative()).optional(),
-  ioniaPath: z.enum(['blades', 'enlightenment', 'transcendence', 'generosity', 'spirit']).optional(),
 ```
 
 - [ ] **Step 4: Run tests**
@@ -1693,7 +1750,7 @@ Expected: PASS.
 
 ```bash
 git add src/lib/actualData/schema.ts tests/unit/actualData/schema.test.ts
-git commit -m "feat(actual-data,validation): survivors/augmentStacks/ioniaPath optional 필드 추가"
+git commit -m "feat(actual-data,validation): survivors/augmentStacks optional 필드 추가"
 ```
 
 ---
@@ -1797,33 +1854,14 @@ git commit -m "feat(actual-data): 유닛 라운드 종료 상태 입력 (생존/
 
 ---
 
-### Task 5.4: Input UI — ioniaPath + augmentStacks + arbiterLaw entry points
+### Task 5.4: Input UI — augmentStacks + arbiterLaw entry points (E5: ioniaPath 제외)
 
 **Files:**
-- Modify: `src/components/actual-data/TeamEditor.tsx` (or PvPRoundEditor if TeamEditor is sparse)
 - Modify: `src/components/actual-data/PvPRoundEditor.tsx` (for augmentStacks beside augment slots)
 
-- [ ] **Step 1: Add ioniaPath dropdown in team meta area**
+- [ ] **Step 1: ioniaPath 드롭다운 — SKIP (E5)**
 
-In the identified team meta area, add:
-
-```tsx
-import { IONIA_PATH_NAMES, type IoniaPathType } from '@/data/traitModules';
-
-<label className="block text-xs mt-2">
-  아이오니아 길:
-  <select
-    className="ml-1 bg-gray-800 border border-gray-600 rounded px-1"
-    value={team.ioniaPath ?? ''}
-    onChange={e => onTeamChange({ ...team, ioniaPath: (e.target.value || undefined) as IoniaPathType | undefined })}
-  >
-    <option value="">(미선택)</option>
-    {(Object.keys(IONIA_PATH_NAMES) as IoniaPathType[]).map(k => (
-      <option key={k} value={k}>{IONIA_PATH_NAMES[k]}</option>
-    ))}
-  </select>
-</label>
-```
+Set 17 에 아이오니아 trait 부재. validation 모듈은 `playerIoniaPath` / `enemyIoniaPath` 를 매핑하지 않음. 이 step 통째로 생략.
 
 - [ ] **Step 2: Add augmentStacks input beside each augment slot (stackable only)**
 
@@ -1871,8 +1909,8 @@ Expected: PASS.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add src/components/actual-data/TeamEditor.tsx src/components/actual-data/PvPRoundEditor.tsx src/lib/validation/schemaAdapter.ts
-git commit -m "feat(actual-data): 아이오니아 길/증강 스택 입력 UI + STACKABLE 셋 export"
+git add src/components/actual-data/PvPRoundEditor.tsx src/lib/validation/schemaAdapter.ts
+git commit -m "feat(actual-data): 증강 스택 입력 UI + STACKABLE 셋 export"
 ```
 
 ---
