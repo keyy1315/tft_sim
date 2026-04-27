@@ -77,6 +77,48 @@ describe('schemaAdapter.toNRunInput', () => {
     expect(warnings.some(w => w.includes('대장군의 명예') && w.includes('스택'))).toBe(true);
   });
 
+  it('auto-fills NoScoutNoPivot stack from pvpRoundIndex when user did not specify', () => {
+    const round = minimalRound({
+      playerTeam: {
+        ...minimalRound().playerTeam,
+        augments: ['TFT_Augment_NoScoutNoPivot', null, null, null],
+      },
+    });
+    const { input } = toNRunInput(
+      round,
+      { champions, traits, augments, items },
+      { pvpRoundIndex: 5 },
+    );
+    expect(input.simulateOptions.playerAugmentStacks?.['TFT_Augment_NoScoutNoPivot']).toBe(5);
+  });
+
+  it('user-specified stack takes precedence over auto-inferred', () => {
+    const round = minimalRound({
+      playerTeam: {
+        ...minimalRound().playerTeam,
+        augments: ['TFT_Augment_NoScoutNoPivot', null, null, null],
+        augmentStacks: { 'TFT_Augment_NoScoutNoPivot': 99 },
+      } as never,
+    });
+    const { input } = toNRunInput(
+      round,
+      { champions, traits, augments, items },
+      { pvpRoundIndex: 5 },
+    );
+    expect(input.simulateOptions.playerAugmentStacks?.['TFT_Augment_NoScoutNoPivot']).toBe(99);
+  });
+
+  it('does not auto-fill when pvpRoundIndex is omitted', () => {
+    const round = minimalRound({
+      playerTeam: {
+        ...minimalRound().playerTeam,
+        augments: ['TFT_Augment_NoScoutNoPivot', null, null, null],
+      },
+    });
+    const { input } = toNRunInput(round, { champions, traits, augments, items });
+    expect(input.simulateOptions.playerAugmentStacks?.['TFT_Augment_NoScoutNoPivot']).toBeUndefined();
+  });
+
   it('passes arbiterLaw effectId when provided', () => {
     const round = minimalRound({
       playerTeam: {

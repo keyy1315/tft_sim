@@ -79,11 +79,13 @@ export async function computeGameDiff(gameId: string, opts: ComputeOptions = {})
   const pvpRounds = parsed.rounds.filter((r) => r.type === 'pvp');
   const roundDiffs: RoundDiff[] = [];
 
-  for (const round of pvpRounds) {
-    const { input, warnings } = toNRunInput(round, catalogs);
+  // pvpRoundIndex 는 0-based — schemaAdapter 의 NoScoutNoPivot 등 누적 augment
+  // stack 자동 추론에 사용. 첫 PvP 라운드 시점 stack=0 (아직 PvP 안 거침).
+  pvpRounds.forEach((round, pvpRoundIndex) => {
+    const { input, warnings } = toNRunInput(round, catalogs, { pvpRoundIndex });
     const dist = runN(input, n, seedBase);
     roundDiffs.push(compareRound(round, dist, warnings));
-  }
+  });
 
   return {
     gameId,

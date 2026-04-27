@@ -27,12 +27,47 @@ export interface AdapterResult {
 const ARBITER_TRAIT_KR = '중재자';
 
 /**
+ * 라운드 인덱스를 stack 으로 자동 추론할 augment 들.
+ * - NoScoutNoPivot: PvP 라운드 후 누적 (HPScale/ADScale/APScale 가 stacks 에 곱해짐).
+ *   stack = 시뮬 시점에 거친 PvP 라운드 수 (0-based: 첫 PvP 시점=0).
+ */
+const ROUND_INDEX_STACK_AUGMENTS = new Set<string>([
+  'TFT_Augment_NoScoutNoPivot',
+]);
+
+/**
  * TeamSnapshot 의 확장 필드 (schema 에는 없지만 adapter 가 관대하게 읽어들임).
  * - augmentStacks: 증강 apiName → stack 개수
  * schema 에 추가되기 전까지 optional 로 읽는다.
  */
 interface TeamSnapshotExt {
   augmentStacks?: Record<string, number>;
+}
+
+export interface ToNRunInputOptions {
+  /** 0-based 인덱스. 자동 stack 추론에 사용. 미지정 시 자동 추론 안 함. */
+  pvpRoundIndex?: number;
+}
+
+/**
+ * augment 가 ROUND_INDEX_STACK_AUGMENTS 에 속하고 사용자가 stack 을
+ * 명시 입력하지 않았으면 pvpRoundIndex 를 자동 stack 으로 채워 새 record 반환.
+ * 사용자 명시 입력은 항상 우선.
+ */
+function resolveAutoStacks(
+  augs: RawAugment[],
+  userStacks: Record<string, number> | undefined,
+  pvpRoundIndex: number | undefined,
+): Record<string, number> | undefined {
+  if (pvpRoundIndex == null) return userStacks;
+  let merged: Record<string, number> | undefined;
+  for (const a of augs) {
+    if (!ROUND_INDEX_STACK_AUGMENTS.has(a.apiName)) continue;
+    if (userStacks && typeof userStacks[a.apiName] === 'number') continue;
+    if (!merged) merged = { ...(userStacks ?? {}) };
+    merged[a.apiName] = pvpRoundIndex;
+  }
+  return merged ?? userStacks;
 }
 
 function toPlacedChampion(
@@ -77,6 +112,7 @@ function toTeamAugments(
 export function toNRunInput(
   round: PvPRound,
   catalogs: AdapterCatalogs = loadServerCatalogs(),
+  options: ToNRunInputOptions = {},
 ): AdapterResult {
   const warnings: string[] = [];
 
@@ -98,7 +134,11 @@ export function toNRunInput(
   const playerExt = round.playerTeam as unknown as TeamSnapshotExt;
   const opponentExt = round.opponent as unknown as TeamSnapshotExt;
 
-  // Stackable augment warnings — 데이터 기반 isStackable() 사용
+  // 라운드 인덱스 기반 stack 자동 추론 (NoScoutNoPivot 등). 사용자 입력 우선.
+  const playerStacks = resolveAutoStacks(playerAugments, playerExt.augmentStacks, options.pvpRoundIndex);
+  const opponentStacks = resolveAutoStacks(enemyAugments, opponentExt.augmentStacks, options.pvpRoundIndex);
+
+  // Stackable augment warnings — 데이터 기반 isStackable() 사용. 자동 추론된 항목은 경고 X.
   const pushStackWarnings = (
     teamLabel: string,
     augs: RawAugment[],
@@ -110,8 +150,8 @@ export function toNRunInput(
       warnings.push(`${teamLabel}: '${a.name ?? a.apiName}' 스택 미입력 → 기본값 사용`);
     }
   };
-  pushStackWarnings('내 팀', playerAugments, playerExt.augmentStacks);
-  pushStackWarnings('상대', enemyAugments, opponentExt.augmentStacks);
+  pushStackWarnings('내 팀', playerAugments, playerStacks);
+  pushStackWarnings('상대', enemyAugments, opponentStacks);
 
   // Arbiter law warnings
   if (
@@ -142,8 +182,8 @@ export function toNRunInput(
         allTraits: catalogs.traits,
         playerAugments,
         enemyAugments,
-        playerAugmentStacks: playerExt.augmentStacks,
-        enemyAugmentStacks: opponentExt.augmentStacks,
+        playerAugmentStacks: playerStacks,
+        enemyAugmentStacks: opponentStacks,
         playerArbiterLaw,
         enemyArbiterLaw,
         skipMirror: true,
