@@ -45,6 +45,13 @@ export const PlacedUnitSchema = z.object({
   grants: z.array(UnitGrantSchema).optional(),
 });
 
+export const SurvivorSchema = z.object({
+  hex: HexCoordSchema,
+  championId: z.string(),
+  alive: z.boolean(),
+  hpPercent: z.number().min(0).max(100),
+});
+
 export const ArbiterLawSchema = z.object({
   triggerId: z.string(),
   effectId: z.string(),
@@ -69,6 +76,8 @@ export const TeamSnapshotSchema = z.object({
   arbiterLaw: ArbiterLawSchema.optional(),
   stargazer: TeamStargazerStateSchema.optional(),
   factoryNew: TeamFactoryNewStateSchema.optional(),
+  survivors: z.array(SurvivorSchema).optional(),
+  augmentStacks: z.record(z.string(), z.number().int().nonnegative()).optional(),
 });
 
 export const OpponentSnapshotSchema = TeamSnapshotSchema.extend({
