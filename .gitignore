@@ -25,3 +25,4 @@ scripts/
 # actual-data videos (로컬 전용, 각 기기에서만 보관)
 actual-data/videos/*
 !actual-data/videos/.gitkeep
+.DS_Store
