@@ -638,22 +638,34 @@ function applyStargazerEffects(traits: ActiveTrait[], units: CombatUnit[]): void
     const drPct = (eff.Mountain_DR ?? 0) as number;
     // absolute 단위 (12 = +12 armor/MR)
     const resistsFlat = (eff.Mountain_Resists ?? 0) as number;
+    // minUnits=8+ 활성 시 다른 모든 보너스를 (1 + StatIncrease) 배 증폭.
+    // 7 이하는 null → amp=1 (영향 없음).
+    const statIncrease = (eff.Mountain_StatIncrease ?? 0) as number;
+    const amp = 1 + statIncrease;
+
+    const hpPctEff = hpPct * amp;
+    const adapPctEff = adapPct * amp;
+    const asPctEff = asPct * amp;
+    const drPctEff = drPct * amp;
+    const resistsFlatEff = resistsFlat * amp;
 
     for (const u of units) {
       if (!isStargazerUnit(u)) continue;
-      if (hpPct > 0) {
-        u.maxHp = Math.round(u.maxHp * (1 + hpPct));
+      if (hpPctEff > 0) {
+        u.maxHp = Math.round(u.maxHp * (1 + hpPctEff));
         u.currentHp = u.maxHp;
       }
-      if (adapPct > 0) {
-        u.stats.damage = Math.round(u.stats.damage * (1 + adapPct));
-        u.stats.ap = (u.stats.ap ?? 0) + adapPct;
+      if (adapPctEff > 0) {
+        u.stats.damage = Math.round(u.stats.damage * (1 + adapPctEff));
+        // AP 는 percentage points 단위 — fraction × 100 해서 가산.
+        // 다른 trait apply (예: 불한당 line 257) 와 동일 컨벤션.
+        u.stats.ap = (u.stats.ap ?? 0) + adapPctEff * 100;
       }
-      if (asPct > 0) u.stats.attackSpeed *= (1 + asPct);
-      if (drPct > 0) u.damageReduction += drPct;
-      if (resistsFlat > 0) {
-        u.stats.armor += resistsFlat;
-        u.stats.magicResist += resistsFlat;
+      if (asPctEff > 0) u.stats.attackSpeed *= (1 + asPctEff);
+      if (drPctEff > 0) u.damageReduction += drPctEff;
+      if (resistsFlatEff > 0) {
+        u.stats.armor += resistsFlatEff;
+        u.stats.magicResist += resistsFlatEff;
       }
     }
   }

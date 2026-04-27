@@ -49,15 +49,21 @@ describe('stargazer mountain applied — 23일 game round 6-2', () => {
 
       const hpRatio = u.maxHp / ub.maxHp;
       const asRatio = u.stats.attackSpeed / ub.stats.attackSpeed;
+      const apDelta = u.stats.ap - ub.stats.ap;
       if (isStargazer) {
         // HP 는 정수 maxHp 라 정확히 1.12. AS 는 다른 trait 효과의 부동소수
         // multiply chain 으로 ±0.5% 변동 가능 — looser bound.
         expect(hpRatio).toBeCloseTo(1.12, 2);
         expect(asRatio).toBeGreaterThanOrEqual(1.10);
         expect(asRatio).toBeLessThanOrEqual(1.14);
+        // AP 는 percentage points 단위 — Mountain_ADAP 0.12 × 100 = +12 AP.
+        // 다른 trait 효과 미존재 시 정확히 +12.
+        expect(apDelta).toBeGreaterThan(11);
+        expect(apDelta).toBeLessThan(13);
       } else {
         expect(hpRatio).toBeCloseTo(1.0, 3);
         expect(asRatio).toBeCloseTo(1.0, 3);
+        expect(apDelta).toBe(0);
       }
     }
   }, 30_000);
