@@ -8,7 +8,6 @@ import type {
   ArbiterLaw,
 } from '@/types';
 import type { PvPRound, PlacedUnit } from '@/lib/actualData/types';
-import type { IoniaPathType } from '@/data/traitModules';
 import { isStackable } from '@/lib/simulator/systems/augment';
 import { loadServerCatalogs } from '@/lib/validation/serverCatalogs';
 
@@ -24,22 +23,16 @@ export interface AdapterResult {
   warnings: string[];
 }
 
-/** 아이오니아 trait 활성 시 길 미지정이면 경고. */
-const IONIA_TRAIT_KR = '아이오니아';
 /** 중재자 trait 활성 시 법률 미지정이면 경고. */
 const ARBITER_TRAIT_KR = '중재자';
-/** 필트오버 모듈 미반영 경고. */
-const PILTOVER_TRAIT_KR = '필트오버';
 
 /**
  * TeamSnapshot 의 확장 필드 (schema 에는 없지만 adapter 가 관대하게 읽어들임).
  * - augmentStacks: 증강 apiName → stack 개수
- * - ioniaPath: 아이오니아 길 선택
  * schema 에 추가되기 전까지 optional 로 읽는다.
  */
 interface TeamSnapshotExt {
   augmentStacks?: Record<string, number>;
-  ioniaPath?: string;
 }
 
 function toPlacedChampion(
@@ -120,20 +113,6 @@ export function toNRunInput(
   pushStackWarnings('내 팀', playerAugments, playerExt.augmentStacks);
   pushStackWarnings('상대', enemyAugments, opponentExt.augmentStacks);
 
-  // Ionia path warnings
-  if (
-    countTraitUnits(playerPlaced, IONIA_TRAIT_KR) >= 2 &&
-    !playerExt.ioniaPath
-  ) {
-    warnings.push('내 팀: 아이오니아 길 미선택 → 기본값 사용');
-  }
-  if (
-    countTraitUnits(opponentPlaced, IONIA_TRAIT_KR) >= 2 &&
-    !opponentExt.ioniaPath
-  ) {
-    warnings.push('상대: 아이오니아 길 미선택 → 기본값 사용');
-  }
-
   // Arbiter law warnings
   if (
     countTraitUnits(playerPlaced, ARBITER_TRAIT_KR) >= 1 &&
@@ -147,17 +126,6 @@ export function toNRunInput(
   ) {
     warnings.push('상대: 중재자 법률 미선택 → 기본값 사용');
   }
-
-  // Piltover warning (no schema field planned — always warn when active)
-  if (countTraitUnits(playerPlaced, PILTOVER_TRAIT_KR) >= 1) {
-    warnings.push('내 팀: 필트오버 모듈 정보 없음 — 시뮬 부정확 가능');
-  }
-  if (countTraitUnits(opponentPlaced, PILTOVER_TRAIT_KR) >= 1) {
-    warnings.push('상대: 필트오버 모듈 정보 없음 — 시뮬 부정확 가능');
-  }
-
-  const playerIoniaPath = playerExt.ioniaPath as IoniaPathType | undefined;
-  const enemyIoniaPath = opponentExt.ioniaPath as IoniaPathType | undefined;
 
   const playerArbiterLaw: ArbiterLaw | undefined = round.playerTeam.arbiterLaw
     ? { triggerId: round.playerTeam.arbiterLaw.triggerId, effectId: round.playerTeam.arbiterLaw.effectId }
@@ -176,8 +144,6 @@ export function toNRunInput(
         enemyAugments,
         playerAugmentStacks: playerExt.augmentStacks,
         enemyAugmentStacks: opponentExt.augmentStacks,
-        playerIoniaPath,
-        enemyIoniaPath,
         playerArbiterLaw,
         enemyArbiterLaw,
         skipMirror: true,

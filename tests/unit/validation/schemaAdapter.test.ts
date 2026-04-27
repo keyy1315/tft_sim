@@ -3,7 +3,6 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { toNRunInput } from '@/lib/validation/schemaAdapter';
 import { loadServerCatalogs } from '@/lib/validation/serverCatalogs';
-import type { RawChampion } from '@/types';
 import type { PvPRound } from '@/lib/actualData/types';
 
 const { champions, traits, augments, items } = loadServerCatalogs();
@@ -76,42 +75,6 @@ describe('schemaAdapter.toNRunInput', () => {
     const { warnings } = toNRunInput(round, { champions, traits, augments, items });
     // Warning should mention the augment name (Korean) and '스택'
     expect(warnings.some(w => w.includes('대장군의 명예') && w.includes('스택'))).toBe(true);
-  });
-
-  it('emits warning when ioniaPath missing but ionia trait active', () => {
-    // Build a team with 2+ ionia units to activate trait (assumes ionia min=2)
-    // NOTE: Set 17 may not have 아이오니아 trait at all — test is defensive.
-    const round = minimalRound({
-      playerTeam: {
-        ...minimalRound().playerTeam,
-        units: [
-          { championId: 'TFT17_Xayah', hex: { q: 0, r: 3 }, starLevel: 2, items: [null, null, null] },
-          { championId: 'TFT17_Yasuo', hex: { q: 1, r: 3 }, starLevel: 2, items: [null, null, null] },
-        ],
-      },
-    });
-    const { warnings } = toNRunInput(round, { champions, traits, augments, items });
-    // Only assert if Xayah+Yasuo both have 아이오니아 trait in current dataset; otherwise skip
-    const isIonia = (c: RawChampion) => c.traits.includes('아이오니아');
-    const xayah = champions.find(c => c.apiName === 'TFT17_Xayah');
-    const yasuo = champions.find(c => c.apiName === 'TFT17_Yasuo');
-    if (xayah && yasuo && isIonia(xayah) && isIonia(yasuo)) {
-      expect(warnings.some(w => w.includes('아이오니아') && w.includes('길'))).toBe(true);
-    } else {
-      // trait not present in dataset — nothing to assert
-      expect(true).toBe(true);
-    }
-  });
-
-  it('passes ioniaPath when provided', () => {
-    const round = minimalRound({
-      playerTeam: {
-        ...minimalRound().playerTeam,
-        ioniaPath: 'blades',
-      } as never,
-    });
-    const { input } = toNRunInput(round, { champions, traits, augments, items });
-    expect(input.simulateOptions.playerIoniaPath).toBe('blades');
   });
 
   it('passes arbiterLaw effectId when provided', () => {
