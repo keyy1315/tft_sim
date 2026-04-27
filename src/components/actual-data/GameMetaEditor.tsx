@@ -1,6 +1,14 @@
 'use client';
 import { useActualDataStore } from '@/store/actualDataSlice';
-import type { ShrineName, ActualGameData } from '@/lib/actualData/types';
+import type {
+  ShrineName,
+  ActualGameData,
+  StargazerConstellationId,
+} from '@/lib/actualData/types';
+import {
+  CONSTELLATION_IDS,
+  CONSTELLATION_KOREAN_NAME,
+} from '@/lib/actualData/stargazerMapping';
 
 const SHRINES: ShrineName[] = [
   'ahri',
@@ -99,6 +107,28 @@ export default function GameMetaEditor({ onClose }: { onClose: () => void }) {
             </select>
           </label>
         </div>
+
+        <label className="flex flex-col text-sm">
+          <span className="text-gray-300">별돌보미 별자리</span>
+          <select
+            value={game.stargazerConstellation ?? ''}
+            onChange={(e) =>
+              updateGameMeta({
+                stargazerConstellation: e.target.value === ''
+                  ? undefined
+                  : (e.target.value as StargazerConstellationId),
+              })
+            }
+            className="border border-gray-700 bg-gray-900 text-gray-100 p-1 rounded"
+          >
+            <option value="">(미선택)</option>
+            {CONSTELLATION_IDS.map((id) => (
+              <option key={id} value={id}>
+                {CONSTELLATION_KOREAN_NAME[id]}
+              </option>
+            ))}
+          </select>
+        </label>
 
         <div className="flex justify-end">
           <button onClick={onClose} className="px-3 py-1 border border-gray-700 text-gray-200 hover:bg-gray-700 rounded">
