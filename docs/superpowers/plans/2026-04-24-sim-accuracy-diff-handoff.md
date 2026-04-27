@@ -151,7 +151,42 @@ UI 수정:
 - [x] 핸드오프 문서 작성
 - [x] Plan + Spec + Followups 모두 브랜치에 포함
 - [x] 이 문서도 브랜치에 commit
-- [ ] `origin/feature/sim-accuracy-diff` 원격 푸시
+- [x] `origin/feature/sim-accuracy-diff` 원격 푸시 (2026-04-27 세션 종료)
+
+## 2026-04-27 세션 결과
+
+**E5 + Phase 2 ~ 8 모두 완료**. 커밋 19개 추가 (`dc995d3..HEAD`).
+
+| 단계 | 커밋 SHA | 결과 |
+|------|---------|------|
+| E5 cleanup | `dc995d3` | ionia/bilgewater/piltover 제거 |
+| Phase 2 | `c326ee8`, `98c244d` | nRunSimulator + smoke |
+| Phase 3 | `a7897de`, `119d7d1` | diffReporter |
+| Phase 4 | `55270d0`, `7755241` | gameDiffer + compare API |
+| Phase 5 | `212db48`, `0eb1f67`, `8f26da9` | survivors/augmentStacks schema + UI |
+| Phase 6 | `daa7ebf`, `8c6000d`, `60ac5db` | useCompareDiff + RunCompareButton + InlineCard |
+| Phase 7 | `0eb46c0`, `c89c5fb`, `cd6cea7`, `dd95f23` | summary card + table + detail + page |
+| Phase 8 | `47edd42`, `4728a7d` | compute-diff-cache 하네스 + 초기 캐시 |
+
+**테스트**: 220 → **242 pass** (24 files). 매 커밋 직전 `pnpm lint && pnpm typecheck && pnpm build && pnpm test --run` 4 게이트 통과.
+
+**초기 diff 결과 (game-20260423-001 N=10)**:
+- pvpRoundCount: 22, winnerMatchRate: **45.5%** (10/22)
+- avgPlayerDamageErrorPct: **-34.5%** (sim 이 실제 대비 낮음)
+- weakSignalRoundCount: 1
+- 사례: TFT17_Caitlyn actual=1168, simMean=7381 (+531% — sim 과대), TFT17_Aatrox actual=804 simMean=1095 (+36%)
+
+이 신호가 v1 의 측정 목적 그대로 — 다음 단계는 시스템별 오차 귀속 분석 (followup 6).
+
+**v1 미작업 / 후속 노트**:
+- `arbiterLaw` 입력 UI 신규 추가는 미루고 followup 으로 기록 (`docs/meta/sim-accuracy-followups.md`)
+- 두 번째 게임 (`game-20260424-001`) 은 worktree 에 부재 — 단일 게임으로만 캐시 생성
+- React Compiler 의 `set-state-in-effect` 충돌 → `useCompareDiff` 에서 `void Promise.resolve().then(fetchCache)` microtask 우회 패턴 채택. 라인별 disable 0 건.
+
+**수동 QA (브라우저)**: 사용자가 직접 수행 필요. dev 서버 띄운 상태에서 빠른 페이지 smoke 만 자동 수행:
+- `GET /actual-data` → 200
+- `GET /actual-data/game-20260423-001/compare` → 200 (페이지 렌더)
+- `GET /api/actual-data/game-20260423-001/compare` → 200 (캐시 정상 반환)
 
 ## 참고
 
