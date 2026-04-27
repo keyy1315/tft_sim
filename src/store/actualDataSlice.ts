@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { buildNextPvPRound } from '@/lib/actualData/roundFactory';
 import { saveDraft, loadDraft, clearDraft } from '@/lib/actualData/draftStorage';
 import { withAutoSummons, syncVoyagerSummon } from '@/lib/actualData/autoSummons';
+import { autofillLosingTeamSurvivors } from '@/lib/actualData/autofillSurvivors';
 import type {
   ActualGameData,
   ActualGameSummary,
@@ -293,7 +294,9 @@ export const useActualDataStore = create<ActualDataState>((set, get) => ({
     const target = g.rounds[index];
     if (!target || target.type !== 'pvp') return;
     const nextRounds = g.rounds.map((r, i) =>
-      i === index && r.type === 'pvp' ? { ...r, ...patch } : r,
+      i === index && r.type === 'pvp'
+        ? autofillLosingTeamSurvivors({ ...r, ...patch }, patch)
+        : r,
     );
     set({ currentGame: { ...g, rounds: nextRounds }, isDirty: true });
   },
