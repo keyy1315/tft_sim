@@ -17,12 +17,14 @@ import VideoTimeInput from './VideoTimeInput';
 import ActualBoard from './ActualBoard';
 import ChampionItemSidebar from './ChampionItemSidebar';
 import { createActualDragEndHandler } from './actualDndHandlers';
+import RoundDiffInlineCard from '@/components/validation/RoundDiffInlineCard';
 
 export default function PvPRoundEditor({ index, round }: { index: number; round: PvPRound }) {
   const updateRoundMeta = useActualDataStore(s => s.updateRoundMeta);
   const updatePvPRound = useActualDataStore(s => s.updatePvPRound);
   const updatePlayerTeam = useActualDataStore(s => s.updatePlayerTeam);
   const updateOpponent = useActualDataStore(s => s.updateOpponent);
+  const gameId = useActualDataStore(s => s.currentGame?.gameId);
   const { champions, items, loading } = useGameData();
 
   const sensors = useSensors(
@@ -199,6 +201,10 @@ export default function PvPRoundEditor({ index, round }: { index: number; round:
               championCatalog={championCatalog}
             />
           </div>
+
+          {gameId && (
+            <RoundDiffInlineCard gameId={gameId} currentRoundName={round.roundName} />
+          )}
         </div>
 
         {/* Right-side sidebar */}
