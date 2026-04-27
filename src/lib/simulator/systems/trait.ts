@@ -14,12 +14,31 @@ function resolveMfTraits(champion: RawChampion, mfMode?: PlacedChampion['mfMode'
 const MF_TRAIT_API_TO_NAME: Record<string, string> = {};
 
 /**
- * Emblem 아이템 → 부여 trait 한글명 매핑.
- * 인벤토리 슬롯에 emblem 아이템이 들어가면 해당 unit 의 trait 카운트에 포함.
+ * Emblem 아이템 → 부여 trait 한글명 매핑 (Set 17 전체 19종).
+ * 인벤토리 슬롯에 emblem 아이템이 들어가면 해당 unit 의 trait 카운트에 +1
+ * 되고 unit 자체도 그 trait 보유 unit 으로 처리 (효과 받음).
  * 새 emblem 추가 시 여기에 등록.
  */
 const EMBLEM_ITEM_TO_TRAIT_NAME: Record<string, string> = {
+  TFT17_Item_AnimaSquadEmblemItem: '동물특공대',
+  TFT17_Item_ASTraitEmblemItem: '도전자',
+  TFT17_Item_AssassinTraitEmblemItem: '불한당',
+  TFT17_Item_AstronautEmblemItem: '정령족',
+  TFT17_Item_DarkStarEmblemItem: '암흑의 별',
+  TFT17_Item_DRXEmblemItem: 'N.O.V.A.',
+  TFT17_Item_FavoredEmblemItem: '중재자',
+  TFT17_Item_FlexTraitEmblemItem: '여행자',
+  TFT17_Item_HPTankEmblemItem: '싸움꾼',
+  TFT17_Item_MeleeTraitEmblemItem: '습격자',
+  TFT17_Item_PrimordianEmblemItem: '태고족',
+  TFT17_Item_PsyOpsEmblemItem: '초능력',
+  TFT17_Item_PulsefireEmblemItem: '시간 균열자',
+  TFT17_Item_RangedTraitEmblemItem: '저격수',
+  TFT17_Item_ResistTankEmblemItem: '요새',
+  TFT17_Item_ShieldTankEmblemItem: '선봉대',
+  TFT17_Item_SpaceGrooveEmblemItem: '우주 그루브',
   TFT17_Item_StargazerEmblemItem: '별돌보미',
+  TFT17_Item_SummonTraitEmblemItem: '길잡이',
 };
 
 function emblemTraitFromItems(items: RawItem[] | undefined): string[] {
