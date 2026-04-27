@@ -662,8 +662,13 @@ function applyStargazerEffects(
   const eff = stargazer.activeEffect.variables;
   const empoweredTiles = CONSTELLATION_TILE_PATTERN[constellation];
   const isStargazerUnit = (u: CombatUnit): boolean => unitHasTrait(u, '별돌보미');
-  const isOnTile = (u: CombatUnit): boolean =>
-    empoweredTiles.some((t) => t.q === u.position.q && t.r === u.position.r);
+  // CONSTELLATION_TILE_PATTERN 은 player half (r=0..3) 만 정의. enemy 팀이
+  // mirror 된 보드 (r=4..7) 에 있을 때 (skipMirror=false 또는 simulator 직접 호출)
+  // 단순 좌표 비교는 항상 false → enemy 측이 효과 없음. mirror back 해서 검사.
+  const isOnTile = (u: CombatUnit): boolean => {
+    const checkPos = u.position.r >= 4 ? mirrorPosition(u.position) : u.position;
+    return empoweredTiles.some((t) => t.q === checkPos.q && t.r === checkPos.r);
+  };
 
   // 한 변종에 두 패스 — 강화 칸 모든 아군 + 강화 칸 별돌보미.
   // helper: per-unit stat 적용 (% fraction)

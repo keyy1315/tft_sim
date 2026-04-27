@@ -126,6 +126,40 @@ describe('Fountain 변종 — Teamwide ManaRegen + 별돌보미 추가', () => {
   });
 });
 
+describe('Enemy 팀 (mirror r=4..7) 도 강화 칸 효과 받음', () => {
+  it('skipMirror=false 패턴에서 enemy 별돌보미 unit 도 buff 적용 (codex P1 회귀 가드)', () => {
+    // enemy 팀 별돌보미 6명 — Mountain pattern 의 player-half 좌표를 mirror 해서 배치.
+    // mirrorPosition: r → 7-r, q 도 col 보존하며 재계산.
+    // Mountain 첫 6 tile: (2,0)(3,0)(4,0)(5,0)(1,1)(5,1) → mirrored:
+    //   (2,7) (3,7) (4,7) (5,7) (1,6) (5,6) (q=col-floor(r/2) 재계산 후)
+    // simulator 직접 호출 (skipMirror=false 시 enemy 가 placed 시점에 mirror 적용)
+    const enemyAlly: PlacedChampion[] = [
+      placed(apTwistedFate, 2, 0),
+      placed(apTalon, 3, 0),
+      placed(apJax, 4, 0),
+      placed(apAatrox, 5, 0, [STARGAZER_EMBLEM]),
+      placed(apMilio, 1, 1, [STARGAZER_EMBLEM]),
+      placed(apCorki, 5, 1, [STARGAZER_EMBLEM]),
+    ];
+    const playerDummy: PlacedChampion[] = [placed(dummyEnemy, 0, 3)];
+    // skipMirror 미지정 → 기본 false → enemy 자동 mirror 됨 (r=4..7 위치)
+    const withC = simulateCombat(playerDummy, enemyAlly, {
+      seed: 0,
+      allTraits: traits,
+      stargazerConstellation: 'mountain',
+    });
+    const without = simulateCombat(playerDummy, enemyAlly, {
+      seed: 0,
+      allTraits: traits,
+    });
+    // enemyUnits 에는 mirror 된 좌표로 들어감. mountain 효과는 r=0..3 강화 칸 정의를
+    // mirror back 해서 검사 → enemy 측도 동일 buff 받음 (별돌보미 6명).
+    const enemyUnitWith = withC.enemyUnits.find((u) => u.champion.apiName === 'TFT17_TwistedFate')!;
+    const enemyUnitBase = without.enemyUnits.find((u) => u.champion.apiName === 'TFT17_TwistedFate')!;
+    expect(enemyUnitWith.maxHp / enemyUnitBase.maxHp).toBeCloseTo(1.12, 2);
+  });
+});
+
 describe('강화 칸 외부 unit 은 변종 효과 무관', () => {
   it('강화 칸 밖 placement 의 unit 은 stat 변화 없음', () => {
     // 모든 unit 을 강화 칸 외 좌표에 배치 (예: medal 패턴은 (0,0) (1,0) 미포함)
