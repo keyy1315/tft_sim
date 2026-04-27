@@ -58,6 +58,20 @@
 
 ---
 
+## 후속 — arbiterLaw 입력 UI (v1에서 보류)
+
+**현 상태**: `TeamSnapshotSchema` 에 `arbiterLaw: { triggerId, effectId }` optional 필드는
+존재하나, `src/components/actual-data/` 어디에도 입력 UI 가 없음 (2026-04-27 grep 확인).
+
+**v1에서 뺀 이유**: Phase 5 작업 시점에 arbiterLaw 가 활성화된 게임 데이터가 한 건도 없어서
+warning 경로 (schemaAdapter) 가 missing 값을 graceful 처리. UI 추가 비용 대비 즉시 효용 적음.
+
+**재고 트리거**: 사용자가 실제 라운드에서 arbiter law 발동을 기록하기 시작하면
+`public/data/arbiter_laws.json` 기반 dropdown (triggerId/effectId 페어) 추가 — TeamEditor 옆
+또는 PvPRoundEditor 의 winner 선택 옆에 작은 셀렉트 두 개.
+
+---
+
 ## 후속 (6) — 시스템별 오차 귀속 (Attribution)
 
 **스코프:**

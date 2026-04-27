@@ -37,6 +37,8 @@ export default function TeamEditor({ label, team, onChange, showGrace }: Props) 
       <AugmentSlotsQuad
         augments={team.augments}
         onChange={augments => onChange({ ...team, augments })}
+        stacks={team.augmentStacks}
+        onStacksChange={s => onChange({ ...team, augmentStacks: s })}
       />
 
       <HexModifierOverlay modifiers={team.hexModifiers} />
