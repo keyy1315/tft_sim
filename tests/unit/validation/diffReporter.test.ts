@@ -1,7 +1,15 @@
 import { describe, it, expect } from 'vitest';
 import { compareRound } from '@/lib/validation/diffReporter';
-import type { PvPRound } from '@/lib/actualData/types';
-import type { Distribution, NumStats, HpStats } from '@/types/validation';
+import type { PvPRound, TeamSnapshot, OpponentSnapshot } from '@/lib/actualData/types';
+import type { Distribution, NumStats, HpStats, Survivor } from '@/types/validation';
+
+/**
+ * Phase 5 will extend `TeamSnapshotSchema` with optional `survivors`. Until
+ * the schema bump lands, this local alias lets the test inject survivors data
+ * without `any` casts.
+ */
+type SnapshotWithSurvivors = TeamSnapshot & { survivors?: Survivor[] };
+type OpponentWithSurvivors = OpponentSnapshot & { survivors?: Survivor[] };
 
 function fakeNumStats(mean: number, samples = [mean]): NumStats {
   return { mean, median: mean, min: Math.min(...samples), max: Math.max(...samples), samples };
@@ -82,15 +90,17 @@ describe('diffReporter.compareRound', () => {
   });
 
   it('computes survivor diffs when actual survivors provided', () => {
+    const playerTeamWithSurv: SnapshotWithSurvivors = {
+      ...fakeRound().playerTeam,
+      survivors: [{ hex: { q: 0, r: 3 }, championId: 'TFT17_Xayah', alive: true, hpPercent: 40 }],
+    };
+    const opponentWithSurv: OpponentWithSurvivors = {
+      ...fakeRound().opponent,
+      survivors: [{ hex: { q: 3, r: 3 }, championId: 'TFT17_Leona', alive: false, hpPercent: 0 }],
+    };
     const round = fakeRound({
-      playerTeam: {
-        ...fakeRound().playerTeam,
-        survivors: [{ hex: { q: 0, r: 3 }, championId: 'TFT17_Xayah', alive: true, hpPercent: 40 }],
-      },
-      opponent: {
-        ...fakeRound().opponent,
-        survivors: [{ hex: { q: 3, r: 3 }, championId: 'TFT17_Leona', alive: false, hpPercent: 0 }],
-      },
+      playerTeam: playerTeamWithSurv as TeamSnapshot,
+      opponent: opponentWithSurv as OpponentSnapshot,
     });
     const diff = compareRound(round, fakeDist(), []);
     expect(diff.survivors).toHaveLength(2);
