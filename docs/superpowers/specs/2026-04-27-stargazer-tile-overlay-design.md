@@ -280,7 +280,12 @@ for (const { items } of champions) {
 }
 ```
 
-룰루 3마리에 각자 emblem 박으면 +3 가 정상.
+게임 룰: emblem 은 **그 trait 을 이미 갖지 않은 유닛에게만 부착 가능** (`canEquipItem`
+검증). 즉 별돌보미 emblem 은 룰루(이미 별돌보미) 에게 못 박음. 따라서 emblem 카운트
+중복 케이스는 자연히 발생 안 함. dedupe 불필요.
+
+emblem 정상 사용 예: 별돌보미 챔프 3마리 + 별돌보미 아닌 챔프(예: 가렌)에 별돌보미
+emblem 1개 → 카운트 = 4.
 
 ### 7.4 자동 소환 유닛 영향
 
@@ -294,9 +299,10 @@ for (const { items } of champions) {
 ### 8.1 새 unit test
 
 `tests/unit/simulator/trait-dedupe.test.ts`:
-- 룰루 3마리 → `별돌보미: 1, 복제자: 1` 검증
-- 룰루 1마리 + 룰루 1마리(emblem 1개) → `별돌보미: 2, 복제자: 1`
-- MF 2마리 (공격 모드 / 주문력 모드) → 각 모드 trait 별개 카운트
+- 룰루 3마리 → `별돌보미: 1, 복제자: 1` 검증 (intrinsic trait dedupe)
+- 룰루 1마리 + 다른 별돌보미 챔프 1마리 → `별돌보미: 2, 복제자: 1` (별개 챔프는 각자 카운트)
+- 별돌보미 챔프 3마리 + 별돌보미 아닌 챔프에 별돌보미 emblem 1개 → `별돌보미: 4` (emblem 은 unit-bound 카운트)
+- MF 2마리 (공격 모드 / 주문력 모드) → 각 모드 trait 별개 카운트 (apiName + mfMode 키 검증)
 
 `tests/unit/simulator/stargazer-constellation-team.test.ts`:
 - A 팀만 별자리 선택 + 별돌보미 활성 → A 팀 효과 적용, B 팀 미적용
