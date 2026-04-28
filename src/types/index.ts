@@ -507,6 +507,14 @@ export interface CombatUnit {
   /** Serpent 의 중독 지속시간 (초). poison statusEffect 의 remainingTicks 계산용. */
   stargazerSerpentDurationSec: number;
   /**
+   * 요새 (Bastion/ResistTank) — 첫 N초 doubled BonusArmor.
+   * 0 = 비활성. 양수면 그 tick 에 도달 시 doubled 부분 (bastionDoubleArmorBonus)
+   * 을 stats.armor 에서 차감. tick 마다 main loop 가 체크.
+   */
+  bastionDoubleEndTick: number;
+  bastionDoubleArmorBonus: number;
+  bastionDoubleMrBonus: number;
+  /**
    * 별돌보미 제단(Shield) 변종 — cashout 발동 시 추가 HP buff.
    * 강화 칸 안 별돌보미 unit 만 양수 (예: 0.20 → cashout 시 maxHp × 1.20).
    * cashout 미발동 시 0.
