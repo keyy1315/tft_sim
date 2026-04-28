@@ -46,6 +46,10 @@ export interface SimulatorLayoutProps {
   playerStargazerTiles: ReadonlyArray<HexCoord>;
   /** B 팀(enemy) 별돌보미 강화 칸 좌표. */
   enemyStargazerTiles: ReadonlyArray<HexCoord>;
+  /** A 팀 별돌보미 활성 trait 정보 — hover tooltip 효과 텍스트 표시용. */
+  playerStargazerInfo: { effectVariables: Record<string, number | null | undefined> | null; count: number };
+  /** B 팀 동일. */
+  enemyStargazerInfo: { effectVariables: Record<string, number | null | undefined> | null; count: number };
   stageNumber: number;
   setStageNumber: Dispatch<SetStateAction<number>>;
   isRunning: boolean;

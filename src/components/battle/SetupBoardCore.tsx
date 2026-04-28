@@ -1,9 +1,12 @@
 'use client';
 
+import { useState } from 'react';
 import { PlacedChampion, HexCoord, HexBuff, axialToOffset, offsetToAxial, COST_COLORS, MF_MODE_CONFIG } from '@/types';
 import { getChampionImage, getItemImage } from '@/data/imageMap';
 import { BOARD_COLS } from '@/lib/simulator/models/constants';
 import { createHexLayout, DEFAULT_HEX_R } from './HexBoard';
+import { formatStargazerEffectSummary } from '@/lib/actualData/stargazerMapping';
+import type { StargazerConstellationId } from '@/lib/actualData/types';
 
 export interface SetupBoardCoreProps {
   playerChampions: PlacedChampion[];
@@ -21,6 +24,18 @@ export interface SetupBoardCoreProps {
   playerStargazerTiles?: ReadonlyArray<HexCoord>;
   /** B 팀(enemy) 강화 칸 데이터-row 좌표 (0-3 기준). 그대로 표시. */
   enemyStargazerTiles?: ReadonlyArray<HexCoord>;
+  /** A 팀 별자리 id — 강화 칸 hover tooltip 효과 텍스트 생성용. */
+  playerStargazerConstellation?: StargazerConstellationId | null;
+  /** B 팀 별자리 id — 동일. */
+  enemyStargazerConstellation?: StargazerConstellationId | null;
+  /** A 팀 별돌보미 활성 effect variables — tooltip tier 별 변수 표시용. */
+  playerStargazerEffectVariables?: Record<string, number | null | undefined> | null;
+  /** B 팀 동일. */
+  enemyStargazerEffectVariables?: Record<string, number | null | undefined> | null;
+  /** A 팀 별돌보미 active count (= 활성 trait.count). tooltip 헤더 표시용. */
+  playerStargazerCount?: number;
+  /** B 팀 동일. */
+  enemyStargazerCount?: number;
   cellSize?: number;
 }
 
@@ -128,12 +143,21 @@ export default function SetupBoardCore({
   movingHexBuffApiName,
   playerStargazerTiles = [],
   enemyStargazerTiles = [],
+  playerStargazerConstellation,
+  enemyStargazerConstellation,
+  playerStargazerEffectVariables,
+  enemyStargazerEffectVariables,
+  playerStargazerCount = 0,
+  enemyStargazerCount = 0,
   cellSize = DEFAULT_HEX_R,
 }: SetupBoardCoreProps) {
   const { HEX_R, HEX_W, HEX_H, PAD, teamGap, hexCenter, hexPoints } = createHexLayout(cellSize);
   const cols = BOARD_COLS;
   const width = cols * (HEX_W + PAD) + HEX_W / 2 + 40;
   const height = ROWS * (HEX_H * 0.75 + PAD) + HEX_R + 40 + teamGap;
+
+  // hover 강화 칸 — tooltip 표시용. zoneKey + screen 좌표 (svg 안 cx/cy).
+  const [hoverTile, setHoverTile] = useState<{ zoneKey: string; team: 'player' | 'enemy'; cx: number; cy: number } | null>(null);
 
   // 프렐요드 포탑 효과 범위
   const turretZones = getTurretEffectZones(playerChampions, enemyChampions);
@@ -163,15 +187,18 @@ export default function SetupBoardCore({
   // 따라서 player tiles 는 보드 r=7-data_r 위치에 표시해야 실제 효과 적용 위치와 일치.
   // (예: 패턴 data r=0 → 보드 r=7 표시 → unit 이 r=7 에 있으면 mirror back r=0 → 패턴 r=0 매칭).
   // enemy 는 mirror 안 거치므로 data row 그대로 표시.
-  const stargazerTileSet = new Set<string>();
+  // hover tooltip 위해 player/enemy 별 분리 — 클릭/hover 시 어느 별자리 효과인지 식별.
+  const playerStargazerTileSet = new Set<string>();
+  const enemyStargazerTileSet = new Set<string>();
   for (const t of playerStargazerTiles) {
     const off = axialToOffset(t);
-    stargazerTileSet.add(`${7 - off.row}-${off.col}`);
+    playerStargazerTileSet.add(`${7 - off.row}-${off.col}`);
   }
   for (const t of enemyStargazerTiles) {
     const off = axialToOffset(t);
-    stargazerTileSet.add(`${off.row}-${off.col}`);
+    enemyStargazerTileSet.add(`${off.row}-${off.col}`);
   }
+  const stargazerTileSet = new Set([...playerStargazerTileSet, ...enemyStargazerTileSet]);
 
   const selectedOffset = selectedCell ? axialToOffset(selectedCell) : null;
 
@@ -281,6 +308,21 @@ export default function SetupBoardCore({
             }
           };
 
+          // 강화 칸 hover 핸들러 — 어느 팀의 별자리인지 식별 후 tooltip state 설정.
+          const onStargazerEnter = () => {
+            const isPlayerTile = playerStargazerTileSet.has(zoneKey);
+            const isEnemyTile = enemyStargazerTileSet.has(zoneKey);
+            if (!isPlayerTile && !isEnemyTile) return;
+            setHoverTile({
+              zoneKey,
+              team: isPlayerTile ? 'player' : 'enemy',
+              cx, cy,
+            });
+          };
+          const onStargazerLeave = () => {
+            setHoverTile((prev) => (prev?.zoneKey === zoneKey ? null : prev));
+          };
+
           return (
             <g key={`${row}-${col}`} onClick={handleClick} onDoubleClick={handleDoubleClick} onContextMenu={handleContextMenu} className="cursor-pointer">
               <polygon
@@ -298,6 +340,8 @@ export default function SetupBoardCore({
                 }
                 strokeWidth={unitSel ? 2.5 : sel ? 2.5 : hexBuffInfo ? 2 : stargazerTileSet.has(zoneKey) ? 2.5 : result ? 2 : (isFrontZone || isBackZone) ? 1.5 : 1}
                 strokeDasharray={hexBuffInfo?.movable ? '4 2' : undefined}
+                onMouseEnter={stargazerTileSet.has(zoneKey) ? onStargazerEnter : undefined}
+                onMouseLeave={stargazerTileSet.has(zoneKey) ? onStargazerLeave : undefined}
               />
               {hexBuffInfo && !result && (
                 <>
@@ -416,6 +460,45 @@ export default function SetupBoardCore({
           );
         })
       )}
+      {/* 강화 칸 hover tooltip — SVG 안에 foreignObject 로 HTML 렌더 */}
+      {hoverTile && (() => {
+        const constellation = hoverTile.team === 'player'
+          ? playerStargazerConstellation
+          : enemyStargazerConstellation;
+        if (!constellation) return null;
+        const variables = hoverTile.team === 'player'
+          ? playerStargazerEffectVariables
+          : enemyStargazerEffectVariables;
+        const count = hoverTile.team === 'player' ? playerStargazerCount : enemyStargazerCount;
+        const summary = formatStargazerEffectSummary(constellation, variables ?? null, count);
+        // tooltip 위치: hex 위쪽에 표시. 보드 밖으로 나갈 수 있으므로 클램프.
+        const ttWidth = 220;
+        const ttHeight = 130;
+        let ttX = hoverTile.cx - ttWidth / 2;
+        let ttY = hoverTile.cy - HEX_R - ttHeight - 6;
+        if (ttX < 4) ttX = 4;
+        if (ttX + ttWidth > width - 4) ttX = width - 4 - ttWidth;
+        if (ttY < 4) ttY = hoverTile.cy + HEX_R + 6;
+        return (
+          <foreignObject x={ttX} y={ttY} width={ttWidth} height={ttHeight} style={{ pointerEvents: 'none' }}>
+            <div
+              style={{
+                background: 'rgba(15,23,42,0.96)',
+                border: '1px solid #A855F7',
+                borderRadius: 6,
+                padding: '6px 8px',
+                color: '#e5e7eb',
+                fontSize: 10,
+                lineHeight: 1.35,
+                whiteSpace: 'pre-line',
+                fontFamily: 'system-ui, sans-serif',
+              }}
+            >
+              {summary}
+            </div>
+          </foreignObject>
+        );
+      })()}
     </svg>
   );
 }

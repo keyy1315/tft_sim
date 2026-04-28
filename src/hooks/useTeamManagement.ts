@@ -307,9 +307,17 @@ export function useTeamManagement({ traits }: UseTeamManagementArgs) {
   // MF mode selection popup state
   const [pendingMfPlacement, setPendingMfPlacement] = useState<{ team: 'player' | 'enemy'; index: number } | null>(null);
 
-  // Synergy calculation (pass mfMode for trait substitution)
-  const playerTraits = useMemo(() => resolveTraits(playerTeam, traits), [playerTeam, traits]);
-  const enemyTraits = useMemo(() => resolveTraits(enemyTeam, traits), [enemyTeam, traits]);
+  // Synergy calculation (pass mfMode for trait substitution + 별돌보미 별자리 전달).
+  // 별자리 선택 시 base TFT17_Stargazer 대신 variant trait (TFT17_Stargazer_Mountain 등)
+  // 활성 → SynergyPanel 의 trait tooltip 도 자동으로 variant desc / variables 표시.
+  const playerTraits = useMemo(
+    () => resolveTraits(playerTeam, traits, { stargazerConstellation: playerStargazerConstellation ?? undefined }),
+    [playerTeam, traits, playerStargazerConstellation],
+  );
+  const enemyTraits = useMemo(
+    () => resolveTraits(enemyTeam, traits, { stargazerConstellation: enemyStargazerConstellation ?? undefined }),
+    [enemyTeam, traits, enemyStargazerConstellation],
+  );
 
   // Selected placed unit
   const selectedPlaced = useMemo(() => {

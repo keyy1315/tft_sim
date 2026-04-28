@@ -203,6 +203,12 @@ export default function SimulatorLayoutMobile(props: SimulatorLayoutProps) {
                 movingHexBuffApiName={hexBuffs.moving?.apiName}
                 playerStargazerTiles={props.playerStargazerTiles}
                 enemyStargazerTiles={props.enemyStargazerTiles}
+                playerStargazerConstellation={tm.playerStargazerConstellation}
+                enemyStargazerConstellation={tm.enemyStargazerConstellation}
+                playerStargazerEffectVariables={props.playerStargazerInfo.effectVariables}
+                enemyStargazerEffectVariables={props.enemyStargazerInfo.effectVariables}
+                playerStargazerCount={props.playerStargazerInfo.count}
+                enemyStargazerCount={props.enemyStargazerInfo.count}
                 cellSize={cellSize}
               />
               <DroppableOverlay
@@ -212,6 +218,12 @@ export default function SimulatorLayoutMobile(props: SimulatorLayoutProps) {
                 cellSize={cellSize}
                 onUnitClick={onUnitClickWithSheet}
                 onMovableActivate={() => setSheetState('peek')}
+                playerStargazerTiles={props.playerStargazerTiles}
+                enemyStargazerTiles={props.enemyStargazerTiles}
+                playerStargazerConstellation={tm.playerStargazerConstellation}
+                enemyStargazerConstellation={tm.enemyStargazerConstellation}
+                playerStargazerInfo={props.playerStargazerInfo}
+                enemyStargazerInfo={props.enemyStargazerInfo}
               />
             </>
           )}
@@ -229,6 +241,12 @@ export default function SimulatorLayoutMobile(props: SimulatorLayoutProps) {
               }}
               playerStargazerTiles={props.playerStargazerTiles}
               enemyStargazerTiles={props.enemyStargazerTiles}
+              playerStargazerConstellation={tm.playerStargazerConstellation}
+              enemyStargazerConstellation={tm.enemyStargazerConstellation}
+              playerStargazerEffectVariables={props.playerStargazerInfo.effectVariables}
+              enemyStargazerEffectVariables={props.enemyStargazerInfo.effectVariables}
+              playerStargazerCount={props.playerStargazerInfo.count}
+              enemyStargazerCount={props.enemyStargazerInfo.count}
               cellSize={cellSize}
             />
           )}
