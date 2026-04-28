@@ -22,6 +22,10 @@ interface ReplayBoardProps {
   }>;
   selectedUnitId: string | null;
   onUnitClick?: (unitId: string) => void;
+  /** A 팀(player) 강화 칸 데이터-row 좌표 (0-3 기준). 보드 표시 시 r → 7-r mirror 매핑. */
+  playerStargazerTiles?: ReadonlyArray<HexCoord>;
+  /** B 팀(enemy) 강화 칸 데이터-row 좌표 (0-3 기준). 그대로 표시. */
+  enemyStargazerTiles?: ReadonlyArray<HexCoord>;
   cellSize?: number;
 }
 
@@ -33,6 +37,8 @@ export default function ReplayBoard({
   unitMeta,
   selectedUnitId,
   onUnitClick,
+  playerStargazerTiles = [],
+  enemyStargazerTiles = [],
   cellSize = REPLAY_DEFAULT_HEX_R,
 }: ReplayBoardProps) {
   const { HEX_R, HEX_W, HEX_H, PAD, teamGap, hexCenter, hexPoints } = createHexLayout(cellSize);
@@ -66,6 +72,21 @@ export default function ReplayBoard({
         });
       }
     }
+  }
+
+  // 강화 칸 (별돌보미 별자리) — 보라색 테두리.
+  // CONSTELLATION_TILE_PATTERN 은 player half (data row 0-3) 만 정의.
+  // combat 의 applyStargazerEffects 는 r>=4 unit 을 mirrorPosition 으로 r=0..3 변환 후
+  // 패턴 체크 (mirrorPosition: r → 7-r, offset col 보존).
+  // 따라서 player tiles 는 보드 r=7-data_r 위치에 표시해야 실제 효과 적용 위치와 일치.
+  const stargazerTileSet = new Set<string>();
+  for (const t of playerStargazerTiles) {
+    const off = axialToOffset(t);
+    stargazerTileSet.add(`${7 - off.row}-${off.col}`);
+  }
+  for (const t of enemyStargazerTiles) {
+    const off = axialToOffset(t);
+    stargazerTileSet.add(`${off.row}-${off.col}`);
   }
 
   // Helper: get pixel center for a unit by id
@@ -119,6 +140,8 @@ export default function ReplayBoard({
         Array.from({ length: cols }, (_, col) => {
           const { cx, cy } = hexCenter(row, col);
           const posKey = `${row},${col}`;
+          const zoneKey = `${row}-${col}`;
+          const isStargazerTile = stargazerTileSet.has(zoneKey);
           const unitId = posMap.get(posKey);
           const meta = unitId ? unitMeta[unitId] : null;
           const unitSnap = unitId && snapshot ? snapshot.units[unitId] : null;
@@ -131,8 +154,8 @@ export default function ReplayBoard({
                 key={posKey}
                 points={hexPoints(cx, cy, HEX_R)}
                 fill="#0d1117"
-                stroke="#1e2535"
-                strokeWidth={0.5}
+                stroke={isStargazerTile ? '#A855F7' : '#1e2535'}
+                strokeWidth={isStargazerTile ? 2.5 : 0.5}
               />
             );
           }
@@ -164,8 +187,8 @@ export default function ReplayBoard({
               <polygon
                 points={hexPoints(cx, cy, HEX_R)}
                 fill={`url(#replay-${unitId})`}
-                stroke={isSelected ? '#f59e0b' : costColor}
-                strokeWidth={isSelected ? 3 : 2}
+                stroke={isSelected ? '#f59e0b' : isStargazerTile ? '#A855F7' : costColor}
+                strokeWidth={isSelected ? 3 : isStargazerTile ? 2.5 : 2}
               />
 
               {/* Star level */}

@@ -192,7 +192,9 @@ export function toNRunInput(
         enemyAugmentStacks: opponentStacks,
         playerArbiterLaw,
         enemyArbiterLaw,
-        stargazerConstellation: options.stargazerConstellation,
+        // game-level 단일 별자리 → 양 팀에 동일 전달 (실제 게임은 양 팀 동일 별자리).
+        playerStargazerConstellation: options.stargazerConstellation,
+        enemyStargazerConstellation: options.stargazerConstellation,
         skipMirror: true,
         stageNumber,
       },

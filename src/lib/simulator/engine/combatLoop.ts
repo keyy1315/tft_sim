@@ -23,6 +23,7 @@ import type { ActionDeps, DamageType } from '@/lib/simulator/systems/items';
 import { ROLE_OMNIVAMP, getFighterASBonus } from '@/lib/simulator/models/unit';
 import { resolveTraits, getEmblemTraitNames } from '@/lib/simulator/systems/trait';
 import { CONSTELLATION_TILE_PATTERN } from '@/lib/actualData/stargazerMapping';
+import type { StargazerConstellationId } from '@/lib/actualData/types';
 
 /**
  * unit 의 trait 멤버십 검사 헬퍼. champion.traits 직접 조회는 emblem 으로 부여된
@@ -97,11 +98,12 @@ export interface SimulateOptions {
   playerArbiterLaw?: ArbiterLaw;
   enemyArbiterLaw?: ArbiterLaw;
   /**
-   * 별돌보미 별자리 — 게임마다 randomized 7 변종 중 하나.
-   * 미지정 시 base trait (`TFT17_Stargazer`) 활성, 변종 effect 미적용.
-   * 양 팀 동일 (게임-level state) — 배치된 별돌보미 챔프가 있는 팀만 효과 받음.
+   * A 팀(player) 별자리. 미지정 시 base trait 활성, 변종 effect 미적용.
+   * 게임 룰 상 한 게임 1 별자리지만 시뮬에서는 분석 편의로 팀별 독립.
    */
-  stargazerConstellation?: 'altar' | 'boar' | 'huntress' | 'medal' | 'mountain' | 'snake' | 'well';
+  playerStargazerConstellation?: StargazerConstellationId;
+  /** B 팀(enemy) 별자리. 의미는 player 와 동일. */
+  enemyStargazerConstellation?: StargazerConstellationId;
 }
 
 function createCombatUnit(
@@ -650,7 +652,7 @@ function applyJuggernautDR(activeTraits: ActiveTrait[], units: CombatUnit[]): vo
 function applyStargazerEffects(
   traits: ActiveTrait[],
   units: CombatUnit[],
-  constellation: SimulateOptions['stargazerConstellation'],
+  constellation: StargazerConstellationId | undefined,
 ): void {
   const stargazer = traits.find((t) => t.trait.name === '별돌보미');
   if (!stargazer || !stargazer.activeEffect || stargazer.style === 0) return;
@@ -1513,10 +1515,10 @@ export function simulateCombat(
   const enemyInCombatEffects = resolveInCombatAugmentEffects(enemyAugsWithStacks);
 
   const playerActiveTraits = resolveTraits(allyTeam, allTraits, {
-    stargazerConstellation: options.stargazerConstellation,
+    stargazerConstellation: options.playerStargazerConstellation,
   });
   const enemyActiveTraits = resolveTraits(enemyTeam, allTraits, {
-    stargazerConstellation: options.stargazerConstellation,
+    stargazerConstellation: options.enemyStargazerConstellation,
   });
 
   // Bilgewater stat effects — merge into augmentEffects for bilgewater units
@@ -1621,8 +1623,8 @@ export function simulateCombat(
   applyShenBastionAura(enemyActiveTraits, enemies);
   applyJhinAnnihilator(playerActiveTraits, enemies);  // 적 대상
   applyJhinAnnihilator(enemyActiveTraits, playerUnits);
-  applyStargazerEffects(playerActiveTraits, playerUnits, options.stargazerConstellation);
-  applyStargazerEffects(enemyActiveTraits, enemies, options.stargazerConstellation);
+  applyStargazerEffects(playerActiveTraits, playerUnits, options.playerStargazerConstellation);
+  applyStargazerEffects(enemyActiveTraits, enemies, options.enemyStargazerConstellation);
   applyMorganaDarklight(playerActiveTraits, playerUnits);
   applyMorganaDarklight(enemyActiveTraits, enemies);
 

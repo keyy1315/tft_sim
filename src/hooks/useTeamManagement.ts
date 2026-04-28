@@ -6,6 +6,7 @@ import { canEquipItem, canAddPiltoverModule, isVoidMutation } from '@/lib/simula
 import { getDefaultStacks } from '@/lib/simulator/systems/augment';
 import { FRELJORD_TURRET, TIBBERS_CHAMPION, AZIR_SOLDIER_CHAMPION, AZIR_MAX_SOLDIERS, VOYAGER_SUMMON_CHAMPION, SHEN_ARTIFACT_CHAMPION, isAutoUnit } from '@/data/specialUnits';
 import type { IoniaPathType } from '@/data/traitModules';
+import type { StargazerConstellationId } from '@/lib/actualData/types';
 import { RawTrait } from '@/types';
 
 // === Helper functions ===
@@ -288,6 +289,10 @@ export function useTeamManagement({ traits }: UseTeamManagementArgs) {
   // Arbiter law selection
   const [playerArbiterLaw, setPlayerArbiterLaw] = useState<ArbiterLaw | null>(null);
   const [enemyArbiterLaw, setEnemyArbiterLaw] = useState<ArbiterLaw | null>(null);
+
+  // 별돌보미 별자리 — 게임 룰은 단일이지만 시뮬은 분석 편의로 팀별 독립.
+  const [playerStargazerConstellation, setPlayerStargazerConstellation] = useState<StargazerConstellationId | null>(null);
+  const [enemyStargazerConstellation, setEnemyStargazerConstellation] = useState<StargazerConstellationId | null>(null);
 
   // Galio bench (Hero synergy)
   const [playerGalio, setPlayerGalio] = useState<{ champion: RawChampion; starLevel: number } | null>(null);
@@ -574,6 +579,12 @@ export function useTeamManagement({ traits }: UseTeamManagementArgs) {
     setPlayerArbiterLaw,
     enemyArbiterLaw,
     setEnemyArbiterLaw,
+
+    // 별돌보미 별자리
+    playerStargazerConstellation,
+    setPlayerStargazerConstellation,
+    enemyStargazerConstellation,
+    setEnemyStargazerConstellation,
 
     // Galio bench
     playerGalio,

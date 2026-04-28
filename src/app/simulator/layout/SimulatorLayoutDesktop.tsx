@@ -34,7 +34,7 @@ export default function SimulatorLayoutDesktop(props: SimulatorLayoutProps) {
     tm, replay, data, hexBuffs, stageNumber, setStageNumber, isRunning,
     runSimulation, runMultiple, teamNames, poolFilters, logFilter, setLogFilter,
     showTeamCode, setShowTeamCode, hoverUnit, setHoverUnit,
-    mappedPlayerForReplay,
+    mappedPlayerForReplay, playerStargazerTiles, enemyStargazerTiles,
   } = props;
   const { champions, items, traits, teamPlannerMapping } = data;
   const {
@@ -213,6 +213,8 @@ export default function SimulatorLayoutDesktop(props: SimulatorLayoutProps) {
                     playerHexBuffs={playerHexBuffs}
                     enemyHexBuffs={enemyHexBuffs}
                     movingHexBuffApiName={movingHexBuff?.apiName}
+                    playerStargazerTiles={playerStargazerTiles}
+                    enemyStargazerTiles={enemyStargazerTiles}
                   />
                   {/* Droppable overlay */}
                   <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
@@ -358,7 +360,7 @@ export default function SimulatorLayoutDesktop(props: SimulatorLayoutProps) {
 
             {/* Left: Both Synergy panels + Selected unit (desktop) */}
             <div className="order-3 lg:order-1 lg:w-52 lg:shrink-0 space-y-3">
-              <SynergyPanel activeTraits={tm.enemyTraits} team="enemy" items={items} champions={champions} piltoverModules={tm.enemyPiltoverModules} bilgewaterStats={tm.enemyBilgewaterStats} ioniaPath={tm.enemyIoniaPath} onIoniaPathChange={tm.setEnemyIoniaPath} arbiterLaw={tm.enemyArbiterLaw} onArbiterLawChange={tm.setEnemyArbiterLaw} />
+              <SynergyPanel activeTraits={tm.enemyTraits} team="enemy" items={items} champions={champions} piltoverModules={tm.enemyPiltoverModules} bilgewaterStats={tm.enemyBilgewaterStats} ioniaPath={tm.enemyIoniaPath} onIoniaPathChange={tm.setEnemyIoniaPath} arbiterLaw={tm.enemyArbiterLaw} onArbiterLawChange={tm.setEnemyArbiterLaw} stargazerConstellation={tm.enemyStargazerConstellation} onStargazerConstellationChange={tm.setEnemyStargazerConstellation} />
               <PiltoverModulePanel
                 modules={tm.enemyPiltoverModules}
                 allItems={items}
@@ -366,7 +368,7 @@ export default function SimulatorLayoutDesktop(props: SimulatorLayoutProps) {
                 onAddModule={(item) => tm.handleAddPiltoverModule('enemy', item)}
                 onRemoveModule={(idx) => tm.handleRemovePiltoverModule('enemy', idx)}
               />
-              <SynergyPanel activeTraits={tm.playerTraits} team="player" items={items} champions={champions} piltoverModules={tm.playerPiltoverModules} bilgewaterStats={tm.playerBilgewaterStats} ioniaPath={tm.playerIoniaPath} onIoniaPathChange={tm.setPlayerIoniaPath} arbiterLaw={tm.playerArbiterLaw} onArbiterLawChange={tm.setPlayerArbiterLaw} />
+              <SynergyPanel activeTraits={tm.playerTraits} team="player" items={items} champions={champions} piltoverModules={tm.playerPiltoverModules} bilgewaterStats={tm.playerBilgewaterStats} ioniaPath={tm.playerIoniaPath} onIoniaPathChange={tm.setPlayerIoniaPath} arbiterLaw={tm.playerArbiterLaw} onArbiterLawChange={tm.setPlayerArbiterLaw} stargazerConstellation={tm.playerStargazerConstellation} onStargazerConstellationChange={tm.setPlayerStargazerConstellation} />
               <PiltoverModulePanel
                 modules={tm.playerPiltoverModules}
                 allItems={items}
@@ -607,6 +609,8 @@ export default function SimulatorLayoutDesktop(props: SimulatorLayoutProps) {
                   unitMeta={replay.unitMeta}
                   selectedUnitId={replay.selectedUnitId}
                   onUnitClick={replay.setSelectedUnitId}
+                  playerStargazerTiles={playerStargazerTiles}
+                  enemyStargazerTiles={enemyStargazerTiles}
                 />
               </div>
             </div>
