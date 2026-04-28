@@ -488,6 +488,12 @@ export interface CombatUnit {
   resolvedTraits?: string[];
   /** 스킬 치명타 가능 여부. 전투 시작 시 보건/무대 착용 또는 정밀 계열 시너지로 결정. */
   spellCanCrit: boolean;
+  /**
+   * 별돌보미 우물(Fountain) 변종 — 스킬 시전 시 가장 체력 낮은 아군 회복.
+   * 강화 칸 안 별돌보미 unit 만 양수 (예: 0.18 → 스킬 즉발 피해의 18% heal).
+   * applyStargazerEffects 가 well 변종 활성 + 강화 칸 + 별돌보미 unit 에 설정.
+   */
+  stargazerFountainHealPercent: number;
 }
 
 export interface CombatLog {

@@ -152,6 +152,7 @@ function createCombatUnit(
     castCount: 0,
     killCount: 0,
     spellCanCrit: computeSpellCanCrit(allItems, activeTraits),
+    stargazerFountainHealPercent: 0,
   };
 
   // MF 특성 선택 → 실제 트레이트로 치환 + emblem 으로 부여된 trait 합산.
@@ -803,14 +804,20 @@ function applyStargazerEffects(
     return;
   }
 
-  // === Fountain (우물) — Teamwide ManaRegen + 별돌보미 추가 / 스킬 힐 (PR-4) ===
+  // === Fountain (우물) — Teamwide ManaRegen + 별돌보미 추가 마나 + 스킬 힐 ===
   if (apiName === 'TFT17_Stargazer_Fountain') {
     const teamwide = (eff.Fountain_ManaRegen_Teamwide ?? 0) as number; // 단순 mana/sec
     const ownerExtra = (eff.Fountain_ManaRegen ?? 0) as number;
+    // (3) 0.18 → 즉발 ability dmg 의 18% 만큼 가장 체력 낮은 아군 회복.
+    // (5) 0.25. 강화 칸 안 별돌보미 unit 만 trigger 보유 (heal 적용은 ability 시전 hook 에서).
+    const healPercent = (eff.Fountain_HealPercent ?? 0) as number;
     for (const u of units) {
       if (!isOnTile(u)) continue;
       if (teamwide > 0) u.augmentManaRegen += teamwide;
-      if (isStargazerUnit(u) && ownerExtra > 0) u.augmentManaRegen += ownerExtra;
+      if (isStargazerUnit(u)) {
+        if (ownerExtra > 0) u.augmentManaRegen += ownerExtra;
+        if (healPercent > 0) u.stargazerFountainHealPercent = healPercent;
+      }
     }
     return;
   }
@@ -954,6 +961,7 @@ function spawnFreljordTurrets(
             castCount: 0,
             killCount: 0,
             spellCanCrit: false,
+            stargazerFountainHealPercent: 0,
           };
           // Store stun duration for prismatic tier
           if (stunDuration > 0) {
@@ -1078,6 +1086,7 @@ function trySpawnGalio(
     castCount: 0,
     killCount: 0,
     spellCanCrit: false,
+    stargazerFountainHealPercent: 0,
   };
 
   // 착지 충격파 — 영웅 시너지 variables
@@ -2269,6 +2278,36 @@ export function simulateCombat(
               const grievousReduction = target.augmentGrievousWounds > 0 ? (1 - target.augmentGrievousWounds) : 1;
               const heal = totalAbilityDmg * unit.omnivamp * grievousReduction;
               unit.currentHp = Math.min(unit.maxHp, unit.currentHp + heal);
+            }
+
+            // 별돌보미 우물(Fountain) — 강화 칸 안 별돌보미 스킬 시전 시
+            // 즉발 피해 × HealPercent 만큼 같은 팀 중 가장 체력 낮은 아군 회복.
+            // 자기 자신 포함, 사망 unit 제외, hp/maxHp 비율 기준 (절대값 아님).
+            if (unit.stargazerFountainHealPercent > 0 && totalAbilityDmg > 0) {
+              const teammates = unit.team === 'player' ? playerUnits : enemies;
+              let lowest: CombatUnit | null = null;
+              let lowestRatio = Infinity;
+              for (const a of teammates) {
+                if (a.state === 'dead') continue;
+                if (a.maxHp <= 0) continue;
+                const ratio = a.currentHp / a.maxHp;
+                if (ratio < lowestRatio) {
+                  lowestRatio = ratio;
+                  lowest = a;
+                }
+              }
+              if (lowest) {
+                const healAmount = totalAbilityDmg * unit.stargazerFountainHealPercent;
+                lowest.currentHp = Math.min(lowest.maxHp, lowest.currentHp + healAmount);
+                const healLog: CombatLog = {
+                  tick, time, type: 'ability',
+                  sourceId: unit.id, targetId: lowest.id,
+                  value: Math.round(healAmount),
+                  message: `${unit.champion.name} 우물 효과: ${lowest.champion.name} 체력 ${Math.round(healAmount)} 회복`,
+                };
+                logs.push(healLog);
+                tickLogs.push(healLog);
+              }
             }
 
             // === CC 기절 적용 ===
