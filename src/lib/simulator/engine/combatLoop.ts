@@ -1980,10 +1980,14 @@ export function simulateCombat(
   applyShenBastionAura(enemyActiveTraits, enemies);
   applyJhinAnnihilator(playerActiveTraits, enemies);  // 적 대상
   applyJhinAnnihilator(enemyActiveTraits, playerUnits);
-  // Astronaut HP 가산은 Stargazer (Huntress) maxHp 상위 N명 mark 선택 전에 적용해야
-  // 정확한 maxHp 기준으로 mark — codex P2 회귀 가드.
+  // Astronaut/Brawler HP 가산은 Stargazer (Huntress) maxHp 상위 N명 mark 선택 전에
+  // 적용해야 정확한 maxHp 기준으로 mark — codex P2 회귀 가드.
   applyAstronautEffects(playerActiveTraits, playerUnits);
   applyAstronautEffects(enemyActiveTraits, enemies);
+  // 싸움꾼 +HP — multiplicative. Astronaut flat (+BonusHealth) 적용 후 multiply.
+  // 정령족+싸움꾼 동시 보유 챔프 없어 corner case 영향 없음.
+  applyBrawlerEffects(playerActiveTraits, playerUnits);
+  applyBrawlerEffects(enemyActiveTraits, enemies);
   applyStargazerEffects(playerActiveTraits, playerUnits, enemies, options.playerStargazerConstellation);
   applyStargazerEffects(enemyActiveTraits, enemies, playerUnits, options.enemyStargazerConstellation);
   applyMorganaDarklight(playerActiveTraits, playerUnits);
@@ -1996,10 +2000,6 @@ export function simulateCombat(
   applySniperEffects(enemyActiveTraits, enemies);
   applyTimebreakerEffects(playerActiveTraits, playerUnits);
   applyTimebreakerEffects(enemyActiveTraits, enemies);
-  // 싸움꾼 +HP — multiplicative. Astronaut flat (+BonusHealth) 적용 후 multiply.
-  // 정령족+싸움꾼 동시 보유 챔프 없어 corner case 영향 없음.
-  applyBrawlerEffects(playerActiveTraits, playerUnits);
-  applyBrawlerEffects(enemyActiveTraits, enemies);
   // 선봉대 보호막은 전투 시작 시점 (tick=0, time=0).
   applyVanguardEffects(playerActiveTraits, playerUnits, 0, 0, logs);
   applyVanguardEffects(enemyActiveTraits, enemies, 0, 0, logs);
