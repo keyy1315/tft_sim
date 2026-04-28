@@ -1,8 +1,8 @@
 {
   "gameId": "game-20260424-001",
-  "computedAt": "2026-04-28T07:28:00.589Z",
+  "computedAt": "2026-04-28T08:08:06.291Z",
   "sourceGameMtime": 1777278310429,
-  "engineSha": "5fd492dea715efff03b28ccc13a271613c9f04b4",
+  "engineSha": "505fd11a4980736caeb6c9d7c8758bb3f4100034",
   "nRuns": 20,
   "seedBase": 0,
   "rounds": [
@@ -3335,7 +3335,7 @@
       "roundName": "6-1",
       "winner": {
         "actual": "draw",
-        "simPlayerWinRate": 1,
+        "simPlayerWinRate": 0,
         "matched": false,
         "weakSignal": false
       },

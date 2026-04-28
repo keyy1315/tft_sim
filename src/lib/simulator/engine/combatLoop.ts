@@ -1874,6 +1874,37 @@ function applyArbiterEffect(effectId: string, value: number, units: CombatUnit[]
   tickLogs.push(log);
 }
 
+/**
+ * 프리즘 시너지 — 최고 tier 활성 시 게임 메타 효과 (무조건 승리 등).
+ *
+ * raw data 의 `style: 6` 가 prism 시그널. 4종 알려진 prism trait:
+ *   - DarkStar (9): "10레벨 달성 시 모두를 빨아들임"
+ *   - Astronaut (10): "정령군주 넷 소환!"
+ *   - SpaceGroove (10): ADAPPerSecond=10, EffectBonus=500%, Duration=60초
+ *   - Stargazer Mountain (11): Mountain 별자리 한정 11명
+ *
+ * sim 처리 전략: prism 활성 측을 즉시 winner 결정. 양쪽 동시 활성 시 무승부.
+ * 별도 hidden unit 소환/effect 적용은 후속 PR (정확도 개선용).
+ */
+export function detectPrismTraits(activeTraits: ActiveTrait[]): { active: boolean; names: string[] } {
+  const PRISM_API_NAMES = [
+    'TFT17_DarkStar',
+    'TFT17_Astronaut',
+    'TFT17_SpaceGroove',
+    'TFT17_Stargazer_Mountain',
+  ];
+  const names: string[] = [];
+  for (const t of activeTraits) {
+    if (!PRISM_API_NAMES.includes(t.trait.apiName)) continue;
+    if (!t.activeEffect) continue;
+    // style=6 만 prism 시그널 (다른 tier 는 style 1/3/5).
+    if (t.activeEffect.style === 6) {
+      names.push(`${t.trait.name}(${t.count})`);
+    }
+  }
+  return { active: names.length > 0, names };
+}
+
 export function simulateCombat(
   allyTeam: PlacedChampion[],
   enemyTeam: PlacedChampion[],
@@ -1906,6 +1937,38 @@ export function simulateCombat(
   const enemyActiveTraits = resolveTraits(enemyTeam, allTraits, {
     stargazerConstellation: options.enemyStargazerConstellation,
   });
+
+  // 프리즘 시너지 — style=6 활성 시 즉시 winner 결정 (게임 메타 효과).
+  // 양쪽 동시 활성 시 무승부. 단방 활성 시 활성 측 win.
+  const playerPrism = detectPrismTraits(playerActiveTraits);
+  const enemyPrism = detectPrismTraits(enemyActiveTraits);
+  if (playerPrism.active || enemyPrism.active) {
+    const prismLogs: CombatLog[] = [];
+    if (playerPrism.active) {
+      prismLogs.push({
+        tick: 0, time: 0, type: 'ability', sourceId: 'prism',
+        message: `프리즘 시너지 발동 (player): ${playerPrism.names.join(', ')}`,
+      });
+    }
+    if (enemyPrism.active) {
+      prismLogs.push({
+        tick: 0, time: 0, type: 'ability', sourceId: 'prism',
+        message: `프리즘 시너지 발동 (enemy): ${enemyPrism.names.join(', ')}`,
+      });
+    }
+    let winner: 'player' | 'enemy' | 'draw';
+    if (playerPrism.active && enemyPrism.active) winner = 'draw';
+    else if (playerPrism.active) winner = 'player';
+    else winner = 'enemy';
+    return {
+      winner,
+      duration: 0,
+      logs: prismLogs,
+      playerUnits: [],
+      enemyUnits: [],
+      snapshots: [],
+    };
+  }
 
   // Bilgewater stat effects — merge into augmentEffects for bilgewater units
   const playerBWEffects = options.playerBilgewaterEffects ?? {};
