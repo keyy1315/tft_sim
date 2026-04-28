@@ -629,6 +629,42 @@ function applyJhinAnnihilator(activeTraits: ActiveTrait[], enemies: CombatUnit[]
   }
 }
 
+/**
+ * 운명술사 (Fateweaver) — 정밀 (Precision) innate + (4) crit stat.
+ *
+ * Spec (TFT17_Fateweaver):
+ *   - Innate: 운명술사 unit 은 Precision 보유 → ability crit 가능 (trait count 무관)
+ *   - (2) chance effects on abilities are Lucky (확률 두 번 굴려 좋은 결과 — 후속 PR)
+ *   - (4) Crit Chance +20%, Crit Damage +20% (운명술사 unit 한정)
+ *
+ * Lucky 메커니즘은 ability rng 처 곳곳 적용 필요 → 별도 PR 로 분리.
+ * 본 함수는 Innate Precision + (4) crit stat 만 적용.
+ */
+function applyFateweaverEffects(activeTraits: ActiveTrait[], units: CombatUnit[]): void {
+  const trait = activeTraits.find(t => t.trait.apiName === 'TFT17_Fateweaver');
+  if (!trait || trait.count === 0) return;
+
+  // Innate: 운명술사 unit 들에 spellCanCrit 활성 (trait 활성 여부 무관, count >= 1 이면).
+  // 주의: hasSpellCritItem (보건/무대) 으로 이미 true 인 unit 은 그대로 유지 (idempotent).
+  for (const u of units) {
+    if (unitHasTrait(u, '운명술사')) {
+      u.spellCanCrit = true;
+    }
+  }
+
+  // (4) tier 활성 시 운명술사 unit 들에 crit stat 가산.
+  if (!trait.activeEffect || trait.style === 0) return;
+  const critChanceBonus = (trait.activeEffect.variables['CritChance'] ?? 0) as number;
+  const critDamageBonusPct = (trait.activeEffect.variables['CritDamage'] ?? 0) as number; // percentage points
+  if (critChanceBonus <= 0 && critDamageBonusPct <= 0) return;
+  const critDamageBonusFrac = critDamageBonusPct / 100;
+  for (const u of units) {
+    if (!unitHasTrait(u, '운명술사')) continue;
+    if (critChanceBonus > 0) u.stats.critChance += critChanceBonus;
+    if (critDamageBonusFrac > 0) u.stats.critMultiplier += critDamageBonusFrac;
+  }
+}
+
 /** 어둠의 여인 (모르가나) — 아군 스킬 피해량 감소. TFT17_MorganaUniqueTrait, unique=1 */
 function applyMorganaDarklight(activeTraits: ActiveTrait[], units: CombatUnit[]): void {
   const trait = activeTraits.find(t => t.trait.apiName === 'TFT17_MorganaUniqueTrait' && t.activeEffect);
@@ -1713,6 +1749,8 @@ export function simulateCombat(
   applyStargazerEffects(enemyActiveTraits, enemies, playerUnits, options.enemyStargazerConstellation);
   applyMorganaDarklight(playerActiveTraits, playerUnits);
   applyMorganaDarklight(enemyActiveTraits, enemies);
+  applyFateweaverEffects(playerActiveTraits, playerUnits);
+  applyFateweaverEffects(enemyActiveTraits, enemies);
 
   // 아이오니아 길 적용
   if (options.playerIoniaPath) {
