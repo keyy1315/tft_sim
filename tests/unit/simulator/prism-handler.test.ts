@@ -11,8 +11,12 @@
  * 가 동일 챔프 중복 drop), mock ActiveTrait 로 detectPrismTraits 검증.
  */
 import { describe, it, expect } from 'vitest';
-import { detectPrismTraits } from '@/lib/simulator/engine/combatLoop';
-import type { ActiveTrait, RawTrait, TraitEffect } from '@/types';
+import {
+  detectPrismTraits,
+  hasFiveCostStar3,
+  resolvePrismOutcome,
+} from '@/lib/simulator/engine/combatLoop';
+import type { ActiveTrait, RawTrait, TraitEffect, PlacedChampion, RawChampion } from '@/types';
 
 function makeTrait(apiName: string, name: string, count: number, style: number): ActiveTrait {
   const effect: TraitEffect = {
@@ -83,5 +87,104 @@ describe('detectPrismTraits — 다중 활성', () => {
     ]);
     expect(result.active).toBe(true);
     expect(result.names).toHaveLength(2);
+  });
+});
+
+function makeChamp(cost: number): RawChampion {
+  return {
+    apiName: `TFT17_Test_C${cost}`,
+    name: `cost${cost}`,
+    cost,
+    traits: [],
+    role: 'Marksman',
+    stats: {
+      hp: [0, 1000, 1500, 2500, 0],
+      damage: [0, 100, 150, 250, 0],
+      attackSpeed: 0.7,
+      armor: 30,
+      magicResist: 30,
+      mana: [0, 0],
+      range: 4,
+      critChance: 0.25,
+      critMultiplier: 1.4,
+    },
+    abilityName: 't', abilityDesc: '', abilityIcon: '',
+    abilityVariables: [], abilityScales: [],
+    icon: '', squareIcon: '', tileIcon: '', characterName: '',
+  } as unknown as RawChampion;
+}
+
+function makePlaced(cost: number, starLevel: number): PlacedChampion {
+  return { champion: makeChamp(cost), starLevel, position: { q: 0, r: 0 }, items: [] };
+}
+
+describe('hasFiveCostStar3 — 5코3성 boolean', () => {
+  it('5코 3성 보유 → true', () => {
+    expect(hasFiveCostStar3([makePlaced(5, 3)])).toBe(true);
+  });
+  it('5코 2성 → false', () => {
+    expect(hasFiveCostStar3([makePlaced(5, 2)])).toBe(false);
+  });
+  it('4코 3성 → false', () => {
+    expect(hasFiveCostStar3([makePlaced(4, 3)])).toBe(false);
+  });
+  it('빈 팀 → false', () => {
+    expect(hasFiveCostStar3([])).toBe(false);
+  });
+  it('5코3성 + 다른 챔프 → true', () => {
+    expect(hasFiveCostStar3([makePlaced(2, 2), makePlaced(5, 3), makePlaced(1, 1)])).toBe(true);
+  });
+});
+
+describe('resolvePrismOutcome — counter + 우선순위', () => {
+  const prismActive = { active: true, names: ['암흑의 별(9)'] };
+  const noPrism = { active: false, names: [] };
+  const enemyPrism = { active: true, names: ['정령족(10)'] };
+
+  it('둘 다 prism 비활성 → null (정상 sim)', () => {
+    expect(resolvePrismOutcome(noPrism, noPrism, false, false)).toBeNull();
+    expect(resolvePrismOutcome(noPrism, noPrism, true, true)).toBeNull();
+  });
+
+  it('player prism + enemy 5코3성 보유 → enemy win (counter)', () => {
+    const r = resolvePrismOutcome(prismActive, noPrism, false, true);
+    expect(r?.winner).toBe('enemy');
+    expect(r?.reason).toContain('5코스트 3성');
+  });
+
+  it('enemy prism + player 5코3성 보유 → player win (counter)', () => {
+    const r = resolvePrismOutcome(noPrism, enemyPrism, true, false);
+    expect(r?.winner).toBe('player');
+    expect(r?.reason).toContain('5코스트 3성');
+  });
+
+  it('단방 prism + 5코3성 없음 → prism 측 win', () => {
+    expect(resolvePrismOutcome(prismActive, noPrism, false, false)?.winner).toBe('player');
+    expect(resolvePrismOutcome(noPrism, enemyPrism, false, false)?.winner).toBe('enemy');
+  });
+
+  it('단방 prism + 양쪽 5코3성 → 5코3성 측 win이 prism 측 위에 있어야 함 (counter 측)', () => {
+    // player prism + 양쪽 5코3성 → counter 무력 (player 도 보유) → player win (prism 측)
+    const r = resolvePrismOutcome(prismActive, noPrism, true, true);
+    expect(r?.winner).toBe('player');
+  });
+
+  it('양쪽 prism + 5코3성 없음 → draw', () => {
+    const r = resolvePrismOutcome(prismActive, enemyPrism, false, false);
+    expect(r?.winner).toBe('draw');
+  });
+
+  it('양쪽 prism + 한쪽만 5코3성 → 5코3성 측 win', () => {
+    // 양쪽 prism인 상태에서 player 5코3성 보유 → player win (counter)
+    const r1 = resolvePrismOutcome(prismActive, enemyPrism, true, false);
+    expect(r1?.winner).toBe('player');
+    // 양쪽 prism인 상태에서 enemy 5코3성 보유 → enemy win (counter)
+    const r2 = resolvePrismOutcome(prismActive, enemyPrism, false, true);
+    expect(r2?.winner).toBe('enemy');
+  });
+
+  it('양쪽 prism + 양쪽 5코3성 → draw (counter 서로 무력)', () => {
+    const r = resolvePrismOutcome(prismActive, enemyPrism, true, true);
+    expect(r?.winner).toBe('draw');
   });
 });
