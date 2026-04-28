@@ -24,6 +24,7 @@ import { ROLE_OMNIVAMP, getFighterASBonus } from '@/lib/simulator/models/unit';
 import { resolveTraits, getEmblemTraitNames } from '@/lib/simulator/systems/trait';
 import { CONSTELLATION_TILE_PATTERN } from '@/lib/actualData/stargazerMapping';
 import type { StargazerConstellationId } from '@/lib/actualData/types';
+import { isAutoUnit } from '@/data/specialUnits';
 
 /**
  * unit 의 trait 멤버십 검사 헬퍼. champion.traits 직접 조회는 emblem 으로 부여된
@@ -106,6 +107,15 @@ export interface SimulateOptions {
   playerStargazerConstellation?: StargazerConstellationId;
   /** B 팀(enemy) 별자리. 의미는 player 와 동일. */
   enemyStargazerConstellation?: StargazerConstellationId;
+  /**
+   * 별돌보미 제단(Shield) — 게임-level 누적 사망 카운트 (player 측 기준).
+   * 시뮬은 단일 전투지만 NumDeaths(=60) 도달 여부는 게임 진행 누적이라
+   * 외부에서 미리 입력 받음. 시뮬 안에서 누적되는 사망 + priorShieldDeaths
+   * 합산 ≥ NumDeaths 시 cashout buff 발동. 미지정 시 0.
+   */
+  priorPlayerShieldDeaths?: number;
+  /** B 팀(enemy) 누적 사망 카운트. 의미는 player 와 동일. */
+  priorEnemyShieldDeaths?: number;
 }
 
 function createCombatUnit(
@@ -158,6 +168,8 @@ function createCombatUnit(
     stargazerHuntressHealPercent: 0,
     stargazerSerpentPoisonPercent: 0,
     stargazerSerpentDurationSec: 0,
+    stargazerShieldCashoutHpFrac: 0,
+    stargazerShieldCashoutAsFrac: 0,
   };
 
   // MF 특성 선택 → 실제 트레이트로 치환 + emblem 으로 부여된 trait 합산.
@@ -822,12 +834,16 @@ function applyStargazerEffects(
     return;
   }
 
-  // === Shield (제단) — Teamwide HP/AS (percentage points) + 사망 트리거 cashout (PR-4) ===
+  // === Shield (제단) — Teamwide HP/AS (percentage points) + 사망 트리거 cashout ===
   if (apiName === 'TFT17_Stargazer_Shield') {
     const teamwideHp = (eff.Shield_Health_Teamwide ?? 0) as number; // percentage points (예: 8 = 8%)
     const teamwideAs = (eff.Shield_AS_Teamwide ?? 0) as number;
+    const cashoutHp = (eff.Shield_CashoutHP ?? 0) as number; // percentage points
+    const cashoutAs = (eff.Shield_CashoutAS ?? 0) as number;
     const hpFrac = teamwideHp / 100;
     const asFrac = teamwideAs / 100;
+    const cashoutHpFrac = cashoutHp / 100;
+    const cashoutAsFrac = cashoutAs / 100;
     for (const u of units) {
       if (!isOnTile(u)) continue;
       if (hpFrac > 0) {
@@ -835,6 +851,11 @@ function applyStargazerEffects(
         u.currentHp = u.maxHp;
       }
       if (asFrac > 0) u.stats.attackSpeed *= (1 + asFrac);
+      if (isStargazerUnit(u)) {
+        // cashout 발동 시 추가로 곱할 비율 저장 — 실제 적용은 NumDeaths 도달 시.
+        if (cashoutHpFrac > 0) u.stargazerShieldCashoutHpFrac = cashoutHpFrac;
+        if (cashoutAsFrac > 0) u.stargazerShieldCashoutAsFrac = cashoutAsFrac;
+      }
     }
     return;
   }
@@ -1003,6 +1024,8 @@ function spawnFreljordTurrets(
             stargazerHuntressHealPercent: 0,
             stargazerSerpentPoisonPercent: 0,
             stargazerSerpentDurationSec: 0,
+            stargazerShieldCashoutHpFrac: 0,
+            stargazerShieldCashoutAsFrac: 0,
           };
           // Store stun duration for prismatic tier
           if (stunDuration > 0) {
@@ -1032,6 +1055,7 @@ function trySpawnGalio(
   logs: CombatLog[],
   tickLogs: CombatLog[],
   spawnedFlag: { spawned: boolean },
+  eventBus: EventBus,
 ): CombatUnit | null {
   if (spawnedFlag.spawned) return null;
   if (!galioInfo) return null;
@@ -1131,6 +1155,8 @@ function trySpawnGalio(
     stargazerHuntressHealPercent: 0,
     stargazerSerpentPoisonPercent: 0,
     stargazerSerpentDurationSec: 0,
+    stargazerShieldCashoutHpFrac: 0,
+    stargazerShieldCashoutAsFrac: 0,
   };
 
   // 착지 충격파 — 영웅 시너지 variables
@@ -1163,6 +1189,8 @@ function trySpawnGalio(
     if (enemy.currentHp <= 0) {
       enemy.currentHp = 0;
       enemy.state = 'dead';
+      // 누락된 on_death emit (codex P1) — Shield cashout sacrifice 카운트 등 event-driven 핸들러 보장.
+      eventBus.emit('on_death', { sourceId: enemy.id, targetId: galioId, tick });
     }
   }
 
@@ -1264,6 +1292,7 @@ function applyPiltoverInvention(
   tickLogs: CombatLog[],
   time: number,
   rng: SeededRNG,
+  eventBus: EventBus,
 ): void {
   const piltover = activeTraits.find(t => t.trait.apiName === 'TFT16_Piltover' && t.activeEffect);
   if (!piltover || !piltover.activeEffect) return;
@@ -1326,6 +1355,8 @@ function applyPiltoverInvention(
         if (target.currentHp <= 0) {
           target.currentHp = 0;
           target.state = 'dead';
+          // 누락된 on_death emit (codex P1) — Shield cashout 등 event-driven 핸들러 보장.
+          eventBus.emit('on_death', { sourceId: target.id, targetId: sourceUnit.id, tick });
         }
       }
       pushInventionLog(logs, tickLogs, tick, time, sourceUnit.id,
@@ -1410,6 +1441,8 @@ function applyPiltoverInvention(
         if (enemy.currentHp <= 0) {
           enemy.currentHp = 0;
           enemy.state = 'dead';
+          // 누락된 on_death emit (codex P1) — Shield cashout 등 event-driven 핸들러 보장.
+          eventBus.emit('on_death', { sourceId: enemy.id, targetId: sourceUnit.id, tick });
         }
       }
       pushInventionLog(logs, tickLogs, tick, time, sourceUnit.id,
@@ -1808,6 +1841,61 @@ export function simulateCombat(
   registerHuntressHeal(playerUnits, enemies, 'stargazer-huntress-player');
   registerHuntressHeal(enemies, playerUnits, 'stargazer-huntress-enemy');
 
+  /**
+   * 별돌보미 제단(Shield) — 같은 팀 unit 사망 시 제물 카운트 증가.
+   * 누적 (priorShieldDeaths + 시뮬 내 사망) ≥ NumDeaths 도달 시 그 팀 강화 칸
+   * 별돌보미들에게 cashout buff (HP × 1+CashoutHP, AS × 1+CashoutAS) 일회 적용.
+   * 게임-level 누적 (전 게임의 player 사망) 은 priorShieldDeaths 로 외부 입력.
+   */
+  const SHIELD_NUM_DEATHS = 60; // Shield_NumDeaths spec value
+  let playerShieldDeaths = options.priorPlayerShieldDeaths ?? 0;
+  let enemyShieldDeaths = options.priorEnemyShieldDeaths ?? 0;
+  let playerShieldCashoutDone = false;
+  let enemyShieldCashoutDone = false;
+  const applyShieldCashout = (team: CombatUnit[]): void => {
+    for (const u of team) {
+      if (u.state === 'dead') continue;
+      if (u.stargazerShieldCashoutHpFrac <= 0 && u.stargazerShieldCashoutAsFrac <= 0) continue;
+      if (u.stargazerShieldCashoutHpFrac > 0) {
+        const newMaxHp = Math.round(u.maxHp * (1 + u.stargazerShieldCashoutHpFrac));
+        u.currentHp = Math.min(newMaxHp, u.currentHp + (newMaxHp - u.maxHp));
+        u.maxHp = newMaxHp;
+      }
+      if (u.stargazerShieldCashoutAsFrac > 0) {
+        u.stats.attackSpeed *= (1 + u.stargazerShieldCashoutAsFrac);
+      }
+    }
+  };
+  // priorShieldDeaths 만 으로 이미 threshold 도달했으면 전투 시작 시 즉시 적용.
+  if (playerShieldDeaths >= SHIELD_NUM_DEATHS) {
+    applyShieldCashout(playerUnits);
+    playerShieldCashoutDone = true;
+  }
+  if (enemyShieldDeaths >= SHIELD_NUM_DEATHS) {
+    applyShieldCashout(enemies);
+    enemyShieldCashoutDone = true;
+  }
+  eventBus.on('on_death', 'stargazer-shield', ({ sourceId }) => {
+    // sourceId 는 죽은 unit 의 id. 어느 팀인지 식별 후 그 팀의 카운트 증가.
+    // 소환체 (포탑/티버스/Azir 병사/Voyager 소환/Shen 분신) 는 제물 카운트 제외 (codex P2).
+    const deadPlayerUnit = playerUnits.find((u) => u.id === sourceId);
+    const deadEnemyUnit = enemies.find((u) => u.id === sourceId);
+    if (deadPlayerUnit && !isAutoUnit(deadPlayerUnit.champion.apiName)) {
+      playerShieldDeaths++;
+      if (!playerShieldCashoutDone && playerShieldDeaths >= SHIELD_NUM_DEATHS) {
+        applyShieldCashout(playerUnits);
+        playerShieldCashoutDone = true;
+      }
+    }
+    if (deadEnemyUnit && !isAutoUnit(deadEnemyUnit.champion.apiName)) {
+      enemyShieldDeaths++;
+      if (!enemyShieldCashoutDone && enemyShieldDeaths >= SHIELD_NUM_DEATHS) {
+        applyShieldCashout(enemies);
+        enemyShieldCashoutDone = true;
+      }
+    }
+  });
+
   // 전투 시작 시 유닛별 랜덤 첫 공격 딜레이 (0~0.3초)
   const maxDelayTicks = Math.round(INITIAL_ATTACK_DELAY * TICKS_PER_SECOND);
   for (const u of playerUnits) {
@@ -1916,9 +2004,9 @@ export function simulateCombat(
 
     // 갈리오 영웅 소환 체크 (매초)
     if (tick > 0 && tick % TICKS_PER_SECOND === 0) {
-      const playerGalio = trySpawnGalio(playerActiveTraits, 'player', playerUnits, enemies, allUnits, effectivePlayerGalio, tick, time, logs, tickLogs, playerGalioFlag);
+      const playerGalio = trySpawnGalio(playerActiveTraits, 'player', playerUnits, enemies, allUnits, effectivePlayerGalio, tick, time, logs, tickLogs, playerGalioFlag, eventBus);
       if (playerGalio) { allUnits.push(playerGalio); playerUnits.push(playerGalio); }
-      const enemyGalio = trySpawnGalio(enemyActiveTraits, 'enemy', enemies, playerUnits, allUnits, effectiveEnemyGalio, tick, time, logs, tickLogs, enemyGalioFlag);
+      const enemyGalio = trySpawnGalio(enemyActiveTraits, 'enemy', enemies, playerUnits, allUnits, effectiveEnemyGalio, tick, time, logs, tickLogs, enemyGalioFlag, eventBus);
       if (enemyGalio) { allUnits.push(enemyGalio); enemies.push(enemyGalio); }
     }
 
@@ -1990,8 +2078,8 @@ export function simulateCombat(
     // Piltover invention trigger
     const playerModules = options.playerPiltoverModules ?? [];
     const enemyModules = options.enemyPiltoverModules ?? [];
-    applyPiltoverInvention(playerActiveTraits, playerUnits, enemies, playerModules, tick, logs, tickLogs, time, rng);
-    applyPiltoverInvention(enemyActiveTraits, enemies, playerUnits, enemyModules, tick, logs, tickLogs, time, rng);
+    applyPiltoverInvention(playerActiveTraits, playerUnits, enemies, playerModules, tick, logs, tickLogs, time, rng, eventBus);
+    applyPiltoverInvention(enemyActiveTraits, enemies, playerUnits, enemyModules, tick, logs, tickLogs, time, rng, eventBus);
 
     const occupiedPositions = new Set(
       allUnits.filter(u => u.state !== 'dead').map(u => coordKey(u.position))
