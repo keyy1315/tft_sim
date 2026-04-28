@@ -87,9 +87,15 @@ export function resolveTraits(
   }
 
   // Count traits from placed champions (with MF mode substitution).
-  // 기존 동작 보존 — unique champion 검사 없음 (별도 PR 에서 처리).
+  // 동일 챔프 (apiName + mfMode) 는 1 카운트로 dedupe — 시뮬에서 자유 배치 시 같은
+  // 챔프 여러 마리 두는 케이스 대응. MF 는 mfMode 따라 다른 trait 부여되므로 키에 포함.
+  // emblem 카운트는 unit-bound 이므로 별도 dedupe 안 함 (다음 루프).
   const traitCounts = new Map<string, number>();
+  const seenChampions = new Set<string>();
   for (const { champion, mfMode } of champions) {
+    const dedupeKey = `${champion.apiName}:${mfMode ?? ''}`;
+    if (seenChampions.has(dedupeKey)) continue;
+    seenChampions.add(dedupeKey);
     const traits = resolveMfTraits(champion, mfMode);
     for (const traitName of traits) {
       traitCounts.set(traitName, (traitCounts.get(traitName) || 0) + 1);
