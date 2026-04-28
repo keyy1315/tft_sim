@@ -56,6 +56,8 @@ const STATUS_EFFECT_LABELS: Record<StatusEffectType, string> = {
   taunt: '도발',
   shield: '보호막',
   invulnerable: '무적',
+  mark: '표식',
+  poison: '중독',
 };
 
 function mergeEffects(a: ItemEffect, b: ItemEffect): ItemEffect {
@@ -153,6 +155,9 @@ function createCombatUnit(
     killCount: 0,
     spellCanCrit: computeSpellCanCrit(allItems, activeTraits),
     stargazerFountainHealPercent: 0,
+    stargazerHuntressHealPercent: 0,
+    stargazerSerpentPoisonPercent: 0,
+    stargazerSerpentDurationSec: 0,
   };
 
   // MF 특성 선택 → 실제 트레이트로 치환 + emblem 으로 부여된 trait 합산.
@@ -653,6 +658,7 @@ function applyJuggernautDR(activeTraits: ActiveTrait[], units: CombatUnit[]): vo
 function applyStargazerEffects(
   traits: ActiveTrait[],
   units: CombatUnit[],
+  opposingUnits: CombatUnit[],
   constellation: StargazerConstellationId | undefined,
 ): void {
   const stargazer = traits.find((t) => t.trait.name === '별돌보미');
@@ -765,11 +771,31 @@ function applyStargazerEffects(
   if (apiName === 'TFT17_Stargazer_Huntress') {
     const teamwideAs = (eff.Huntress_AS_Teamwide ?? 0) as number;
     const ownerAs = (eff.Huntress_AS ?? 0) as number;
-    // Huntress_Heal / NumMarks 는 표식 시스템 (PR-4 — 후속).
+    const healPercent = (eff.Huntress_Heal ?? 0) as number;
+    const numMarks = Math.floor((eff.NumMarks ?? 0) as number);
     for (const u of units) {
       if (!isOnTile(u)) continue;
       if (teamwideAs > 0) u.stats.attackSpeed *= (1 + teamwideAs);
-      if (isStargazerUnit(u) && ownerAs > 0) u.stats.attackSpeed *= (1 + ownerAs);
+      if (isStargazerUnit(u)) {
+        if (ownerAs > 0) u.stats.attackSpeed *= (1 + ownerAs);
+        // 강화 칸 별돌보미 → 표식 적 사망 시 maxHp × healPercent 회복.
+        if (healPercent > 0) u.stargazerHuntressHealPercent = healPercent;
+      }
+    }
+    // 전투 시작 표식 — 적 팀 중 maxHp 기준 상위 numMarks 명에 'mark' statusEffect.
+    // 상시 유지 (전투 종료까지). 같은 적에 mark 중복 방지.
+    if (numMarks > 0 && opposingUnits.length > 0) {
+      const sorted = [...opposingUnits]
+        .filter((e) => e.state !== 'dead' && e.maxHp > 0)
+        .sort((a, b) => b.maxHp - a.maxHp);
+      const targets = sorted.slice(0, numMarks);
+      for (const t of targets) {
+        if (t.statusEffects.some((e) => e.type === 'mark')) continue;
+        t.statusEffects.push({
+          type: 'mark', sourceId: 'stargazer-huntress',
+          remainingTicks: MAX_TICKS,
+        });
+      }
     }
     return;
   }
@@ -778,11 +804,20 @@ function applyStargazerEffects(
   if (apiName === 'TFT17_Stargazer_Serpent') {
     const teamwideDr = (eff.Serpent_DR_Teamwide ?? 0) as number;
     const ownerDr = (eff.Serpent_DR ?? 0) as number;
-    // Serpent_Poison / Duration 은 중독 statusEffect (PR-4).
+    const poisonPercent = (eff.Serpent_Poison ?? 0) as number;
+    const durationSec = (eff.Serpent_Duration ?? 0) as number;
     for (const u of units) {
       if (!isOnTile(u)) continue;
       if (teamwideDr > 0) u.damageReduction += teamwideDr;
-      if (isStargazerUnit(u) && ownerDr > 0) u.damageReduction += ownerDr;
+      if (isStargazerUnit(u)) {
+        if (ownerDr > 0) u.damageReduction += ownerDr;
+        // 강화 칸 별돌보미 → 적 데미지 입힐 때 입힌 피해의 poisonPercent 를
+        // durationSec 초간 magic DOT 으로 추가 (poison statusEffect).
+        if (poisonPercent > 0 && durationSec > 0) {
+          u.stargazerSerpentPoisonPercent = poisonPercent;
+          u.stargazerSerpentDurationSec = durationSec;
+        }
+      }
     }
     return;
   }
@@ -833,6 +868,9 @@ function tickStatusEffects(
   for (const effect of unit.statusEffects) {
     effect.remainingTicks--;
     if (effect.type === 'burn' && effect.value) {
+      unit.currentHp -= effect.value;
+    }
+    if (effect.type === 'poison' && effect.value) {
       unit.currentHp -= effect.value;
     }
   }
@@ -962,6 +1000,9 @@ function spawnFreljordTurrets(
             killCount: 0,
             spellCanCrit: false,
             stargazerFountainHealPercent: 0,
+            stargazerHuntressHealPercent: 0,
+            stargazerSerpentPoisonPercent: 0,
+            stargazerSerpentDurationSec: 0,
           };
           // Store stun duration for prismatic tier
           if (stunDuration > 0) {
@@ -1087,6 +1128,9 @@ function trySpawnGalio(
     killCount: 0,
     spellCanCrit: false,
     stargazerFountainHealPercent: 0,
+    stargazerHuntressHealPercent: 0,
+    stargazerSerpentPoisonPercent: 0,
+    stargazerSerpentDurationSec: 0,
   };
 
   // 착지 충격파 — 영웅 시너지 variables
@@ -1632,8 +1676,8 @@ export function simulateCombat(
   applyShenBastionAura(enemyActiveTraits, enemies);
   applyJhinAnnihilator(playerActiveTraits, enemies);  // 적 대상
   applyJhinAnnihilator(enemyActiveTraits, playerUnits);
-  applyStargazerEffects(playerActiveTraits, playerUnits, options.playerStargazerConstellation);
-  applyStargazerEffects(enemyActiveTraits, enemies, options.enemyStargazerConstellation);
+  applyStargazerEffects(playerActiveTraits, playerUnits, enemies, options.playerStargazerConstellation);
+  applyStargazerEffects(enemyActiveTraits, enemies, playerUnits, options.enemyStargazerConstellation);
   applyMorganaDarklight(playerActiveTraits, playerUnits);
   applyMorganaDarklight(enemyActiveTraits, enemies);
 
@@ -1644,6 +1688,40 @@ export function simulateCombat(
   if (options.enemyIoniaPath) {
     applyIoniaPath(enemyActiveTraits, enemies, options.enemyIoniaPath, logs);
   }
+
+  /**
+   * 별돌보미 뱀(Serpent) — 강화 칸 별돌보미 가 적에게 데미지 입힐 때 호출.
+   * dmg × poisonPercent 를 durationSec 초간 분산해서 'poison' statusEffect 로 적용 (magic DOT).
+   * 같은 caster 의 기존 poison 이 있으면 합산 (피해 누적, 만료 시간은 기존 유지).
+   */
+  const triggerSerpentPoison = (
+    caster: CombatUnit,
+    target: CombatUnit,
+    dmgDealt: number,
+  ): void => {
+    if (caster.stargazerSerpentPoisonPercent <= 0 || caster.stargazerSerpentDurationSec <= 0) return;
+    if (dmgDealt <= 0 || target.state === 'dead') return;
+    const totalPoison = dmgDealt * caster.stargazerSerpentPoisonPercent;
+    const ticks = Math.round(caster.stargazerSerpentDurationSec * TICKS_PER_SECOND);
+    if (ticks <= 0) return;
+    // 기존 poison (같은 caster source) 가 있으면:
+    //   - 잔여 totalDamage 보존 (residualTotal = old.value × old.remainingTicks)
+    //   - 새 totalPoison 합산 후 새 ticks 기준 perTick 재계산
+    //   - duration refresh (codex P1: refresh 안 하면 hit 마다 partial 전달 → under-proc)
+    const existing = target.statusEffects.find(
+      (e) => e.type === 'poison' && e.sourceId === caster.id,
+    );
+    if (existing) {
+      const residualTotal = (existing.value ?? 0) * existing.remainingTicks;
+      existing.value = (residualTotal + totalPoison) / ticks;
+      existing.remainingTicks = ticks;
+    } else {
+      target.statusEffects.push({
+        type: 'poison', sourceId: caster.id,
+        remainingTicks: ticks, value: totalPoison / ticks,
+      });
+    }
+  };
 
   /**
    * 별돌보미 우물(Fountain) — ability 시전 후 호출.
@@ -1708,6 +1786,27 @@ export function simulateCombat(
   }
   registerHarvester(playerActiveTraits, playerUnits, enemies);
   registerHarvester(enemyActiveTraits, enemies, playerUnits);
+
+  /**
+   * 별돌보미 여사냥꾼(Huntress) — 표식된 적 사망 시 같은 팀 강화 칸 별돌보미들이
+   * maxHp × healPercent 만큼 회복. event-driven 으로 등록 (사망 원인 무관).
+   * sourceId 는 죽은 unit (target) — opposingTeam 에서 마크 보유했는지 확인.
+   */
+  const registerHuntressHeal = (huntressTeam: CombatUnit[], huntressEnemies: CombatUnit[], handlerKey: string): void => {
+    eventBus.on('on_death', handlerKey, ({ sourceId }) => {
+      const dead = huntressEnemies.find((e) => e.id === sourceId);
+      if (!dead) return; // 죽은 unit 이 huntressTeam 의 적군이 아니면 무관
+      if (!dead.statusEffects.some((e) => e.type === 'mark')) return;
+      for (const h of huntressTeam) {
+        if (h.state === 'dead') continue;
+        if (h.stargazerHuntressHealPercent <= 0) continue;
+        const healAmount = h.maxHp * h.stargazerHuntressHealPercent;
+        h.currentHp = Math.min(h.maxHp, h.currentHp + healAmount);
+      }
+    });
+  };
+  registerHuntressHeal(playerUnits, enemies, 'stargazer-huntress-player');
+  registerHuntressHeal(enemies, playerUnits, 'stargazer-huntress-enemy');
 
   // 전투 시작 시 유닛별 랜덤 첫 공격 딜레이 (0~0.3초)
   const maxDelayTicks = Math.round(INITIAL_ATTACK_DELAY * TICKS_PER_SECOND);
@@ -2000,6 +2099,9 @@ export function simulateCombat(
           target.totalDamageTaken += finalDamage;
           unit.totalDamageDealt += finalDamage;
 
+          // 별돌보미 뱀(Serpent) — 강화 칸 별돌보미 가 평타로 적 명중 시 중독 적용
+          triggerSerpentPoison(unit, target, finalDamage);
+
           // 자동공격으로 적 처치
           if (target.currentHp <= 0 && target.state !== 'dead') {
             target.currentHp = 0;
@@ -2284,6 +2386,9 @@ export function simulateCombat(
                 unit.totalDamageDealt += effectiveDmg;
                 totalAbilityDmg += effectiveDmg;
 
+                // 별돌보미 뱀(Serpent) — 강화 칸 별돌보미 ability 명중 시 중독 적용
+                triggerSerpentPoison(unit, t, effectiveDmg);
+
                 const abilityLog: CombatLog = {
                   tick, time, type: 'ability',
                   sourceId: unit.id, targetId: t.id,
@@ -2504,6 +2609,9 @@ export function simulateCombat(
               t.totalDamageTaken += dmg;
               unit.totalDamageDealt += dmg;
               totalAbilityDmg += dmg;
+
+              // 별돌보미 뱀(Serpent) — OOR ability 명중 시 중독 적용
+              triggerSerpentPoison(unit, t, dmg);
 
               if (t.currentHp <= 0) {
                 t.state = 'dead';
