@@ -839,6 +839,32 @@ function applyAstronautEffects(activeTraits: ActiveTrait[], units: CombatUnit[])
   }
 }
 
+/**
+ * 시간 균열자 (Timebreaker/Pulsefire) — teamwide AS + 시간 균열자 추가 AS.
+ *
+ * Spec (TFT17_Timebreaker):
+ *   (2)/(3)/(4) 모두 모든 아군 +15% AS (AttackSpeed=0.15)
+ *   (3) 추가로 게임-level reroll/XP bonus ({aaae13a0}=1) — 시뮬 외
+ *   (4) 시간 균열자 unit 추가 +50% AS (TimebreakerAdditionalAS=0.50)
+ *
+ * 시간 균열자 챔프 (4명): Riven, Milio, Ezreal, Pantheon.
+ */
+function applyTimebreakerEffects(activeTraits: ActiveTrait[], units: CombatUnit[]): void {
+  const trait = activeTraits.find(t => t.trait.apiName === 'TFT17_Timebreaker');
+  if (!trait || !trait.activeEffect || trait.style === 0) return;
+  const v = trait.activeEffect.variables;
+  const teamwideAs = (v.AttackSpeed ?? 0) as number;
+  const additionalAs = (v.TimebreakerAdditionalAS ?? 0) as number;
+  for (const u of units) {
+    if (teamwideAs > 0) {
+      u.stats.attackSpeed *= (1 + teamwideAs);
+    }
+    if (additionalAs > 0 && unitHasTrait(u, '시간 균열자')) {
+      u.stats.attackSpeed *= (1 + additionalAs);
+    }
+  }
+}
+
 /** 전쟁기계 — BaseDR을 damageReduction에 적용 */
 function applyJuggernautDR(activeTraits: ActiveTrait[], units: CombatUnit[]): void {
   const jugg = activeTraits.find(t => t.trait.apiName === 'TFT16_Juggernaut' && t.activeEffect);
@@ -1938,6 +1964,8 @@ export function simulateCombat(
   applyBastionEffects(enemyActiveTraits, enemies);
   applySniperEffects(playerActiveTraits, playerUnits);
   applySniperEffects(enemyActiveTraits, enemies);
+  applyTimebreakerEffects(playerActiveTraits, playerUnits);
+  applyTimebreakerEffects(enemyActiveTraits, enemies);
   // 선봉대 보호막은 전투 시작 시점 (tick=0, time=0).
   applyVanguardEffects(playerActiveTraits, playerUnits, 0, 0, logs);
   applyVanguardEffects(enemyActiveTraits, enemies, 0, 0, logs);
