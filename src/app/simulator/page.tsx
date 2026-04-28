@@ -179,6 +179,22 @@ function SimulatorContent() {
     return CONSTELLATION_TILE_PATTERN[tm.enemyStargazerConstellation];
   }, [tm.enemyStargazerConstellation, tm.enemyTraits]);
 
+  // 별돌보미 활성 trait 정보 — hover tooltip 효과 텍스트 표시용.
+  const playerStargazerInfo = useMemo(() => {
+    const active = tm.playerTraits.find(t => t.trait.name === '별돌보미' && t.style > 0);
+    return {
+      effectVariables: active?.activeEffect?.variables ?? null,
+      count: active?.count ?? 0,
+    };
+  }, [tm.playerTraits]);
+  const enemyStargazerInfo = useMemo(() => {
+    const active = tm.enemyTraits.find(t => t.trait.name === '별돌보미' && t.style > 0);
+    return {
+      effectVariables: active?.activeEffect?.variables ?? null,
+      count: active?.count ?? 0,
+    };
+  }, [tm.enemyTraits]);
+
   const runSimulation = useCallback(() => {
     if (tm.playerTeam.length === 0 || tm.enemyTeam.length === 0) return;
     setIsRunning(true);
@@ -279,6 +295,7 @@ function SimulatorContent() {
       moving: movingHexBuff, setMoving: setMovingHexBuff,
     },
     playerStargazerTiles, enemyStargazerTiles,
+    playerStargazerInfo, enemyStargazerInfo,
     stageNumber, setStageNumber, isRunning, runSimulation, runMultiple,
     teamNames,
     poolFilters: {

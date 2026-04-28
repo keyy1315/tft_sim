@@ -37,6 +37,7 @@ export default function SimulatorLayoutTablet(props: SimulatorLayoutProps) {
     tm, replay, hexBuffs, setHoverUnit, setShowTeamCode, showTeamCode,
     runSimulation, runMultiple, stageNumber, setStageNumber, isRunning,
     teamNames, data, playerStargazerTiles, enemyStargazerTiles,
+    playerStargazerInfo, enemyStargazerInfo,
   } = props;
 
   const windowWidth = useWindowWidth();
@@ -177,6 +178,12 @@ export default function SimulatorLayoutTablet(props: SimulatorLayoutProps) {
                     movingHexBuffApiName={hexBuffs.moving?.apiName}
                     playerStargazerTiles={playerStargazerTiles}
                     enemyStargazerTiles={enemyStargazerTiles}
+                    playerStargazerConstellation={tm.playerStargazerConstellation}
+                    enemyStargazerConstellation={tm.enemyStargazerConstellation}
+                    playerStargazerEffectVariables={playerStargazerInfo.effectVariables}
+                    enemyStargazerEffectVariables={enemyStargazerInfo.effectVariables}
+                    playerStargazerCount={playerStargazerInfo.count}
+                    enemyStargazerCount={enemyStargazerInfo.count}
                     cellSize={cellSize}
                   />
                   <DroppableOverlay
@@ -185,6 +192,12 @@ export default function SimulatorLayoutTablet(props: SimulatorLayoutProps) {
                     setHoverUnit={setHoverUnit}
                     cellSize={cellSize}
                     onUnitClick={onUnitClickWithTab}
+                    playerStargazerTiles={playerStargazerTiles}
+                    enemyStargazerTiles={enemyStargazerTiles}
+                    playerStargazerConstellation={tm.playerStargazerConstellation}
+                    enemyStargazerConstellation={tm.enemyStargazerConstellation}
+                    playerStargazerInfo={playerStargazerInfo}
+                    enemyStargazerInfo={enemyStargazerInfo}
                   />
                 </>
               ) : (
@@ -199,6 +212,12 @@ export default function SimulatorLayoutTablet(props: SimulatorLayoutProps) {
                     }}
                     playerStargazerTiles={playerStargazerTiles}
                     enemyStargazerTiles={enemyStargazerTiles}
+                    playerStargazerConstellation={tm.playerStargazerConstellation}
+                    enemyStargazerConstellation={tm.enemyStargazerConstellation}
+                    playerStargazerEffectVariables={playerStargazerInfo.effectVariables}
+                    enemyStargazerEffectVariables={enemyStargazerInfo.effectVariables}
+                    playerStargazerCount={playerStargazerInfo.count}
+                    enemyStargazerCount={enemyStargazerInfo.count}
                     cellSize={cellSize}
                   />
                 )

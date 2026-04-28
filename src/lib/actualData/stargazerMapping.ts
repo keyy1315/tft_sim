@@ -140,3 +140,96 @@ export function isOnEmpoweredTile(
   const tiles = CONSTELLATION_TILE_PATTERN[constellation];
   return tiles.some((t) => t.q === position.q && t.r === position.r);
 }
+
+/**
+ * 별자리별 효과 요약 텍스트 생성. UI tooltip 표시용.
+ * activeEffectVariables 가 null/undefined 이면 별자리 한글명만 반환.
+ */
+export function formatStargazerEffectSummary(
+  constellation: StargazerConstellationId,
+  activeEffectVariables: Record<string, number | null | undefined> | null | undefined,
+  count: number,
+): string {
+  const name = CONSTELLATION_KOREAN_NAME[constellation];
+  if (!activeEffectVariables) return `별돌보미 ${name}`;
+  const v = activeEffectVariables;
+  const lines: string[] = [`별돌보미 ${name} (${count})`];
+  const pct = (n: number | null | undefined): string => {
+    if (n == null) return '0';
+    // 1 미만 fraction → percent. 1 이상은 그대로 (이미 percentage points).
+    return n < 1 ? `${Math.round(n * 100)}%` : `${Math.round(n)}%`;
+  };
+  switch (constellation) {
+    case 'mountain': {
+      // Mountain: 강화 칸 별돌보미 stat 누적 + StatIncrease 증폭
+      const hp = v.Mountain_Health, ad = v.Mountain_ADAP, as = v.Mountain_AS;
+      const dr = v.Mountain_DR, res = v.Mountain_Resists, inc = v.Mountain_StatIncrease;
+      lines.push('강화 칸 별돌보미:');
+      if (hp) lines.push(`  체력 +${pct(hp)}`);
+      if (ad) lines.push(`  공격력/주문력 +${pct(ad)}`);
+      if (as) lines.push(`  공격속도 +${pct(as)}`);
+      if (dr) lines.push(`  내구력 +${pct(dr)}`);
+      if (res) lines.push(`  방어/마저 +${res}`);
+      if (inc) lines.push(`  추가 효과 +${pct(inc)} 증폭`);
+      break;
+    }
+    case 'boar': {
+      // Wolf: teamwide HP/AD/AP + 별돌보미 추가 HP/ADAP
+      const tw = v.Wolf_Health_Teamwide, hp = v.Wolf_Health, ad = v.Wolf_ADAP;
+      if (tw) lines.push(`강화 칸 모든 아군: 체력/공/주 +${pct(tw)}`);
+      lines.push('+ 별돌보미 추가:');
+      if (hp) lines.push(`  체력 +${pct(hp)}`);
+      if (ad) lines.push(`  공격력/주문력 +${ad}%`);
+      break;
+    }
+    case 'medal': {
+      // Medallion: teamwide damageAmp + 3성당 증가
+      const da = v.Medallion_DA, inc3 = v.Medallion_IncreasePer3Star;
+      if (da) lines.push(`강화 칸 모든 아군 피해증폭 +${pct(da)}`);
+      if (inc3) lines.push(`3성 1명당 추가 +${inc3}%`);
+      break;
+    }
+    case 'huntress': {
+      // Huntress: teamwide AS + 별돌보미 추가 AS + mark + heal
+      const tw = v.Huntress_AS_Teamwide, own = v.Huntress_AS, heal = v.Huntress_Heal;
+      const marks = v.NumMarks;
+      if (tw) lines.push(`강화 칸 모든 아군 공속 +${pct(tw)}`);
+      if (own) lines.push(`별돌보미 공속 추가 +${pct(own)}`);
+      if (marks) lines.push(`전투 시작: 적 maxHp 상위 ${marks}명 표식`);
+      if (heal) lines.push(`표식 적 사망 시 별돌보미 maxHp ${pct(heal)} 회복`);
+      break;
+    }
+    case 'snake': {
+      // Serpent: teamwide DR + 별돌보미 추가 DR + poison
+      const tw = v.Serpent_DR_Teamwide, own = v.Serpent_DR;
+      const poison = v.Serpent_Poison, dur = v.Serpent_Duration;
+      if (tw) lines.push(`강화 칸 모든 아군 내구력 +${pct(tw)}`);
+      if (own) lines.push(`별돌보미 내구력 추가 +${pct(own)}`);
+      if (poison && dur) lines.push(`별돌보미 명중 적: 입힌 피해 ${pct(poison)} 를 ${dur}초 마법 DOT`);
+      break;
+    }
+    case 'altar': {
+      // Shield: teamwide HP/AS + 60회 사망 cashout
+      const hp = v.Shield_Health_Teamwide, as = v.Shield_AS_Teamwide;
+      const cHp = v.Shield_CashoutHP, cAs = v.Shield_CashoutAS, n = v.Shield_NumDeaths;
+      if (hp) lines.push(`강화 칸 모든 아군 체력 +${hp}%`);
+      if (as) lines.push(`강화 칸 모든 아군 공속 +${as}%`);
+      if (n && (cHp || cAs)) {
+        lines.push(`사망 ${n}회 누적 시 별돌보미 추가:`);
+        if (cHp) lines.push(`  체력 +${cHp}%`);
+        if (cAs) lines.push(`  공속 +${cAs}%`);
+      }
+      break;
+    }
+    case 'well': {
+      // Fountain: teamwide ManaRegen + 별돌보미 추가 + 스킬 시전 시 lowest HP heal
+      const tw = v.Fountain_ManaRegen_Teamwide, own = v.Fountain_ManaRegen;
+      const heal = v.Fountain_HealPercent;
+      if (tw) lines.push(`강화 칸 모든 아군 마나재생 +${tw}/초`);
+      if (own) lines.push(`별돌보미 마나재생 추가 +${own}/초`);
+      if (heal) lines.push(`별돌보미 스킬 시전 시 즉발 피해의 ${pct(heal)} 만큼 가장 낮은 아군 회복`);
+      break;
+    }
+  }
+  return lines.join('\n');
+}

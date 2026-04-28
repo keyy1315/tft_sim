@@ -1,11 +1,14 @@
 'use client';
 
+import { useState } from 'react';
 import { TickSnapshot, HexCoord, axialToOffset, COST_COLORS } from '@/types';
 import type { StatusEffectType } from '@/types';
 import { getChampionImage } from '@/data/imageMap';
 import { BOARD_COLS } from '@/lib/simulator/models/constants';
 import { STATUS_EFFECT_CONFIG, CATEGORY_BORDER } from '@/lib/statusEffectConfig';
 import { createHexLayout } from './HexBoard';
+import { formatStargazerEffectSummary } from '@/lib/actualData/stargazerMapping';
+import type { StargazerConstellationId } from '@/lib/actualData/types';
 
 interface ReplayBoardProps {
   snapshot: TickSnapshot | null;
@@ -26,6 +29,13 @@ interface ReplayBoardProps {
   playerStargazerTiles?: ReadonlyArray<HexCoord>;
   /** B 팀(enemy) 강화 칸 데이터-row 좌표 (0-3 기준). 그대로 표시. */
   enemyStargazerTiles?: ReadonlyArray<HexCoord>;
+  /** 별돌보미 hover tooltip 용 (SetupBoardCore 와 동일). */
+  playerStargazerConstellation?: StargazerConstellationId | null;
+  enemyStargazerConstellation?: StargazerConstellationId | null;
+  playerStargazerEffectVariables?: Record<string, number | null | undefined> | null;
+  enemyStargazerEffectVariables?: Record<string, number | null | undefined> | null;
+  playerStargazerCount?: number;
+  enemyStargazerCount?: number;
   cellSize?: number;
 }
 
@@ -39,10 +49,18 @@ export default function ReplayBoard({
   onUnitClick,
   playerStargazerTiles = [],
   enemyStargazerTiles = [],
+  playerStargazerConstellation,
+  enemyStargazerConstellation,
+  playerStargazerEffectVariables,
+  enemyStargazerEffectVariables,
+  playerStargazerCount = 0,
+  enemyStargazerCount = 0,
   cellSize = REPLAY_DEFAULT_HEX_R,
 }: ReplayBoardProps) {
   const { HEX_R, HEX_W, HEX_H, PAD, teamGap, hexCenter, hexPoints } = createHexLayout(cellSize);
   const cols = BOARD_COLS;
+  // hover 강화 칸 — tooltip 표시용 (SetupBoardCore 와 동일 패턴).
+  const [hoverTile, setHoverTile] = useState<{ zoneKey: string; team: 'player' | 'enemy'; cx: number; cy: number } | null>(null);
   const width = cols * (HEX_W + PAD) + HEX_W / 2 + 40;
   const height = ROWS * (HEX_H * 0.75 + PAD) + HEX_R + 40 + teamGap;
   const splitY = 4 * (HEX_H * 0.75 + PAD) + 10;
@@ -79,15 +97,18 @@ export default function ReplayBoard({
   // combat 의 applyStargazerEffects 는 r>=4 unit 을 mirrorPosition 으로 r=0..3 변환 후
   // 패턴 체크 (mirrorPosition: r → 7-r, offset col 보존).
   // 따라서 player tiles 는 보드 r=7-data_r 위치에 표시해야 실제 효과 적용 위치와 일치.
-  const stargazerTileSet = new Set<string>();
+  // hover tooltip 위해 player/enemy 별 분리 — 클릭/hover 시 어느 별자리 효과인지 식별.
+  const playerStargazerTileSet = new Set<string>();
+  const enemyStargazerTileSet = new Set<string>();
   for (const t of playerStargazerTiles) {
     const off = axialToOffset(t);
-    stargazerTileSet.add(`${7 - off.row}-${off.col}`);
+    playerStargazerTileSet.add(`${7 - off.row}-${off.col}`);
   }
   for (const t of enemyStargazerTiles) {
     const off = axialToOffset(t);
-    stargazerTileSet.add(`${off.row}-${off.col}`);
+    enemyStargazerTileSet.add(`${off.row}-${off.col}`);
   }
+  const stargazerTileSet = new Set([...playerStargazerTileSet, ...enemyStargazerTileSet]);
 
   // Helper: get pixel center for a unit by id
   function getUnitCenter(unitId: string): { cx: number; cy: number } | null {
@@ -147,6 +168,21 @@ export default function ReplayBoard({
           const unitSnap = unitId && snapshot ? snapshot.units[unitId] : null;
           const isSelected = unitId === selectedUnitId;
 
+          // 강화 칸 hover 핸들러 — SetupBoardCore 와 동일 패턴.
+          const onStargazerEnter = () => {
+            const isPlayerTile = playerStargazerTileSet.has(zoneKey);
+            const isEnemyTile = enemyStargazerTileSet.has(zoneKey);
+            if (!isPlayerTile && !isEnemyTile) return;
+            setHoverTile({
+              zoneKey,
+              team: isPlayerTile ? 'player' : 'enemy',
+              cx, cy,
+            });
+          };
+          const onStargazerLeave = () => {
+            setHoverTile((prev) => (prev?.zoneKey === zoneKey ? null : prev));
+          };
+
           if (!unitId || !meta || !unitSnap) {
             // Empty cell
             return (
@@ -156,6 +192,8 @@ export default function ReplayBoard({
                 fill="#0d1117"
                 stroke={isStargazerTile ? '#A855F7' : '#1e2535'}
                 strokeWidth={isStargazerTile ? 2.5 : 0.5}
+                onMouseEnter={isStargazerTile ? onStargazerEnter : undefined}
+                onMouseLeave={isStargazerTile ? onStargazerLeave : undefined}
               />
             );
           }
@@ -189,6 +227,8 @@ export default function ReplayBoard({
                 fill={`url(#replay-${unitId})`}
                 stroke={isSelected ? '#f59e0b' : isStargazerTile ? '#A855F7' : costColor}
                 strokeWidth={isSelected ? 3 : isStargazerTile ? 2.5 : 2}
+                onMouseEnter={isStargazerTile ? onStargazerEnter : undefined}
+                onMouseLeave={isStargazerTile ? onStargazerLeave : undefined}
               />
 
               {/* Star level */}
@@ -363,6 +403,44 @@ export default function ReplayBoard({
           </text>
         );
       })}
+      {/* 강화 칸 hover tooltip — SetupBoardCore 와 동일 패턴 */}
+      {hoverTile && (() => {
+        const constellation = hoverTile.team === 'player'
+          ? playerStargazerConstellation
+          : enemyStargazerConstellation;
+        if (!constellation) return null;
+        const variables = hoverTile.team === 'player'
+          ? playerStargazerEffectVariables
+          : enemyStargazerEffectVariables;
+        const count = hoverTile.team === 'player' ? playerStargazerCount : enemyStargazerCount;
+        const summary = formatStargazerEffectSummary(constellation, variables ?? null, count);
+        const ttWidth = 220;
+        const ttHeight = 130;
+        let ttX = hoverTile.cx - ttWidth / 2;
+        let ttY = hoverTile.cy - HEX_R - ttHeight - 6;
+        if (ttX < 4) ttX = 4;
+        if (ttX + ttWidth > width - 4) ttX = width - 4 - ttWidth;
+        if (ttY < 4) ttY = hoverTile.cy + HEX_R + 6;
+        return (
+          <foreignObject x={ttX} y={ttY} width={ttWidth} height={ttHeight} style={{ pointerEvents: 'none' }}>
+            <div
+              style={{
+                background: 'rgba(15,23,42,0.96)',
+                border: '1px solid #A855F7',
+                borderRadius: 6,
+                padding: '6px 8px',
+                color: '#e5e7eb',
+                fontSize: 10,
+                lineHeight: 1.35,
+                whiteSpace: 'pre-line',
+                fontFamily: 'system-ui, sans-serif',
+              }}
+            >
+              {summary}
+            </div>
+          </foreignObject>
+        );
+      })()}
     </svg>
   );
 }

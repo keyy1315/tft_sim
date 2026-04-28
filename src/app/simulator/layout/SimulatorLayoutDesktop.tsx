@@ -1,16 +1,15 @@
 'use client';
 
-import { MouseEvent, useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { axialToOffset, offsetToAxial } from '@/types';
 import type { ItemFilterTab, SimulatorLayoutProps } from './types';
-import { TICKS_PER_SECOND, BOARD_COLS } from '@/lib/simulator/models/constants';
+import { TICKS_PER_SECOND } from '@/lib/simulator/models/constants';
 import { getItemCategory, isDisabledItem } from '@/lib/simulator/systems/item';
 import { isBilgewaterStatItem } from '@/data/traitModules';
 import { resolveBilgewaterStatEffects } from '@/lib/simulator/systems/stat';
 import { resolveDescription } from '@/lib/utils/text';
 import SetupBoard from '@/components/battle/SetupBoard';
-import DroppableHexCell from '@/components/battle/DroppableHexCell';
+import DroppableOverlay from './shared/DroppableOverlay';
 import ReplayBoard from '@/components/battle/ReplayBoard';
 import BattleControls from '@/components/battle/BattleControls';
 import DamageSidebar from '@/components/battle/DamageSidebar';
@@ -35,11 +34,11 @@ export default function SimulatorLayoutDesktop(props: SimulatorLayoutProps) {
     runSimulation, runMultiple, teamNames, poolFilters, logFilter, setLogFilter,
     showTeamCode, setShowTeamCode, hoverUnit, setHoverUnit,
     mappedPlayerForReplay, playerStargazerTiles, enemyStargazerTiles,
+    playerStargazerInfo, enemyStargazerInfo,
   } = props;
   const { champions, items, traits, teamPlannerMapping } = data;
   const {
     player: playerHexBuffs, enemy: enemyHexBuffs,
-    setOverrides: setHexBuffOverrides,
     moving: movingHexBuff, setMoving: setMovingHexBuff,
   } = hexBuffs;
   const {
@@ -215,67 +214,27 @@ export default function SimulatorLayoutDesktop(props: SimulatorLayoutProps) {
                     movingHexBuffApiName={movingHexBuff?.apiName}
                     playerStargazerTiles={playerStargazerTiles}
                     enemyStargazerTiles={enemyStargazerTiles}
+                    playerStargazerConstellation={tm.playerStargazerConstellation}
+                    enemyStargazerConstellation={tm.enemyStargazerConstellation}
+                    playerStargazerEffectVariables={playerStargazerInfo.effectVariables}
+                    enemyStargazerEffectVariables={enemyStargazerInfo.effectVariables}
+                    playerStargazerCount={playerStargazerInfo.count}
+                    enemyStargazerCount={enemyStargazerInfo.count}
                   />
-                  {/* Droppable overlay */}
+                  {/* Droppable overlay (DnD + 강화 칸 hover tooltip) */}
+                  <DroppableOverlay
+                    tm={tm}
+                    hexBuffs={hexBuffs}
+                    setHoverUnit={setHoverUnit}
+                    onUnitClick={tm.handleUnitClick}
+                    playerStargazerTiles={playerStargazerTiles}
+                    enemyStargazerTiles={enemyStargazerTiles}
+                    playerStargazerConstellation={tm.playerStargazerConstellation}
+                    enemyStargazerConstellation={tm.enemyStargazerConstellation}
+                    playerStargazerInfo={playerStargazerInfo}
+                    enemyStargazerInfo={enemyStargazerInfo}
+                  />
                   <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
-                    {Array.from({ length: 8 }, (_, row) =>
-                      Array.from({ length: BOARD_COLS }, (_, col) => {
-                        const team = row < 4 ? 'enemy' : 'player';
-                        const teamArr = team === 'player' ? tm.playerTeam : tm.enemyTeam;
-                        const dataRow = team === 'player' ? row - 4 : row;
-                        const placedIdx = teamArr.findIndex(p => {
-                          const off = axialToOffset(p.position);
-                          return off.row === dataRow && off.col === col;
-                        });
-                        const placed = placedIdx >= 0 ? teamArr[placedIdx] : null;
-
-                        const cellClick = () => {
-                          if (movingHexBuff) {
-                            const pos = offsetToAxial({ row: dataRow, col });
-                            setHexBuffOverrides(prev => ({
-                              ...prev,
-                              [movingHexBuff.team]: { ...prev[movingHexBuff.team], [movingHexBuff.apiName]: pos },
-                            }));
-                            setMovingHexBuff(null);
-                            return;
-                          }
-                          const hexBuffsForTeam = team === 'player' ? playerHexBuffs : enemyHexBuffs;
-                          const movableBuff = hexBuffsForTeam.find(b => b.movable && b.positions.some(
-                            p => { const off = axialToOffset(p); return off.row === dataRow && off.col === col; }
-                          ));
-                          if (movableBuff && !placed) {
-                            setMovingHexBuff({ team, apiName: movableBuff.augmentApiName });
-                            return;
-                          }
-                          if (placed && placedIdx >= 0) {
-                            tm.handleUnitClick(team, placedIdx);
-                          } else {
-                            const pos = offsetToAxial({ row: dataRow, col });
-                            tm.handleCellClick(pos, team);
-                          }
-                        };
-                        const cellContextMenu = (e: MouseEvent) => {
-                          e.preventDefault();
-                          if (placed && placedIdx >= 0) {
-                            tm.handleRemoveUnit(team, placedIdx);
-                          }
-                        };
-
-                        return (
-                          <DroppableHexCell
-                            key={`cell-${row}-${col}`}
-                            id={`cell-${row}-${col}`}
-                            row={row}
-                            col={col}
-                            placedUnit={placed ? { team, position: placed.position } : null}
-                            onClick={cellClick}
-                            onContextMenu={cellContextMenu}
-                            onMouseEnter={placed ? (rect) => setHoverUnit({ placed, rect }) : undefined}
-                            onMouseLeave={() => setHoverUnit(null)}
-                          />
-                        );
-                      })
-                    )}
                     {movingHexBuff && (
                       <div className="absolute inset-0 z-40 flex items-start justify-center pt-2 pointer-events-none">
                         <div className="bg-yellow-600/90 text-black text-xs font-bold px-4 py-2 rounded-lg shadow-lg pointer-events-auto">
@@ -611,6 +570,12 @@ export default function SimulatorLayoutDesktop(props: SimulatorLayoutProps) {
                   onUnitClick={replay.setSelectedUnitId}
                   playerStargazerTiles={playerStargazerTiles}
                   enemyStargazerTiles={enemyStargazerTiles}
+                  playerStargazerConstellation={tm.playerStargazerConstellation}
+                  enemyStargazerConstellation={tm.enemyStargazerConstellation}
+                  playerStargazerEffectVariables={playerStargazerInfo.effectVariables}
+                  enemyStargazerEffectVariables={enemyStargazerInfo.effectVariables}
+                  playerStargazerCount={playerStargazerInfo.count}
+                  enemyStargazerCount={enemyStargazerInfo.count}
                 />
               </div>
             </div>
