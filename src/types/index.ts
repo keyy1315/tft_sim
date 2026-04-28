@@ -395,7 +395,7 @@ export type AbilityPattern =
   | 'global'      // 전체 적
   | 'self_buff';  // 자기 버프
 
-export type StatusEffectType = 'stun' | 'slow' | 'burn' | 'shield' | 'invulnerable' | 'disarm' | 'taunt';
+export type StatusEffectType = 'stun' | 'slow' | 'burn' | 'shield' | 'invulnerable' | 'disarm' | 'taunt' | 'mark' | 'poison';
 
 export interface StatusEffect {
   type: StatusEffectType;
@@ -494,6 +494,18 @@ export interface CombatUnit {
    * applyStargazerEffects 가 well 변종 활성 + 강화 칸 + 별돌보미 unit 에 설정.
    */
   stargazerFountainHealPercent: number;
+  /**
+   * 별돌보미 여사냥꾼(Huntress) 변종 — 표식된 적 사망 시 maxHp 비율 회복.
+   * 강화 칸 안 별돌보미 unit 만 양수 (예: 0.10 → maxHp × 10% heal).
+   */
+  stargazerHuntressHealPercent: number;
+  /**
+   * 별돌보미 뱀(Serpent) 변종 — 적에게 입힌 피해의 일부를 N초간 magic DOT 으로 추가.
+   * 강화 칸 안 별돌보미 unit 만 양수 (예: 0.40 → 입힌 피해의 40% 가 3초간 분산 적용).
+   */
+  stargazerSerpentPoisonPercent: number;
+  /** Serpent 의 중독 지속시간 (초). poison statusEffect 의 remainingTicks 계산용. */
+  stargazerSerpentDurationSec: number;
 }
 
 export interface CombatLog {
