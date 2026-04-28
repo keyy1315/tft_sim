@@ -11,8 +11,9 @@ export const SPELL_CRIT_ITEMS: ReadonlySet<string> = new Set([
   'TFT_Item_Radiant_InfinityEdge',
 ]);
 
-/** 정밀 계열 시너지(스킬 크리 언락). Set 17 엔 없음 — 빈 배열.
- *  향후 Set 에서 해당 trait 등장 시 여기에 apiName 추가. */
+/** 정밀 계열 시너지(스킬 크리 언락) — team-level 활성 시 모든 unit 영향.
+ *  Set 17 의 Fateweaver(운명술사) 는 unit-level (Innate) 이라 본 리스트에 안 넣고
+ *  applyFateweaverEffects (combatLoop.ts) 가 unit별로 spellCanCrit 설정. */
 export const SPELL_CRIT_TRAIT_APINAMES: ReadonlyArray<string> = [];
 
 /** 추천 스코어 가산 — AP 캐리가 보건/무대 장착 시 "스킬 크리 언락" 프리미엄.
