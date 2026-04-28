@@ -24,6 +24,7 @@ import { ROLE_OMNIVAMP, getFighterASBonus } from '@/lib/simulator/models/unit';
 import { resolveTraits, getEmblemTraitNames } from '@/lib/simulator/systems/trait';
 import { CONSTELLATION_TILE_PATTERN } from '@/lib/actualData/stargazerMapping';
 import type { StargazerConstellationId } from '@/lib/actualData/types';
+import { isAutoUnit } from '@/data/specialUnits';
 
 /**
  * unit 의 trait 멤버십 검사 헬퍼. champion.traits 직접 조회는 emblem 으로 부여된
@@ -1054,6 +1055,7 @@ function trySpawnGalio(
   logs: CombatLog[],
   tickLogs: CombatLog[],
   spawnedFlag: { spawned: boolean },
+  eventBus: EventBus,
 ): CombatUnit | null {
   if (spawnedFlag.spawned) return null;
   if (!galioInfo) return null;
@@ -1187,6 +1189,8 @@ function trySpawnGalio(
     if (enemy.currentHp <= 0) {
       enemy.currentHp = 0;
       enemy.state = 'dead';
+      // 누락된 on_death emit (codex P1) — Shield cashout sacrifice 카운트 등 event-driven 핸들러 보장.
+      eventBus.emit('on_death', { sourceId: enemy.id, targetId: galioId, tick });
     }
   }
 
@@ -1288,6 +1292,7 @@ function applyPiltoverInvention(
   tickLogs: CombatLog[],
   time: number,
   rng: SeededRNG,
+  eventBus: EventBus,
 ): void {
   const piltover = activeTraits.find(t => t.trait.apiName === 'TFT16_Piltover' && t.activeEffect);
   if (!piltover || !piltover.activeEffect) return;
@@ -1350,6 +1355,8 @@ function applyPiltoverInvention(
         if (target.currentHp <= 0) {
           target.currentHp = 0;
           target.state = 'dead';
+          // 누락된 on_death emit (codex P1) — Shield cashout 등 event-driven 핸들러 보장.
+          eventBus.emit('on_death', { sourceId: target.id, targetId: sourceUnit.id, tick });
         }
       }
       pushInventionLog(logs, tickLogs, tick, time, sourceUnit.id,
@@ -1434,6 +1441,8 @@ function applyPiltoverInvention(
         if (enemy.currentHp <= 0) {
           enemy.currentHp = 0;
           enemy.state = 'dead';
+          // 누락된 on_death emit (codex P1) — Shield cashout 등 event-driven 핸들러 보장.
+          eventBus.emit('on_death', { sourceId: enemy.id, targetId: sourceUnit.id, tick });
         }
       }
       pushInventionLog(logs, tickLogs, tick, time, sourceUnit.id,
@@ -1868,16 +1877,17 @@ export function simulateCombat(
   }
   eventBus.on('on_death', 'stargazer-shield', ({ sourceId }) => {
     // sourceId 는 죽은 unit 의 id. 어느 팀인지 식별 후 그 팀의 카운트 증가.
-    const deadInPlayer = playerUnits.some((u) => u.id === sourceId);
-    const deadInEnemy = enemies.some((u) => u.id === sourceId);
-    if (deadInPlayer) {
+    // 소환체 (포탑/티버스/Azir 병사/Voyager 소환/Shen 분신) 는 제물 카운트 제외 (codex P2).
+    const deadPlayerUnit = playerUnits.find((u) => u.id === sourceId);
+    const deadEnemyUnit = enemies.find((u) => u.id === sourceId);
+    if (deadPlayerUnit && !isAutoUnit(deadPlayerUnit.champion.apiName)) {
       playerShieldDeaths++;
       if (!playerShieldCashoutDone && playerShieldDeaths >= SHIELD_NUM_DEATHS) {
         applyShieldCashout(playerUnits);
         playerShieldCashoutDone = true;
       }
     }
-    if (deadInEnemy) {
+    if (deadEnemyUnit && !isAutoUnit(deadEnemyUnit.champion.apiName)) {
       enemyShieldDeaths++;
       if (!enemyShieldCashoutDone && enemyShieldDeaths >= SHIELD_NUM_DEATHS) {
         applyShieldCashout(enemies);
@@ -1994,9 +2004,9 @@ export function simulateCombat(
 
     // 갈리오 영웅 소환 체크 (매초)
     if (tick > 0 && tick % TICKS_PER_SECOND === 0) {
-      const playerGalio = trySpawnGalio(playerActiveTraits, 'player', playerUnits, enemies, allUnits, effectivePlayerGalio, tick, time, logs, tickLogs, playerGalioFlag);
+      const playerGalio = trySpawnGalio(playerActiveTraits, 'player', playerUnits, enemies, allUnits, effectivePlayerGalio, tick, time, logs, tickLogs, playerGalioFlag, eventBus);
       if (playerGalio) { allUnits.push(playerGalio); playerUnits.push(playerGalio); }
-      const enemyGalio = trySpawnGalio(enemyActiveTraits, 'enemy', enemies, playerUnits, allUnits, effectiveEnemyGalio, tick, time, logs, tickLogs, enemyGalioFlag);
+      const enemyGalio = trySpawnGalio(enemyActiveTraits, 'enemy', enemies, playerUnits, allUnits, effectiveEnemyGalio, tick, time, logs, tickLogs, enemyGalioFlag, eventBus);
       if (enemyGalio) { allUnits.push(enemyGalio); enemies.push(enemyGalio); }
     }
 
@@ -2068,8 +2078,8 @@ export function simulateCombat(
     // Piltover invention trigger
     const playerModules = options.playerPiltoverModules ?? [];
     const enemyModules = options.enemyPiltoverModules ?? [];
-    applyPiltoverInvention(playerActiveTraits, playerUnits, enemies, playerModules, tick, logs, tickLogs, time, rng);
-    applyPiltoverInvention(enemyActiveTraits, enemies, playerUnits, enemyModules, tick, logs, tickLogs, time, rng);
+    applyPiltoverInvention(playerActiveTraits, playerUnits, enemies, playerModules, tick, logs, tickLogs, time, rng, eventBus);
+    applyPiltoverInvention(enemyActiveTraits, enemies, playerUnits, enemyModules, tick, logs, tickLogs, time, rng, eventBus);
 
     const occupiedPositions = new Set(
       allUnits.filter(u => u.state !== 'dead').map(u => coordKey(u.position))
