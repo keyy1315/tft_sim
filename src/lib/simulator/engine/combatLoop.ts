@@ -2168,6 +2168,7 @@ export function simulateCombat(
   applyDarkStarEffects(enemyActiveTraits, enemies);
   applyPrimordianEffects(playerActiveTraits, playerUnits);
   applyPrimordianEffects(enemyActiveTraits, enemies);
+  // 메카 (TFT17_Mecha) 의 AD/AP 가산은 stat.ts getTraitBonuses 에서 generic 처리됨.
   // 선봉대 보호막은 전투 시작 시점 (tick=0, time=0).
   applyVanguardEffects(playerActiveTraits, playerUnits, 0, 0, logs);
   applyVanguardEffects(enemyActiveTraits, enemies, 0, 0, logs);

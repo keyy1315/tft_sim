@@ -1,8 +1,8 @@
 {
   "gameId": "game-20260423-001",
-  "computedAt": "2026-04-28T08:37:02.461Z",
+  "computedAt": "2026-04-28T08:51:47.992Z",
   "sourceGameMtime": 1777273516360,
-  "engineSha": "945a7d9f192d2066b3a6ef927efab88a8c7bb2e8",
+  "engineSha": "1ba850cc2e86eca423dbd68d1977a99bc308c0fd",
   "nRuns": 20,
   "seedBase": 0,
   "rounds": [
