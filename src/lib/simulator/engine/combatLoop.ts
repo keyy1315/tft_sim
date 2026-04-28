@@ -1880,12 +1880,14 @@ export function simulateCombat(
   applyShenBastionAura(enemyActiveTraits, enemies);
   applyJhinAnnihilator(playerActiveTraits, enemies);  // 적 대상
   applyJhinAnnihilator(enemyActiveTraits, playerUnits);
+  // Astronaut HP 가산은 Stargazer (Huntress) maxHp 상위 N명 mark 선택 전에 적용해야
+  // 정확한 maxHp 기준으로 mark — codex P2 회귀 가드.
+  applyAstronautEffects(playerActiveTraits, playerUnits);
+  applyAstronautEffects(enemyActiveTraits, enemies);
   applyStargazerEffects(playerActiveTraits, playerUnits, enemies, options.playerStargazerConstellation);
   applyStargazerEffects(enemyActiveTraits, enemies, playerUnits, options.enemyStargazerConstellation);
   applyMorganaDarklight(playerActiveTraits, playerUnits);
   applyMorganaDarklight(enemyActiveTraits, enemies);
-  applyAstronautEffects(playerActiveTraits, playerUnits);
-  applyAstronautEffects(enemyActiveTraits, enemies);
   applyFateweaverEffects(playerActiveTraits, playerUnits);
   applyFateweaverEffects(enemyActiveTraits, enemies);
   applyBastionEffects(playerActiveTraits, playerUnits);
