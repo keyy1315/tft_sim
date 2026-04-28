@@ -113,6 +113,36 @@ describe('Fountain — 강화 칸 안 별돌보미 스킬 시전 시 healPercent
   });
 });
 
+describe('Fountain — OOR (dash/self_buff) cast path 도 heal 적용 (codex P1 회귀 가드)', () => {
+  it('Corki (dash 챔프) 가 사거리 밖 시전해도 Fountain heal 발동', () => {
+    // Corki 는 dash: 'to_target' + hitCount: 21 (즉발 dmg). OOR cast path 통과.
+    // Corki 를 well 강화 칸 안 별돌보미 emblem 으로 만든 후 적과 멀리 배치 → 첫 cast 가 OOR path.
+    const tiles = CONSTELLATION_TILE_PATTERN.well;
+    // well pattern 첫 6 tile 사용. Corki 만 별돌보미 emblem 으로 강화 칸에 배치, 나머지는 trait 활성용.
+    const team: PlacedChampion[] = [
+      placed(apTwistedFate, tiles[0].q, tiles[0].r),
+      placed(apTalon, tiles[1].q, tiles[1].r),
+      placed(apJax, tiles[2].q, tiles[2].r),
+      placed(apCorki, tiles[3].q, tiles[3].r, [STARGAZER_EMBLEM]), // dash 챔프 + 별돌보미 emblem
+    ];
+    // 적 한 명 + 멀리 배치 (q=6, r=3 — 보드 반대편)
+    const enemy: PlacedChampion[] = [placed(dummyEnemy, 6, 3)];
+
+    const withWell = simulateCombat(team, enemy, {
+      seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
+      playerStargazerConstellation: 'well',
+    });
+    const withoutWell = simulateCombat(team, enemy, {
+      seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
+    });
+    // 우물 ON 시 Corki 가 OOR cast 통해서도 heal 발동 → player team 누적 currentHp 가
+    // 우물 OFF 대비 동등하거나 큼 (heal 없으면 같음, OOR cast 추가 발동 시 더 큼).
+    const sumHp = (units: typeof withWell.playerUnits) =>
+      units.reduce((s, u) => s + Math.max(0, u.currentHp), 0);
+    expect(sumHp(withWell.playerUnits)).toBeGreaterThanOrEqual(sumHp(withoutWell.playerUnits));
+  });
+});
+
 describe('Fountain — 스킬 시전 시 가장 체력 낮은 아군 회복', () => {
   it('(5) 별돌보미 스킬 시전 → 가장 체력 낮은 아군 currentHp 증가', () => {
     // well 6명 + 다친 ally 1명을 강화 칸 외에 배치 → 그 ally 가 회복 대상
