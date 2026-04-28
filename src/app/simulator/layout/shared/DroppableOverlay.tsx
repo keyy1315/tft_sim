@@ -118,9 +118,11 @@ export default function DroppableOverlay({
                     });
                   }
                 : undefined;
+          // mouseLeave 는 항상 두 hover state 모두 정리 — unit 제거/이동 후 cell 이 empty 로
+          // 재렌더되면 placed 가 false 라도 hoverUnit 이 stale 이므로 무조건 clear (codex P2 회귀 가드).
           const onMouseLeaveHandler = () => {
-            if (placed) setHoverUnit(null);
-            else setHoverStargazer((prev) => (prev?.zoneKey === zoneKey ? null : prev));
+            setHoverUnit(null);
+            setHoverStargazer((prev) => (prev?.zoneKey === zoneKey ? null : prev));
           };
 
           return (
