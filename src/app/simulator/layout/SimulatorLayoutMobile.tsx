@@ -201,6 +201,8 @@ export default function SimulatorLayoutMobile(props: SimulatorLayoutProps) {
                 playerHexBuffs={hexBuffs.player}
                 enemyHexBuffs={hexBuffs.enemy}
                 movingHexBuffApiName={hexBuffs.moving?.apiName}
+                playerStargazerTiles={props.playerStargazerTiles}
+                enemyStargazerTiles={props.enemyStargazerTiles}
                 cellSize={cellSize}
               />
               <DroppableOverlay
@@ -225,6 +227,8 @@ export default function SimulatorLayoutMobile(props: SimulatorLayoutProps) {
                   setSheetState('half');
                 }
               }}
+              playerStargazerTiles={props.playerStargazerTiles}
+              enemyStargazerTiles={props.enemyStargazerTiles}
               cellSize={cellSize}
             />
           )}

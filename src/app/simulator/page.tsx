@@ -14,6 +14,7 @@ import { useDndHandlers } from '@/hooks/useDndHandlers';
 import { useViewport } from '@/hooks/useViewport';
 import { resolveBilgewaterStatEffects } from '@/lib/simulator/systems/stat';
 import { resolveHexBuffs } from '@/data/augmentHexBuffs';
+import { CONSTELLATION_TILE_PATTERN } from '@/lib/actualData/stargazerMapping';
 import ChampionGrid from '@/components/builder/ChampionGrid';
 import Modal from '@/components/ui/Modal';
 import AugmentSelector from '@/components/builder/AugmentSelector';
@@ -163,6 +164,21 @@ function SimulatorContent() {
     [tm.enemyAugments, tm.enemyTeam, hexBuffOverrides.enemy]
   );
 
+  // 별돌보미 강화 칸 — 별돌보미 trait 활성(style>0) + 별자리 선택 시만 좌표 반환.
+  const playerStargazerTiles = useMemo(() => {
+    if (!tm.playerStargazerConstellation) return [];
+    const active = tm.playerTraits.find(t => t.trait.name === '별돌보미' && t.style > 0);
+    if (!active) return [];
+    return CONSTELLATION_TILE_PATTERN[tm.playerStargazerConstellation];
+  }, [tm.playerStargazerConstellation, tm.playerTraits]);
+
+  const enemyStargazerTiles = useMemo(() => {
+    if (!tm.enemyStargazerConstellation) return [];
+    const active = tm.enemyTraits.find(t => t.trait.name === '별돌보미' && t.style > 0);
+    if (!active) return [];
+    return CONSTELLATION_TILE_PATTERN[tm.enemyStargazerConstellation];
+  }, [tm.enemyStargazerConstellation, tm.enemyTraits]);
+
   const runSimulation = useCallback(() => {
     if (tm.playerTeam.length === 0 || tm.enemyTeam.length === 0) return;
     setIsRunning(true);
@@ -262,6 +278,7 @@ function SimulatorContent() {
       overrides: hexBuffOverrides, setOverrides: setHexBuffOverrides,
       moving: movingHexBuff, setMoving: setMovingHexBuff,
     },
+    playerStargazerTiles, enemyStargazerTiles,
     stageNumber, setStageNumber, isRunning, runSimulation, runMultiple,
     teamNames,
     poolFilters: {

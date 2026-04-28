@@ -17,6 +17,10 @@ export interface SetupBoardCoreProps {
   playerHexBuffs?: HexBuff[];
   enemyHexBuffs?: HexBuff[];
   movingHexBuffApiName?: string | null;
+  /** A 팀(player) 강화 칸 데이터-row 좌표 (0-3 기준). 보드 표시 시 row+4 매핑. */
+  playerStargazerTiles?: ReadonlyArray<HexCoord>;
+  /** B 팀(enemy) 강화 칸 데이터-row 좌표 (0-3 기준). 그대로 표시. */
+  enemyStargazerTiles?: ReadonlyArray<HexCoord>;
   cellSize?: number;
 }
 
@@ -122,6 +126,8 @@ export default function SetupBoardCore({
   playerHexBuffs = [],
   enemyHexBuffs = [],
   movingHexBuffApiName,
+  playerStargazerTiles = [],
+  enemyStargazerTiles = [],
   cellSize = DEFAULT_HEX_R,
 }: SetupBoardCoreProps) {
   const { HEX_R, HEX_W, HEX_H, PAD, teamGap, hexCenter, hexPoints } = createHexLayout(cellSize);
@@ -148,6 +154,17 @@ export default function SetupBoardCore({
       const isMoving = buff.movable && movingHexBuffApiName === buff.augmentApiName;
       hexBuffMap.set(`${off.row}-${off.col}`, { color: isMoving ? '#FF8C00' : buff.color, label: buff.label, movable: buff.movable });
     }
+  }
+
+  // 강화 칸 (별돌보미 별자리) — 보라색 테두리. player 데이터 row 0-3 → 보드 row+4 (4-7).
+  const stargazerTileSet = new Set<string>();
+  for (const t of playerStargazerTiles) {
+    const off = axialToOffset(t);
+    stargazerTileSet.add(`${off.row + 4}-${off.col}`);
+  }
+  for (const t of enemyStargazerTiles) {
+    const off = axialToOffset(t);
+    stargazerTileSet.add(`${off.row}-${off.col}`);
   }
 
   const selectedOffset = selectedCell ? axialToOffset(selectedCell) : null;
@@ -263,8 +280,17 @@ export default function SetupBoardCore({
               <polygon
                 points={hexPoints(cx, cy, HEX_R)}
                 fill={result ? `url(#setup-img-${row}-${col})` : bgTint}
-                stroke={unitSel ? '#f59e0b' : sel ? teamHighlight : result ? costColor : hexBuffInfo ? `${hexBuffInfo.color}90` : isFrontZone ? '#22c55e40' : isBackZone ? '#f59e0b40' : '#2d3548'}
-                strokeWidth={unitSel ? 2.5 : sel ? 2.5 : result ? 2 : hexBuffInfo ? 2 : (isFrontZone || isBackZone) ? 1.5 : 1}
+                stroke={
+                  unitSel ? '#f59e0b'
+                  : sel ? teamHighlight
+                  : hexBuffInfo ? `${hexBuffInfo.color}90`
+                  : stargazerTileSet.has(zoneKey) ? '#A855F7'
+                  : result ? costColor
+                  : isFrontZone ? '#22c55e40'
+                  : isBackZone ? '#f59e0b40'
+                  : '#2d3548'
+                }
+                strokeWidth={unitSel ? 2.5 : sel ? 2.5 : hexBuffInfo ? 2 : stargazerTileSet.has(zoneKey) ? 2.5 : result ? 2 : (isFrontZone || isBackZone) ? 1.5 : 1}
                 strokeDasharray={hexBuffInfo?.movable ? '4 2' : undefined}
               />
               {hexBuffInfo && !result && (

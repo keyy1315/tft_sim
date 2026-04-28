@@ -42,6 +42,10 @@ export interface SimulatorLayoutProps {
     teamPlannerMapping: TeamPlannerEntry[];
   };
   hexBuffs: HexBuffState;
+  /** A 팀(player) 별돌보미 강화 칸 좌표 (데이터 row 0-3 기준). */
+  playerStargazerTiles: ReadonlyArray<HexCoord>;
+  /** B 팀(enemy) 별돌보미 강화 칸 좌표. */
+  enemyStargazerTiles: ReadonlyArray<HexCoord>;
   stageNumber: number;
   setStageNumber: Dispatch<SetStateAction<number>>;
   isRunning: boolean;

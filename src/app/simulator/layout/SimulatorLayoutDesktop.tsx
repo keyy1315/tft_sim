@@ -34,7 +34,7 @@ export default function SimulatorLayoutDesktop(props: SimulatorLayoutProps) {
     tm, replay, data, hexBuffs, stageNumber, setStageNumber, isRunning,
     runSimulation, runMultiple, teamNames, poolFilters, logFilter, setLogFilter,
     showTeamCode, setShowTeamCode, hoverUnit, setHoverUnit,
-    mappedPlayerForReplay,
+    mappedPlayerForReplay, playerStargazerTiles, enemyStargazerTiles,
   } = props;
   const { champions, items, traits, teamPlannerMapping } = data;
   const {
@@ -213,6 +213,8 @@ export default function SimulatorLayoutDesktop(props: SimulatorLayoutProps) {
                     playerHexBuffs={playerHexBuffs}
                     enemyHexBuffs={enemyHexBuffs}
                     movingHexBuffApiName={movingHexBuff?.apiName}
+                    playerStargazerTiles={playerStargazerTiles}
+                    enemyStargazerTiles={enemyStargazerTiles}
                   />
                   {/* Droppable overlay */}
                   <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
@@ -607,6 +609,8 @@ export default function SimulatorLayoutDesktop(props: SimulatorLayoutProps) {
                   unitMeta={replay.unitMeta}
                   selectedUnitId={replay.selectedUnitId}
                   onUnitClick={replay.setSelectedUnitId}
+                  playerStargazerTiles={playerStargazerTiles}
+                  enemyStargazerTiles={enemyStargazerTiles}
                 />
               </div>
             </div>

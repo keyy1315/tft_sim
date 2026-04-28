@@ -36,7 +36,7 @@ export default function SimulatorLayoutTablet(props: SimulatorLayoutProps) {
   const {
     tm, replay, hexBuffs, setHoverUnit, setShowTeamCode, showTeamCode,
     runSimulation, runMultiple, stageNumber, setStageNumber, isRunning,
-    teamNames, data,
+    teamNames, data, playerStargazerTiles, enemyStargazerTiles,
   } = props;
 
   const windowWidth = useWindowWidth();
@@ -175,6 +175,8 @@ export default function SimulatorLayoutTablet(props: SimulatorLayoutProps) {
                     playerHexBuffs={hexBuffs.player}
                     enemyHexBuffs={hexBuffs.enemy}
                     movingHexBuffApiName={hexBuffs.moving?.apiName}
+                    playerStargazerTiles={playerStargazerTiles}
+                    enemyStargazerTiles={enemyStargazerTiles}
                     cellSize={cellSize}
                   />
                   <DroppableOverlay
@@ -195,6 +197,8 @@ export default function SimulatorLayoutTablet(props: SimulatorLayoutProps) {
                       replay.setSelectedUnitId(id);
                       if (id) setSideTab('unit');
                     }}
+                    playerStargazerTiles={playerStargazerTiles}
+                    enemyStargazerTiles={enemyStargazerTiles}
                     cellSize={cellSize}
                   />
                 )
