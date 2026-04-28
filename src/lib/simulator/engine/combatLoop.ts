@@ -775,6 +775,44 @@ function computeSniperDamageAmp(caster: CombatUnit, target: CombatUnit): number 
 }
 
 /**
+ * 선봉대 (Vanguard/ShieldTank) — 전투 시작 시 maxHp × ShieldPercent shield (10초).
+ *
+ * Spec (TFT17_ShieldTank):
+ *   - 전투 시작 + 체력 HealthThreshold(=50%) 도달 시: maxHp × ShieldPercentAmount shield (10초)
+ *   - 선봉대는 보호막 활성 중 Durability +5% (DamageReductionPct)
+ *   - (6) 추가 +8% Durability (EnhancedDurability)
+ *
+ * 본 PR 은 전투 시작 shield 만 구현 — HealthThreshold 발동 (tick 감시) +
+ * Durability 보너스 (보호막 활성 중) 는 후속 PR 분리.
+ *
+ * Tier 별 ShieldPercent: (2) 16% / (4) 30% / (6) 40%.
+ */
+function applyVanguardEffects(activeTraits: ActiveTrait[], units: CombatUnit[], tick: number, time: number, logs: CombatLog[]): void {
+  const trait = activeTraits.find(t => t.trait.apiName === 'TFT17_ShieldTank');
+  if (!trait || !trait.activeEffect || trait.style === 0) return;
+  const v = trait.activeEffect.variables;
+  const shieldPct = (v.ShieldPercentAmount ?? 0) as number;
+  const durationSec = (v.ShieldDuration ?? 0) as number;
+  if (shieldPct <= 0 || durationSec <= 0) return;
+  const ticks = Math.round(durationSec * TICKS_PER_SECOND);
+  for (const u of units) {
+    if (!unitHasTrait(u, '선봉대')) continue;
+    const shieldAmount = Math.round(u.maxHp * shieldPct);
+    u.shield += shieldAmount;
+    u.statusEffects.push({
+      type: 'shield', sourceId: 'vanguard',
+      remainingTicks: ticks, value: shieldAmount,
+    });
+    logs.push({
+      tick, time, type: 'status_apply',
+      sourceId: u.id, statusType: 'shield',
+      message: `${u.champion.name} 선봉대 보호막 ${shieldAmount} (${durationSec}초)`,
+      value: shieldAmount,
+    });
+  }
+}
+
+/**
  * 정령족 (Astronaut/Meeple) — BonusHealth flat HP 가산.
  *
  * Spec (TFT17_Astronaut):
@@ -1057,9 +1095,15 @@ function tickStatusEffects(
     }
   }
 
-  // 만료된 상태이상 로그 생성
+  // 만료된 상태이상 로그 생성 + side-effect cleanup (shield pool 차감 등).
   const expired = unit.statusEffects.filter(e => e.remainingTicks <= 0);
   for (const effect of expired) {
+    // shield statusEffect 만료 시 unit.shield 에서 잔존 amount 차감 (codex P1 회귀 가드).
+    // applyShield 가 damage 흡수 시 unit.shield 만 줄어들어 statusEffect.value 와 desync 가능.
+    // Math.max(0, ...) 로 over-subtract 방지 — broken 상태 (unit.shield=0) 시에도 안전.
+    if (effect.type === 'shield' && effect.value) {
+      unit.shield = Math.max(0, unit.shield - effect.value);
+    }
     const label = STATUS_EFFECT_LABELS[effect.type as StatusEffectType];
     if (label) {
       const log: CombatLog = {
@@ -1894,6 +1938,9 @@ export function simulateCombat(
   applyBastionEffects(enemyActiveTraits, enemies);
   applySniperEffects(playerActiveTraits, playerUnits);
   applySniperEffects(enemyActiveTraits, enemies);
+  // 선봉대 보호막은 전투 시작 시점 (tick=0, time=0).
+  applyVanguardEffects(playerActiveTraits, playerUnits, 0, 0, logs);
+  applyVanguardEffects(enemyActiveTraits, enemies, 0, 0, logs);
 
   // 아이오니아 길 적용
   if (options.playerIoniaPath) {
