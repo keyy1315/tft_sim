@@ -522,6 +522,13 @@ export interface CombatUnit {
   stargazerShieldCashoutHpFrac: number;
   /** Shield cashout 발동 시 추가 AS buff (예: 0.18 → AS × 1.18). */
   stargazerShieldCashoutAsFrac: number;
+  /**
+   * 저격수 (Sniper/RangedTrait) — base damage amp + per-hex 추가.
+   * fraction 기준 (예: 0.18 = 18%). 0 = 비-저격수.
+   * damage hit 시: sniperBaseDA + sniperPerHexDA × hexDistance(caster, target).
+   */
+  sniperBaseDA: number;
+  sniperPerHexDA: number;
 }
 
 export interface CombatLog {

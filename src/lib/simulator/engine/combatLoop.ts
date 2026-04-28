@@ -173,6 +173,8 @@ function createCombatUnit(
     bastionDoubleEndTick: 0,
     bastionDoubleArmorBonus: 0,
     bastionDoubleMrBonus: 0,
+    sniperBaseDA: 0,
+    sniperPerHexDA: 0,
   };
 
   // MF 특성 선택 → 실제 트레이트로 치환 + emblem 으로 부여된 trait 합산.
@@ -703,17 +705,14 @@ function applyBastionEffects(activeTraits: ActiveTrait[], units: CombatUnit[]): 
   const durationSec = (v.Duration ?? 0) as number;
   const isHighTier = trait.count >= 6;
   for (const u of units) {
-    // 모든 아군 teamwide
     if (teamwide > 0) {
       u.stats.armor += teamwide;
       u.stats.magicResist += teamwide;
     }
-    // (6) 비-요새 추가
     if (isHighTier && enhancedTeamwide > 0 && !unitHasTrait(u, '요새')) {
       u.stats.armor += enhancedTeamwide;
       u.stats.magicResist += enhancedTeamwide;
     }
-    // 요새 unit 추가 + 첫 Duration 초 doubled
     if (unitHasTrait(u, '요새')) {
       u.stats.armor += bonusArmor;
       u.stats.magicResist += bonusMr;
@@ -739,6 +738,40 @@ function tickBastionDouble(unit: CombatUnit, tick: number): void {
   unit.bastionDoubleEndTick = 0;
   unit.bastionDoubleArmorBonus = 0;
   unit.bastionDoubleMrBonus = 0;
+}
+
+/**
+ * 저격수 (Sniper/RangedTrait) — base damage amp + per-hex 추가 amp.
+ *
+ * Spec (TFT17_RangedTrait):
+ *   (2) PercentDamageIncrease=18%, PerHexIncrease=2%/hex
+ *   (3) 24%, 3%/hex
+ *   (4) 28%, 4%/hex
+ *
+ * 저격수 unit 의 damage hit 시 (hit site 에서 hexDistance(caster, target) 계산):
+ *   추가 damageAmp = sniperBaseDA + sniperPerHexDA * dist
+ */
+function applySniperEffects(activeTraits: ActiveTrait[], units: CombatUnit[]): void {
+  const trait = activeTraits.find(t => t.trait.apiName === 'TFT17_RangedTrait');
+  if (!trait || !trait.activeEffect || trait.style === 0) return;
+  const v = trait.activeEffect.variables;
+  const baseDApct = (v.PercentDamageIncrease ?? 0) as number; // 18 = 18%
+  const perHexPct = (v.PerHexIncrease ?? 0) as number; // 2 = 2% per hex
+  if (baseDApct <= 0) return;
+  const baseDA = baseDApct / 100;
+  const perHexDA = perHexPct / 100;
+  for (const u of units) {
+    if (!unitHasTrait(u, '저격수')) continue;
+    u.sniperBaseDA = baseDA;
+    u.sniperPerHexDA = perHexDA;
+  }
+}
+
+/** 저격수 damage amp 계산 — caster 가 저격수면 base + perHex × distance, 아니면 0. */
+function computeSniperDamageAmp(caster: CombatUnit, target: CombatUnit): number {
+  if (caster.sniperBaseDA <= 0) return 0;
+  const dist = hexDistance(caster.position, target.position);
+  return caster.sniperBaseDA + caster.sniperPerHexDA * dist;
 }
 
 /** 전쟁기계 — BaseDR을 damageReduction에 적용 */
@@ -1130,6 +1163,8 @@ function spawnFreljordTurrets(
             bastionDoubleEndTick: 0,
             bastionDoubleArmorBonus: 0,
             bastionDoubleMrBonus: 0,
+            sniperBaseDA: 0,
+            sniperPerHexDA: 0,
           };
           // Store stun duration for prismatic tier
           if (stunDuration > 0) {
@@ -1264,6 +1299,8 @@ function trySpawnGalio(
     bastionDoubleEndTick: 0,
     bastionDoubleArmorBonus: 0,
     bastionDoubleMrBonus: 0,
+    sniperBaseDA: 0,
+    sniperPerHexDA: 0,
   };
 
   // 착지 충격파 — 영웅 시너지 variables
@@ -1824,6 +1861,8 @@ export function simulateCombat(
   applyFateweaverEffects(enemyActiveTraits, enemies);
   applyBastionEffects(playerActiveTraits, playerUnits);
   applyBastionEffects(enemyActiveTraits, enemies);
+  applySniperEffects(playerActiveTraits, playerUnits);
+  applySniperEffects(enemyActiveTraits, enemies);
 
   // 아이오니아 길 적용
   if (options.playerIoniaPath) {
@@ -2275,6 +2314,8 @@ export function simulateCombat(
           if (unit.inventionTankDamageAmp > 0 && target.role === 'Tank') {
             totalDamageAmp += unit.inventionTankDamageAmp;
           }
+          // 저격수 (Sniper) — 거리 기반 추가 damage amp
+          totalDamageAmp += computeSniperDamageAmp(unit, target);
           const rawDamage = unit.stats.damage * critMult * (1 + totalDamageAmp);
           let finalDamage = applyResistance(rawDamage, target.stats.armor, unit.stats.armorPen);
 
@@ -2508,7 +2549,9 @@ export function simulateCombat(
                 // DOT도 방어력/피해감소 적용
                 const resistance = dmgType === 'magic' ? t.stats.magicResist : dmgType === 'physical' ? t.stats.armor : 0;
                 const pen = dmgType === 'magic' ? unit.stats.magicPen : dmgType === 'physical' ? unit.stats.armorPen : 0;
-                const mitigated = dmgType === 'true' ? abilityDmg * (1 + unit.damageAmp) : applyResistance(abilityDmg * (1 + unit.damageAmp), resistance, pen);
+                // 저격수 (Sniper) — DOT 도 거리 기반 추가 amp 포함 (codex P2 회귀 가드).
+                const dotDamageAmp = unit.damageAmp + computeSniperDamageAmp(unit, t);
+                const mitigated = dmgType === 'true' ? abilityDmg * (1 + dotDamageAmp) : applyResistance(abilityDmg * (1 + dotDamageAmp), resistance, pen);
                 const perTickDmg = mitigated / config.dot.duration * TICK_DURATION;
                 t.statusEffects.push({
                   type: 'burn', sourceId: unit.id,
@@ -2533,6 +2576,8 @@ export function simulateCombat(
                 if (unit.inventionTankDamageAmp > 0 && t.role === 'Tank') {
                   abilityDamageAmp += unit.inventionTankDamageAmp;
                 }
+                // 저격수 (Sniper) — 거리 기반 추가 damage amp (per target)
+                abilityDamageAmp += computeSniperDamageAmp(unit, t);
                 // 초가스: % 최대체력 피해 추가
                 let baseDmg = abilityDmg;
                 if (unit.champion.apiName === 'TFT17_Chogath') {
@@ -2791,7 +2836,9 @@ export function simulateCombat(
             for (const t of oorAlive) {
               const resistance = dmgType === 'magic' ? t.stats.magicResist : dmgType === 'physical' ? t.stats.armor : 0;
               const pen = dmgType === 'magic' ? unit.stats.magicPen : dmgType === 'physical' ? unit.stats.armorPen : 0;
-              const mitigated = dmgType === 'true' ? abilityDmg * (1 + unit.damageAmp) : applyResistance(abilityDmg * (1 + unit.damageAmp), resistance, pen);
+              // 저격수 (Sniper) — OOR DOT 도 거리 기반 추가 amp 포함 (codex P2 회귀 가드).
+              const oorDotDamageAmp = unit.damageAmp + computeSniperDamageAmp(unit, t);
+              const mitigated = dmgType === 'true' ? abilityDmg * (1 + oorDotDamageAmp) : applyResistance(abilityDmg * (1 + oorDotDamageAmp), resistance, pen);
               const perTickDmg = mitigated / outOfRangeConfig.dot.duration * TICK_DURATION;
               t.statusEffects.push({
                 type: 'burn', sourceId: unit.id,
@@ -2803,7 +2850,9 @@ export function simulateCombat(
               if (t.state === 'dead') continue;
               const resistance = dmgType === 'magic' ? t.stats.magicResist : t.stats.armor;
               const pen = dmgType === 'magic' ? unit.stats.magicPen : unit.stats.armorPen;
-              let rawDmg = abilityDmg * (1 + unit.damageAmp);
+              // 저격수 (Sniper) — 거리 기반 추가 damage amp
+              const sniperAmp = computeSniperDamageAmp(unit, t);
+              let rawDmg = abilityDmg * (1 + unit.damageAmp + sniperAmp);
               if (unit.spellCanCrit && rng.next() < unit.stats.critChance) {
                 rawDmg *= unit.stats.critMultiplier;
               }
