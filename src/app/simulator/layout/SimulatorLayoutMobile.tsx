@@ -114,6 +114,8 @@ export default function SimulatorLayoutMobile(props: SimulatorLayoutProps) {
             onIoniaPathChange={tm.setEnemyIoniaPath}
             arbiterLaw={tm.enemyArbiterLaw}
             onArbiterLawChange={tm.setEnemyArbiterLaw}
+            stargazerConstellation={tm.enemyStargazerConstellation}
+            onStargazerConstellationChange={tm.setEnemyStargazerConstellation}
           />
           <PiltoverModulePanel
             modules={tm.enemyPiltoverModules}
@@ -133,6 +135,8 @@ export default function SimulatorLayoutMobile(props: SimulatorLayoutProps) {
             onIoniaPathChange={tm.setPlayerIoniaPath}
             arbiterLaw={tm.playerArbiterLaw}
             onArbiterLawChange={tm.setPlayerArbiterLaw}
+            stargazerConstellation={tm.playerStargazerConstellation}
+            onStargazerConstellationChange={tm.setPlayerStargazerConstellation}
           />
           <PiltoverModulePanel
             modules={tm.playerPiltoverModules}

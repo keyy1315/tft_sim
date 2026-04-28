@@ -9,6 +9,11 @@ import Tooltip from '@/components/ui/Tooltip';
 import Image from 'next/image';
 import { IONIA_PATH_NAMES, IONIA_PATH_DESCRIPTIONS, getIoniaPathEffectText } from '@/data/traitModules';
 import type { IoniaPathType } from '@/data/traitModules';
+import {
+  CONSTELLATION_IDS,
+  CONSTELLATION_KOREAN_NAME,
+} from '@/lib/actualData/stargazerMapping';
+import type { StargazerConstellationId } from '@/lib/actualData/types';
 
 /** 시너지 variables 영어 키 → 한국어 매핑 */
 const VARIABLE_KR: Record<string, string> = {
@@ -139,6 +144,8 @@ interface SynergyPanelProps {
   onIoniaPathChange?: (path: IoniaPathType) => void;
   arbiterLaw?: ArbiterLaw | null;
   onArbiterLawChange?: (law: ArbiterLaw) => void;
+  stargazerConstellation?: StargazerConstellationId | null;
+  onStargazerConstellationChange?: (id: StargazerConstellationId | null) => void;
 }
 
 function TraitTooltipContent({ at, champions = [] }: { at: ActiveTrait; champions?: RawChampion[] }) {
@@ -276,7 +283,7 @@ function PiltoverModulesSummary({ modules }: { modules: RawItem[] }) {
   );
 }
 
-export default function SynergyPanel({ activeTraits, team, items, champions = [], piltoverModules = [], bilgewaterStats = {}, ioniaPath, onIoniaPathChange, arbiterLaw, onArbiterLawChange }: SynergyPanelProps) {
+export default function SynergyPanel({ activeTraits, team, items, champions = [], piltoverModules = [], bilgewaterStats = {}, ioniaPath, onIoniaPathChange, arbiterLaw, onArbiterLawChange, stargazerConstellation, onStargazerConstellationChange }: SynergyPanelProps) {
   const [collapsed, setCollapsed] = useState(false);
   const teamLabel = team === 'player' ? 'TEAM A' : 'TEAM B';
   const teamColor = team === 'player' ? 'text-blue-400' : 'text-red-400';
@@ -369,6 +376,22 @@ export default function SynergyPanel({ activeTraits, team, items, champions = []
                       ⚔ {IONIA_PATH_NAMES[ioniaPath]}: {getIoniaPathEffectText(ioniaPath, at.activeEffect.variables)}
                     </div>
                   )}
+                </div>
+              )}
+              {isActive && at.trait.name === '별돌보미' && onStargazerConstellationChange && (
+                <div className="mt-1">
+                  <select
+                    value={stargazerConstellation ?? ''}
+                    onChange={e => onStargazerConstellationChange(
+                      e.target.value === '' ? null : e.target.value as StargazerConstellationId
+                    )}
+                    className="w-full bg-gray-800 text-white text-[10px] rounded px-1 py-0.5 border border-gray-600"
+                  >
+                    <option value="">별자리 선택...</option>
+                    {CONSTELLATION_IDS.map(id => (
+                      <option key={id} value={id}>{CONSTELLATION_KOREAN_NAME[id]}</option>
+                    ))}
+                  </select>
                 </div>
               )}
               {isActive && at.trait.apiName === 'TFT17_ADMIN' && onArbiterLawChange && (
