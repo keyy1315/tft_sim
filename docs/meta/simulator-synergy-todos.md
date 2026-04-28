@@ -272,6 +272,7 @@ set 17 의 일부 trait 는 최고 tier (보통 10명 한계) 활성 시 **무�
 - **암흑의 별 (DarkStar) (9)** — "10레벨 달성 시 모두를 빨아들임"
 - **정령족 (Astronaut) (10)** — "정령군주 넷 소환!"
 - **별돌보미 + 산 별자리 (Stargazer Mountain) (11)** — Mountain 별자리 한정, 다른 별자리는 (8) 이상 effects 없음
+- **우주 그루브 (SpaceGroove) (10)** — style=6, ADAPPerSecond=10, EffectBonus=500%, StartOfCombatDuration=60초, 추가 변수 `{32ed1fda}=800` / `{3e46e556}=1500` (의미 미상, prism 메커니즘 추정)
 
 ### Stargazer Mountain (11) 상세
 - raw data: `TFT17_Stargazer_Mountain` effects 의 `minUnits=11, style=6`
