@@ -271,6 +271,14 @@ set 17 의 일부 trait 는 최고 tier (보통 10명 한계) 활성 시 **무�
 ### 알려진 프리즘 trait
 - **암흑의 별 (DarkStar) (9)** — "10레벨 달성 시 모두를 빨아들임"
 - **정령족 (Astronaut) (10)** — "정령군주 넷 소환!"
+- **별돌보미 + 산 별자리 (Stargazer Mountain) (11)** — Mountain 별자리 한정, 다른 별자리는 (8) 이상 effects 없음
+
+### Stargazer Mountain (11) 상세
+- raw data: `TFT17_Stargazer_Mountain` effects 의 `minUnits=11, style=6`
+- variables: (8)~(11) 동일 — Health 12%, ADAP 12%, Resists 12, AS 12%, DR 6%, StatIncrease 10%
+- (11) 만의 prism 효과는 desc/variables 에 명시 없음 (style=6 만 prism 시그널)
+- 시뮬 처리: 다른 prism 과 동일하게 special-case (즉시 winner 또는 hidden buff)
+- 다른 별자리 (Wolf/Medallion/Huntress/Serpent/Shield/Fountain) 는 (3)~(8) 까지만 정의 — prism 없음
 
 ### 시뮬 통합 가이드
 - prism 발동 조건 감지: trait.style 가 (9)/(10) 행 style 값 + 플레이어 레벨 10
