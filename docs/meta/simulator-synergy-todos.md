@@ -177,7 +177,120 @@ Phase 1 완료 시점에 actual-data JSON은 완성되지만, 시뮬 투입 시 
 
 ---
 
-## TODO 3 — 중재자 (Arbiter) — **이미 구현됨**
+## TODO 3 — 암흑의 별 (DarkStar) — Tier별 잔여 효과
+
+> 작성일: 2026-04-28 (PR #31 후속)
+> 상태: (4) ADAP=45% 만 구현됨. 나머지 tier 효과 후속 PR 필요.
+
+### 현재 구현 (PR #31)
+- (4) AD/AP +45% (ADAP=45) — `applyDarkStarEffects` (combatLoop.ts)
+
+### 후속 PR 범위
+
+#### (2) 블랙홀 execute
+- 8% maxHP 이하 적을 집어삼키는 블랙홀 생성 (ExecuteHPPercent=0.08)
+- 메커니즘 추정: 매 N초 또는 처치 trigger 시 black hole 소환 → execute zone
+- 단순 구현: 매 tick 마다 적군 중 currentHp/maxHp <= 0.08 인 unit 즉사 처리
+- 정확 구현: 시각적 black hole entity 추가 + 소환 cooldown
+
+#### (6) Supermassive (가장 강한 1명)
+- 가장 강한 암흑의 별 unit → "초대질량 상태" → 암흑의 별 효과 +85% (SupermassivePercentBonus=0.85)
+- "가장 강한" 기준: 별 레벨 → cost → 장착 아이템 수 순 tie break (Graves 패턴 동일)
+- 효과 +85%: ADAP=45 가 supermassive unit 한정 ADAP=45*1.85=83.25 (?)
+- 추가: 소형 블랙홀 2개 생성 (small execute zones)
+- 변수 PercentHealth=0.30 — supermassive unit 추가 maxHp +30% 가능성 (확인 필요)
+
+#### (9) 모든 Supermassive — **프리즘 시너지**
+- 모든 암흑의 별 unit 이 Supermassive 상태
+- **10레벨 달성 시 모두를 빨아들임** = 무조건 승리 (prism 시너지 패턴)
+- 시뮬 처리: 플레이어가 (9) DarkStar 활성 + 레벨 10 → `winner = 'player'` 즉시 반환
+- 단, 레벨 정보를 sim 입력에 포함해야 함 (현재 stageNumber 만 있음)
+
+### 참고 변수
+- `ExecuteHPPercent: 0.08` — (2) execute 임계값
+- `ADAP: 45` — (4)+ AD/AP %
+- `SupermassivePercentBonus: 0.85` — (6) 효과 +85%
+- `PercentHealth: 0.30` — (?) supermassive HP bonus 추정
+
+---
+
+## TODO 4 — 정령족 (Astronaut) — Tier별 잔여 효과
+
+> 작성일: 2026-04-28
+> 상태: BonusHealth flat 만 구현됨 (`applyAstronautEffects`). Meeps 메커니즘 + (10) prism 후속 PR 필요.
+
+### 현재 구현
+- (3)/(5)/(7)/(10) 모두 정령족 unit `maxHp += BonusHealth` (100/400/400/500)
+
+### 후속 PR 범위
+
+#### Meeps 챔프별 메커니즘
+- 각 정령족 챔프 ability 의 "Meep Bonus" 텍스트 (`TFT17_Astronaut_IsActive` 조건):
+  - **Bard**: combat start 시 가장 가까운 N 명 정령족 동료에게 추가 Meep 부여
+  - **Gnar**: 5번째 attack 마다 부메랑 + Meep 들이 추가 공격
+  - **Fizz**: spell 시 Mega Meep 소환 (knockup + secondary damage)
+  - **Rammus**: 보호막 + 공격 받을 때 incoming damage 감소 + N회 후 폭발
+  - **Poppy**: 보호막 + 인접 정령족에 Armor/MR + Meep shield
+  - **Corki**: 미사일 polish + Explosive Meep
+  - **Veigar**: 메타 추가 mini Meepteor
+  - **IvernMinion**: heal + slam + Meep 들이 healing 증폭
+- 각 챔프 ability 처리 시 `unit.unitHasTrait('정령족') && trait.style >= 1` 체크 후 추가 효과
+- Meeps 카운터 개념: trait.activeEffect.variables.Meeps (2/3/4/6) 값을 챔프 ability ModifiedNumMeeps 인자로 전달
+
+#### (7) tier 복제 슬롯 (게임-level)
+- 대기석 복제 슬롯 → 챔피언 1성 복사본 + 골드 — sim 외 (라운드 사이 메커니즘)
+
+#### (10) 정령군주 넷 소환 — **프리즘 시너지**
+- desc: "정령군주 넷 소환!" — 4성 정령군주 (Meeplord) 4마리 등장
+- raw data 조사:
+  - `TFT17_Astronaut` effects (10) variables: `Meeps=6, BonusHealth=500` 외 별도 prism 변수 **없음**
+  - "정령군주" / "Meeplord" 별도 apiName **존재 안 함** (`grep TFT17.*[Ll]ord` 0건)
+  - Meep 챔프 entity: TFT3_BardMeep, TFT14_AnimaSquadMeep 만 — TFT17 별도 정의 없음
+  - 게임 내 hidden behavior — CommunityDragon 에 메커니즘 정의 없음
+- DarkStar (9) 와 동일한 prism 패턴: 게임 메타 효과 → sim 직접 처리 대신 special-case
+- 시뮬 처리 안:
+  1. (10) Astronaut 활성 조건 감지 → `winner = 'player'` 즉시 반환 (또는 더미 강력한 4성 unit 4마리 spawn)
+  2. 보드에 정령군주 챔프 4마리를 시뮬 시작 시 자동 추가 (champ data 별도 필요 — 게임 내부 데이터)
+
+### 참고 변수
+- `Meeps: 2/3/4/6` — Meep 카운트 (각 tier)
+- `BonusHealth: 100/400/400/500` — flat HP
+
+---
+
+## 프리즘 시너지 일반 패턴
+
+> 작성일: 2026-04-28
+
+set 17 의 일부 trait 는 최고 tier (보통 10명 한계) 활성 시 **무조건 승리** 효과.
+공통 특징:
+- desc 의 마지막 행에 "정령군주 넷 소환!", "10레벨 달성 시 모두를 빨아들임" 등 표현
+- raw data 의 effects variables 에 별도 prism 메커니즘 변수 없음
+- CommunityDragon 외부 (게임 내부) 에서 처리되는 메커니즘
+
+### 알려진 프리즘 trait
+- **암흑의 별 (DarkStar) (9)** — "10레벨 달성 시 모두를 빨아들임"
+- **정령족 (Astronaut) (10)** — "정령군주 넷 소환!"
+- **별돌보미 + 산 별자리 (Stargazer Mountain) (11)** — Mountain 별자리 한정, 다른 별자리는 (8) 이상 effects 없음
+
+### Stargazer Mountain (11) 상세
+- raw data: `TFT17_Stargazer_Mountain` effects 의 `minUnits=11, style=6`
+- variables: (8)~(11) 동일 — Health 12%, ADAP 12%, Resists 12, AS 12%, DR 6%, StatIncrease 10%
+- (11) 만의 prism 효과는 desc/variables 에 명시 없음 (style=6 만 prism 시그널)
+- 시뮬 처리: 다른 prism 과 동일하게 special-case (즉시 winner 또는 hidden buff)
+- 다른 별자리 (Wolf/Medallion/Huntress/Serpent/Shield/Fountain) 는 (3)~(8) 까지만 정의 — prism 없음
+
+### 시뮬 통합 가이드
+- prism 발동 조건 감지: trait.style 가 (9)/(10) 행 style 값 + 플레이어 레벨 10
+- 처리 전략:
+  1. **단순**: prism 발동 시 즉시 `winner = 'player'` 반환 (실용적)
+  2. **시각적**: hidden 4성 unit 들을 board 에 추가 후 정상 sim
+  3. **혼합**: prism 발동 표시 log 만 남기고 actual 결과는 (1)
+- actual-data 기록: 게임 결과로 자동 반영 — sim 입력에는 prism flag 만 추가
+
+---
+
+## TODO 5 — 중재자 (Arbiter) — **이미 구현됨**
 
 `src/components/builder/ArbiterLawPanel.tsx`, `src/types/index.ts:331`, `src/data/arbiter_laws.json` 있음.
 actual-data 툴에서는 기존 타입 그대로 재사용. 구현 작업 없음.

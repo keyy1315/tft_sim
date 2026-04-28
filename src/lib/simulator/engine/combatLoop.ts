@@ -895,6 +895,35 @@ function applyBrawlerEffects(activeTraits: ActiveTrait[], units: CombatUnit[]): 
   }
 }
 
+/**
+ * 암흑의 별 (DarkStar) — (4)+ tier 시 암흑의 별 unit 에 ADAP=45% 가산.
+ *
+ * Spec (TFT17_DarkStar):
+ *   (2) 8% maxHP 이하 적 execute 블랙홀 — 후속 PR
+ *   (4) 추가로 ADAP=45% AD/AP — 본 PR 범위
+ *   (6) 가장 강한 암흑의 별 unit Supermassive (효과 +85%) — 후속 PR
+ *   (9) 모두 Supermassive — 후속 PR
+ *
+ * 본 PR 은 (4)+ tier ADAP 만 처리. 모든 effects 의 ADAP 변수가 45 로 동일하지만
+ * desc 상 (2) 행에는 ADAP 가 없어, style >= 3 (=tier (4)+) 일 때만 적용.
+ *
+ * 암흑의 별 챔프 (6명): Kaisa, Karma, Jhin, Chogath, Lissandra, Mordekaiser.
+ */
+function applyDarkStarEffects(activeTraits: ActiveTrait[], units: CombatUnit[]): void {
+  const trait = activeTraits.find(t => t.trait.apiName === 'TFT17_DarkStar');
+  if (!trait || !trait.activeEffect || trait.style === 0) return;
+  // (2) tier 는 블랙홀 execute 만 — 본 PR 범위 외. ADAP 는 (4)+ 부터.
+  if (trait.style < 3) return;
+  const v = trait.activeEffect.variables;
+  const adap = (v.ADAP ?? 0) as number;
+  if (adap <= 0) return;
+  for (const u of units) {
+    if (!unitHasTrait(u, '암흑의 별')) continue;
+    u.stats.damage = Math.round(u.stats.damage * (1 + adap / 100));
+    u.stats.ap = (u.stats.ap ?? 0) + adap;
+  }
+}
+
 /** 전쟁기계 — BaseDR을 damageReduction에 적용 */
 function applyJuggernautDR(activeTraits: ActiveTrait[], units: CombatUnit[]): void {
   const jugg = activeTraits.find(t => t.trait.apiName === 'TFT16_Juggernaut' && t.activeEffect);
@@ -2000,6 +2029,8 @@ export function simulateCombat(
   applySniperEffects(enemyActiveTraits, enemies);
   applyTimebreakerEffects(playerActiveTraits, playerUnits);
   applyTimebreakerEffects(enemyActiveTraits, enemies);
+  applyDarkStarEffects(playerActiveTraits, playerUnits);
+  applyDarkStarEffects(enemyActiveTraits, enemies);
   // 선봉대 보호막은 전투 시작 시점 (tick=0, time=0).
   applyVanguardEffects(playerActiveTraits, playerUnits, 0, 0, logs);
   applyVanguardEffects(enemyActiveTraits, enemies, 0, 0, logs);
