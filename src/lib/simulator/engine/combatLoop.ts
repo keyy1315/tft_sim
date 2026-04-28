@@ -1942,6 +1942,99 @@ export function simulateCombat(
   applyVanguardEffects(playerActiveTraits, playerUnits, 0, 0, logs);
   applyVanguardEffects(enemyActiveTraits, enemies, 0, 0, logs);
 
+  /**
+   * N.O.V.A. (DRX) — power surge.
+   *
+   * Spec (TFT17_DRX):
+   *   (2) TeamAttackDelay(=6) 초 후 N.O.V.A. 챔프별 효과 발동:
+   *     - Aatrox: 적 ShredAndSunder=30% Armor/MR 감소
+   *     - Caitlyn: 모든 아군 +AS=20%
+   *     - Akali: 모든 아군 Precision (spell crit 가능)
+   *     - Maokai: 모든 아군 maxHp × Heal=12% 회복
+   *     - Kindred: 가장 강한 Tank 에 ShieldValue=800 shield
+   *     - Emblem: BonusTrueDamage=10% (stacking — 후속)
+   *   (5) Striker selector — 게임-level (후속)
+   *
+   * 챔프가 unit list 에 살아있어야 그 효과 활성. tick=TeamAttackDelay×TICKS_PER_SECOND
+   * 시점에 main loop 가 발동.
+   */
+  const setupDrxNova = (activeTraits: ActiveTrait[], teamUnits: CombatUnit[], opposingTeam: CombatUnit[]) => {
+    const trait = activeTraits.find(t => t.trait.apiName === 'TFT17_DRX' && t.activeEffect);
+    if (!trait?.activeEffect) return null;
+    const v = trait.activeEffect.variables;
+    const delayTicks = Math.round(((v.TeamAttackDelay ?? 0) as number) * TICKS_PER_SECOND);
+    if (delayTicks <= 0) return null;
+    return {
+      teamUnits, opposingTeam, delayTicks, triggered: false,
+      shredPct: (v.ShredAndSunder ?? 0) as number,
+      asBonus: (v.AS ?? 0) as number,
+      maokaiHealPct: (v.Heal ?? 0) as number,
+      kindredShield: (v.ShieldValue ?? 0) as number,
+    };
+  };
+  const playerDrxState = setupDrxNova(playerActiveTraits, playerUnits, enemies);
+  const enemyDrxState = setupDrxNova(enemyActiveTraits, enemies, playerUnits);
+
+  /**
+   * main loop tick 마다 호출 — delayTicks 도달 시 한 번만 effect 적용.
+   * 챔프 alive 체크는 surge 발동 시점에 재평가 (codex P1 회귀 가드):
+   * setup 시점에 살아 있어도 delayTicks 전에 죽으면 그 챔프 효과 발동 안 됨.
+   */
+  const tickDrxNova = (state: ReturnType<typeof setupDrxNova>, tick: number, time: number) => {
+    if (!state || state.triggered || tick < state.delayTicks) return;
+    state.triggered = true;
+    // surge 시점에 alive 한 N.O.V.A. 챔프만 효과 활성.
+    const isAlive = (api: string) => state.teamUnits.some(u => u.champion.apiName === api && u.state !== 'dead');
+    const hasAatrox = isAlive('TFT17_Aatrox');
+    const hasCaitlyn = isAlive('TFT17_Caitlyn');
+    const hasAkali = isAlive('TFT17_Akali');
+    const hasMaokai = isAlive('TFT17_Maokai');
+    const hasKindred = isAlive('TFT17_Kindred');
+    if (hasAatrox && state.shredPct > 0) {
+      for (const e of state.opposingTeam) {
+        if (e.state === 'dead') continue;
+        e.stats.armor *= (1 - state.shredPct);
+        e.stats.magicResist *= (1 - state.shredPct);
+      }
+    }
+    if (hasCaitlyn && state.asBonus > 0) {
+      for (const u of state.teamUnits) {
+        if (u.state === 'dead') continue;
+        u.stats.attackSpeed *= (1 + state.asBonus);
+      }
+    }
+    if (hasAkali) {
+      for (const u of state.teamUnits) {
+        if (u.state === 'dead') continue;
+        u.spellCanCrit = true;
+      }
+    }
+    if (hasMaokai && state.maokaiHealPct > 0) {
+      for (const u of state.teamUnits) {
+        if (u.state === 'dead') continue;
+        const heal = u.maxHp * state.maokaiHealPct;
+        u.currentHp = Math.min(u.maxHp, u.currentHp + heal);
+      }
+    }
+    if (hasKindred && state.kindredShield > 0) {
+      // 가장 강한 Tank = role==='Tank' 중 maxHp 최고
+      const tanks = state.teamUnits.filter(u => u.state !== 'dead' && u.role === 'Tank');
+      const strongest = tanks.sort((a, b) => b.maxHp - a.maxHp)[0];
+      if (strongest) {
+        strongest.shield += state.kindredShield;
+        strongest.statusEffects.push({
+          type: 'shield', sourceId: 'drx-kindred',
+          remainingTicks: 9999, value: state.kindredShield,
+        });
+      }
+    }
+    logs.push({
+      tick, time, type: 'ability',
+      sourceId: 'drx-nova',
+      message: `N.O.V.A. power surge 발동 (${hasAatrox ? 'Aatrox ' : ''}${hasCaitlyn ? 'Caitlyn ' : ''}${hasAkali ? 'Akali ' : ''}${hasMaokai ? 'Maokai ' : ''}${hasKindred ? 'Kindred' : ''})`.trim(),
+    });
+  };
+
   // 아이오니아 길 적용
   if (options.playerIoniaPath) {
     applyIoniaPath(playerActiveTraits, playerUnits, options.playerIoniaPath, logs);
@@ -2233,6 +2326,9 @@ export function simulateCombat(
       if (u.state === 'dead') continue;
       tickBastionDouble(u, tick);
     }
+    // N.O.V.A. (DRX) power surge — TeamAttackDelay 도달 시 한 번만 발동.
+    tickDrxNova(playerDrxState, tick, time);
+    tickDrxNova(enemyDrxState, tick, time);
 
     // 아이템 효과 runtime — interval timer dispatch
     itemRuntime.onTick(tick);
