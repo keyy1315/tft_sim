@@ -1704,17 +1704,21 @@ export function simulateCombat(
     const totalPoison = dmgDealt * caster.stargazerSerpentPoisonPercent;
     const ticks = Math.round(caster.stargazerSerpentDurationSec * TICKS_PER_SECOND);
     if (ticks <= 0) return;
-    const perTick = totalPoison / ticks;
-    // 기존 poison (같은 caster source) 가 있으면 perTick 합산 (잔여 피해 누적), 만료 시각 유지.
+    // 기존 poison (같은 caster source) 가 있으면:
+    //   - 잔여 totalDamage 보존 (residualTotal = old.value × old.remainingTicks)
+    //   - 새 totalPoison 합산 후 새 ticks 기준 perTick 재계산
+    //   - duration refresh (codex P1: refresh 안 하면 hit 마다 partial 전달 → under-proc)
     const existing = target.statusEffects.find(
       (e) => e.type === 'poison' && e.sourceId === caster.id,
     );
     if (existing) {
-      existing.value = (existing.value ?? 0) + perTick;
+      const residualTotal = (existing.value ?? 0) * existing.remainingTicks;
+      existing.value = (residualTotal + totalPoison) / ticks;
+      existing.remainingTicks = ticks;
     } else {
       target.statusEffects.push({
         type: 'poison', sourceId: caster.id,
-        remainingTicks: ticks, value: perTick,
+        remainingTicks: ticks, value: totalPoison / ticks,
       });
     }
   };

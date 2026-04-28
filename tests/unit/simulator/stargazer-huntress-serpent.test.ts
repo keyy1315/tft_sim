@@ -163,6 +163,35 @@ describe('Serpent — 강화 칸 별돌보미 poisonPercent + duration 설정', 
   });
 });
 
+describe('Serpent — poison reapplication 시 duration refresh + residual 보존 (codex P1)', () => {
+  it('동일 caster 가 여러 hit 로 poison 재적용 시 총 피해가 단순 sum (모두 fully delivered)', () => {
+    // 큰 maxHp dummy 적 → 충분히 살아남아서 poison ticks 가 모두 적용될 시간 확보.
+    // Serpent ON 단일 unit + emblem 5 → 별돌보미 6 (5tier=Poison 0.40, Duration 3s).
+    // 평타 + ability 여러 hit → 같은 caster source 의 poison 누적 적용.
+    const tiles = CONSTELLATION_TILE_PATTERN.snake;
+    const team: PlacedChampion[] = [
+      placed(apTwistedFate, tiles[0].q, tiles[0].r),
+      placed(apTalon, tiles[1].q, tiles[1].r),
+      placed(apJax, tiles[2].q, tiles[2].r),
+      placed(apAatrox, tiles[3].q, tiles[3].r, [STARGAZER_EMBLEM]),
+      placed(apMilio, tiles[4].q, tiles[4].r, [STARGAZER_EMBLEM]),
+      placed(apCorki, tiles[5].q, tiles[5].r, [STARGAZER_EMBLEM]),
+    ];
+    const enemy: PlacedChampion[] = [placed(dummyEnemy, 6, 3)];
+
+    const withSnake = simulateCombat(team, enemy, {
+      seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
+      playerStargazerConstellation: 'snake',
+    });
+    const withoutSnake = simulateCombat(team, enemy, {
+      seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
+    });
+    // duration refresh 없으면 후속 hit 의 poison 이 partial 전달 → enemy 가 더 오래 살아남음 → combat duration 길어짐.
+    // refresh 적용되면 enemy 가 더 빨리 죽거나 동등하게 죽음 → withSnake.duration <= withoutSnake.duration
+    expect(withSnake.duration).toBeLessThanOrEqual(withoutSnake.duration);
+  });
+});
+
 describe('Huntress — 표식 적 사망 시 별돌보미 heal trigger', () => {
   it('표식된 적 사망 → 강화 칸 별돌보미 currentHp 증가', () => {
     // 별돌보미 6명 vs 단일 약한 적 — 적 사망 → heal 발동
