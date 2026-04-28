@@ -152,6 +152,7 @@ function createCombatUnit(
     castCount: 0,
     killCount: 0,
     spellCanCrit: computeSpellCanCrit(allItems, activeTraits),
+    stargazerFountainHealPercent: 0,
   };
 
   // MF 특성 선택 → 실제 트레이트로 치환 + emblem 으로 부여된 trait 합산.
@@ -803,14 +804,20 @@ function applyStargazerEffects(
     return;
   }
 
-  // === Fountain (우물) — Teamwide ManaRegen + 별돌보미 추가 / 스킬 힐 (PR-4) ===
+  // === Fountain (우물) — Teamwide ManaRegen + 별돌보미 추가 마나 + 스킬 힐 ===
   if (apiName === 'TFT17_Stargazer_Fountain') {
     const teamwide = (eff.Fountain_ManaRegen_Teamwide ?? 0) as number; // 단순 mana/sec
     const ownerExtra = (eff.Fountain_ManaRegen ?? 0) as number;
+    // (3) 0.18 → 즉발 ability dmg 의 18% 만큼 가장 체력 낮은 아군 회복.
+    // (5) 0.25. 강화 칸 안 별돌보미 unit 만 trigger 보유 (heal 적용은 ability 시전 hook 에서).
+    const healPercent = (eff.Fountain_HealPercent ?? 0) as number;
     for (const u of units) {
       if (!isOnTile(u)) continue;
       if (teamwide > 0) u.augmentManaRegen += teamwide;
-      if (isStargazerUnit(u) && ownerExtra > 0) u.augmentManaRegen += ownerExtra;
+      if (isStargazerUnit(u)) {
+        if (ownerExtra > 0) u.augmentManaRegen += ownerExtra;
+        if (healPercent > 0) u.stargazerFountainHealPercent = healPercent;
+      }
     }
     return;
   }
@@ -954,6 +961,7 @@ function spawnFreljordTurrets(
             castCount: 0,
             killCount: 0,
             spellCanCrit: false,
+            stargazerFountainHealPercent: 0,
           };
           // Store stun duration for prismatic tier
           if (stunDuration > 0) {
@@ -1078,6 +1086,7 @@ function trySpawnGalio(
     castCount: 0,
     killCount: 0,
     spellCanCrit: false,
+    stargazerFountainHealPercent: 0,
   };
 
   // 착지 충격파 — 영웅 시너지 variables
@@ -1635,6 +1644,46 @@ export function simulateCombat(
   if (options.enemyIoniaPath) {
     applyIoniaPath(enemyActiveTraits, enemies, options.enemyIoniaPath, logs);
   }
+
+  /**
+   * 별돌보미 우물(Fountain) — ability 시전 후 호출.
+   * 시전자가 stargazerFountainHealPercent > 0 이고 즉발 dmg > 0 일 때
+   * 같은 팀 살아있는 unit 중 currentHp/maxHp 비율 가장 낮은 unit 회복 (자기 포함).
+   * in-range cast path 와 OOR (dash/self_buff) cast path 모두 호출 (codex P1 회귀 가드).
+   * tickLogs 는 caller 가 tick 단위 local 배열을 주입.
+   */
+  const triggerFountainHeal = (
+    caster: CombatUnit,
+    totalAbilityDmg: number,
+    castTick: number,
+    castTime: number,
+    tickLogsRef: CombatLog[],
+  ): void => {
+    if (caster.stargazerFountainHealPercent <= 0 || totalAbilityDmg <= 0) return;
+    const teammates = caster.team === 'player' ? playerUnits : enemies;
+    let lowest: CombatUnit | null = null;
+    let lowestRatio = Infinity;
+    for (const a of teammates) {
+      if (a.state === 'dead') continue;
+      if (a.maxHp <= 0) continue;
+      const ratio = a.currentHp / a.maxHp;
+      if (ratio < lowestRatio) {
+        lowestRatio = ratio;
+        lowest = a;
+      }
+    }
+    if (!lowest) return;
+    const healAmount = totalAbilityDmg * caster.stargazerFountainHealPercent;
+    lowest.currentHp = Math.min(lowest.maxHp, lowest.currentHp + healAmount);
+    const healLog: CombatLog = {
+      tick: castTick, time: castTime, type: 'ability',
+      sourceId: caster.id, targetId: lowest.id,
+      value: Math.round(healAmount),
+      message: `${caster.champion.name} 우물 효과: ${lowest.champion.name} 체력 ${Math.round(healAmount)} 회복`,
+    };
+    logs.push(healLog);
+    tickLogsRef.push(healLog);
+  };
 
   // 수확자 — 적 사망 시 마나 획득 + 적 방저 감소
   function registerHarvester(activeTraits: ActiveTrait[], killerTeam: CombatUnit[], enemyTeam: CombatUnit[]): void {
@@ -2271,6 +2320,10 @@ export function simulateCombat(
               unit.currentHp = Math.min(unit.maxHp, unit.currentHp + heal);
             }
 
+            // 별돌보미 우물(Fountain) — 강화 칸 안 별돌보미 스킬 시전 시
+            // 즉발 피해 × HealPercent 만큼 같은 팀 중 가장 체력 낮은 아군 회복.
+            triggerFountainHeal(unit, totalAbilityDmg, tick, time, tickLogs);
+
             // === CC 기절 적용 ===
             if (config.stun && config.stun > 0) {
               const stunTicks = Math.round(config.stun * TICKS_PER_SECOND);
@@ -2492,6 +2545,10 @@ export function simulateCombat(
           };
           logs.push(castLog);
           tickLogs.push(castLog);
+
+          // 별돌보미 우물(Fountain) — OOR cast (dash/self_buff) path 도 동일 heal 적용
+          // (codex P1 회귀 가드: Talon/Corki 같은 dash user 가 사거리 밖 시전 시 누락 방지).
+          triggerFountainHeal(unit, totalAbilityDmg, tick, time, tickLogs);
 
           eventBus.emit('on_cast', { sourceId: unit.id, targetId: target.id, value: totalAbilityDmg, tick });
         } else {
