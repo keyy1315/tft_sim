@@ -170,6 +170,9 @@ function createCombatUnit(
     stargazerSerpentDurationSec: 0,
     stargazerShieldCashoutHpFrac: 0,
     stargazerShieldCashoutAsFrac: 0,
+    bastionDoubleEndTick: 0,
+    bastionDoubleArmorBonus: 0,
+    bastionDoubleMrBonus: 0,
   };
 
   // MF 특성 선택 → 실제 트레이트로 치환 + emblem 으로 부여된 trait 합산.
@@ -676,6 +679,68 @@ function applyMorganaDarklight(activeTraits: ActiveTrait[], units: CombatUnit[])
   }
 }
 
+/**
+ * 요새 (Bastion/ResistTank) — Teamwide Armor/MR + 요새 unit 추가 + 첫 N초 doubled.
+ *
+ * Spec (TFT17_ResistTank):
+ *   - 모든 아군 +TeamwideResists Armor/MR
+ *   - 요새 unit 추가 +BonusArmor / +BonusMR
+ *   - 전투 첫 Duration 초간 BonusArmor/MR 가 StatMultiplier 배 (=2)
+ *   - (6) tier 시 비-요새 unit 들이 추가 +EnhancedTeamwideArmor Armor/MR
+ *
+ * Tier 별 BonusArmor/MR: (2) 16 / (4) 40 / (6) 60.
+ * Duration 메커니즘: 시작 시 doubled 적용, Duration 후 single 로 복귀 (main loop tick check).
+ */
+function applyBastionEffects(activeTraits: ActiveTrait[], units: CombatUnit[]): void {
+  const trait = activeTraits.find(t => t.trait.apiName === 'TFT17_ResistTank');
+  if (!trait || !trait.activeEffect || trait.style === 0) return;
+  const v = trait.activeEffect.variables;
+  const teamwide = (v.TeamwideResists ?? 0) as number;
+  const bonusArmor = (v.BonusArmor ?? 0) as number;
+  const bonusMr = (v.BonusMR ?? 0) as number;
+  const enhancedTeamwide = (v.EnhancedTeamwideArmor ?? 0) as number;
+  const statMultiplier = (v.StatMultiplier ?? 1) as number;
+  const durationSec = (v.Duration ?? 0) as number;
+  const isHighTier = trait.count >= 6;
+  for (const u of units) {
+    // 모든 아군 teamwide
+    if (teamwide > 0) {
+      u.stats.armor += teamwide;
+      u.stats.magicResist += teamwide;
+    }
+    // (6) 비-요새 추가
+    if (isHighTier && enhancedTeamwide > 0 && !unitHasTrait(u, '요새')) {
+      u.stats.armor += enhancedTeamwide;
+      u.stats.magicResist += enhancedTeamwide;
+    }
+    // 요새 unit 추가 + 첫 Duration 초 doubled
+    if (unitHasTrait(u, '요새')) {
+      u.stats.armor += bonusArmor;
+      u.stats.magicResist += bonusMr;
+      if (statMultiplier > 1 && durationSec > 0) {
+        const extraArmor = bonusArmor * (statMultiplier - 1);
+        const extraMr = bonusMr * (statMultiplier - 1);
+        u.stats.armor += extraArmor;
+        u.stats.magicResist += extraMr;
+        u.bastionDoubleEndTick = Math.round(durationSec * TICKS_PER_SECOND);
+        u.bastionDoubleArmorBonus = extraArmor;
+        u.bastionDoubleMrBonus = extraMr;
+      }
+    }
+  }
+}
+
+/** 매 tick main loop 에서 호출 — 요새 doubled buff 만료 시 stat 차감. */
+function tickBastionDouble(unit: CombatUnit, tick: number): void {
+  if (unit.bastionDoubleEndTick === 0) return;
+  if (tick < unit.bastionDoubleEndTick) return;
+  unit.stats.armor -= unit.bastionDoubleArmorBonus;
+  unit.stats.magicResist -= unit.bastionDoubleMrBonus;
+  unit.bastionDoubleEndTick = 0;
+  unit.bastionDoubleArmorBonus = 0;
+  unit.bastionDoubleMrBonus = 0;
+}
+
 /** 전쟁기계 — BaseDR을 damageReduction에 적용 */
 function applyJuggernautDR(activeTraits: ActiveTrait[], units: CombatUnit[]): void {
   const jugg = activeTraits.find(t => t.trait.apiName === 'TFT16_Juggernaut' && t.activeEffect);
@@ -1062,6 +1127,9 @@ function spawnFreljordTurrets(
             stargazerSerpentDurationSec: 0,
             stargazerShieldCashoutHpFrac: 0,
             stargazerShieldCashoutAsFrac: 0,
+            bastionDoubleEndTick: 0,
+            bastionDoubleArmorBonus: 0,
+            bastionDoubleMrBonus: 0,
           };
           // Store stun duration for prismatic tier
           if (stunDuration > 0) {
@@ -1193,6 +1261,9 @@ function trySpawnGalio(
     stargazerSerpentDurationSec: 0,
     stargazerShieldCashoutHpFrac: 0,
     stargazerShieldCashoutAsFrac: 0,
+    bastionDoubleEndTick: 0,
+    bastionDoubleArmorBonus: 0,
+    bastionDoubleMrBonus: 0,
   };
 
   // 착지 충격파 — 영웅 시너지 variables
@@ -1751,6 +1822,8 @@ export function simulateCombat(
   applyMorganaDarklight(enemyActiveTraits, enemies);
   applyFateweaverEffects(playerActiveTraits, playerUnits);
   applyFateweaverEffects(enemyActiveTraits, enemies);
+  applyBastionEffects(playerActiveTraits, playerUnits);
+  applyBastionEffects(enemyActiveTraits, enemies);
 
   // 아이오니아 길 적용
   if (options.playerIoniaPath) {
@@ -2143,6 +2216,7 @@ export function simulateCombat(
       if (unit.state === 'dead') continue;
 
       tickStatusEffects(unit, tick, time, logs, tickLogs);
+      tickBastionDouble(unit, tick);
       gainManaPerTick(unit, TICK_DURATION);
 
       // Augment mana regen (per second, applied per tick)
