@@ -865,6 +865,36 @@ function applyTimebreakerEffects(activeTraits: ActiveTrait[], units: CombatUnit[
   }
 }
 
+/**
+ * 싸움꾼 (Brawler/HPTank) — teamwide +5% maxHp + 싸움꾼 unit 추가 % maxHp.
+ *
+ * Spec (TFT17_HPTank):
+ *   (2)/(4)/(6) 모두 모든 아군 +5% maxHP (TeamwideBonus=0.05)
+ *   추가로 싸움꾼 unit 본인:
+ *     (2) +20% (HealthBonus=0.20)
+ *     (4) +40% (HealthBonus=0.40)
+ *     (6) +60% (HealthBonus=0.60)
+ *
+ * 싸움꾼 챔프 (7명): Maokai, Urgot, Gragas, Chogath, TahmKench, RekSai, Pantheon.
+ *
+ * Note: maxHp 가산 시 currentHp 도 비례 증가 (전투 시작 시점이라 unit 은 풀체).
+ */
+function applyBrawlerEffects(activeTraits: ActiveTrait[], units: CombatUnit[]): void {
+  const trait = activeTraits.find(t => t.trait.apiName === 'TFT17_HPTank');
+  if (!trait || !trait.activeEffect || trait.style === 0) return;
+  const v = trait.activeEffect.variables;
+  const teamwideBonus = (v.TeamwideBonus ?? 0) as number;
+  const brawlerBonus = (v.HealthBonus ?? 0) as number;
+  for (const u of units) {
+    let multiplier = 1;
+    if (teamwideBonus > 0) multiplier += teamwideBonus;
+    if (brawlerBonus > 0 && unitHasTrait(u, '싸움꾼')) multiplier += brawlerBonus;
+    if (multiplier === 1) continue;
+    u.maxHp *= multiplier;
+    u.currentHp *= multiplier;
+  }
+}
+
 /** 전쟁기계 — BaseDR을 damageReduction에 적용 */
 function applyJuggernautDR(activeTraits: ActiveTrait[], units: CombatUnit[]): void {
   const jugg = activeTraits.find(t => t.trait.apiName === 'TFT16_Juggernaut' && t.activeEffect);
@@ -1950,10 +1980,14 @@ export function simulateCombat(
   applyShenBastionAura(enemyActiveTraits, enemies);
   applyJhinAnnihilator(playerActiveTraits, enemies);  // 적 대상
   applyJhinAnnihilator(enemyActiveTraits, playerUnits);
-  // Astronaut HP 가산은 Stargazer (Huntress) maxHp 상위 N명 mark 선택 전에 적용해야
-  // 정확한 maxHp 기준으로 mark — codex P2 회귀 가드.
+  // Astronaut/Brawler HP 가산은 Stargazer (Huntress) maxHp 상위 N명 mark 선택 전에
+  // 적용해야 정확한 maxHp 기준으로 mark — codex P2 회귀 가드.
   applyAstronautEffects(playerActiveTraits, playerUnits);
   applyAstronautEffects(enemyActiveTraits, enemies);
+  // 싸움꾼 +HP — multiplicative. Astronaut flat (+BonusHealth) 적용 후 multiply.
+  // 정령족+싸움꾼 동시 보유 챔프 없어 corner case 영향 없음.
+  applyBrawlerEffects(playerActiveTraits, playerUnits);
+  applyBrawlerEffects(enemyActiveTraits, enemies);
   applyStargazerEffects(playerActiveTraits, playerUnits, enemies, options.playerStargazerConstellation);
   applyStargazerEffects(enemyActiveTraits, enemies, playerUnits, options.enemyStargazerConstellation);
   applyMorganaDarklight(playerActiveTraits, playerUnits);
