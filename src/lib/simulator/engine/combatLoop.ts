@@ -106,6 +106,15 @@ export interface SimulateOptions {
   playerStargazerConstellation?: StargazerConstellationId;
   /** B 팀(enemy) 별자리. 의미는 player 와 동일. */
   enemyStargazerConstellation?: StargazerConstellationId;
+  /**
+   * 별돌보미 제단(Shield) — 게임-level 누적 사망 카운트 (player 측 기준).
+   * 시뮬은 단일 전투지만 NumDeaths(=60) 도달 여부는 게임 진행 누적이라
+   * 외부에서 미리 입력 받음. 시뮬 안에서 누적되는 사망 + priorShieldDeaths
+   * 합산 ≥ NumDeaths 시 cashout buff 발동. 미지정 시 0.
+   */
+  priorPlayerShieldDeaths?: number;
+  /** B 팀(enemy) 누적 사망 카운트. 의미는 player 와 동일. */
+  priorEnemyShieldDeaths?: number;
 }
 
 function createCombatUnit(
@@ -158,6 +167,8 @@ function createCombatUnit(
     stargazerHuntressHealPercent: 0,
     stargazerSerpentPoisonPercent: 0,
     stargazerSerpentDurationSec: 0,
+    stargazerShieldCashoutHpFrac: 0,
+    stargazerShieldCashoutAsFrac: 0,
   };
 
   // MF 특성 선택 → 실제 트레이트로 치환 + emblem 으로 부여된 trait 합산.
@@ -822,12 +833,16 @@ function applyStargazerEffects(
     return;
   }
 
-  // === Shield (제단) — Teamwide HP/AS (percentage points) + 사망 트리거 cashout (PR-4) ===
+  // === Shield (제단) — Teamwide HP/AS (percentage points) + 사망 트리거 cashout ===
   if (apiName === 'TFT17_Stargazer_Shield') {
     const teamwideHp = (eff.Shield_Health_Teamwide ?? 0) as number; // percentage points (예: 8 = 8%)
     const teamwideAs = (eff.Shield_AS_Teamwide ?? 0) as number;
+    const cashoutHp = (eff.Shield_CashoutHP ?? 0) as number; // percentage points
+    const cashoutAs = (eff.Shield_CashoutAS ?? 0) as number;
     const hpFrac = teamwideHp / 100;
     const asFrac = teamwideAs / 100;
+    const cashoutHpFrac = cashoutHp / 100;
+    const cashoutAsFrac = cashoutAs / 100;
     for (const u of units) {
       if (!isOnTile(u)) continue;
       if (hpFrac > 0) {
@@ -835,6 +850,11 @@ function applyStargazerEffects(
         u.currentHp = u.maxHp;
       }
       if (asFrac > 0) u.stats.attackSpeed *= (1 + asFrac);
+      if (isStargazerUnit(u)) {
+        // cashout 발동 시 추가로 곱할 비율 저장 — 실제 적용은 NumDeaths 도달 시.
+        if (cashoutHpFrac > 0) u.stargazerShieldCashoutHpFrac = cashoutHpFrac;
+        if (cashoutAsFrac > 0) u.stargazerShieldCashoutAsFrac = cashoutAsFrac;
+      }
     }
     return;
   }
@@ -1003,6 +1023,8 @@ function spawnFreljordTurrets(
             stargazerHuntressHealPercent: 0,
             stargazerSerpentPoisonPercent: 0,
             stargazerSerpentDurationSec: 0,
+            stargazerShieldCashoutHpFrac: 0,
+            stargazerShieldCashoutAsFrac: 0,
           };
           // Store stun duration for prismatic tier
           if (stunDuration > 0) {
@@ -1131,6 +1153,8 @@ function trySpawnGalio(
     stargazerHuntressHealPercent: 0,
     stargazerSerpentPoisonPercent: 0,
     stargazerSerpentDurationSec: 0,
+    stargazerShieldCashoutHpFrac: 0,
+    stargazerShieldCashoutAsFrac: 0,
   };
 
   // 착지 충격파 — 영웅 시너지 variables
@@ -1807,6 +1831,60 @@ export function simulateCombat(
   };
   registerHuntressHeal(playerUnits, enemies, 'stargazer-huntress-player');
   registerHuntressHeal(enemies, playerUnits, 'stargazer-huntress-enemy');
+
+  /**
+   * 별돌보미 제단(Shield) — 같은 팀 unit 사망 시 제물 카운트 증가.
+   * 누적 (priorShieldDeaths + 시뮬 내 사망) ≥ NumDeaths 도달 시 그 팀 강화 칸
+   * 별돌보미들에게 cashout buff (HP × 1+CashoutHP, AS × 1+CashoutAS) 일회 적용.
+   * 게임-level 누적 (전 게임의 player 사망) 은 priorShieldDeaths 로 외부 입력.
+   */
+  const SHIELD_NUM_DEATHS = 60; // Shield_NumDeaths spec value
+  let playerShieldDeaths = options.priorPlayerShieldDeaths ?? 0;
+  let enemyShieldDeaths = options.priorEnemyShieldDeaths ?? 0;
+  let playerShieldCashoutDone = false;
+  let enemyShieldCashoutDone = false;
+  const applyShieldCashout = (team: CombatUnit[]): void => {
+    for (const u of team) {
+      if (u.state === 'dead') continue;
+      if (u.stargazerShieldCashoutHpFrac <= 0 && u.stargazerShieldCashoutAsFrac <= 0) continue;
+      if (u.stargazerShieldCashoutHpFrac > 0) {
+        const newMaxHp = Math.round(u.maxHp * (1 + u.stargazerShieldCashoutHpFrac));
+        u.currentHp = Math.min(newMaxHp, u.currentHp + (newMaxHp - u.maxHp));
+        u.maxHp = newMaxHp;
+      }
+      if (u.stargazerShieldCashoutAsFrac > 0) {
+        u.stats.attackSpeed *= (1 + u.stargazerShieldCashoutAsFrac);
+      }
+    }
+  };
+  // priorShieldDeaths 만 으로 이미 threshold 도달했으면 전투 시작 시 즉시 적용.
+  if (playerShieldDeaths >= SHIELD_NUM_DEATHS) {
+    applyShieldCashout(playerUnits);
+    playerShieldCashoutDone = true;
+  }
+  if (enemyShieldDeaths >= SHIELD_NUM_DEATHS) {
+    applyShieldCashout(enemies);
+    enemyShieldCashoutDone = true;
+  }
+  eventBus.on('on_death', 'stargazer-shield', ({ sourceId }) => {
+    // sourceId 는 죽은 unit 의 id. 어느 팀인지 식별 후 그 팀의 카운트 증가.
+    const deadInPlayer = playerUnits.some((u) => u.id === sourceId);
+    const deadInEnemy = enemies.some((u) => u.id === sourceId);
+    if (deadInPlayer) {
+      playerShieldDeaths++;
+      if (!playerShieldCashoutDone && playerShieldDeaths >= SHIELD_NUM_DEATHS) {
+        applyShieldCashout(playerUnits);
+        playerShieldCashoutDone = true;
+      }
+    }
+    if (deadInEnemy) {
+      enemyShieldDeaths++;
+      if (!enemyShieldCashoutDone && enemyShieldDeaths >= SHIELD_NUM_DEATHS) {
+        applyShieldCashout(enemies);
+        enemyShieldCashoutDone = true;
+      }
+    }
+  });
 
   // 전투 시작 시 유닛별 랜덤 첫 공격 딜레이 (0~0.3초)
   const maxDelayTicks = Math.round(INITIAL_ATTACK_DELAY * TICKS_PER_SECOND);

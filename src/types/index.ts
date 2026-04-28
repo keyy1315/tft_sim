@@ -506,6 +506,14 @@ export interface CombatUnit {
   stargazerSerpentPoisonPercent: number;
   /** Serpent 의 중독 지속시간 (초). poison statusEffect 의 remainingTicks 계산용. */
   stargazerSerpentDurationSec: number;
+  /**
+   * 별돌보미 제단(Shield) 변종 — cashout 발동 시 추가 HP buff.
+   * 강화 칸 안 별돌보미 unit 만 양수 (예: 0.20 → cashout 시 maxHp × 1.20).
+   * cashout 미발동 시 0.
+   */
+  stargazerShieldCashoutHpFrac: number;
+  /** Shield cashout 발동 시 추가 AS buff (예: 0.18 → AS × 1.18). */
+  stargazerShieldCashoutAsFrac: number;
 }
 
 export interface CombatLog {
