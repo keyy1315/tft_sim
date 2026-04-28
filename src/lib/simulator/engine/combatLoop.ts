@@ -774,6 +774,33 @@ function computeSniperDamageAmp(caster: CombatUnit, target: CombatUnit): number 
   return caster.sniperBaseDA + caster.sniperPerHexDA * dist;
 }
 
+/**
+ * 정령족 (Astronaut/Meeple) — BonusHealth flat HP 가산.
+ *
+ * Spec (TFT17_Astronaut):
+ *   (3) +100 HP, Meeps=2
+ *   (5) +400 HP, Meeps=3
+ *   (7) +400 HP, Meeps=4 + Cloning Slot (게임-level, 시뮬 외)
+ *   (10) +500 HP, Meeps=6 + Four Meeplords (특수)
+ *
+ * Meeps 메커니즘은 챔프별 ability 에서 다르게 작동 (Bard MeepsPerMeep,
+ * Rammus FlatDRPerMeep, Poppy MeepShield 등) — 복잡 → 별도 PR.
+ * 본 함수는 BonusHealth flat 가산만.
+ *
+ * 정령족 챔프 (8명): Bard, Gnar, Fizz, Rammus, Poppy, Corki, Veigar, IvernMinion.
+ */
+function applyAstronautEffects(activeTraits: ActiveTrait[], units: CombatUnit[]): void {
+  const trait = activeTraits.find(t => t.trait.apiName === 'TFT17_Astronaut');
+  if (!trait || !trait.activeEffect || trait.style === 0) return;
+  const bonusHp = (trait.activeEffect.variables['BonusHealth'] ?? 0) as number;
+  if (bonusHp <= 0) return;
+  for (const u of units) {
+    if (!unitHasTrait(u, '정령족')) continue;
+    u.maxHp += bonusHp;
+    u.currentHp += bonusHp;
+  }
+}
+
 /** 전쟁기계 — BaseDR을 damageReduction에 적용 */
 function applyJuggernautDR(activeTraits: ActiveTrait[], units: CombatUnit[]): void {
   const jugg = activeTraits.find(t => t.trait.apiName === 'TFT16_Juggernaut' && t.activeEffect);
@@ -1857,6 +1884,8 @@ export function simulateCombat(
   applyStargazerEffects(enemyActiveTraits, enemies, playerUnits, options.enemyStargazerConstellation);
   applyMorganaDarklight(playerActiveTraits, playerUnits);
   applyMorganaDarklight(enemyActiveTraits, enemies);
+  applyAstronautEffects(playerActiveTraits, playerUnits);
+  applyAstronautEffects(enemyActiveTraits, enemies);
   applyFateweaverEffects(playerActiveTraits, playerUnits);
   applyFateweaverEffects(enemyActiveTraits, enemies);
   applyBastionEffects(playerActiveTraits, playerUnits);
