@@ -2110,6 +2110,13 @@ export function simulateCombat(
 
     if (alivePlayers.length === 0 || aliveEnemies.length === 0) break;
 
+    // 요새 (Bastion) doubled buff 만료 처리 — 모든 global per-tick handlers (Piltover invention,
+    // Galio impact 등) 가 mitigation 계산 시점에 정확한 stats 를 보도록 가장 먼저 처리 (codex P2).
+    for (const u of allUnits) {
+      if (u.state === 'dead') continue;
+      tickBastionDouble(u, tick);
+    }
+
     // 아이템 효과 runtime — interval timer dispatch
     itemRuntime.onTick(tick);
 
@@ -2216,7 +2223,6 @@ export function simulateCombat(
       if (unit.state === 'dead') continue;
 
       tickStatusEffects(unit, tick, time, logs, tickLogs);
-      tickBastionDouble(unit, tick);
       gainManaPerTick(unit, TICK_DURATION);
 
       // Augment mana regen (per second, applied per tick)
