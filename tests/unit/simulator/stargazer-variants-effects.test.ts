@@ -47,7 +47,8 @@ function simWith(constellation: StargazerConstellationId | undefined, ally: Plac
     allTraits: traits,
     skipMirror: true,
     stageNumber: 5,
-    stargazerConstellation: constellation,
+    playerStargazerConstellation: constellation,
+    enemyStargazerConstellation: constellation,
   });
 }
 
@@ -146,7 +147,8 @@ describe('Enemy 팀 (mirror r=4..7) 도 강화 칸 효과 받음', () => {
     const withC = simulateCombat(playerDummy, enemyAlly, {
       seed: 0,
       allTraits: traits,
-      stargazerConstellation: 'mountain',
+      playerStargazerConstellation: 'mountain',
+      enemyStargazerConstellation: 'mountain',
     });
     const without = simulateCombat(playerDummy, enemyAlly, {
       seed: 0,

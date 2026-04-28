@@ -189,6 +189,8 @@ function SimulatorContent() {
         stageNumber,
         playerArbiterLaw: tm.playerArbiterLaw ?? undefined,
         enemyArbiterLaw: tm.enemyArbiterLaw ?? undefined,
+        playerStargazerConstellation: tm.playerStargazerConstellation ?? undefined,
+        enemyStargazerConstellation: tm.enemyStargazerConstellation ?? undefined,
       });
       replay.setCombatResult(result);
       setIsRunning(false);
@@ -196,7 +198,7 @@ function SimulatorContent() {
       replay.setReplayTick(0);
       replay.setIsPlaying(true);
     }, 100);
-  }, [tm.playerTeam, tm.enemyTeam, traits, tm.playerAugments, tm.playerAugmentStacks, tm.enemyAugments, tm.enemyAugmentStacks, tm.playerBilgewaterStats, tm.enemyBilgewaterStats, tm.playerPiltoverModules, tm.enemyPiltoverModules, tm.playerIoniaPath, tm.enemyIoniaPath, tm.playerGalio, tm.enemyGalio, playerHexBuffs, enemyHexBuffs, stageNumber, items, toEightRowCoords, replay]);
+  }, [tm.playerTeam, tm.enemyTeam, traits, tm.playerAugments, tm.playerAugmentStacks, tm.enemyAugments, tm.enemyAugmentStacks, tm.playerBilgewaterStats, tm.enemyBilgewaterStats, tm.playerPiltoverModules, tm.enemyPiltoverModules, tm.playerIoniaPath, tm.enemyIoniaPath, tm.playerGalio, tm.enemyGalio, playerHexBuffs, enemyHexBuffs, stageNumber, tm.playerArbiterLaw, tm.enemyArbiterLaw, tm.playerStargazerConstellation, tm.enemyStargazerConstellation, items, toEightRowCoords, replay]);
 
   const runMultiple = useCallback(() => {
     if (tm.playerTeam.length === 0 || tm.enemyTeam.length === 0) return;
@@ -224,6 +226,8 @@ function SimulatorContent() {
           playerHexBuffs,
           enemyHexBuffs,
           stageNumber,
+          playerStargazerConstellation: tm.playerStargazerConstellation ?? undefined,
+          enemyStargazerConstellation: tm.enemyStargazerConstellation ?? undefined,
         });
         if (r.winner === 'player') playerWins++;
         else if (r.winner === 'enemy') enemyWins++;
@@ -238,7 +242,7 @@ function SimulatorContent() {
       replay.setViewMode('replay');
       replay.setReplayTick(lastResult ? lastResult.snapshots.length - 1 : 0);
     }, 100);
-  }, [tm.playerTeam, tm.enemyTeam, traits, tm.playerAugments, tm.playerAugmentStacks, tm.enemyAugments, tm.enemyAugmentStacks, tm.playerBilgewaterStats, tm.enemyBilgewaterStats, tm.playerPiltoverModules, tm.enemyPiltoverModules, tm.playerIoniaPath, tm.enemyIoniaPath, tm.playerGalio, tm.enemyGalio, playerHexBuffs, enemyHexBuffs, stageNumber, items, toEightRowCoords, replay]);
+  }, [tm.playerTeam, tm.enemyTeam, traits, tm.playerAugments, tm.playerAugmentStacks, tm.enemyAugments, tm.enemyAugmentStacks, tm.playerBilgewaterStats, tm.enemyBilgewaterStats, tm.playerPiltoverModules, tm.enemyPiltoverModules, tm.playerIoniaPath, tm.enemyIoniaPath, tm.playerGalio, tm.enemyGalio, playerHexBuffs, enemyHexBuffs, stageNumber, tm.playerStargazerConstellation, tm.enemyStargazerConstellation, items, toEightRowCoords, replay]);
 
   const onBackToAnalysis = useCallback(() => {
     if (returnTo) {

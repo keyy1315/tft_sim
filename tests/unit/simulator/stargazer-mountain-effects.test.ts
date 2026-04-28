@@ -45,7 +45,8 @@ describe('Mountain — AP 단위 + StatIncrease 증폭', () => {
       allTraits: traits,
       skipMirror: true,
       stageNumber: 5,
-      stargazerConstellation: 'mountain',
+      playerStargazerConstellation: 'mountain',
+      enemyStargazerConstellation: 'mountain',
     });
     const withoutConst = simulateCombat(ally, enemy, {
       seed: 0,
@@ -85,7 +86,8 @@ describe('Mountain — AP 단위 + StatIncrease 증폭', () => {
       allTraits: traits,
       skipMirror: true,
       stageNumber: 5,
-      stargazerConstellation: 'mountain',
+      playerStargazerConstellation: 'mountain',
+      enemyStargazerConstellation: 'mountain',
     });
     const withoutConst = simulateCombat(ally, enemy, {
       seed: 0,
