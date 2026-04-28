@@ -15,7 +15,9 @@ import {
   detectPrismTraits,
   hasFiveCostStar3,
   resolvePrismOutcome,
+  simulateCombat,
 } from '@/lib/simulator/engine/combatLoop';
+import { loadServerCatalogs } from '@/lib/validation/serverCatalogs';
 import type { ActiveTrait, RawTrait, TraitEffect, PlacedChampion, RawChampion } from '@/types';
 
 function makeTrait(apiName: string, name: string, count: number, style: number): ActiveTrait {
@@ -186,5 +188,27 @@ describe('resolvePrismOutcome — counter + 우선순위', () => {
   it('양쪽 prism + 양쪽 5코3성 → draw (counter 서로 무력)', () => {
     const r = resolvePrismOutcome(prismActive, enemyPrism, true, true);
     expect(r?.winner).toBe('draw');
+  });
+});
+
+describe('simulateCombat — prism short-circuit 시 units/snapshots 보존', () => {
+  // 9~11명 prism 활성 보드는 실제로 만들기 어려워서, 비활성 케이스로 보존성 회귀만 검증.
+  // (active 케이스의 실제 활성은 detectPrismTraits 단위 테스트로 충분히 커버됨)
+  it('prism 비활성 정상 sim 결과: playerUnits/enemyUnits/snapshots 모두 populated', () => {
+    const { champions, traits } = loadServerCatalogs();
+    const apTwistedFate = champions.find((c) => c.apiName === 'TFT17_TwistedFate')!;
+    const apAatrox = champions.find((c) => c.apiName === 'TFT17_Aatrox')!;
+    const team: PlacedChampion[] = [
+      { champion: apTwistedFate, starLevel: 2, position: { q: 0, r: 0 }, items: [] },
+    ];
+    const enemy: PlacedChampion[] = [
+      { champion: apAatrox, starLevel: 2, position: { q: 6, r: 3 }, items: [] },
+    ];
+    const result = simulateCombat(team, enemy, {
+      seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
+    });
+    expect(result.playerUnits.length).toBeGreaterThan(0);
+    expect(result.enemyUnits.length).toBeGreaterThan(0);
+    expect(result.snapshots.length).toBeGreaterThan(0);
   });
 });

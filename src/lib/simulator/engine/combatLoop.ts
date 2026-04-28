@@ -1982,39 +1982,12 @@ export function simulateCombat(
     stargazerConstellation: options.enemyStargazerConstellation,
   });
 
-  // 프리즘 시너지 — style=6 활성 시 게임 메타 효과 (즉시 winner). 5코3성 카운터 적용.
+  // 프리즘 시너지 사전 판정 — unit 생성 후 short-circuit 결정 (units/snapshot 보존).
   const playerPrism = detectPrismTraits(playerActiveTraits);
   const enemyPrism = detectPrismTraits(enemyActiveTraits);
   const playerHas5cs3 = hasFiveCostStar3(allyTeam);
   const enemyHas5cs3 = hasFiveCostStar3(enemyTeam);
   const prismOutcome = resolvePrismOutcome(playerPrism, enemyPrism, playerHas5cs3, enemyHas5cs3);
-  if (prismOutcome) {
-    const prismLogs: CombatLog[] = [];
-    if (playerPrism.active) {
-      prismLogs.push({
-        tick: 0, time: 0, type: 'ability', sourceId: 'prism',
-        message: `프리즘 시너지 (player): ${playerPrism.names.join(', ')}`,
-      });
-    }
-    if (enemyPrism.active) {
-      prismLogs.push({
-        tick: 0, time: 0, type: 'ability', sourceId: 'prism',
-        message: `프리즘 시너지 (enemy): ${enemyPrism.names.join(', ')}`,
-      });
-    }
-    prismLogs.push({
-      tick: 0, time: 0, type: 'ability', sourceId: 'prism',
-      message: `결과: ${prismOutcome.winner} — ${prismOutcome.reason}`,
-    });
-    return {
-      winner: prismOutcome.winner,
-      duration: 0,
-      logs: prismLogs,
-      playerUnits: [],
-      enemyUnits: [],
-      snapshots: [],
-    };
-  }
 
   // Bilgewater stat effects — merge into augmentEffects for bilgewater units
   const playerBWEffects = options.playerBilgewaterEffects ?? {};
@@ -2064,6 +2037,36 @@ export function simulateCombat(
     applyStartPassives(unit);
     return unit;
   });
+
+  // 프리즘 short-circuit — unit/snapshot populated 상태로 즉시 결과 반환.
+  // downstream (defeat-report, replay) 가 빈 배열에 대한 가정으로 깨지지 않도록.
+  if (prismOutcome) {
+    const prismLogs: CombatLog[] = [];
+    if (playerPrism.active) {
+      prismLogs.push({
+        tick: 0, time: 0, type: 'ability', sourceId: 'prism',
+        message: `프리즘 시너지 (player): ${playerPrism.names.join(', ')}`,
+      });
+    }
+    if (enemyPrism.active) {
+      prismLogs.push({
+        tick: 0, time: 0, type: 'ability', sourceId: 'prism',
+        message: `프리즘 시너지 (enemy): ${enemyPrism.names.join(', ')}`,
+      });
+    }
+    prismLogs.push({
+      tick: 0, time: 0, type: 'ability', sourceId: 'prism',
+      message: `결과: ${prismOutcome.winner} — ${prismOutcome.reason}`,
+    });
+    return {
+      winner: prismOutcome.winner,
+      duration: 0,
+      logs: prismLogs,
+      playerUnits,
+      enemyUnits: enemies,
+      snapshots: [captureSnapshot(-1, [...playerUnits, ...enemies], [])],
+    };
+  }
 
   // Apply trait omnivamp bonuses
   const playerTraitOmnivamp = playerActiveTraits.find(t => t.trait.apiName === 'TFT16_Slayer' && t.activeEffect);
