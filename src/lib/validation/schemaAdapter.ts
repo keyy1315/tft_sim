@@ -195,6 +195,9 @@ export function toNRunInput(
         // game-level 단일 별자리 → 양 팀에 동일 전달 (실제 게임은 양 팀 동일 별자리).
         playerStargazerConstellation: options.stargazerConstellation,
         enemyStargazerConstellation: options.stargazerConstellation,
+        // 별돌보미 강화 칸 점진 공개 — round metadata 의 player level 전달.
+        playerLevel: round.playerTeam.level,
+        enemyLevel: round.opponent.level,
         skipMirror: true,
         stageNumber,
       },

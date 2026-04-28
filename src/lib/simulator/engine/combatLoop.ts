@@ -116,6 +116,14 @@ export interface SimulateOptions {
   priorPlayerShieldDeaths?: number;
   /** B 팀(enemy) 누적 사망 카운트. 의미는 player 와 동일. */
   priorEnemyShieldDeaths?: number;
+  /**
+   * 별돌보미 강화 칸 점진 공개 — 플레이어 레벨에 따라 14칸 풀 패턴 중
+   * 일부만 공개됨. 미지정 시 full reveal (PR-3 기존 동작 유지, backward compat).
+   * 추정 매핑 (정확한 spec 자료 없음): min(14, max(0, (level-1) * 2)).
+   */
+  playerLevel?: number;
+  /** B 팀(enemy) 플레이어 레벨. 의미는 player 와 동일. */
+  enemyLevel?: number;
 }
 
 function createCombatUnit(
@@ -667,11 +675,24 @@ function applyJuggernautDR(activeTraits: ActiveTrait[], units: CombatUnit[]): vo
  *   - 비-Teamwide 변수 (예: Wolf_Health, Wolf_ADAP) → **강화 칸의 별돌보미만**
  *     추가 stat
  */
+/**
+ * 강화 칸 점진 공개 — 플레이어 레벨에 따라 14칸 패턴 중 일부만 활성.
+ * 추정 매핑 (정확한 spec 자료 없음): min(14, max(0, (level-1) * 2)).
+ *   lvl 1 → 0, 2 → 2, 3 → 4, ..., 8 → 14, 9 → 14 (capped).
+ * undefined 입력 시 full 14 (backward compat — PR-3 기본 동작).
+ */
+function revealedTileCount(level: number | undefined): number {
+  if (level == null) return 14;
+  const computed = Math.max(0, (level - 1) * 2);
+  return Math.min(14, computed);
+}
+
 function applyStargazerEffects(
   traits: ActiveTrait[],
   units: CombatUnit[],
   opposingUnits: CombatUnit[],
   constellation: StargazerConstellationId | undefined,
+  playerLevel: number | undefined,
 ): void {
   const stargazer = traits.find((t) => t.trait.name === '별돌보미');
   if (!stargazer || !stargazer.activeEffect || stargazer.style === 0) return;
@@ -681,7 +702,11 @@ function applyStargazerEffects(
   if (!constellation) return;
 
   const eff = stargazer.activeEffect.variables;
-  const empoweredTiles = CONSTELLATION_TILE_PATTERN[constellation];
+  // 점진 공개 — 플레이어 레벨에 따라 14칸 중 첫 N칸만 활성. 미지정 시 full.
+  const empoweredTiles = CONSTELLATION_TILE_PATTERN[constellation].slice(
+    0,
+    revealedTileCount(playerLevel),
+  );
   const isStargazerUnit = (u: CombatUnit): boolean => unitHasTrait(u, '별돌보미');
   // CONSTELLATION_TILE_PATTERN 은 player half (r=0..3) 만 정의. enemy 팀이
   // mirror 된 보드 (r=4..7) 에 있을 때 (skipMirror=false 또는 simulator 직접 호출)
@@ -1709,8 +1734,8 @@ export function simulateCombat(
   applyShenBastionAura(enemyActiveTraits, enemies);
   applyJhinAnnihilator(playerActiveTraits, enemies);  // 적 대상
   applyJhinAnnihilator(enemyActiveTraits, playerUnits);
-  applyStargazerEffects(playerActiveTraits, playerUnits, enemies, options.playerStargazerConstellation);
-  applyStargazerEffects(enemyActiveTraits, enemies, playerUnits, options.enemyStargazerConstellation);
+  applyStargazerEffects(playerActiveTraits, playerUnits, enemies, options.playerStargazerConstellation, options.playerLevel);
+  applyStargazerEffects(enemyActiveTraits, enemies, playerUnits, options.enemyStargazerConstellation, options.enemyLevel);
   applyMorganaDarklight(playerActiveTraits, playerUnits);
   applyMorganaDarklight(enemyActiveTraits, enemies);
 
