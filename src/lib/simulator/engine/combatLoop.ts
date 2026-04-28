@@ -1095,9 +1095,15 @@ function tickStatusEffects(
     }
   }
 
-  // 만료된 상태이상 로그 생성
+  // 만료된 상태이상 로그 생성 + side-effect cleanup (shield pool 차감 등).
   const expired = unit.statusEffects.filter(e => e.remainingTicks <= 0);
   for (const effect of expired) {
+    // shield statusEffect 만료 시 unit.shield 에서 잔존 amount 차감 (codex P1 회귀 가드).
+    // applyShield 가 damage 흡수 시 unit.shield 만 줄어들어 statusEffect.value 와 desync 가능.
+    // Math.max(0, ...) 로 over-subtract 방지 — broken 상태 (unit.shield=0) 시에도 안전.
+    if (effect.type === 'shield' && effect.value) {
+      unit.shield = Math.max(0, unit.shield - effect.value);
+    }
     const label = STATUS_EFFECT_LABELS[effect.type as StatusEffectType];
     if (label) {
       const log: CombatLog = {

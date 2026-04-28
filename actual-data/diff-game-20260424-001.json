@@ -1,8 +1,8 @@
 {
   "gameId": "game-20260424-001",
-  "computedAt": "2026-04-28T06:21:05.280Z",
+  "computedAt": "2026-04-28T06:27:19.044Z",
   "sourceGameMtime": 1777278310429,
-  "engineSha": "a7f641570002aa0c06719270973a8ece6389c277",
+  "engineSha": "7e7cab78ff658845536f33c7fd5203cce909b4cc",
   "nRuns": 10,
   "seedBase": 0,
   "rounds": [
@@ -543,13 +543,13 @@
           },
           "championId": "TFT17_Briar",
           "actual": 943,
-          "simMean": 2177.4512437221697,
-          "simMedian": 2015.6969286600743,
+          "simMean": 2213.5542747693544,
+          "simMedian": 2184.5088402759066,
           "simRange": [
             1413.2726964950562,
             3224.934964415844
           ],
-          "diffPct": 1.3090681269588227
+          "diffPct": 1.3473534196917862
         },
         {
           "hex": {
@@ -3347,7 +3347,7 @@
     "pvpRoundCount": 21,
     "winnerMatchRate": 0.8095238095238095,
     "weakSignalRoundCount": 1,
-    "avgPlayerDamageErrorPct": -0.1898208327019628,
+    "avgPlayerDamageErrorPct": -0.18936505540752274,
     "avgSurvivorHpErrorPts": 1.284600690206125
   }
 }
