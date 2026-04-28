@@ -924,6 +924,29 @@ function applyDarkStarEffects(activeTraits: ActiveTrait[], units: CombatUnit[]):
   }
 }
 
+/**
+ * 태고족 (Primordian) — (3) tier DamageMultiplier=1.45 → 태고족 unit damageAmp +0.45.
+ *
+ * Spec (TFT17_Primordian):
+ *   (2) DamageMultiplier=1 (placeholder), DamageTakenPercentModifier=0.08, 군체 유충 spawn — 후속 PR
+ *   (3) DamageMultiplier=1.45 (style=5), 태고족 unit 입히는 피해 +45% — 본 PR 범위
+ *
+ * 군체 유충 spawn 메커니즘 + DamageTakenPercentModifier 는 별도 minion 시스템 필요 — 후속 PR.
+ *
+ * 태고족 챔프 (3명): Briar, Belveth, RekSai.
+ */
+function applyPrimordianEffects(activeTraits: ActiveTrait[], units: CombatUnit[]): void {
+  const trait = activeTraits.find(t => t.trait.apiName === 'TFT17_Primordian');
+  if (!trait || !trait.activeEffect || trait.style === 0) return;
+  const multiplier = (trait.activeEffect.variables.DamageMultiplier ?? 1) as number;
+  if (multiplier <= 1) return;
+  const ampDelta = multiplier - 1;
+  for (const u of units) {
+    if (!unitHasTrait(u, '태고족')) continue;
+    u.damageAmp += ampDelta;
+  }
+}
+
 /** 전쟁기계 — BaseDR을 damageReduction에 적용 */
 function applyJuggernautDR(activeTraits: ActiveTrait[], units: CombatUnit[]): void {
   const jugg = activeTraits.find(t => t.trait.apiName === 'TFT16_Juggernaut' && t.activeEffect);
@@ -2143,6 +2166,8 @@ export function simulateCombat(
   applyTimebreakerEffects(enemyActiveTraits, enemies);
   applyDarkStarEffects(playerActiveTraits, playerUnits);
   applyDarkStarEffects(enemyActiveTraits, enemies);
+  applyPrimordianEffects(playerActiveTraits, playerUnits);
+  applyPrimordianEffects(enemyActiveTraits, enemies);
   // 선봉대 보호막은 전투 시작 시점 (tick=0, time=0).
   applyVanguardEffects(playerActiveTraits, playerUnits, 0, 0, logs);
   applyVanguardEffects(enemyActiveTraits, enemies, 0, 0, logs);
