@@ -2549,7 +2549,9 @@ export function simulateCombat(
                 // DOT도 방어력/피해감소 적용
                 const resistance = dmgType === 'magic' ? t.stats.magicResist : dmgType === 'physical' ? t.stats.armor : 0;
                 const pen = dmgType === 'magic' ? unit.stats.magicPen : dmgType === 'physical' ? unit.stats.armorPen : 0;
-                const mitigated = dmgType === 'true' ? abilityDmg * (1 + unit.damageAmp) : applyResistance(abilityDmg * (1 + unit.damageAmp), resistance, pen);
+                // 저격수 (Sniper) — DOT 도 거리 기반 추가 amp 포함 (codex P2 회귀 가드).
+                const dotDamageAmp = unit.damageAmp + computeSniperDamageAmp(unit, t);
+                const mitigated = dmgType === 'true' ? abilityDmg * (1 + dotDamageAmp) : applyResistance(abilityDmg * (1 + dotDamageAmp), resistance, pen);
                 const perTickDmg = mitigated / config.dot.duration * TICK_DURATION;
                 t.statusEffects.push({
                   type: 'burn', sourceId: unit.id,
@@ -2834,7 +2836,9 @@ export function simulateCombat(
             for (const t of oorAlive) {
               const resistance = dmgType === 'magic' ? t.stats.magicResist : dmgType === 'physical' ? t.stats.armor : 0;
               const pen = dmgType === 'magic' ? unit.stats.magicPen : dmgType === 'physical' ? unit.stats.armorPen : 0;
-              const mitigated = dmgType === 'true' ? abilityDmg * (1 + unit.damageAmp) : applyResistance(abilityDmg * (1 + unit.damageAmp), resistance, pen);
+              // 저격수 (Sniper) — OOR DOT 도 거리 기반 추가 amp 포함 (codex P2 회귀 가드).
+              const oorDotDamageAmp = unit.damageAmp + computeSniperDamageAmp(unit, t);
+              const mitigated = dmgType === 'true' ? abilityDmg * (1 + oorDotDamageAmp) : applyResistance(abilityDmg * (1 + oorDotDamageAmp), resistance, pen);
               const perTickDmg = mitigated / outOfRangeConfig.dot.duration * TICK_DURATION;
               t.statusEffects.push({
                 type: 'burn', sourceId: unit.id,
