@@ -160,6 +160,8 @@ function createCombatUnit(
     augmentExecuteThreshold: 0,
     augmentBurnPercent: 0,
     inventionTankDamageAmp: 0,
+    darkStarExecuteThreshold: 0,
+    darkStarSupermassive: false,
     gragasCarryActive: false,
     leonaCarryActive: false,
     attackCount: 0,
@@ -925,32 +927,82 @@ function applyBrawlerEffects(activeTraits: ActiveTrait[], units: CombatUnit[]): 
 }
 
 /**
- * 암흑의 별 (DarkStar) — (4)+ tier 시 암흑의 별 unit 에 ADAP=45% 가산.
+ * 암흑의 별 (DarkStar) — tier 별 효과:
  *
- * Spec (TFT17_DarkStar):
- *   (2) 8% maxHP 이하 적 execute 블랙홀 — 후속 PR
- *   (4) 추가로 ADAP=45% AD/AP — 본 PR 범위
- *   (6) 가장 강한 암흑의 별 unit Supermassive (효과 +85%) — 후속 PR
- *   (9) 모두 Supermassive — 후속 PR
+ * Spec (TFT17_DarkStar) 17.2 raw (모든 tier 동일 변수):
+ *   ADAP=45, ExecuteHPPercent=0.08, PercentHealth=0.30, SupermassivePercentBonus=0.85
  *
- * 본 PR 은 (4)+ tier ADAP 만 처리. 모든 effects 의 ADAP 변수가 45 로 동일하지만
- * desc 상 (2) 행에는 ADAP 가 없어, style >= 3 (=tier (4)+) 일 때만 적용.
+ * Tier 차이는 코드 로직으로 처리:
+ *   (2) tier (style 1)  : 블랙홀 execute — currentHp/maxHp ≤ 0.08 적 즉사
+ *   (4) tier (style 3)  : (2) + ADAP 45% AD/AP 가산
+ *   (6) tier (style 5)  : (4) + 가장 강한 darkStar unit Supermassive
+ *                          (ADAP × (1 + 0.85), maxHp × (1 + 0.30))
+ *   (9) tier (style 6)  : 프리즘 — 별도 prism handler 처리 (10레벨 즉시 승리)
  *
  * 암흑의 별 챔프 (6명): Kaisa, Karma, Jhin, Chogath, Lissandra, Mordekaiser.
  */
 function applyDarkStarEffects(activeTraits: ActiveTrait[], units: CombatUnit[]): void {
   const trait = activeTraits.find(t => t.trait.apiName === 'TFT17_DarkStar');
   if (!trait || !trait.activeEffect || trait.style === 0) return;
-  // (2) tier 는 블랙홀 execute 만 — 본 PR 범위 외. ADAP 는 (4)+ 부터.
-  if (trait.style < 3) return;
   const v = trait.activeEffect.variables;
   const adap = (v.ADAP ?? 0) as number;
-  if (adap <= 0) return;
-  for (const u of units) {
-    if (!unitHasTrait(u, '암흑의 별')) continue;
-    u.stats.damage = Math.round(u.stats.damage * (1 + adap / 100));
-    u.stats.ap = (u.stats.ap ?? 0) + adap;
+  const executePct = (v.ExecuteHPPercent ?? 0) as number;
+  const supermassiveBonus = (v.SupermassivePercentBonus ?? 0) as number;
+  const percentHealth = (v.PercentHealth ?? 0) as number;
+
+  // darkStar unit 식별 (한 번에)
+  const darkStarUnits = units.filter(u => unitHasTrait(u, '암흑의 별'));
+  if (darkStarUnits.length === 0) return;
+
+  // (2)+ tier: execute threshold 활성 — 모든 darkStar unit 에 적용.
+  if (trait.style >= 1 && executePct > 0) {
+    for (const u of darkStarUnits) {
+      u.darkStarExecuteThreshold = executePct;
+    }
   }
+
+  // (4)+ tier (style 3): ADAP 45% — 모든 darkStar unit.
+  if (trait.style >= 3 && adap > 0) {
+    for (const u of darkStarUnits) {
+      u.stats.damage = Math.round(u.stats.damage * (1 + adap / 100));
+      u.stats.ap = (u.stats.ap ?? 0) + adap;
+    }
+  }
+
+  // (6)+ tier (style 5): 가장 강한 darkStar unit Supermassive (ADAP × 1.85, maxHp × 1.30).
+  // ADAP 추가분만 적용 — 이미 ADAP 45 적용된 stats 위에 추가 (1.85배 - 기본 1배 = 0.85배 추가).
+  if (trait.style >= 5 && supermassiveBonus > 0) {
+    const strongest = findStrongestDarkStarUnit(darkStarUnits);
+    if (strongest) {
+      strongest.darkStarSupermassive = true;
+      // ADAP 추가 강화: 이미 45 적용된 위에 SupermassivePercentBonus(0.85) 만큼 추가.
+      // damage: base × (1 + 0.45) → × (1 + 0.45 × 1.85) = + 0.45 × 0.85 추가
+      // ap: base + 45 → + 45 × 0.85 추가
+      const baseDamageBeforeAdap = strongest.stats.damage / (1 + adap / 100);
+      const extraDamage = baseDamageBeforeAdap * (adap / 100) * supermassiveBonus;
+      strongest.stats.damage = Math.round(strongest.stats.damage + extraDamage);
+      strongest.stats.ap = (strongest.stats.ap ?? 0) + adap * supermassiveBonus;
+      // maxHp +30%
+      if (percentHealth > 0) {
+        const hpDelta = Math.round(strongest.maxHp * percentHealth);
+        strongest.maxHp += hpDelta;
+        strongest.currentHp += hpDelta;
+      }
+    }
+  }
+}
+
+/**
+ * "가장 강한" darkStar unit 선정 — Supermassive 단일 대상.
+ * 우선순위: starLevel → maxHp (아이템 보유 의미) → 첫 번째.
+ */
+function findStrongestDarkStarUnit(units: CombatUnit[]): CombatUnit | null {
+  if (units.length === 0) return null;
+  const maxStar = Math.max(...units.map(u => u.starLevel));
+  const top = units.filter(u => u.starLevel === maxStar);
+  if (top.length === 1) return top[0];
+  // 동급 → maxHp 최고 (아이템 보유 비중 반영)
+  return top.sort((a, b) => b.maxHp - a.maxHp)[0];
 }
 
 /**
@@ -1510,6 +1562,8 @@ function spawnFreljordTurrets(
             augmentExecuteThreshold: 0,
             augmentBurnPercent: 0,
             inventionTankDamageAmp: 0,
+            darkStarExecuteThreshold: 0,
+            darkStarSupermassive: false,
             gragasCarryActive: false,
             leonaCarryActive: false,
             attackCount: 0,
@@ -1648,6 +1702,8 @@ function trySpawnGalio(
     augmentExecuteThreshold: 0,
     augmentBurnPercent: 0,
     inventionTankDamageAmp: 0,
+    darkStarExecuteThreshold: 0,
+    darkStarSupermassive: false,
     gragasCarryActive: false,
     leonaCarryActive: false,
     attackCount: 0,
@@ -3377,10 +3433,15 @@ export function simulateCombat(
             eventBus.emit('on_cast', { sourceId: unit.id, targetId: target.id, value: totalAbilityDmg, tick });
           }
 
-          // Execute threshold: kill if below HP %
-          const shouldExecute = unit.augmentExecuteThreshold > 0
+          // Execute threshold: kill if below HP %.
+          // augmentExecuteThreshold (augment) + darkStarExecuteThreshold (DarkStar (2)+ tier).
+          const effectiveExecuteThreshold = Math.max(
+            unit.augmentExecuteThreshold,
+            unit.darkStarExecuteThreshold,
+          );
+          const shouldExecute = effectiveExecuteThreshold > 0
             && target.currentHp > 0
-            && target.currentHp / target.maxHp < unit.augmentExecuteThreshold;
+            && target.currentHp / target.maxHp < effectiveExecuteThreshold;
 
           if ((target.currentHp <= 0 || shouldExecute) && target.state !== 'dead') {
             target.state = 'dead';
@@ -3393,7 +3454,7 @@ export function simulateCombat(
               tick, time, type: 'death',
               sourceId: target.id,
               message: shouldExecute && target.currentHp > 0
-                ? `${target.champion.name} 처형됨! (HP ${Math.round(unit.augmentExecuteThreshold * 100)}% 이하)`
+                ? `${target.champion.name} 처형됨! (HP ${Math.round(effectiveExecuteThreshold * 100)}% 이하${unit.darkStarExecuteThreshold > 0 ? ' — 블랙홀' : ''})`
                 : `${target.champion.name} 사망!`,
             };
             logs.push(deathLog);

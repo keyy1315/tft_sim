@@ -485,6 +485,18 @@ export interface CombatUnit {
   /** 발명품 탱커 대상 추가 피해증폭 (ArmorNullifier) */
   inventionTankDamageAmp: number;
   /**
+   * 암흑의 별 (TFT17_DarkStar) (2)+ tier 활성 시 darkStar unit 본인만 양수.
+   * 이 unit 이 공격하여 target 의 currentHp/maxHp 가 임계값 이하면 즉사 처리 (블랙홀).
+   * 0 = 미활성. ExecuteHPPercent 0.08 (8%) 가 17.2 spec.
+   */
+  darkStarExecuteThreshold: number;
+  /**
+   * 암흑의 별 (6)+ tier 활성 + "가장 강한" darkStar unit 1명만 true.
+   * Supermassive 효과: ADAP 가산을 (1 + SupermassivePercentBonus) 만큼 추가 강화 +
+   * maxHp 를 PercentHealth (0.30 = +30%) 만큼 증가.
+   */
+  darkStarSupermassive: boolean;
+  /**
    * 자폭(TFT17_Augment_GragasCarry) 활성 + 가장 강한 그라가스로 선정된 unit 만 true.
    * 그라가스 ability 가 거대한 폭발 (자기 자신 데미지, 다른 아군 X) 로 변환되며,
    * 자폭 데미지로 hp 가 1 미만으로 떨어지지 않음 (HP floor=1).
