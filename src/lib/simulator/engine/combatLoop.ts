@@ -1199,7 +1199,26 @@ function applyStargazerEffects(
   }
 
   // === Fountain (우물) — Teamwide ManaRegen + 별돌보미 추가 마나 + 스킬 힐 ===
+  // ⚠️ 17.2 LIVE 재설계 NOTE:
+  //    Fountain_HealPercent / Fountain_ManaRegen / Fountain_ManaRegen_Teamwide 모두 raw
+  //    data 에서 제거됨. 신규 hash 키 (`{13a2a786}`, `{8d19f5db}`, `{d7e6d620}`,
+  //    `{f2840aed}`) 로 메커니즘 변경 (스택 기반으로 추정 — 정확한 의미 미확정).
+  //
+  //    legacy 변수 부재 감지 시 (= 17.2+) 명시 early return — 잘못된 hash 키 매핑으로
+  //    부정확한 시뮬 결과를 내는 것보다 효과 0 (Fountain 별자리 미구현) 이 보수적/안전.
+  //    사용자가 Fountain 별자리 선택해도 시뮬은 별자리 미선택과 동일 결과.
+  //
+  //    TODO(17.2-fountain-mig): lolchess/인게임 확인 후 신규 hash 변수 의미 매핑 +
+  //      메커니즘 재구현. 관련 테스트는 stargazer-fountain-heal.test.ts 등에서 .skip.
   if (apiName === 'TFT17_Stargazer_Fountain') {
+    const isLegacy = 'Fountain_HealPercent' in eff
+      || 'Fountain_ManaRegen' in eff
+      || 'Fountain_ManaRegen_Teamwide' in eff;
+    if (!isLegacy) {
+      // 17.2+ 재설계 — Fountain 효과 미반영 (의도된 no-op). hash 변수 매핑은 후속 PR.
+      return;
+    }
+    // legacy (16.x / pre-17.2) 경로 유지: PBE rollback 또는 set 변경 시 호환.
     const teamwide = (eff.Fountain_ManaRegen_Teamwide ?? 0) as number; // 단순 mana/sec
     const ownerExtra = (eff.Fountain_ManaRegen ?? 0) as number;
     // (3) 0.18 → 즉발 ability dmg 의 18% 만큼 가장 체력 낮은 아군 회복.

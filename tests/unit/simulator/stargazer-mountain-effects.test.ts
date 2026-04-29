@@ -27,7 +27,7 @@ function placed(c: RawChampion, q: number, r: number, extraItems: RawItem[] = []
 }
 
 describe('Mountain — AP 단위 + StatIncrease 증폭', () => {
-  it('minUnits=6 활성 + 강화 칸 안 별돌보미 AP +12 (pts), AD ×1.12', () => {
+  it('minUnits=6 활성 + 강화 칸 안 별돌보미 AP +15 (pts), AD ×1.15 (17.2)', () => {
     // player 6 별돌보미 (champion 3 + emblem 3) — 모두 mountain 강화 칸 axial 좌표:
     // (2,0)(3,0)(4,0)(5,0)(1,1)(5,1) 등. 강화 칸 외엔 효과 안 받음 — 별도 케이스 검증.
     const ally: PlacedChampion[] = [
@@ -58,11 +58,11 @@ describe('Mountain — AP 단위 + StatIncrease 증폭', () => {
     for (let i = 0; i < ally.length; i++) {
       const um = withMountain.playerUnits[i];
       const ub = withoutConst.playerUnits[i];
-      // AD: damage × 1.12, 정수 round 오차 ±1.
-      const expectedAD = Math.round(ub.stats.damage * 1.12);
+      // AD: damage × 1.15, 정수 round 오차 ±1 (17.2: Mountain_ADAP 0.12 → 0.15).
+      const expectedAD = Math.round(ub.stats.damage * 1.15);
       expect(Math.abs(um.stats.damage - expectedAD)).toBeLessThanOrEqual(1);
-      // AP: +12 percentage points (다른 trait 영향 없음)
-      expect(um.stats.ap - ub.stats.ap).toBeCloseTo(12, 1);
+      // AP: +15 percentage points (다른 trait 영향 없음)
+      expect(um.stats.ap - ub.stats.ap).toBeCloseTo(15, 1);
     }
   });
 

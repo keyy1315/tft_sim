@@ -1,10 +1,12 @@
 /**
  * 별돌보미 여사냥꾼(Huntress) + 뱀(Serpent) 변종 회귀 가드 (PR-5 옵션 B).
  *
- * Huntress spec (TFT17_Stargazer_Huntress):
+ * Huntress spec (TFT17_Stargazer_Huntress) — 17.2 LIVE:
  *   - 전투 시작: 적 maxHp 상위 NumMarks 명에 'mark' statusEffect.
  *   - 강화 칸 별돌보미: 표식된 적 사망 시 maxHp × Huntress_Heal 회복.
- *   - (3) NumMarks=3, Heal=0.10 / (5) NumMarks=5, Heal=0.10 / (7) NumMarks=7, Heal=0.10
+ *   - (3) NumMarks=3, Heal=0.15 / (5) NumMarks=5, Heal=0.15 / (7) NumMarks=7, Heal=0.15
+ *     (17.2: Heal 0.10 → 0.15)
+ *   - AS: (3) 0.12 / (5) 0.35 / (7) 0.55 (17.2: 강화)
  *
  * Serpent spec (TFT17_Stargazer_Serpent):
  *   - 강화 칸 별돌보미: 적 데미지 명중 시 dmg × Serpent_Poison 을
@@ -45,7 +47,7 @@ function buildStargazerTeam(constellation: 'huntress' | 'snake'): PlacedChampion
 }
 
 describe('Huntress — 강화 칸 별돌보미 healPercent 설정 + 적 표식', () => {
-  it('(3) 별돌보미 4명 → healPercent=0.10, 적 maxHp 상위 3명 mark', () => {
+  it('(3) 별돌보미 4명 → healPercent=0.15, 적 maxHp 상위 3명 mark (17.2)', () => {
     const tiles = CONSTELLATION_TILE_PATTERN.huntress;
     const team = [
       placed(apTwistedFate, tiles[0].q, tiles[0].r),
@@ -65,7 +67,7 @@ describe('Huntress — 강화 칸 별돌보미 healPercent 설정 + 적 표식',
       playerStargazerConstellation: 'huntress',
     });
     const tf = result.playerUnits.find(u => u.champion.apiName === 'TFT17_TwistedFate')!;
-    expect(tf.stargazerHuntressHealPercent).toBeCloseTo(0.10, 2);
+    expect(tf.stargazerHuntressHealPercent).toBeCloseTo(0.15, 2);
     // enemy 5명 중 3명에 mark (상위 maxHp 기준 — 모두 dummyEnemy 라 처음 3명).
     const markedCount = result.enemyUnits.filter(e =>
       e.statusEffects.some(s => s.type === 'mark') ||
@@ -75,7 +77,7 @@ describe('Huntress — 강화 칸 별돌보미 healPercent 설정 + 적 표식',
     expect(markedCount).toBeGreaterThanOrEqual(3);
   });
 
-  it('(5) 별돌보미 6명 → healPercent=0.10, NumMarks=5', () => {
+  it('(5) 별돌보미 6명 → healPercent=0.15, NumMarks=5 (17.2)', () => {
     const team = buildStargazerTeam('huntress');
     const enemy: PlacedChampion[] = Array.from({ length: 7 }, (_, i) =>
       placed(dummyEnemy, i % 7, 3)
@@ -85,7 +87,7 @@ describe('Huntress — 강화 칸 별돌보미 healPercent 설정 + 적 표식',
       playerStargazerConstellation: 'huntress',
     });
     const tf = result.playerUnits.find(u => u.champion.apiName === 'TFT17_TwistedFate')!;
-    expect(tf.stargazerHuntressHealPercent).toBeCloseTo(0.10, 2);
+    expect(tf.stargazerHuntressHealPercent).toBeCloseTo(0.15, 2);
   });
 
   it('huntress 외 별자리 (mountain) 시 healPercent=0', () => {

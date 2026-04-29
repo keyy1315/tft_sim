@@ -4,7 +4,7 @@ import { BOARD_COLS, DEFAULT_STAR_LEVEL } from '@/lib/simulator/models/constants
 import { resolveTraits } from '@/lib/simulator/systems/trait';
 import { canEquipItem, canAddPiltoverModule, isVoidMutation } from '@/lib/simulator/systems/item';
 import { getDefaultStacks } from '@/lib/simulator/systems/augment';
-import { FRELJORD_TURRET, TIBBERS_CHAMPION, AZIR_SOLDIER_CHAMPION, AZIR_MAX_SOLDIERS, VOYAGER_SUMMON_CHAMPION, SHEN_ARTIFACT_CHAMPION, isAutoUnit } from '@/data/specialUnits';
+import { FRELJORD_TURRET, TIBBERS_CHAMPION, AZIR_SOLDIER_CHAMPION, AZIR_MAX_SOLDIERS, VOYAGER_SUMMON_CHAMPION, SHEN_ARTIFACT_CHAMPION, PRIMORDIAN_BOSS_CHAMPION, isAutoUnit } from '@/data/specialUnits';
 import type { IoniaPathType } from '@/data/traitModules';
 import type { StargazerConstellationId } from '@/lib/actualData/types';
 import { RawTrait } from '@/types';
@@ -206,6 +206,60 @@ function syncShenArtifactInTeam(team: PlacedChampion[]): PlacedChampion[] {
   return team;
 }
 
+/**
+ * 군체의 심장 (TFT17_Augment_PrimordianPrismaticAugment) 발동 시
+ * 태고족 우두머리 (TFT17_Enemy_Aatrox) 자동 소환.
+ *
+ * 발동 조건:
+ *   - 팀에 군체의 심장 augment 선택 +
+ *   - 서로 다른 (apiName 기준) 3성 유닛 6명 이상 배치
+ * (LevelRequirement=10 은 별도 player level state 가 시뮬에 없으므로
+ *  3성 6명 조건이 자연스럽게 레벨 10 시점을 시사 — 현실적 단순화)
+ *
+ * 우두머리는 3성 고정, items=[], 이미 존재하면 starLevel 만 보정.
+ * augment 가 비활성/조건 미충족 시 보드에서 자동 제거.
+ */
+function syncPrimordianBossInTeam(
+  team: PlacedChampion[],
+  augments: RawAugment[],
+): PlacedChampion[] {
+  const hasAugment = augments.some(a => a.apiName === 'TFT17_Augment_PrimordianPrismaticAugment');
+  const existingIdx = team.findIndex(p => p.champion.apiName === PRIMORDIAN_BOSS_CHAMPION.apiName);
+
+  // 자기 자신 (보스) 제외 후 서로 다른 3성 unit 카운트
+  const distinctThreeStars = new Set<string>();
+  for (const p of team) {
+    if (p.champion.apiName === PRIMORDIAN_BOSS_CHAMPION.apiName) continue;
+    if (p.starLevel >= 3) distinctThreeStars.add(p.champion.apiName);
+  }
+  const conditionMet = hasAugment && distinctThreeStars.size >= 6;
+
+  // 조건 미충족 → 기존 보스 제거
+  if (!conditionMet) {
+    return existingIdx >= 0 ? team.filter((_, i) => i !== existingIdx) : team;
+  }
+
+  // 조건 충족 + 이미 존재 → 별 레벨만 3 보장
+  if (existingIdx >= 0) {
+    if (team[existingIdx].starLevel === 3) return team;
+    return team.map((p, i) =>
+      i === existingIdx ? { ...p, starLevel: 3, items: [] } : p,
+    );
+  }
+
+  // 신규 소환 — 빈 hex 찾기
+  const occupied = new Set(team.map(p => `${p.position.q},${p.position.r}`));
+  const pos = findEmptyAdjacentHex({ q: 3, r: 2 }, occupied, 3);
+  if (!pos) return team;
+  return [...team, {
+    champion: PRIMORDIAN_BOSS_CHAMPION,
+    position: pos,
+    starLevel: 3,
+    items: [],
+    isSummon: true,
+  }];
+}
+
 function syncTeam(team: PlacedChampion[], traits: RawTrait[]): PlacedChampion[] {
   // 1단계: 일반 소환체 보정 (아지르/애니/프렐요드)
   const intermediate = syncFreljordTurretsInTeam(syncAzirSoldiersInTeam(syncTibbersInTeam(team)));
@@ -246,31 +300,37 @@ export function useTeamManagement({ traits }: UseTeamManagementArgs) {
   const [rawPlayerTeam, setRawPlayerTeam] = useState<PlacedChampion[]>([]);
   const [rawEnemyTeam, setRawEnemyTeam] = useState<PlacedChampion[]>([]);
 
-  const playerTeam = useMemo(() => syncTeam(rawPlayerTeam, traits), [rawPlayerTeam, traits]);
-  const enemyTeam = useMemo(() => syncTeam(rawEnemyTeam, traits), [rawEnemyTeam, traits]);
+  // Augment state — playerTeam/enemyTeam derived value 가 augments 를 참조 (군체의 심장 자동 소환).
+  // hook 순서상 useMemo 보다 먼저 선언되어야 함.
+  const [playerAugments, setPlayerAugments] = useState<RawAugment[]>([]);
+  const [playerAugmentStacks, setPlayerAugmentStacks] = useState<Record<string, number>>({});
+  const [enemyAugments, setEnemyAugments] = useState<RawAugment[]>([]);
+  const [enemyAugmentStacks, setEnemyAugmentStacks] = useState<Record<string, number>>({});
+
+  const playerTeam = useMemo(
+    () => syncPrimordianBossInTeam(syncTeam(rawPlayerTeam, traits), playerAugments),
+    [rawPlayerTeam, traits, playerAugments],
+  );
+  const enemyTeam = useMemo(
+    () => syncPrimordianBossInTeam(syncTeam(rawEnemyTeam, traits), enemyAugments),
+    [rawEnemyTeam, traits, enemyAugments],
+  );
 
   // updater 의 prev 는 callers 가 보는 synced 뷰와 동일해야 DnD srcIdx 등이 일치한다.
-  // 저장은 raw 에 하지만 updater 에는 syncTeam(raw, traits) 결과를 주입.
-  // syncTeam 은 idempotent(summon 존재 여부를 existingIdx 로 감지)하므로 raw 에 synced 가
-  // 다시 들어와도 중복 누적 없이 재계산 가능.
+  // 저장은 raw 에 하지만 updater 에는 sync 결과 (군체의 심장 자동 소환 포함) 를 주입.
+  // sync 함수들은 idempotent (existingIdx 로 감지) 라 raw 에 synced 가 다시 들어와도 중복 없음.
   const updatePlayerTeam = (action: PlacedChampion[] | ((prev: PlacedChampion[]) => PlacedChampion[])) => {
     setRawPlayerTeam(rawPrev => {
-      const syncedPrev = syncTeam(rawPrev, traits);
+      const syncedPrev = syncPrimordianBossInTeam(syncTeam(rawPrev, traits), playerAugments);
       return typeof action === 'function' ? action(syncedPrev) : action;
     });
   };
   const updateEnemyTeam = (action: PlacedChampion[] | ((prev: PlacedChampion[]) => PlacedChampion[])) => {
     setRawEnemyTeam(rawPrev => {
-      const syncedPrev = syncTeam(rawPrev, traits);
+      const syncedPrev = syncPrimordianBossInTeam(syncTeam(rawPrev, traits), enemyAugments);
       return typeof action === 'function' ? action(syncedPrev) : action;
     });
   };
-
-  // Augment state
-  const [playerAugments, setPlayerAugments] = useState<RawAugment[]>([]);
-  const [playerAugmentStacks, setPlayerAugmentStacks] = useState<Record<string, number>>({});
-  const [enemyAugments, setEnemyAugments] = useState<RawAugment[]>([]);
-  const [enemyAugmentStacks, setEnemyAugmentStacks] = useState<Record<string, number>>({});
   const [showAugmentPicker, setShowAugmentPicker] = useState<'player' | 'enemy' | null>(null);
   const [augmentDetailTarget, setAugmentDetailTarget] = useState<{ aug: RawAugment; team: 'player' | 'enemy' } | null>(null);
 

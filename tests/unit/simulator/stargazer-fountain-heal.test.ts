@@ -7,6 +7,15 @@
  *   (5) Fountain_HealPercent=0.25 — 25%.
  *
  * 회복 대상: 같은 팀 + 살아있는 unit + currentHp/maxHp 비율 가장 낮음 (자기 포함).
+ *
+ * ⚠️ 17.2 재설계 NOTE:
+ *   17.2 LIVE 패치에서 Fountain trait 변수가 완전 재설계됨.
+ *   Fountain_HealPercent / Fountain_ManaRegen / Fountain_ManaRegen_Teamwide
+ *   모두 raw data 에서 제거. 신규 hash 키 (`{13a2a786}`, `{8d19f5db}`,
+ *   `{d7e6d620}`, `{f2840aed}`) 로 메커니즘 변경 (스택 기반으로 추정).
+ *   시뮬 코드는 `?? 0` 폴백으로 효과 0 — 자연스럽게 무효화.
+ *   본 테스트들은 17.2 메커니즘 정확히 파악될 때까지 skip.
+ *   TODO: lolchess/인게임 확인 후 신규 hash 변수 의미 매핑 + 메커니즘 마이그레이션.
  */
 import { describe, it, expect } from 'vitest';
 import { simulateCombat } from '@/lib/simulator/engine/combatLoop';
@@ -39,7 +48,8 @@ function buildFountainTeam(): PlacedChampion[] {
   ];
 }
 
-describe('Fountain — 강화 칸 안 별돌보미 스킬 시전 시 healPercent 설정', () => {
+// 17.2 Fountain 재설계로 메커니즘 미반영 상태 — 마이그레이션 후 .skip 제거.
+describe.skip('Fountain — 강화 칸 안 별돌보미 스킬 시전 시 healPercent 설정 (17.2 마이그 대기)', () => {
   it('(3) 별돌보미 stargazerFountainHealPercent = 0.18 (활성 effect minUnits=3 case)', () => {
     // 별돌보미 4명 → minUnits=3 활성 (HealPercent=0.18)
     const tiles = CONSTELLATION_TILE_PATTERN.well;
@@ -113,7 +123,7 @@ describe('Fountain — 강화 칸 안 별돌보미 스킬 시전 시 healPercent
   });
 });
 
-describe('Fountain — OOR (dash/self_buff) cast path 도 heal 적용 (codex P1 회귀 가드)', () => {
+describe.skip('Fountain — OOR (dash/self_buff) cast path 도 heal 적용 (17.2 마이그 대기)', () => {
   it('Corki (dash 챔프) 가 사거리 밖 시전해도 Fountain heal 발동', () => {
     // Corki 는 dash: 'to_target' + hitCount: 21 (즉발 dmg). OOR cast path 통과.
     // Corki 를 well 강화 칸 안 별돌보미 emblem 으로 만든 후 적과 멀리 배치 → 첫 cast 가 OOR path.
@@ -143,7 +153,7 @@ describe('Fountain — OOR (dash/self_buff) cast path 도 heal 적용 (codex P1 
   });
 });
 
-describe('Fountain — 스킬 시전 시 가장 체력 낮은 아군 회복', () => {
+describe.skip('Fountain — 스킬 시전 시 가장 체력 낮은 아군 회복 (17.2 마이그 대기)', () => {
   it('(5) 별돌보미 스킬 시전 → 가장 체력 낮은 아군 currentHp 증가', () => {
     // well 6명 + 다친 ally 1명을 강화 칸 외에 배치 → 그 ally 가 회복 대상
     const tiles = CONSTELLATION_TILE_PATTERN.well;

@@ -3,7 +3,7 @@ import { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
 import { PlacedChampion, HexCoord, axialToOffset, DragData, RawItem } from '@/types';
 import { DEFAULT_STAR_LEVEL } from '@/lib/simulator/models/constants';
 import { getTeamFromRow, parseCellId } from '@/hooks/useTeamManagement';
-import { isAutoUnit } from '@/data/specialUnits';
+import { isAutoUnit, isNoItemAutoUnit } from '@/data/specialUnits';
 
 interface UseDndHandlersArgs {
   playerTeam: PlacedChampion[];
@@ -118,6 +118,10 @@ export function useDndHandlers({
       }
     } else if (dragData.type === 'item') {
       if (existingIdx < 0) return;
+      // 아이템 장착 불가 자동 소환 unit (태고족 우두머리 등) → 슬롯 거부
+      const targetTeam = team === 'player' ? playerTeam : enemyTeam;
+      const target = targetTeam[existingIdx];
+      if (target && isNoItemAutoUnit(target.champion.apiName)) return;
       handleEquipItem(team, existingIdx, dragData.item);
     }
   };

@@ -2,8 +2,8 @@
   "meta": {
     "set": 17,
     "source": "CommunityDragon TFT ko_kr.json",
-    "extractedAt": "2026-04-20T01:34:33.410Z",
-    "totalItems": 707,
+    "extractedAt": "2026-04-29T00:27:54.652Z",
+    "totalItems": 714,
     "baseComponents": 132,
     "combinedItems": 51,
     "tft17Special": 44,
@@ -62,7 +62,7 @@
       "apiName": "TFT17_MarketOffering_BloodPactPlusPlus",
       "composition": [],
       "effects": {
-        "Gold": 16,
+        "Gold": 13,
         "HealthLossPerPlayer": 1
       },
       "desc": "@Gold@골드를 획득합니다. 이 선택지를 고른 다른 플레이어 1명당 전략가 체력을 @HealthLossPerPlayer@ 잃습니다.",
@@ -143,7 +143,7 @@
         "HealthLoss": null,
         "StarLevel_TOOLTIPONLY": 2
       },
-      "desc": "무작위 @ChampCost_TOOLTIPONLY@단계 @StarLevel_TOOLTIPONLY@성 챔피언 1명을 획득합니다. 전략가 체력이 @HealthLoss@ 감소합니다.",
+      "desc": "무작위 @ChampCost_TOOLTIPONLY@단계 @StarLevel_TOOLTIPONLY@성 챔피언 1명을 획득합니다. 전략가 체력을 @HealthLoss@ 잃습니다.",
       "icon": "doubleup_assistarmory_champ_4c.png"
     },
     {
@@ -160,11 +160,11 @@
       "composition": [],
       "effects": {
         "Shield": null,
-        "ShieldCeiling": 1000,
-        "ShieldFloor": 300
+        "ShieldCeiling": 800,
+        "ShieldFloor": 450
       },
       "desc": "전투 시작 시 이전 전투에서 가장 먼저 사망한 아군에게 현재 스테이지에 따라 @ShieldFloor@~ @ShieldCeiling@의 보호막을 부여합니다.",
-      "icon": "profileicon1382.png"
+      "icon": "tft17_carouselmarket_sorakasembrace.tft_17_2.png"
     },
     {
       "name": "하급 챔피언 복제기",
@@ -215,7 +215,7 @@
       "apiName": "TFT17_MarketOffering_DelayedCompletedAnvil",
       "composition": [],
       "effects": {
-        "Delay": 4
+        "Delay": 5
       },
       "desc": "@Delay@라운드 후 완성 아이템 모루 1개를 획득합니다.",
       "icon": "tft_armorykeycompleted_square.png"
@@ -236,11 +236,11 @@
       "composition": [],
       "effects": {
         "Gold": 2,
-        "ReforgersUpfront": 3,
+        "ReforgersUpfront": 2,
         "{5c86db47}": 1
       },
       "desc": "즉시 재조합기 @ReforgersUpfront@개를 획득하고 각 스테이지 시작 시 1개를 획득합니다. 재조합기를 사용할 때마다 @Gold@골드를 획득합니다.",
-      "icon": "profileicon1394.png"
+      "icon": "tft17_carouselmarket_craftsmanship.tft_17_2.png"
     },
     {
       "name": "재활용 전문가 2개",
@@ -259,7 +259,7 @@
       "apiName": "TFT17_MarketOffering_Gold_Stage3_Eve",
       "composition": [],
       "effects": {
-        "Gold": 15,
+        "Gold": 12,
         "ShopRoundLoss": 2
       },
       "desc": "@Gold@골드를 획득합니다. @ShopRoundLoss@라운드 동안 챔피언을 구매할 수 없습니다.",
@@ -310,7 +310,7 @@
         "HealthLoss": null,
         "StarLevel_TOOLTIPONLY": 2
       },
-      "desc": "무작위 @ChampCost_TOOLTIPONLY@단계 @StarLevel_TOOLTIPONLY@성 챔피언 1명을 획득합니다. 전략가 체력이 @HealthLoss@ 감소합니다.",
+      "desc": "무작위 @ChampCost_TOOLTIPONLY@단계 @StarLevel_TOOLTIPONLY@성 챔피언 1명을 획득합니다. 전략가 체력을 @HealthLoss@ 잃습니다.",
       "icon": "doubleup_assistarmory_champ_3c.png"
     },
     {
@@ -325,14 +325,14 @@
       "icon": "tft17_carouselmarket_lovers.tft_set17.png"
     },
     {
-      "name": "TFT17_MarketOffering_Name_StarlightPlusPlus",
+      "name": "엇갈린 별 업그레이드 ++",
       "apiName": "TFT17_MarketOffering_StarlightPlusPlus",
       "composition": [],
       "effects": {
         "Cost": 4
       },
       "desc": "다음에 등장하는 상점 내 @Cost@단계 유닛이 2성이 됩니다.",
-      "icon": "profileicon1425.png"
+      "icon": "tft17_carouselmarket_starlight.tft_17_2.png"
     },
     {
       "name": "재활용 전문가 2개",
@@ -375,14 +375,14 @@
       "icon": "tft17_carouselmarket_delayed5costshop.tft_set17.png"
     },
     {
-      "name": "TFT17_MarketOffering_Name_StarlightPlus",
+      "name": "엇갈린 별 업그레이드 +",
       "apiName": "TFT17_MarketOffering_StarlightPlus",
       "composition": [],
       "effects": {
         "Cost": 3
       },
       "desc": "다음에 등장하는 상점 내 @Cost@단계 유닛이 2성이 됩니다.",
-      "icon": "profileicon1425.png"
+      "icon": "tft17_carouselmarket_starlight.tft_17_2.png"
     },
     {
       "name": "경험치 14",
@@ -401,14 +401,14 @@
       "icon": "tft17_carouselmarket_goldorb_temp.tft_set17.png"
     },
     {
-      "name": "TFT17_MarketOffering_Name_PandorasSeat",
+      "name": "판도라의 좌석",
       "apiName": "TFT17_MarketOffering_PandorasSeat",
       "composition": [],
       "effects": {
         "{b763af5c}": 2
       },
-      "desc": "TFT17_MarketOffering_LongDesc_PandorasSeat",
-      "icon": "profileicon3597.png"
+      "desc": "라운드가 시작될 때마다 대기석 가장 오른쪽 @BenchSlotCount@명의 챔피언이 동일한 단계의 무작위 챔피언으로 변신합니다.",
+      "icon": "tft17_carouselmarket_pandorasseat.tft_17_2.png"
     },
     {
       "name": "경험치 @XP@",
@@ -421,14 +421,14 @@
       "icon": "tft17_carouselmarket_xp.tft_set17.png"
     },
     {
-      "name": "TFT17_MarketOffering_Name_Starlight",
+      "name": "엇갈린 별 업그레이드",
       "apiName": "TFT17_MarketOffering_Starlight",
       "composition": [],
       "effects": {
         "Cost": 2
       },
       "desc": "다음에 등장하는 상점 내 @Cost@단계 유닛이 2성이 됩니다.",
-      "icon": "profileicon1425.png"
+      "icon": "tft17_carouselmarket_starlight.tft_17_2.png"
     },
     {
       "name": "특성의 고서",
@@ -437,6 +437,17 @@
       "effects": {},
       "desc": "이 고서를 상점에 끌어다 놓으면 상징이 가득한 무기고가 열립니다! 30초 안에 선택해야 합니다.",
       "icon": "tft5_emblemarmorykey_square.png"
+    },
+    {
+      "name": "결승 진출자의 묘수",
+      "apiName": "TFT17_MarketOffering_FinalistGambit",
+      "composition": [],
+      "effects": {
+        "Gold": 3,
+        "{06752cbb}": 30
+      },
+      "desc": "@Gold@골드를 획득합니다. 상위 4위 안에 들면 @FinalistGold@골드를 추가로 획득합니다.",
+      "icon": "tft17_carouselmarket_finalistgambit.tft_17_2.png"
     },
     {
       "name": "이상 현상",
@@ -469,7 +480,7 @@
       "apiName": "TFT17_MarketOffering_BloodPact",
       "composition": [],
       "effects": {
-        "Gold": 9,
+        "Gold": 8,
         "HealthLossPerPlayer": null
       },
       "desc": "@Gold@골드를 획득합니다. 이 선택지를 고른 다른 플레이어 1명당 전략가 체력을 @HealthLossPerPlayer@ 잃습니다.",
@@ -505,13 +516,13 @@
       "icon": "tft17_carouselmarket_threestaronecost.tft_set17.png"
     },
     {
-      "name": "TFT17_MarketOffering_Name_GoldEveryTurn",
+      "name": "매턴 골드",
       "apiName": "TFT17_MarketOffering_GoldPerTurn_Stage3",
       "composition": [],
       "effects": {
         "Gold": 1
       },
-      "desc": "TFT17_MarketOffering_LongDesc_GoldEveryTurn",
+      "desc": "게임이 끝날 때까지 라운드마다 @Gold@골드를 획득합니다.",
       "icon": "assistgivegold.png"
     },
     {
@@ -545,6 +556,18 @@
       },
       "desc": "즉시 및 패배할 때까지 각 플레이어 대상 전투 후 무작위 @Tier@단계 유닛 1명을 획득합니다.",
       "icon": "doubleup_assistarmory_champ_2c.png"
+    },
+    {
+      "name": "축복: 부",
+      "apiName": "TFT17_MarketOffering_BlessingWealth",
+      "composition": [],
+      "effects": {
+        "ADAP": 8,
+        "Gold": 1,
+        "GoldChance": 12
+      },
+      "desc": "챔피언에게 영구적으로 공격력 및 주문력 @ADAP@%, 처치 관여 시 @Gold@골드 생성 확률 @GoldChance@%를 부여합니다.",
+      "icon": "tft17_carouselmarket_splitgold.tft_17_2.png"
     },
     {
       "name": "퀘스트 새로고침",
@@ -591,7 +614,7 @@
       "apiName": "TFT17_MarketOffering_Rerolls_Large_Stage4",
       "composition": [],
       "effects": {
-        "Rerolls": 8
+        "Rerolls": 7
       },
       "desc": "<rules>계속 돌리세요</rules>",
       "icon": "tft17_carouselmarket_rerolls.tft_set17.png"
@@ -601,12 +624,12 @@
       "apiName": "TFT17_MarketOffering_GroupHugPlus",
       "composition": [],
       "effects": {
-        "Gold": 4,
+        "Gold": 3,
         "Health": null,
         "{a90eae09}": 5
       },
       "desc": "전략가 체력을 @Health@ 얻습니다. 5명 이상의 플레이어가 이 선택지를 골랐을 경우 @Gold@골드를 획득합니다.",
-      "icon": "profileicon4227.png"
+      "icon": "tft17_carouselmarket_grouphug.tft_17_2.png"
     },
     {
       "name": "@Tier@단계 유닛 보유",
@@ -625,20 +648,20 @@
       "apiName": "TFT17_MarketOffering_EmpoweredHex_Electric",
       "composition": [],
       "effects": {
-        "StunDuration": 2
+        "StunDuration": 1.75
       },
       "desc": "챔피언 위치에 칸을 설치합니다. 칸에 있는 아군이 처음으로 적에게 스킬을 적중시키면 해당 적은 @StunDuration@초 동안 기절합니다.<br><br><tftitemrules>[소모품 - 이 아이템은 사용하면 사라집니다.]</tftitemrules>",
       "icon": "tft17_carouselmarket_hexpaintbrush.tft_set17.png"
     },
     {
-      "name": "TFT17_MarketOffering_Name_MaxInterest",
+      "name": "신성한 투자",
       "apiName": "TFT17_MarketOffering_MaxInterest_Stage2",
       "composition": [],
       "effects": {
         "Gold": 4
       },
-      "desc": "TFT17_MarketOffering_LongDesc_MaxInterest",
-      "icon": "profileicon1299.png"
+      "desc": "최대 이자가 1골드 증가합니다. @Gold@골드를 획득합니다.",
+      "icon": "tft17_carouselmarket_maxinterest.tft_17_2.png"
     },
     {
       "name": "4단계",
@@ -649,18 +672,18 @@
         "HealthLoss": null,
         "StarLevel_TOOLTIPONLY": 1
       },
-      "desc": "무작위 @ChampCost_TOOLTIPONLY@단계 @StarLevel_TOOLTIPONLY@성 챔피언 1명을 획득합니다. 전략가 체력이 @HealthLoss@ 감소합니다.",
+      "desc": "무작위 @ChampCost_TOOLTIPONLY@단계 @StarLevel_TOOLTIPONLY@성 챔피언 1명을 획득합니다. 전략가 체력을 @HealthLoss@ 잃습니다.",
       "icon": "doubleup_assistarmory_champ_4c.png"
     },
     {
-      "name": "TFT17_MarketOffering_Name_MaxInterest",
+      "name": "신성한 투자",
       "apiName": "TFT17_MarketOffering_MaxInterest_Stage3",
       "composition": [],
       "effects": {
         "Gold": 6
       },
-      "desc": "TFT17_MarketOffering_LongDesc_MaxInterest",
-      "icon": "profileicon1299.png"
+      "desc": "최대 이자가 1골드 증가합니다. @Gold@골드를 획득합니다.",
+      "icon": "tft17_carouselmarket_maxinterest.tft_17_2.png"
     },
     {
       "name": "재활용 전문가 2개",
@@ -675,7 +698,7 @@
       "apiName": "TFT17_MarketOffering_Rerolls_Small_Stage2",
       "composition": [],
       "effects": {
-        "Rerolls": 5
+        "Rerolls": 4
       },
       "desc": "<rules>계속 돌리세요</rules>",
       "icon": "tft17_carouselmarket_rerolls.tft_set17.png"
@@ -685,22 +708,22 @@
       "apiName": "TFT17_MarketOffering_GroupHug",
       "composition": [],
       "effects": {
-        "Gold": 3,
+        "Gold": 2,
         "Health": null,
         "{a90eae09}": 5
       },
       "desc": "전략가 체력을 @Health@ 얻습니다. 5명 이상의 플레이어가 이 선택지를 골랐을 경우 @Gold@골드를 획득합니다.",
-      "icon": "profileicon4227.png"
+      "icon": "tft17_carouselmarket_grouphug.tft_17_2.png"
     },
     {
-      "name": "TFT17_MarketOffering_Name_AnvilTransformation",
+      "name": "모루 변신",
       "apiName": "TFT17_MarketOffering_AnvilTransformation",
       "composition": [],
       "effects": {
         "Gold": 2
       },
-      "desc": "TFT17_MarketOffering_LongDesc_AnvilTransformation",
-      "icon": "profileicon7014.png"
+      "desc": "조합 아이템을 획득할 때마다, 대신 조합 아이템 모루를 획득합니다. @Gold@골드를 획득합니다.",
+      "icon": "tft17_carouselmarket_anviltransformation.tft_17_2.png"
     },
     {
       "name": "레벨 퀘스트",
@@ -712,6 +735,16 @@
       },
       "desc": "@Level@레벨에 도달하면 @GoldReward@골드를 획득합니다.",
       "icon": "tft17_carouselmarket_levelquest.tft_set17.png"
+    },
+    {
+      "name": "슈퍼 작별 선물",
+      "apiName": "TFT17_MarketOffering_PenguPairs",
+      "composition": [],
+      "effects": {
+        "Gold": 2
+      },
+      "desc": "다음번 펭구 신의 선물 선택 시 추가 챔피언 복사본 및 @Gold@골드를 획득합니다.",
+      "icon": "tft17_carouselmarket_pengupairs.tft_17_2.png"
     },
     {
       "name": "이자 증가",
@@ -736,7 +769,7 @@
       "apiName": "TFT17_MarketOffering_EmpoweredHex_Wood",
       "composition": [],
       "effects": {
-        "BonusHealth": 30,
+        "BonusHealth": 35,
         "PercentHealth": 0.10000000149011612
       },
       "desc": "챔피언 위치에 칸을 설치합니다. 칸에 있는 아군이 최대 체력을 @PercentHealth*100@% 얻고, 라운드마다 영구적으로 체력을 @BonusHealth@ 얻습니다.<br><br><tftitemrules>[소모품 - 이 아이템은 사용하면 사라집니다.]</tftitemrules>",
@@ -751,7 +784,7 @@
         "Streak": 5
       },
       "desc": "연패를 @Streak@연패로 설정하고 전략가 체력을 @Health@ 얻습니다.",
-      "icon": "profileicon4296.png"
+      "icon": "tft17_carouselmarket_humility.tft_17_2.png"
     },
     {
       "name": "최전방 훈련 봇",
@@ -856,7 +889,7 @@
       "apiName": "TFT17_MarketOffering_Gold_Stage4",
       "composition": [],
       "effects": {
-        "Gold": 12
+        "Gold": 10
       },
       "desc": "<rules>골드는 비를 타고!</rules>",
       "icon": "assistgivegold.png"
@@ -884,7 +917,7 @@
       "apiName": "TFT17_MarketOffering_XP_Medium_Stage3",
       "composition": [],
       "effects": {
-        "XP": 10
+        "XP": 8
       },
       "desc": "<rules>배우고 성장하세요</rules>",
       "icon": "tft17_carouselmarket_xp.tft_set17.png"
@@ -916,15 +949,23 @@
       "icon": "assistgivegold.png"
     },
     {
-      "name": "TFT17_MarketOffering_Name_SplitGold",
+      "name": "소격변",
+      "apiName": "TFT17_MarketOffering_Recombobulator_Stage2",
+      "composition": [],
+      "effects": {},
+      "desc": "전장에 있는 모든 1단계 및 2단계 챔피언이 한 단계 높은 무작위 챔피언으로 변합니다.",
+      "icon": "tft17_carouselmarket_recombobulator.tft_17_2.png"
+    },
+    {
+      "name": "탐욕의 상자",
       "apiName": "TFT17_MarketOffering_SplitGold_Stage2",
       "composition": [],
       "effects": {
-        "Gold": 3,
-        "{1b0ff491}": 15
+        "Gold": 2,
+        "{1b0ff491}": 12
       },
-      "desc": "TFT17_MarketOffering_LongDesc_SplitGold",
-      "icon": "profileicon4271.png"
+      "desc": "@Gold@골드를 획득하고, 해당 선택지를 선택한 모든 플레이어가 @SplitGold@골드를 나누어 가집니다. (내림 적용)",
+      "icon": "tft17_carouselmarket_splitgold.tft_17_2.png"
     },
     {
       "name": "4골드",
@@ -935,15 +976,15 @@
       "icon": "assistgivegold.png"
     },
     {
-      "name": "TFT17_MarketOffering_Name_SplitGold",
+      "name": "탐욕의 상자",
       "apiName": "TFT17_MarketOffering_SplitGold_Stage3",
       "composition": [],
       "effects": {
-        "Gold": 4,
-        "{1b0ff491}": 20
+        "Gold": 3,
+        "{1b0ff491}": 16
       },
-      "desc": "TFT17_MarketOffering_LongDesc_SplitGold",
-      "icon": "profileicon4271.png"
+      "desc": "@Gold@골드를 획득하고, 해당 선택지를 선택한 모든 플레이어가 @SplitGold@골드를 나누어 가집니다. (내림 적용)",
+      "icon": "tft17_carouselmarket_splitgold.tft_17_2.png"
     },
     {
       "name": "완성 아이템",
@@ -952,7 +993,7 @@
       "effects": {
         "HealthLoss": null
       },
-      "desc": "무작위 완성 아이템 1개를 획득합니다. 전략가 체력이 @HealthLoss@ 감소합니다.",
+      "desc": "무작위 완성 아이템 1개를 획득합니다. 전략가 체력을 @HealthLoss@ 잃습니다.",
       "icon": "assistrandomcomponent.png"
     },
     {
@@ -964,15 +1005,15 @@
       "icon": "tft_consumable_championduplicator_iii.tft_set13.png"
     },
     {
-      "name": "TFT17_MarketOffering_Name_SplitGold",
+      "name": "탐욕의 상자",
       "apiName": "TFT17_MarketOffering_SplitGold_Stage4",
       "composition": [],
       "effects": {
-        "Gold": 6,
+        "Gold": 4,
         "{1b0ff491}": 25
       },
-      "desc": "TFT17_MarketOffering_LongDesc_SplitGold",
-      "icon": "profileicon4271.png"
+      "desc": "@Gold@골드를 획득하고, 해당 선택지를 선택한 모든 플레이어가 @SplitGold@골드를 나누어 가집니다. (내림 적용)",
+      "icon": "tft17_carouselmarket_splitgold.tft_17_2.png"
     },
     {
       "name": "파란색 전리품 구 및 2골드",
@@ -995,7 +1036,7 @@
       "apiName": "TFT17_MarketOffering_Rerolls_Small",
       "composition": [],
       "effects": {
-        "Rerolls": 7
+        "Rerolls": 5
       },
       "desc": "<rules>계속 돌리세요</rules>",
       "icon": "tft17_carouselmarket_rerolls.tft_set17.png"
@@ -1016,7 +1057,7 @@
       "composition": [],
       "effects": {
         "BlockDuration": 1,
-        "HealPercent": 0.3499999940395355,
+        "HealPercent": 0.30000001192092896,
         "HealthThreshold": 40
       },
       "desc": "챔피언 위치에 칸을 설치합니다. 칸에 있는 아군 체력이 처음으로 @HealthThreshold@% 아래로 떨어지면 @BlockDuration@초 동안 얼어붙고 최대 체력의 @HealPercent*100@%만큼 체력을 회복합니다.<br><br><tftitemrules>[소모품 - 이 아이템은 사용하면 사라집니다.]</tftitemrules>",
@@ -1053,19 +1094,19 @@
       "icon": "doubleup_assistarmory_randomitem_ornn.png"
     },
     {
-      "name": "TFT17_MarketOffering_Name_EphemeralRerolls",
+      "name": "일시적 새로고침",
       "apiName": "TFT17_MarketOffering_EphemeralRerolls",
       "composition": [],
       "effects": {},
-      "desc": "TFT17_MarketOffering_LongDesc_EphemeralRerolls",
-      "icon": "profileicon1458.png"
+      "desc": "매 라운드 시작 시 무료 새로고침이 없으면 1회를 획득합니다.",
+      "icon": "tft17_carouselmarket_ephemeralrerolls.tft_17_2.png"
     },
     {
       "name": "경험치 @XP@",
       "apiName": "TFT17_MarketOffering_XP_Small",
       "composition": [],
       "effects": {
-        "XP": 8
+        "XP": 6
       },
       "desc": "<rules>배우고 성장하세요</rules>",
       "icon": "tft17_carouselmarket_xp.tft_set17.png"
@@ -1075,7 +1116,7 @@
       "apiName": "TFT17_MarketOffering_Spatula",
       "composition": [],
       "effects": {
-        "Delay": 4
+        "Delay": 6
       },
       "desc": "@Delay@라운드 후 뒤집개 1개를 획득합니다.",
       "icon": "tft_item_spatula.tft_set13.png"
@@ -1089,7 +1130,7 @@
         "NumReforgers": 1,
         "NumTraits": 6
       },
-      "desc": "고유 특성이 아닌 특성 유닛 @NumTraits@명을 배치하면 무작위 상징 1개와 재조합기 1개를 획득합니다.",
+      "desc": "플레이어 대상 전투에서 고유 특성이 아닌 특성 @NumTraits@개를 배치하면 무작위 상징 1개와 재조합기 1개를 획득합니다.",
       "icon": "tft17_carouselmarket_sampler.tft_set17.png"
     },
     {
@@ -1249,20 +1290,20 @@
       "composition": [],
       "effects": {
         "Duration": 5,
-        "FireDamagePercent": 0.18000000715255737
+        "FireDamagePercent": 0.15000000596046448
       },
       "desc": "챔피언 위치에 칸을 설치합니다. 칸에 있는 아군이 @Duration@초 동안 @FireDamagePercent*100@%의 추가 마법 피해를 입힙니다. 이 추가 피해 지속시간 동안 33% <TFTKeyword>상처</TFTKeyword> 및 1% <TFTKeyword>화상</TFTKeyword>을 적용합니다.<br><br><tftitemrules>[소모품 - 이 아이템은 사용하면 사라집니다.]</tftitemrules><br><tftitemrules><tftbold>화상</tftbold>: 매초 대상 최대 체력의 일정 비율만큼 고정 피해<br><tftbold>상처</tftbold>: 체력 회복량 감소</tftitemrules>",
       "icon": "tft17_carouselmarket_hexpaintbrush.tft_set17.png"
     },
     {
-      "name": "TFT17_MarketOffering_Name_DivineRefund",
+      "name": "신성한 반환",
       "apiName": "TFT17_MarketOffering_DivineRefund",
       "composition": [],
       "effects": {
         "Gold": 2
       },
-      "desc": "TFT17_MarketOffering_LongDesc_DivineRefund",
-      "icon": "profileicon6627.png"
+      "desc": "@Gold@골드를 획득합니다. 다음에 아이템을 생성하면 무작위 조합 아이템 하나를 복사하여 획득합니다.",
+      "icon": "tft17_carouselmarket_divinerefund.tft_17_2.png"
     },
     {
       "name": "2골드",
@@ -1289,8 +1330,8 @@
       "apiName": "TFT17_MarketOffering_SharedWealth_Stage4",
       "composition": [],
       "effects": {
-        "BonusGold": 3,
-        "Gold": 12,
+        "BonusGold": 2,
+        "Gold": 10,
         "PlayersNeeded": 5
       },
       "desc": "@Gold@골드를 획득합니다. @PlayersNeeded@명 이상의 플레이어가 이 선택지를 골랐을 경우 추가로 @BonusGold@골드를 획득합니다.",
@@ -1301,7 +1342,7 @@
       "apiName": "TFT17_MarketOffering_BloodPactPlus",
       "composition": [],
       "effects": {
-        "Gold": 11,
+        "Gold": 10,
         "HealthLossPerPlayer": null
       },
       "desc": "@Gold@골드를 획득합니다. 이 선택지를 고른 다른 플레이어 1명당 전략가 체력을 @HealthLossPerPlayer@ 잃습니다.",
@@ -1312,9 +1353,9 @@
       "apiName": "TFT17_MarketOffering_TwoCostChampion_TwoStar",
       "composition": [],
       "effects": {
-        "HealthLoss": 1
+        "HealthLoss": 3
       },
-      "desc": "2단계 2성 챔피언 1명을 획득합니다. 전략가 체력이 @HealthLoss@ 감소합니다.",
+      "desc": "2단계 2성 챔피언을 획득합니다. 전략가 체력을 @HealthLoss@ 잃습니다.",
       "icon": "doubleup_assistarmory_champ_2c.png"
     },
     {
@@ -1348,7 +1389,7 @@
         "HealthLoss": null,
         "StarLevel_TOOLTIPONLY": 3
       },
-      "desc": "무작위 @ChampCost_TOOLTIPONLY@단계 @StarLevel_TOOLTIPONLY@성 챔피언 1명을 획득합니다. 전략가 체력이 @HealthLoss@ 감소합니다.",
+      "desc": "무작위 @ChampCost_TOOLTIPONLY@단계 @StarLevel_TOOLTIPONLY@성 챔피언 1명을 획득합니다. 전략가 체력을 @HealthLoss@ 잃습니다.",
       "icon": "doubleup_assistarmory_champ_1c.tft_set14.png"
     },
     {
@@ -1461,8 +1502,8 @@
       "apiName": "TFT17_Item_PsyOps_DroneMod_Radiant",
       "composition": [],
       "effects": {
-        "AP": 25,
-        "DamageRepeat": 20,
+        "AP": 30,
+        "DamageRepeat": 25,
         "Interval": 3,
         "SecondDroneDamageRepeat": 0.20000000298023224
       },
@@ -1517,10 +1558,10 @@
       "apiName": "TFT17_Item_PsyOps_TargetlockMod_Radiant",
       "composition": [],
       "effects": {
-        "AD": 0.15000000596046448,
+        "AD": 0.25,
         "AS": 35,
         "AttackPct": 150,
-        "HealPct": 0.15000000596046448
+        "HealPct": 0.20000000298023224
       },
       "desc": "장착 유닛이 각 적에게 가하는 첫 공격이 <physicalDamage>@AttackPct@(%i:scaleAD%)</physicalDamage>의 추가 피해를 입힘<br><br><TFTRadiantItemBonus>(4) 초능력: 장착 유닛이 초능력일 경우, 대상이 사망할 때마다 최대 체력의 <scaleHealth>@HealPct*100@%</scaleHealth>만큼 체력 회복</TFTRadiantItemBonus><br><br><rules>추천 사용자: 파이크, 마스터 이</rules>",
       "icon": "tft17_psyops_mod_targetlockmod.tft_set17.png"
@@ -1531,7 +1572,7 @@
       "composition": [],
       "effects": {
         "HealPct": 0.18000000715255737,
-        "Health": 400,
+        "Health": 550,
         "IncreasedHealing": 0.2199999988079071,
         "Interval": 8,
         "NumGrenades": 3,
@@ -1589,9 +1630,9 @@
       "effects": {
         "AP": 20,
         "Interval": 5,
-        "ManaRegen": 2,
+        "ManaRegen": 4,
         "ManaRegenOverTime": 1,
-        "TrueDamageConversion": 0.20000000298023224
+        "TrueDamageConversion": 0.25
       },
       "desc": "@Interval@초마다 추가 초당 마나 @ManaRegenOverTime@ 획득<br><br><TFTRadiantItemBonus>(4) 초능력: 장착 유닛이 초능력일 경우, 스킬 피해량의 <scaleLevel>@TrueDamageConversion*100@%</scaleLevel>를 고정 피해로 입힘</TFTRadiantItemBonus><br><br><rules>추천 사용자: 소나, 빅토르</rules>",
       "icon": "tft17_psyops_mod_sympatheticimplantmod.tft_set17.png"
@@ -1723,7 +1764,7 @@
       "apiName": "TFT17_GravesTrait_Offense_Meltthrough",
       "composition": [],
       "effects": {
-        "ArmorMRReduction": 5,
+        "ArmorMRReduction": 4,
         "{c0dab986}": 1
       },
       "desc": "매초 2칸 내 적 방어력 @ArmorMRReduction@ 감소, 인접한 적에게는 두 배 적용",
@@ -1774,7 +1815,7 @@
       "apiName": "TFT17_GravesTrait_Offense_GravBooster",
       "composition": [],
       "effects": {
-        "BonusMultAS": 0.699999988079071,
+        "BonusMultAS": 0.4000000059604645,
         "NumAttacks": 2
       },
       "desc": "처치 관여 시 다음 대상에게 돌진 및 기본 공격 @NumAttacks@회 동안 공격 속도 @BonusMultAS*100@% 증가",
@@ -1785,7 +1826,7 @@
       "apiName": "TFT17_GravesTrait_Offense_DoubleTap2",
       "composition": [],
       "effects": {
-        "DoubleAttackChance": 0.30000001192092896
+        "DoubleAttackChance": 0.3499999940395355
       },
       "desc": "@DoubleAttackChance*100@% 확률로 2회 공격",
       "icon": "tft17_gravestrait_offense_doubletap1.tft_set17.png"
@@ -1867,7 +1908,7 @@
       "apiName": "TFT17_GravesTrait_Offense_LeechingImplants",
       "composition": [],
       "effects": {
-        "AttackDamage": 0.15000000596046448,
+        "AttackDamage": 0.10000000149011612,
         "BonusOmnivamp": 0.10000000149011612
       },
       "desc": "모든 피해 흡혈 +@BonusOmnivamp*100@%, 공격력 @AttackDamage*100@%",
@@ -1889,7 +1930,7 @@
       "apiName": "TFT17_GravesTrait_Offense_PrecisionScope2",
       "composition": [],
       "effects": {
-        "AttackDamage": 0.20000000298023224,
+        "AttackDamage": 0.23999999463558197,
         "Range": 2
       },
       "desc": "사거리 +@Range@, 공격력 @AttackDamage*100@%",
@@ -1900,7 +1941,7 @@
       "apiName": "TFT17_GravesTrait_Offense_PrecisionScope3",
       "composition": [],
       "effects": {
-        "AttackDamage": 0.30000001192092896,
+        "AttackDamage": 0.36000001430511475,
         "Range": 3
       },
       "desc": "사거리 +@Range@, 공격력 @AttackDamage*100@%",
@@ -1911,7 +1952,7 @@
       "apiName": "TFT17_GravesTrait_Offense_DoubleTap",
       "composition": [],
       "effects": {
-        "DoubleAttackChance": 0.20000000298023224
+        "DoubleAttackChance": 0.25
       },
       "desc": "@DoubleAttackChance*100@% 확률로 2회 공격",
       "icon": "tft17_gravestrait_offense_doubletap.tft_set17.png"
@@ -2032,8 +2073,8 @@
       "composition": [],
       "effects": {
         "BaseHealth": 300,
-        "BonusAR": 30,
-        "BonusMR": 30
+        "BonusAR": 20,
+        "BonusMR": 20
       },
       "desc": "기본 체력 @BaseHealth@, 방어력 @BonusAR@, 마법 저항력 @BonusMR@ 획득",
       "icon": "tft17_gravestrait_offense_heavyplating.tft_set17.png"
@@ -2054,7 +2095,7 @@
       "apiName": "TFT17_GravesTrait_Offense_GravBooster2",
       "composition": [],
       "effects": {
-        "BonusMultAS": 0.699999988079071,
+        "BonusMultAS": 0.4000000059604645,
         "NumAttacks": 3
       },
       "desc": "처치 관여 시 다음 대상에게 돌진 및 기본 공격 @NumAttacks@회 동안 공격 속도 @BonusMultAS*100@% 증가",
@@ -2075,7 +2116,7 @@
       "apiName": "TFT17_GravesTrait_Offense_LeechingImplants2",
       "composition": [],
       "effects": {
-        "AttackDamage": 0.30000001192092896,
+        "AttackDamage": 0.20000000298023224,
         "BonusOmnivamp": 0.15000000596046448
       },
       "desc": "모든 피해 흡혈 +@BonusOmnivamp*100@%, 공격력 @AttackDamage*100@%",
@@ -2183,7 +2224,7 @@
       "apiName": "TFT17_GravesTrait_Offense_PrecisionScope",
       "composition": [],
       "effects": {
-        "AttackDamage": 0.10000000149011612,
+        "AttackDamage": 0.11999999731779099,
         "Range": 1
       },
       "desc": "사거리 +@Range@, 공격력 @AttackDamage*100@%",
@@ -2230,7 +2271,7 @@
       "composition": [],
       "effects": {
         "AD": 0.10000000149011612,
-        "BriarHitsOnCast": 6,
+        "BriarHitsOnCast": 10,
         "HexRange": 1,
         "OmnivampEffectiveness": 1.5,
         "SplashDamage": 0.30000001192092896,
@@ -2244,7 +2285,7 @@
       "apiName": "TFT17_AnimaSquadItem_Tier2_UwuBlaster",
       "composition": [],
       "effects": {
-        "AD": 0.15000000596046448,
+        "AD": 0.25,
         "ADDamage": 0.4000000059604645,
         "AS": 45,
         "NumAttacks": 1,
@@ -2479,7 +2520,7 @@
       "composition": [],
       "effects": {
         "AD": 0.10000000149011612,
-        "JinxPercentIncrease": 0.44999998807907104,
+        "JinxPercentIncrease": 0.3499999940395355,
         "ManaRegen": 3,
         "ManaThreshold": 30,
         "NumRockets": 4,
@@ -2651,7 +2692,7 @@
         "AD": 0.20000000298023224,
         "AP": 30,
         "DamageStore": 0.20000000298023224,
-        "Delay": 18,
+        "Delay": 16,
         "HexFalloff": 0.15000000596046448,
         "ManaRegen": 3
       },
@@ -3582,7 +3623,7 @@
       "effects": {
         "Amount": 1
       },
-      "desc": "태고족<br>불한당",
+      "desc": "태고족<br>동물특공대<br>불한당",
       "icon": "tft17_briar_square.tft_set17.png"
     },
     {
@@ -3862,7 +3903,7 @@
       "effects": {
         "Amount": 3
       },
-      "desc": "태고족<br>불한당",
+      "desc": "태고족<br>동물특공대<br>불한당",
       "icon": "tft17_briar_square.tft_set17.png"
     },
     {
@@ -5076,6 +5117,40 @@
       "icon": "tft_item_bansheesveil.tft_set13.png"
     },
     {
+      "name": "축복: 부",
+      "apiName": "TFT17_Consumable_BlessingWealth",
+      "composition": [],
+      "effects": {
+        "ADAP": 8,
+        "Gold": 1,
+        "GoldChance": 12
+      },
+      "desc": "챔피언에게 영구적으로 공격력 및 주문력 @ADAP@%, 처치 관여 시 @Gold@골드 생성 확률 @GoldChance@%를 부여합니다.",
+      "icon": "tft17_carouselmarket_blessingwealth.tft_17_3.png"
+    },
+    {
+      "name": "축복: 번영 +",
+      "apiName": "TFT17_Consumable_BlessingProsperityPlus",
+      "composition": [],
+      "effects": {
+        "BaseHealth": 100,
+        "{30221825}": 8
+      },
+      "desc": "챔피언에게 영구적으로 체력을 @BaseHealth@ 부여합니다. 이 효과는 이자로 획득한 골드당 @InterestHealth@ 증가합니다.",
+      "icon": "tft17_carouselmarket_blessingprosperity.tft_17_3.png"
+    },
+    {
+      "name": "축복: 번영",
+      "apiName": "TFT17_Consumable_BlessingProsperity",
+      "composition": [],
+      "effects": {
+        "BaseHealth": 100,
+        "{30221825}": 5
+      },
+      "desc": "챔피언에게 영구적으로 체력을 @BaseHealth@ 부여합니다. 이 효과는 이자로 획득한 골드당 @InterestHealth@ 증가합니다.",
+      "icon": "tft17_carouselmarket_blessingprosperity.tft_17_3.png"
+    },
+    {
       "name": "그림자 꼭두각시",
       "apiName": "TFT_Item_Artifact_ShadowPuppet",
       "composition": [],
@@ -5096,7 +5171,7 @@
       "effects": {
         "AD": 0.25,
         "AP": 25,
-        "AbilityDA": 0.44999998807907104,
+        "AbilityDA": 0.4000000059604645,
         "Duration": 2
       },
       "desc": "전체 스킬 피해량이 @AbilityDA*100@% 증가하지만, @Duration@초에 걸쳐 피해를 입힘",
@@ -5511,7 +5586,7 @@
         "Armor": 20,
         "MagicResist": 20
       },
-      "desc": "장착 시 중재자자 특성 획득",
+      "desc": "장착 시 중재자 특성 획득",
       "icon": "tft17_emblem_arbiter.tft_set17.png"
     },
     {
@@ -5533,9 +5608,8 @@
         "TFT_Item_NegatronCloak"
       ],
       "effects": {
-        "APGain": 3,
+        "APGain": 2,
         "Armor": 20,
-        "Health": 150,
         "MagicResist": 20
       },
       "desc": "장착 시 선봉대 특성 획득. 아군이 보호막을 얻을 때마다 주문력 @APGain@% 획득",
@@ -5560,7 +5634,7 @@
       ],
       "effects": {
         "AS": 15,
-        "Health": 300
+        "Health": 200
       },
       "desc": "장착 시 시간 균열자 특성 획득",
       "icon": "tft17_emblem_timebreaker.tft_set17.png"
@@ -5607,8 +5681,8 @@
         "TFT_Item_TearOfTheGoddess"
       ],
       "effects": {
-        "ManaRegen": 3,
-        "ManaSharePercent": 0.11999999731779099
+        "ManaRegen": 2,
+        "ManaSharePercent": 0.07999999821186066
       },
       "desc": "장착 시 길잡이 특성 획득. 스킬 사용 시 별의 결속에 최대 마나의 @ManaSharePercent*100@% 부여",
       "icon": "tft17_emblem_sheperd.tft_set17.png"
@@ -5652,7 +5726,7 @@
         "CritChance": 20,
         "HealthThreshold": 0.5,
         "Omnivamp": 0.4000000059604645,
-        "{1543aa48}": 0.15000000596046448
+        "{1543aa48}": 0.10000000149011612
       },
       "desc": "장착 시 불한당 특성 획득. 체력이 @HealthThreshold*100@%일 때 @BuffDuration@초 동안 모든 피해 흡혈 @Omnivamp*100@% 획득 및 군중 제어 효과에 면역",
       "icon": "tft17_emblem_rogue.tft_set17.png"
@@ -5680,8 +5754,8 @@
         "TFT_Item_BFSword"
       ],
       "effects": {
-        "AD": 0.25,
-        "AP": 25
+        "AD": 0.18000000715255737,
+        "AP": 18
       },
       "desc": "장착 시 암흑의 별 특성 획득",
       "icon": "tft17_emblem_darkstar.tft_set17.png"
@@ -5724,8 +5798,9 @@
         "TFT_Item_TearOfTheGoddess"
       ],
       "effects": {
-        "GrooveDuration": 3,
-        "ManaRegen": 3
+        "GrooveDuration": 2.5,
+        "Health": 200,
+        "ICD": 4
       },
       "desc": "장착 시 우주 그루브 특성 획득. 스킬 사용 시 장착 유닛이 @GrooveDuration@초 동안 {{TFT17_SpaceGroove_TheGroove}} 상태가 됨",
       "icon": "tft17_emblem_spacegroove.tft_set17.png"
@@ -5756,9 +5831,9 @@
       "effects": {
         "AD": 0.20000000298023224,
         "AP": 20,
-        "BonusArmorMR": 15,
+        "BonusArmorMR": 10,
         "BonusAttackSpeed": 0.10000000149011612,
-        "BonusOmnivamp": 0.18000000715255737
+        "BonusOmnivamp": 0.10000000149011612
       },
       "desc": "장착 시 여행자 특성 획득 <br><br>전투 시작: 장착 유닛 및 같은 가로 열의 1칸 내에 있는 아군이 장착 유닛의 역할군에 따라 추가 효과 획득<br>- 탱커: 방어력 및 마법 저항력 @BonusArmorMR@<br>- 전사/암살자: 모든 피해 흡혈 @BonusOmnivamp*100@%<br>- 기타 역할군: 공격 속도 @BonusAttackSpeed*100@%",
       "icon": "tft17_emblem_voyager.tft_set17.png"
@@ -5874,7 +5949,7 @@
         "AD": 0.20000000298023224,
         "AS": 20,
         "Health": 300,
-        "PercentAttackDamageSplash": 8,
+        "PercentAttackDamageSplash": 6,
         "PercentMaxHealthSplash": 4
       },
       "desc": "기본 공격 시 대상 및 인접한 적에게 장착 유닛 최대 체력의 @PercentMaxHealthSplash@% +공격력의 @PercentAttackDamageSplash@%만큼 추가 물리 피해를 입힘",
@@ -6011,7 +6086,7 @@
       "effects": {
         "AD": 0.30000001192092896,
         "AS": 10,
-        "Interval": 3.5,
+        "Interval": 3,
         "NumBonusAttacks": 1,
         "Threshold": 0.699999988079071,
         "{cc2194bf}": 2
@@ -6137,11 +6212,11 @@
       "apiName": "TFT17_Item_Artifact_ThreshLantern",
       "composition": [],
       "effects": {
-        "Armor": 25,
+        "Armor": 35,
         "DamageShare": 0.20000000298023224,
         "Delay": 6,
         "Health": 400,
-        "MagicResist": 25
+        "MagicResist": 35
       },
       "desc": "전투 시작 후 @Delay@초 후 대기석 가장 왼쪽에 있는 유닛을 전장으로 끌어당깁니다. 끌려온 유닛이 살아있는 동안 장착 유닛이 받는 모든 피해의 @DamageShare*100@%를 대신 받습니다.<br><br><tftitemrules>전장에 던져 넘겨진 챔피언의 특성은 활성화되지 않습니다.</tftitemrules>",
       "icon": "tft17_item_artifact_threshlantern.tft_set17.png"
@@ -6679,9 +6754,10 @@
       "apiName": "TFT_Item_Artifact_Dawncore",
       "composition": [],
       "effects": {
-        "AD": 0.20000000298023224,
-        "AP": 20,
+        "AD": 0.15000000596046448,
+        "AP": 15,
         "FlatManaReduction": 10,
+        "ManaRegen": 2,
         "MinimumTotalMana": 10,
         "ReductionPerCast": 0.10000000149011612
       },
@@ -6725,7 +6801,7 @@
       "composition": [],
       "effects": {
         "AP": 20,
-        "FlatMagicDamage": 55,
+        "FlatMagicDamage": 50,
         "ManaRegen": 4,
         "ManaSpent": 20,
         "PercentSpeedIncrease": 0.05000000074505806
@@ -6753,20 +6829,20 @@
       "composition": [],
       "effects": {
         "CasterDuration_TOOLTIPONLY": 5,
-        "CasterHPRatio_TOOLTIPONLY": 0.05999999865889549,
+        "CasterHPRatio_TOOLTIPONLY": 0.05000000074505806,
         "CasterHexRadius_TOOLTIPONLY": 2,
         "CasterManaSpent_TOOLTIPONLY": 50,
-        "FighterAD_TOOLTIPONLY": 30,
-        "FighterAP_TOOLTIPONLY": 30,
+        "FighterAD_TOOLTIPONLY": 35,
+        "FighterAP_TOOLTIPONLY": 35,
         "FighterHealthThreshold_TOOLTIPONLY": 85,
-        "MarksmanBonusAS_TOOLTIPONLY": 0.6000000238418579,
+        "MarksmanBonusAS_TOOLTIPONLY": 0.75,
         "MarksmanKnockbackRange_TOOLTIPONLY": 3,
         "SpecialistMissileDamage_TOOLTIPONLY": 85,
         "SpecialistNumStars_TOOLTIPONLY": 6,
         "TankHP_TOOLTIPONLY": 1100,
         "{d8328e60}": 3
       },
-      "desc": "장착 유닛을 진화시켜 역할군에 따라 효과를 부여합니다.<br><br><TFTGuildActive enabled=TFT17_Anomaly_Tank alternate=TFTGuildInactive>탱커: 체력을 @TankHP_TOOLTIPONLY@ 얻고 크기가 커집니다.</TFTGuildActive><br><br><TFTGuildActive enabled=TFT17_Anomaly_Marksman alternate=TFTGuildInactive>원거리 딜러: 공격 속도를 @MarksmanBonusAS_TOOLTIPONLY*100@% 얻습니다. 스킬 사용 시 대상이 @MarksmanKnockbackRange_TOOLTIPONLY@칸 이내에 있을 경우 뒤로 밀어냅니다.</TFTGuildActive><br><br><TFTGuildActive enabled=TFT17_Anomaly_Fighter alternate=TFTGuildInactive>전사/암살자: 주문력을 @FighterAP_TOOLTIPONLY@, 공격력을 @FighterAD_TOOLTIPONLY@% 얻습니다. 체력이 @FighterHealthThreshold_TOOLTIPONLY@% 미만일 때 효과가 3배가 됩니다.</TFTGuildActive><br><br><TFTGuildActive enabled=TFT17_Anomaly_Caster alternate=TFTGuildInactive>마법사: 사용한 마나 @CasterManaSpent_TOOLTIPONLY@마다 @CasterHexRadius_TOOLTIPONLY@칸 크기의 불덩이를 던져 최대 체력의 @CasterHPRatio_TOOLTIPONLY*100@%에 해당하는 고정 피해를 입히고 @CasterDuration_TOOLTIPONLY@초 동안 33% <TFTKeyword>상처</TFTKeyword> 및 1% <TFTKeyword>화상</TFTKeyword>을 적용합니다.</TFTGuildActive><br><br><TFTGuildActive enabled=TFT17_Anomaly_Specialist alternate=TFTGuildInactive>전문가: 이 챔피언 주위를 공전하는 별 @SpecialistNumStars_TOOLTIPONLY@개를 획득합니다. 각 별은 @SpecialistMissileDamage_TOOLTIPONLY@의 마법 피해를 입히고 공전 궤도가 확장되어 챔피언의 현재 대상을 타격합니다.</TFTGuildActive>",
+      "desc": "장착 유닛을 진화시켜 역할군에 따라 효과를 부여합니다.<br><TFTGuildActive enabled=TFT17_Anomaly_Tank alternate=TFTGuildInactive>탱커: 체력을 @TankHP_TOOLTIPONLY@ 얻고 크기가 커집니다.</TFTGuildActive><br><TFTGuildActive enabled=TFT17_Anomaly_Marksman alternate=TFTGuildInactive>원거리 딜러: 공격 속도를 @MarksmanBonusAS_TOOLTIPONLY*100@% 얻습니다. 스킬 사용 시 대상이 @MarksmanKnockbackRange_TOOLTIPONLY@칸 이내에 있을 경우 뒤로 밀어냅니다.</TFTGuildActive><br><TFTGuildActive enabled=TFT17_Anomaly_Fighter alternate=TFTGuildInactive>전사/암살자: 주문력을 @FighterAP_TOOLTIPONLY@, 공격력을 @FighterAD_TOOLTIPONLY@% 얻습니다. 체력이 @FighterHealthThreshold_TOOLTIPONLY@% 미만일 때 효과가 3배가 됩니다.</TFTGuildActive><br><TFTGuildActive enabled=TFT17_Anomaly_Caster alternate=TFTGuildInactive>마법사: 사용한 마나 @CasterManaSpent_TOOLTIPONLY@마다 @CasterHexRadius_TOOLTIPONLY@칸 크기의 불덩이를 던져 최대 체력의 @CasterHPRatio_TOOLTIPONLY*100@%에 해당하는 고정 피해를 입히고 @CasterDuration_TOOLTIPONLY@초 동안 33% <TFTKeyword>상처</TFTKeyword> 및 1% <TFTKeyword>화상</TFTKeyword>을 적용합니다.</TFTGuildActive><br><TFTGuildActive enabled=TFT17_Anomaly_Specialist alternate=TFTGuildInactive>전문가: 이 챔피언 주위를 공전하는 별 @SpecialistNumStars_TOOLTIPONLY@개를 획득합니다. 각 별은 @SpecialistMissileDamage_TOOLTIPONLY@의 마법 피해를 입히고 공전 궤도가 확장되어 챔피언의 현재 대상을 타격합니다.</TFTGuildActive>",
       "icon": "tft13_goopitem_icon.tft_set13.png"
     },
     {

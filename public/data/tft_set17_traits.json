@@ -2,7 +2,7 @@
   "meta": {
     "set": 17,
     "source": "CommunityDragon TFT ko_kr.json",
-    "extractedAt": "2026-04-20T01:34:33.410Z",
+    "extractedAt": "2026-04-29T00:27:54.652Z",
     "totalTraits": 44
   },
   "traits": [
@@ -57,7 +57,7 @@
           "minUnits": 4,
           "style": 3,
           "variables": {
-            "AttackSpeedPercent": 0.36000001430511475,
+            "AttackSpeedPercent": 0.4000000059604645,
             "BurstDuration": 2.5,
             "BurstPercent": 0.5,
             "DamageReduction": null,
@@ -69,7 +69,7 @@
           "minUnits": 5,
           "style": 5,
           "variables": {
-            "AttackSpeedPercent": 0.47999998927116394,
+            "AttackSpeedPercent": 0.550000011920929,
             "BurstDuration": 2.5,
             "BurstPercent": 0.5,
             "DamageReduction": null,
@@ -252,7 +252,7 @@
     {
       "name": "시간 균열자",
       "apiName": "TFT17_Timebreaker",
-      "desc": "tft_trait_description_TFT17_Pulsefire",
+      "desc": "<row>(@MinUnits@) 아군이 공격 속도 @AttackSpeed*100@% 획득</row><br><row>(@MinUnits@) 또한 패배 시 무료 새로고침 획득. 승리 시 시간 코어에 경험치 저장 (스테이지에 비례)</row><br><row>(@MinUnits@) 또한 시간 균열자가 추가로 공격 속도 @TimebreakerAdditionalAS*100@% 획득</row><br><br><rules>패배 시 새로고침: @TFTUnitProperty.:TFT17_Timebreaker_NumRerollsTooltip@<br>승리 시 XP: @TFTUnitProperty.:TFT17_Timebreaker_NumXPTooltip@</rules>",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_17_Timebreaker.TFT_Set17.tex",
       "effects": [
         {
@@ -354,7 +354,7 @@
     {
       "name": "동물특공대",
       "apiName": "TFT17_AnimaSquad",
-      "desc": "플레이어 대상 전투에서 패배하면 기술을 @TechPerCombat@ 얻으며, 연패 횟수의 @TechPerLoss@배만큼 더 많이 얻습니다. 또한 동물특공대 처치 관여마다 기술을 @TechPerKill@ 획득합니다.<br><br>동물특공대가 기술을 @TechBreakpoint@ 얻을 때마다 새로운 동물특공대 무기를 제작합니다. 해당 무기를 획득하거나, 기술을 모아 다음에 더 강력한 무기를 획득할 수 있습니다.<br><br><row>(@MinUnits@) 연구 시작! </row><br><row>(@MinUnits@) 플레이어 대상 전투 승리 후 전리품 획득!</row>",
+      "desc": "플레이어 대상 전투에서 패배하면 기술을 @TechPerCombat@ 얻으며, 연패 횟수의 @TechPerLoss@배만큼 더 많이 얻습니다. 또한 동물특공대 처치 관여마다 기술을 @TechPerKill@ 획득합니다.<br><br>동물특공대가 기술을 @TechBreakpoint@ 얻을 때마다 새로운 동물특공대 무기를 제작합니다. 해당 무기를 획득하거나, 기술을 모아 다음에 더 강력한 무기를 획득할 수 있습니다.<br><br><row>(@MinUnits@) 연구 시작! </row><br><row>(@MinUnits@) 플레이어 대상 전투 승리 후 전리품 획득!</row><br><br><ShowIf.TFT17_AnimaSquad_IsDoubleUp><rules>더블 업에서는 동료가 전투에서 승리했을 경우 패배 시 기술을 @PairsPartnerWinMultiplier*100@%만큼 얻습니다.</rules></ShowIf.TFT17_AnimaSquad_IsDoubleUp>",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_17_AnimaTech.TFT_Set17.tex",
       "effects": [
         {
@@ -364,13 +364,13 @@
           "variables": {
             "TechBreakpoint": 100,
             "TechPerCombat": 20,
-            "TechPerCombat_DU": 15,
+            "TechPerCombat_DU": 20,
             "TechPerDeath_PVE": 1,
             "TechPerKill": 2,
             "TechPerLoss": 5,
             "TechPerLoss_DU": 5,
             "TechPerRound_PVE": 20,
-            "{18a09431}": 0.5
+            "{18a09431}": 0.8500000238418579
           }
         },
         {
@@ -380,13 +380,13 @@
           "variables": {
             "TechBreakpoint": 100,
             "TechPerCombat": 20,
-            "TechPerCombat_DU": 15,
+            "TechPerCombat_DU": 20,
             "TechPerDeath_PVE": 1,
             "TechPerKill": 2,
             "TechPerLoss": 5,
             "TechPerLoss_DU": 5,
             "TechPerRound_PVE": 20,
-            "{18a09431}": 0.5
+            "{18a09431}": 0.8500000238418579
           }
         }
       ]
@@ -481,7 +481,7 @@
           "style": 5,
           "variables": {
             "Medallion_DA": 12,
-            "Medallion_IncreasePer3Star": 6.5,
+            "Medallion_IncreasePer3Star": 5,
             "{37204635}": 10,
             "{3d49cc86}": 20,
             "{c32af02f}": 0.05000000074505806
@@ -500,9 +500,9 @@
           "minUnits": 3,
           "style": 1,
           "variables": {
-            "Huntress_AS": 0.10000000149011612,
+            "Huntress_AS": 0.11999999731779099,
             "Huntress_AS_Teamwide": 0.15000000596046448,
-            "Huntress_Heal": 0.10000000149011612,
+            "Huntress_Heal": 0.15000000596046448,
             "NumMarks": 3
           }
         },
@@ -511,9 +511,9 @@
           "minUnits": 5,
           "style": 3,
           "variables": {
-            "Huntress_AS": 0.30000001192092896,
+            "Huntress_AS": 0.3499999940395355,
             "Huntress_AS_Teamwide": 0.15000000596046448,
-            "Huntress_Heal": 0.10000000149011612,
+            "Huntress_Heal": 0.15000000596046448,
             "NumMarks": 5
           }
         },
@@ -522,9 +522,9 @@
           "minUnits": 7,
           "style": 5,
           "variables": {
-            "Huntress_AS": 0.44999998807907104,
+            "Huntress_AS": 0.550000011920929,
             "Huntress_AS_Teamwide": 0.15000000596046448,
-            "Huntress_Heal": 0.10000000149011612,
+            "Huntress_Heal": 0.15000000596046448,
             "NumMarks": 7
           }
         }
@@ -608,7 +608,7 @@
     {
       "name": "별돌보미",
       "apiName": "TFT17_Stargazer_Fountain",
-      "desc": "별돌보미는 게임마다 다른 별자리를 그립니다. 이번 게임: <TFTStargazer>우물</TFTStargazer><br><br>강화된 칸에 있는 아군이 마나 재생을 @Fountain_ManaRegen_Teamwide@ 얻습니다. 별돌보미는 능력치를 더 얻고 스킬로 체력이 가장 낮은 아군의 체력을 회복시킵니다.<br><br><row>(@MinUnits@) @Fountain_ManaRegen@ %i:TFTManaRegen%, 스킬 피해량의 @Fountain_HealPercent*100@%만큼 체력 회복</row><br><row>(@MinUnits@) @Fountain_ManaRegen@ %i:TFTManaRegen%, 스킬 피해량의 @Fountain_HealPercent*100@%만큼 체력 회복</row><br><br><rules>플레이어 레벨이 오를 때마다 더 많은 칸이 드러납니다.</rules>",
+      "desc": "별돌보미는 게임마다 다른 별자리를 그립니다. 이번 게임: <TFTStargazer>우물</TFTStargazer><br><br>강화된 칸에 있는 아군이 @Fountain_Interval@초마다 최대 체력의 @Fountain_HealthRegen_Teamwide*100@%만큼 체력을 회복합니다. 강화된 칸에 있는 별돌보미는 체력을 @Fountain_HealthRegen*100@% 더 회복하고 @Fountain_Interval@초마다 중첩되는 공격력 및 주문력을 얻습니다.<br><br><row>(@MinUnits@) @Fountain_StackingADAP@% %i:scaleAD% %i:scaleAP%</row><br><row>(@MinUnits@) @Fountain_StackingADAP@% %i:scaleAD% %i:scaleAP%</row><br><br><rules>플레이어 레벨이 오를 때마다 더 많은 칸이 드러납니다.</rules>",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_17_Stargazer.TFT_Set17.tex",
       "effects": [
         {
@@ -616,9 +616,11 @@
           "minUnits": 3,
           "style": 1,
           "variables": {
-            "Fountain_HealPercent": 0.18000000715255737,
-            "Fountain_ManaRegen": 1,
-            "Fountain_ManaRegen_Teamwide": 1
+            "MaxStacks": null,
+            "{13a2a786}": 2,
+            "{8d19f5db}": 2,
+            "{d7e6d620}": 0.019999999552965164,
+            "{f2840aed}": 0.03999999910593033
           }
         },
         {
@@ -626,9 +628,11 @@
           "minUnits": 5,
           "style": 5,
           "variables": {
-            "Fountain_HealPercent": 0.25,
-            "Fountain_ManaRegen": 5,
-            "Fountain_ManaRegen_Teamwide": 1
+            "MaxStacks": null,
+            "{13a2a786}": 4,
+            "{8d19f5db}": 2,
+            "{d7e6d620}": 0.019999999552965164,
+            "{f2840aed}": 0.03999999910593033
           }
         }
       ]
@@ -688,7 +692,7 @@
     {
       "name": "암흑의 별",
       "apiName": "TFT17_DarkStar",
-      "desc": "<row>(@MinUnits@) 암흑의 별이 최대 체력이 @ExecuteHPPercent*100@% 이하인 적을 집어삼키는 블랙홀 생성</row><br><row>(@MinUnits@) 또한 @ADAP@% %i:scaleAD%%i:scaleAP% 획득</row><br><row>(@MinUnits@) 또한 가장 강한 암흑의 별 유닛이 초대질량 상태가 되어 암흑의 별 효과 @SupermassivePercentBonus*100@% 증가 및 소형 블랙홀 2개 생성</row><br><row>(@MinUnits@) 모든 암흑의 별이 초대질량 상태가 됨. 10레벨 달성 시 모두를 빨아들임 </row>",
+      "desc": "<row>(@MinUnits@) 암흑의 별이 최대 체력이 <ShowIf.TFT17_DarkStar_HasNeutronStar><TFTBonus>@TFTUnitProperty.trait:TFT17_Augment_DarkStar_NeutronStar_BonusExecutePercent*100@%</TFTBonus></ShowIf.TFT17_DarkStar_HasNeutronStar><ShowIfNot.TFT17_DarkStar_HasNeutronStar>@ExecuteHPPercent*100@%</ShowIfNot.TFT17_DarkStar_HasNeutronStar> 이하인 적을 집어삼키는 블랙홀 생성</row><br><row>(@MinUnits@) 또한 @ADAP@% %i:scaleAD%%i:scaleAP% 획득</row><br><row>(@MinUnits@) 또한 가장 강한 암흑의 별 유닛이 초대질량 상태가 되어 암흑의 별 효과 @SupermassivePercentBonus*100@% 증가 및 소형 블랙홀 2개 생성</row><br><row>(@MinUnits@) 모든 암흑의 별이 초대질량 상태가 됨. 10레벨 달성 시 모두를 빨아들임 </row>",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_17_DarkStar.TFT_Set17.tex",
       "effects": [
         {
@@ -877,7 +881,7 @@
             "Mountain_ADAP": null,
             "Mountain_AS": null,
             "Mountain_DR": null,
-            "Mountain_Health": 0.11999999731779099,
+            "Mountain_Health": 0.15000000596046448,
             "Mountain_Resists": null,
             "Mountain_RoundsPerEmblem": 5,
             "Mountain_StatIncrease": null,
@@ -890,10 +894,10 @@
           "minUnits": 4,
           "style": 3,
           "variables": {
-            "Mountain_ADAP": 0.11999999731779099,
+            "Mountain_ADAP": 0.15000000596046448,
             "Mountain_AS": null,
             "Mountain_DR": null,
-            "Mountain_Health": 0.11999999731779099,
+            "Mountain_Health": 0.15000000596046448,
             "Mountain_Resists": null,
             "Mountain_RoundsPerEmblem": 5,
             "Mountain_StatIncrease": null,
@@ -906,11 +910,11 @@
           "minUnits": 5,
           "style": 3,
           "variables": {
-            "Mountain_ADAP": 0.11999999731779099,
+            "Mountain_ADAP": 0.15000000596046448,
             "Mountain_AS": null,
             "Mountain_DR": null,
-            "Mountain_Health": 0.11999999731779099,
-            "Mountain_Resists": 12,
+            "Mountain_Health": 0.15000000596046448,
+            "Mountain_Resists": 10,
             "Mountain_RoundsPerEmblem": 5,
             "Mountain_StatIncrease": null,
             "{67e491c6}": 25000,
@@ -922,11 +926,11 @@
           "minUnits": 6,
           "style": 3,
           "variables": {
-            "Mountain_ADAP": 0.11999999731779099,
-            "Mountain_AS": 0.11999999731779099,
+            "Mountain_ADAP": 0.15000000596046448,
+            "Mountain_AS": 0.10000000149011612,
             "Mountain_DR": null,
-            "Mountain_Health": 0.11999999731779099,
-            "Mountain_Resists": 12,
+            "Mountain_Health": 0.15000000596046448,
+            "Mountain_Resists": 10,
             "Mountain_RoundsPerEmblem": 5,
             "Mountain_StatIncrease": null,
             "{67e491c6}": 25000,
@@ -938,11 +942,11 @@
           "minUnits": 7,
           "style": 3,
           "variables": {
-            "Mountain_ADAP": 0.11999999731779099,
-            "Mountain_AS": 0.11999999731779099,
+            "Mountain_ADAP": 0.15000000596046448,
+            "Mountain_AS": 0.10000000149011612,
             "Mountain_DR": 0.05999999865889549,
-            "Mountain_Health": 0.11999999731779099,
-            "Mountain_Resists": 12,
+            "Mountain_Health": 0.15000000596046448,
+            "Mountain_Resists": 10,
             "Mountain_RoundsPerEmblem": 5,
             "Mountain_StatIncrease": null,
             "{67e491c6}": 25000,
@@ -954,11 +958,11 @@
           "minUnits": 8,
           "style": 5,
           "variables": {
-            "Mountain_ADAP": 0.11999999731779099,
-            "Mountain_AS": 0.11999999731779099,
+            "Mountain_ADAP": 0.15000000596046448,
+            "Mountain_AS": 0.10000000149011612,
             "Mountain_DR": 0.05999999865889549,
-            "Mountain_Health": 0.11999999731779099,
-            "Mountain_Resists": 12,
+            "Mountain_Health": 0.15000000596046448,
+            "Mountain_Resists": 10,
             "Mountain_RoundsPerEmblem": 5,
             "Mountain_StatIncrease": 0.10000000149011612,
             "{67e491c6}": 25000,
@@ -970,11 +974,11 @@
           "minUnits": 9,
           "style": 5,
           "variables": {
-            "Mountain_ADAP": 0.11999999731779099,
-            "Mountain_AS": 0.11999999731779099,
+            "Mountain_ADAP": 0.15000000596046448,
+            "Mountain_AS": 0.10000000149011612,
             "Mountain_DR": 0.05999999865889549,
-            "Mountain_Health": 0.11999999731779099,
-            "Mountain_Resists": 12,
+            "Mountain_Health": 0.15000000596046448,
+            "Mountain_Resists": 10,
             "Mountain_RoundsPerEmblem": 5,
             "Mountain_StatIncrease": 0.10000000149011612,
             "{67e491c6}": 25000,
@@ -986,11 +990,11 @@
           "minUnits": 10,
           "style": 5,
           "variables": {
-            "Mountain_ADAP": 0.11999999731779099,
-            "Mountain_AS": 0.11999999731779099,
+            "Mountain_ADAP": 0.15000000596046448,
+            "Mountain_AS": 0.10000000149011612,
             "Mountain_DR": 0.05999999865889549,
-            "Mountain_Health": 0.11999999731779099,
-            "Mountain_Resists": 12,
+            "Mountain_Health": 0.15000000596046448,
+            "Mountain_Resists": 10,
             "Mountain_RoundsPerEmblem": 5,
             "Mountain_StatIncrease": 0.10000000149011612,
             "{67e491c6}": 25000,
@@ -1002,11 +1006,11 @@
           "minUnits": 11,
           "style": 6,
           "variables": {
-            "Mountain_ADAP": 0.11999999731779099,
-            "Mountain_AS": 0.11999999731779099,
+            "Mountain_ADAP": 0.15000000596046448,
+            "Mountain_AS": 0.10000000149011612,
             "Mountain_DR": 0.05999999865889549,
-            "Mountain_Health": 0.11999999731779099,
-            "Mountain_Resists": 12,
+            "Mountain_Health": 0.15000000596046448,
+            "Mountain_Resists": 10,
             "Mountain_RoundsPerEmblem": 5,
             "Mountain_StatIncrease": 0.10000000149011612,
             "{67e491c6}": 25000,
@@ -1073,7 +1077,7 @@
           "minUnits": 2,
           "style": 1,
           "variables": {
-            "HealthBonus": 0.20000000298023224,
+            "HealthBonus": 0.25,
             "TeamwideBonus": 0.05000000074505806
           }
         },
@@ -1082,7 +1086,7 @@
           "minUnits": 4,
           "style": 3,
           "variables": {
-            "HealthBonus": 0.4000000059604645,
+            "HealthBonus": 0.44999998807907104,
             "TeamwideBonus": 0.05000000074505806
           }
         },
@@ -1091,7 +1095,7 @@
           "minUnits": 6,
           "style": 5,
           "variables": {
-            "HealthBonus": 0.6000000238418579,
+            "HealthBonus": 0.6499999761581421,
             "TeamwideBonus": 0.05000000074505806
           }
         }
@@ -1247,8 +1251,8 @@
           "minUnits": 3,
           "style": 1,
           "variables": {
-            "AD": 0.20000000298023224,
-            "AP": 20,
+            "AD": 0.25,
+            "AP": 25,
             "TeamSize": 1,
             "TransformedPercentHealth": 0.4000000059604645
           }
@@ -1258,8 +1262,8 @@
           "minUnits": 4,
           "style": 3,
           "variables": {
-            "AD": 0.3499999940395355,
-            "AP": 35,
+            "AD": 0.44999998807907104,
+            "AP": 45,
             "TeamSize": 1,
             "TransformedPercentHealth": 0.4000000059604645
           }
@@ -1307,12 +1311,10 @@
             "Family_BaseSharePercent": 0.10000000149011612,
             "Family_HexesToReveal_TOOLTIPONLY": 3,
             "Family_Stats": 10,
-            "Fountain_HealPercent": 0.18000000715255737,
-            "Fountain_ManaRegen": 3,
-            "Fountain_ManaRegen_Teamwide": 1,
             "Huntress_AS": 0.30000001192092896,
             "Huntress_AS_Teamwide": 0.15000000596046448,
             "Huntress_Heal": 0.05000000074505806,
+            "MaxStacks": null,
             "Medallion_DA": 0.20000000298023224,
             "Medallion_IncreasePer3Star": 20,
             "Mountain_Health": 0.20000000298023224,
@@ -1332,6 +1334,7 @@
             "Wolf_Gold": 1,
             "Wolf_Health": 0.019999999552965164,
             "Wolf_Health_Teamwide": 0.07999999821186066,
+            "{13a2a786}": 2,
             "{326db998}": 0.15000000596046448,
             "{37204635}": 10,
             "{3b1fef00}": 1,
@@ -1345,8 +1348,10 @@
             "{abed8603}": 1.2999999523162842,
             "{b44d11c3}": 0.10000000149011612,
             "{c32af02f}": 0.05000000074505806,
+            "{d7e6d620}": 0.019999999552965164,
             "{e5275a69}": 0.019999999552965164,
-            "{e8338a44}": 0.15000000596046448
+            "{e8338a44}": 0.15000000596046448,
+            "{f2840aed}": 0.03999999910593033
           }
         },
         {
@@ -1357,12 +1362,10 @@
             "Family_BaseSharePercent": 0.10000000149011612,
             "Family_HexesToReveal_TOOLTIPONLY": 2,
             "Family_Stats": 35,
-            "Fountain_HealPercent": 0.25,
-            "Fountain_ManaRegen": 4,
-            "Fountain_ManaRegen_Teamwide": 1,
             "Huntress_AS": 0.44999998807907104,
             "Huntress_AS_Teamwide": 0.15000000596046448,
             "Huntress_Heal": 0.07999999821186066,
+            "MaxStacks": null,
             "Medallion_DA": 0.30000001192092896,
             "Medallion_IncreasePer3Star": 20,
             "Mountain_ADAP": 0.11999999731779099,
@@ -1381,6 +1384,7 @@
             "Wolf_Gold": 2,
             "Wolf_Health": 0.07999999821186066,
             "Wolf_Health_Teamwide": 0.07999999821186066,
+            "{13a2a786}": 4,
             "{326db998}": 0.25,
             "{37204635}": 10,
             "{3b1fef00}": 1,
@@ -1394,8 +1398,10 @@
             "{abed8603}": 1.5,
             "{b44d11c3}": 0.10000000149011612,
             "{c32af02f}": 0.05000000074505806,
+            "{d7e6d620}": 0.019999999552965164,
             "{e5275a69}": 0.029999999329447746,
-            "{e8338a44}": 0.15000000596046448
+            "{e8338a44}": 0.15000000596046448,
+            "{f2840aed}": 0.03999999910593033
           }
         },
         {
@@ -1406,12 +1412,10 @@
             "Family_BaseSharePercent": 0.10000000149011612,
             "Family_EmpoweredSharePercent": 0.30000001192092896,
             "Family_Stats": 35,
-            "Fountain_HealPercent": 0.20000000298023224,
-            "Fountain_ManaRegen": 5,
-            "Fountain_ManaRegen_Teamwide": 1,
             "Huntress_AS": 0.6000000238418579,
             "Huntress_AS_Teamwide": 0.15000000596046448,
             "Huntress_Heal": 0.10000000149011612,
+            "MaxStacks": null,
             "Medallion_DA": 0.4000000059604645,
             "Medallion_IncreasePer3Star": 20,
             "Mountain_AS": null,
@@ -1433,6 +1437,7 @@
             "Wolf_Gold": 4,
             "Wolf_Health": 0.15000000596046448,
             "Wolf_Health_Teamwide": 0.07999999821186066,
+            "{13a2a786}": 4,
             "{326db998}": 0.3499999940395355,
             "{37204635}": 10,
             "{3b1fef00}": 1,
@@ -1448,8 +1453,10 @@
             "{b44d11c3}": 0.10000000149011612,
             "{c32af02f}": 0.05000000074505806,
             "{c4d51662}": 2,
+            "{d7e6d620}": 0.019999999552965164,
             "{e5275a69}": 0.03999999910593033,
-            "{e8338a44}": 0.15000000596046448
+            "{e8338a44}": 0.15000000596046448,
+            "{f2840aed}": 0.03999999910593033
           }
         },
         {
@@ -1458,8 +1465,8 @@
           "style": 5,
           "variables": {
             "Family_BaseSharePercent": 0.10000000149011612,
-            "Fountain_ManaRegen_Teamwide": 1,
             "Huntress_AS_Teamwide": 0.15000000596046448,
+            "MaxStacks": null,
             "Medallion_IncreasePer3Star": 20,
             "Mountain_ADAP": null,
             "Mountain_AS": null,
@@ -1488,7 +1495,9 @@
             "{aa686d69}": 10,
             "{b44d11c3}": 0.10000000149011612,
             "{c32af02f}": 0.05000000074505806,
-            "{e8338a44}": 0.15000000596046448
+            "{d7e6d620}": 0.019999999552965164,
+            "{e8338a44}": 0.15000000596046448,
+            "{f2840aed}": 0.03999999910593033
           }
         },
         {
@@ -1497,8 +1506,8 @@
           "style": 5,
           "variables": {
             "Family_BaseSharePercent": 0.10000000149011612,
-            "Fountain_ManaRegen_Teamwide": 1,
             "Huntress_AS_Teamwide": 0.15000000596046448,
+            "MaxStacks": null,
             "Medallion_IncreasePer3Star": 20,
             "Mountain_ADAP": 0.11999999731779099,
             "Mountain_AS": 0.11999999731779099,
@@ -1522,7 +1531,9 @@
             "{aa686d69}": 10,
             "{b44d11c3}": 0.10000000149011612,
             "{c32af02f}": 0.05000000074505806,
-            "{e8338a44}": 0.15000000596046448
+            "{d7e6d620}": 0.019999999552965164,
+            "{e8338a44}": 0.15000000596046448,
+            "{f2840aed}": 0.03999999910593033
           }
         },
         {
@@ -1531,8 +1542,8 @@
           "style": 5,
           "variables": {
             "Family_BaseSharePercent": 0.10000000149011612,
-            "Fountain_ManaRegen_Teamwide": 1,
             "Huntress_AS_Teamwide": 0.15000000596046448,
+            "MaxStacks": null,
             "Medallion_IncreasePer3Star": 20,
             "Mountain_ADAP": 0.11999999731779099,
             "Mountain_AS": 0.11999999731779099,
@@ -1556,7 +1567,9 @@
             "{aa686d69}": 10,
             "{b44d11c3}": 0.10000000149011612,
             "{c32af02f}": 0.05000000074505806,
-            "{e8338a44}": 0.15000000596046448
+            "{d7e6d620}": 0.019999999552965164,
+            "{e8338a44}": 0.15000000596046448,
+            "{f2840aed}": 0.03999999910593033
           }
         }
       ]
@@ -1644,7 +1657,7 @@
     {
       "name": "N.O.V.A.",
       "apiName": "TFT17_DRX",
-      "desc": "<row>(@MinUnits@) 전투 시작 @TeamAttackDelay@초 후 N.O.V.A. 유닛이 챔피언에 따라 아군에게 힘의 고조 부여</row><br><row>(@MinUnits@) 타격 선택기 획득. 힘의 고조 시 선택한 N.O.V.A. 유닛 타격 발동</row><br><br><ShowIf.TFT17_DRX_HasAatrox><status>아트록스:</status> 아군이 입히는 피해가 적에게 @ShredAndSunder*100@% <TFTKeyword>파쇄</TFTKeyword> 및 <TFTKeyword>파열</TFTKeyword> 적용</ShowIf.TFT17_DRX_HasAatrox><ShowIfNot.TFT17_DRX_HasAatrox><TFTGuildInactive>아트록스: 적 파쇄 및 파열 적용</TFTGuildInactive></ShowIfNot.TFT17_DRX_HasAatrox><br><ShowIf.TFT17_DRX_HasCaitlyn><status>케이틀린:</status> 아군 공격 속도 @AS*100@% 증가</ShowIf.TFT17_DRX_HasCaitlyn><ShowIfNot.TFT17_DRX_HasCaitlyn><TFTGuildInactive>케이틀린: 공격 속도 증가</TFTGuildInactive></ShowIfNot.TFT17_DRX_HasCaitlyn><br><ShowIf.TFT17_DRX_HasAkali><status>아칼리:</status> 아군 <TFTKeyword>정밀</TFTKeyword> 획득</ShowIf.TFT17_DRX_HasAkali><ShowIfNot.TFT17_DRX_HasAkali><TFTGuildInactive>아칼리: 아군 정밀 획득</TFTGuildInactive></ShowIfNot.TFT17_DRX_HasAkali><br><ShowIf.TFT17_DRX_HasMaokai><status>마오카이:</status> 아군 최대 체력 @Heal*100@% 회복</ShowIf.TFT17_DRX_HasMaokai><ShowIfNot.TFT17_DRX_HasMaokai><TFTGuildInactive>마오카이: 아군 체력 회복</TFTGuildInactive></ShowIfNot.TFT17_DRX_HasMaokai><br><ShowIf.TFT17_DRX_HasKindred><status>킨드레드:</status> 가장 강한 탱커에게 <TFTBonus>@ShieldValue@</TFTBonus>초 동안 보호막 부여</ShowIf.TFT17_DRX_HasKindred><ShowIfNot.TFT17_DRX_HasKindred><TFTGuildInactive>킨드레드: 아군 보호막 부여</TFTGuildInactive></ShowIfNot.TFT17_DRX_HasKindred><br><ShowIf.TFT17_DRX_HasEmblem><status>상징:</status> 아군이 중첩되는 @BonusTrueDamage*100@% 추가 고정 피해 입힘</ShowIf.TFT17_DRX_HasEmblem><ShowIfNot.TFT17_DRX_HasEmblem><TFTGuildInactive>상징: 추가 고정 피해 입힘</TFTGuildInactive></ShowIfNot.TFT17_DRX_HasEmblem>",
+      "desc": "<row>(@MinUnits@) 전투 시작 @TeamAttackDelay@초 후 N.O.V.A. 유닛이 챔피언에 따라 아군에게 힘의 고조 부여</row><br><row>(@MinUnits@) 타격 선택기 획득. 힘의 고조 시 선택한 N.O.V.A. 유닛 타격 발동</row><br><br><ShowIf.TFT17_DRX_HasAatrox><status>아트록스:</status> 아군이 입히는 피해가 적에게 @ShredAndSunder*100@% <TFTKeyword>파쇄</TFTKeyword> 및 <TFTKeyword>파열</TFTKeyword> 적용</ShowIf.TFT17_DRX_HasAatrox><ShowIfNot.TFT17_DRX_HasAatrox><TFTGuildInactive>아트록스: 적 파쇄 및 파열 적용</TFTGuildInactive></ShowIfNot.TFT17_DRX_HasAatrox><br><ShowIf.TFT17_DRX_HasCaitlyn><status>케이틀린:</status> 아군 공격 속도 @AS*100@% 증가</ShowIf.TFT17_DRX_HasCaitlyn><ShowIfNot.TFT17_DRX_HasCaitlyn><TFTGuildInactive>케이틀린: 공격 속도 증가</TFTGuildInactive></ShowIfNot.TFT17_DRX_HasCaitlyn><br><ShowIf.TFT17_DRX_HasAkali><status>아칼리:</status> 아군 <TFTKeyword>정밀</TFTKeyword> 획득</ShowIf.TFT17_DRX_HasAkali><ShowIfNot.TFT17_DRX_HasAkali><TFTGuildInactive>아칼리: 아군 정밀 획득</TFTGuildInactive></ShowIfNot.TFT17_DRX_HasAkali><br><ShowIf.TFT17_DRX_HasMaokai><status>마오카이:</status> 아군 최대 체력 @Heal*100@% 회복</ShowIf.TFT17_DRX_HasMaokai><ShowIfNot.TFT17_DRX_HasMaokai><TFTGuildInactive>마오카이: 아군 체력 회복</TFTGuildInactive></ShowIfNot.TFT17_DRX_HasMaokai><br><ShowIf.TFT17_DRX_HasKindred><status>킨드레드:</status> 가장 강한 탱커에게 <TFTBonus>@ShieldValue@</TFTBonus>의 보호막 부여</ShowIf.TFT17_DRX_HasKindred><ShowIfNot.TFT17_DRX_HasKindred><TFTGuildInactive>킨드레드: 아군 보호막 부여</TFTGuildInactive></ShowIfNot.TFT17_DRX_HasKindred><br><ShowIf.TFT17_DRX_HasEmblem><status>상징:</status> 아군이 중첩되는 @BonusTrueDamage*100@% 추가 고정 피해 입힘</ShowIf.TFT17_DRX_HasEmblem><ShowIfNot.TFT17_DRX_HasEmblem><TFTGuildInactive>상징: 추가 고정 피해 입힘</TFTGuildInactive></ShowIfNot.TFT17_DRX_HasEmblem>",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_17_NOVA.TFT_Set17.tex",
       "effects": [
         {
@@ -1748,7 +1761,7 @@
     {
       "name": "어둠의 여인",
       "apiName": "TFT17_MorganaUniqueTrait",
-      "desc": "아군이 스킬로 받는 피해량이 @UntransformedAbilityDA*100@% 감소합니다. 모르가나가 어둠의 형상일 때는 이 수치가 @TransformedAbilityDA*100@%로 증가합니다.",
+      "desc": "아군이 %i:scaleDurability% 내구력을 @Durability*100@% 얻으며, 모르가나가 어둠의 형상일 때는 @TransformedDurability*100@%까지 증가합니다.",
       "icon": "ASSETS/UX/TraitIcons/Trait_Icon_17_DarkLady.TFT_Set17.tex",
       "effects": [
         {
@@ -1756,8 +1769,8 @@
           "minUnits": 1,
           "style": 4,
           "variables": {
-            "TransformedAbilityDA": 0.10000000149011612,
-            "UntransformedAbilityDA": 0.05000000074505806
+            "Durability": 0.05000000074505806,
+            "{816175b9}": 0.10000000149011612
           }
         }
       ]

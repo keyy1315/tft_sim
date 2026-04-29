@@ -25,7 +25,7 @@ function placed(c: RawChampion, q: number, r: number, items: RawItem[] = []): Pl
   return { champion: c, starLevel: 2, position: { q, r }, items };
 }
 
-describe('Mecha — (3) tier AD+20%/AP+20', () => {
+describe('Mecha — (3) tier AD+25%/AP+25 (17.2)', () => {
   it('메카 3명 → Urgot AD/AP 증가 vs 1명 baseline', () => {
     const team3 = [
       placed(apUrgot, 0, 0),
@@ -42,10 +42,10 @@ describe('Mecha — (3) tier AD+20%/AP+20', () => {
     });
     const urgot3 = result3.playerUnits.find(u => u.champion.apiName === 'TFT17_Urgot')!;
     const urgot1 = result1.playerUnits.find(u => u.champion.apiName === 'TFT17_Urgot')!;
-    // (3) tier AD+20% → urgot3 AD > urgot1 AD
+    // (3) tier AD+25% → urgot3 AD > urgot1 AD (17.2: 0.20 → 0.25)
     expect(urgot3.stats.damage).toBeGreaterThan(urgot1.stats.damage);
-    // (3) tier AP+20 (flat)
-    expect(urgot3.stats.ap - urgot1.stats.ap).toBeCloseTo(20, 1);
+    // (3) tier AP+25 (flat) — 17.2: 20 → 25
+    expect(urgot3.stats.ap - urgot1.stats.ap).toBeCloseTo(25, 1);
   });
 });
 
@@ -75,15 +75,15 @@ describe('Mecha — 메카 unit 만 buff', () => {
     const galio = result.playerUnits.find(u => u.champion.apiName === 'TFT17_Galio')!;
     const tf = result.playerUnits.find(u => u.champion.apiName === 'TFT17_TwistedFate')!;
 
-    // (3) tier AP+20 — 메카 unit 모두 baseline AP=0 + Mecha 효과 + 다른 trait 영향. AP >= 20.
-    // 다른 trait 가 AP 더 줄 수도 있어 strict equality 어려움 → 최소 AP 20 보장 검증.
-    expect(urgot.stats.ap).toBeGreaterThanOrEqual(20);
-    expect(aurelion.stats.ap).toBeGreaterThanOrEqual(20);
-    expect(galio.stats.ap).toBeGreaterThanOrEqual(20);
+    // (3) tier AP+25 (17.2) — 메카 unit 모두 baseline AP=0 + Mecha 효과 + 다른 trait 영향. AP >= 25.
+    // 다른 trait 가 AP 더 줄 수도 있어 strict equality 어려움 → 최소 AP 25 보장 검증.
+    expect(urgot.stats.ap).toBeGreaterThanOrEqual(25);
+    expect(aurelion.stats.ap).toBeGreaterThanOrEqual(25);
+    expect(galio.stats.ap).toBeGreaterThanOrEqual(25);
 
-    // 비-메카 unit (TF) 은 메카 trait flat +20 을 받지 않아야 함 — 메카 회귀 가드의 핵심.
-    // 단독 baseline 대비 차이가 < 20 이어야 메카 trait 의 +20 가산이 적용 안 됐음을 보장.
-    expect(tf.stats.ap - tfBaseline.stats.ap).toBeLessThan(20);
+    // 비-메카 unit (TF) 은 메카 trait flat +25 을 받지 않아야 함 — 메카 회귀 가드의 핵심.
+    // 단독 baseline 대비 차이가 < 25 이어야 메카 trait 의 +25 가산이 적용 안 됐음을 보장.
+    expect(tf.stats.ap - tfBaseline.stats.ap).toBeLessThan(25);
   });
 });
 

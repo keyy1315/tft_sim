@@ -3,7 +3,7 @@
     "set": 17,
     "name": "Set17",
     "patch_version": "25.S1.1",
-    "fetched_at": "2026-04-20",
+    "fetched_at": "2026-04-29",
     "source": "CommunityDragon TFT ko_kr.json",
     "totalChampions": 83
   },
@@ -752,7 +752,7 @@
       },
       "ability": {
         "name": "미확인 친절 물체",
-        "desc": "현재 대상 위에 @Duration@초 동안 유지되는 비행접시를 소환합니다. 비행접시는 매초 대상에게 <magicDamage>@ModifiedDamagePerSecond@(%i:scaleAP%)</magicDamage>의 마법 피해를 입히고, @SecondaryHexRange@칸 내 모든 적에게 <magicDamage>@ModifiedSplitDamagePerSecond@(%i:scaleAP%)</magicDamage>의 마법 피해를 나누어 입힙니다. 비행접시는 탱커에게 <TFTBonus>@TankDamageIncrease*100@%</TFTBonus> 증가한 피해를 입힙니다.<br><br>비행접시 아래에 있는 적이 사망하면 바드가 <TFTBonus>@AbductChance*100@%</TFTBonus> 확률로 해당 적을 납치하고 대기석에 1성 복사본을 생성합니다.<br><br><mainText enabled=TFT17_Astronaut_IsActive alternate=rules><spellActive enabled=TFT17_Astronaut_IsActive alternate=rules>정령 추가 효과:</spellActive> 전투 시작 시, 가장 가까운 아군 정령족 <TFTBonus>@ModifiedNumAllies@</TFTBonus>(%i:set14AmpIcon%)명에게 추가 정령 1마리를 부여합니다.</mainText><br><br><rules>납치한 친구: @TFTUnitProperty.:TFT17_Bard_FriendsAbducted@</rules>",
+        "desc": "현재 대상 위에 <ShowIf.TFT17_Augment_Concentration_Active><TFTRadiantItemBonus>@AugmentedDuration@</TFTRadiantItemBonus></ShowIf.TFT17_Augment_Concentration_Active><ShowIfNot.TFT17_Augment_Concentration_Active>@Duration@</ShowIfNot.TFT17_Augment_Concentration_Active>초 동안 유지되는 비행접시를 소환합니다. 비행접시는 매초 대상에게 <magicDamage>@ModifiedDamagePerSecond@(%i:scaleAP%)</magicDamage>의 마법 피해를 입히고, @SecondaryHexRange@칸 내 모든 적에게 <magicDamage>@ModifiedSplitDamagePerSecond@(%i:scaleAP%)</magicDamage>의 마법 피해를 나누어 입힙니다. 비행접시는 탱커에게 <TFTBonus>@TankDamageIncrease*100@%</TFTBonus> 증가한 피해를 입힙니다.<br><br>비행접시 아래에 있는 적이 사망하면 바드가 <TFTBonus>@AbductChance*100@%</TFTBonus> 확률로 해당 적을 납치하고 대기석에 1성 복사본을 생성합니다.<br><br><mainText enabled=TFT17_Astronaut_IsActive alternate=rules><spellActive enabled=TFT17_Astronaut_IsActive alternate=rules>정령 추가 효과:</spellActive> 전투 시작 시, 가장 가까운 아군 정령족 <TFTBonus>@ModifiedNumAllies@</TFTBonus>(%i:set14AmpIcon%)명에게 추가 정령 1마리를 부여합니다.</mainText><br><br><rules>납치한 친구: @TFTUnitProperty.:TFT17_Bard_FriendsAbducted@</rules>",
         "icon": "ASSETS/Characters/TFT17_Bard/HUD/Icons2D/TFT17_Bard_E.TFT_Set17.tex",
         "variables": [
           {
@@ -789,6 +789,18 @@
               4,
               4,
               4
+            ]
+          },
+          {
+            "name": "AugmentedDuration",
+            "value": [
+              5,
+              5,
+              5,
+              5,
+              5,
+              5,
+              5
             ]
           },
           {
@@ -920,10 +932,10 @@
             "name": "ADDamage",
             "value": [
               3,
-              27,
-              40,
-              60,
-              102,
+              29,
+              44,
+              65,
+              110,
               3,
               3
             ]
@@ -1190,7 +1202,7 @@
         "critChance": 0.25,
         "critMultiplier": 1.399999976158142,
         "initialMana": 0,
-        "mana": 80
+        "mana": 70
       },
       "ability": {
         "name": "완벽한 대가의 검술",
@@ -1304,7 +1316,7 @@
               200,
               225,
               340,
-              525,
+              560,
               860,
               600,
               600
@@ -1730,8 +1742,8 @@
             "name": "MissileAD",
             "value": [
               25,
-              28,
-              42,
+              30,
+              44,
               280,
               200,
               25,
@@ -2121,13 +2133,13 @@
           {
             "name": "PassiveRatio",
             "value": [
-              0.44999998807907104,
-              0.44999998807907104,
-              0.44999998807907104,
-              0.44999998807907104,
-              0.44999998807907104,
-              0.44999998807907104,
-              0.44999998807907104
+              0.5,
+              0.5,
+              0.5,
+              0.5,
+              0.5,
+              0.5,
+              0.5
             ]
           },
           {
@@ -2235,8 +2247,8 @@
             "name": "SpellDamage",
             "value": [
               0,
-              60,
-              90,
+              75,
+              115,
               600,
               810,
               0,
@@ -2433,7 +2445,7 @@
         "armor": 30,
         "magicResist": 30,
         "damage": 40,
-        "attackSpeed": 0.75,
+        "attackSpeed": 0.800000011920929,
         "range": 4,
         "critChance": 0.25,
         "critMultiplier": 1.399999976158142,
@@ -2635,8 +2647,8 @@
             "name": "ADDamage",
             "value": [
               0,
-              38,
-              57,
+              41,
+              62,
               644,
               444,
               0,
@@ -2787,7 +2799,7 @@
       },
       "ability": {
         "name": "죽음의 광선",
-        "desc": "현재 대상을 향해 일직선으로 @Duration@초 동안 죽음의 광선을 발사합니다. 광선은 매초 <magicDamage>@ModifiedDamage@(%i:scaleAP%)</magicDamage>의 마법 피해를 입힙니다. 관통한 적 하나당 피해량이 @DamageReductionPerTarget*100@%씩 감소합니다. 죽음의 광선은 적의 마법 저항력을 @MagicPen*100@% 무시합니다.",
+        "desc": "현재 대상을 향해 일직선으로 <ShowIf.TFT17_Augment_Concentration_Active><TFTRadiantItemBonus>@AugmentedDuration@</TFTRadiantItemBonus></ShowIf.TFT17_Augment_Concentration_Active><ShowIfNot.TFT17_Augment_Concentration_Active>@Duration@</ShowIfNot.TFT17_Augment_Concentration_Active>초 동안 죽음의 광선을 발사합니다. 광선은 매초 <magicDamage>@ModifiedDamage@(%i:scaleAP%)</magicDamage>의 마법 피해를 입힙니다. 관통한 적 하나당 피해량이 @DamageReductionPerTarget*100@%씩 감소합니다. 죽음의 광선은 적의 마법 저항력을 @MagicPen*100@% 무시합니다.",
         "icon": "ASSETS/Characters/TFT17_AurelionSol/HUD/Icons2D/TFT17_AurelionSolQ.TFT_Set17.tex",
         "variables": [
           {
@@ -2803,12 +2815,24 @@
             ]
           },
           {
+            "name": "AugmentedDuration",
+            "value": [
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4
+            ]
+          },
+          {
             "name": "DamagePerSecond",
             "value": [
               250,
               185,
               280,
-              2700,
+              2000,
               2000,
               1650,
               1650
@@ -2885,8 +2909,8 @@
               0,
               0.20000000298023224,
               0.20000000298023224,
-              0.8999999761581421,
-              0.8999999761581421,
+              0.6000000238418579,
+              0.6000000238418579,
               0,
               0
             ]
@@ -2919,8 +2943,8 @@
             "name": "Heal",
             "value": [
               0,
-              850,
-              1200,
+              900,
+              1300,
               3000,
               5000,
               0,
@@ -2953,7 +2977,7 @@
       },
       "ability": {
         "name": "초능력 폭풍",
-        "desc": "정신을 집중해 @Duration@초 동안 적을 따라다니는 1칸 범위 초능력 폭풍을 소환합니다. 폭풍은 매초 크기가 커지며 범위 내 적에게 <magicDamage>@ModifiedDamage@(%i:scaleAP%)</magicDamage>의 마법 피해를 입힙니다. 피해량은 중심으로부터 1칸 멀어질 때마다 @FalloffPerHex*100@% 감소합니다.",
+        "desc": "정신을 집중해 <ShowIf.TFT17_Augment_Concentration_Active><TFTRadiantItemBonus>@AugmentedDuration@</TFTRadiantItemBonus></ShowIf.TFT17_Augment_Concentration_Active><ShowIfNot.TFT17_Augment_Concentration_Active>@Duration@</ShowIfNot.TFT17_Augment_Concentration_Active>초 동안 적을 따라다니는 1칸 범위 초능력 폭풍을 소환합니다. 폭풍은 매초 크기가 커지며 범위 내 적에게 <magicDamage>@ModifiedDamage@(%i:scaleAP%)</magicDamage>의 마법 피해를 입힙니다. 피해량은 중심으로부터 1칸 멀어질 때마다 @FalloffPerHex*100@% 감소합니다.",
         "icon": "ASSETS/Characters/TFT17_Viktor/HUD/Icons2D/TFT17_Viktor_R1.TFT_Set17.tex",
         "variables": [
           {
@@ -2969,13 +2993,25 @@
             ]
           },
           {
+            "name": "AugmentedDuration",
+            "value": [
+              5,
+              5,
+              5,
+              5,
+              5,
+              5,
+              5
+            ]
+          },
+          {
             "name": "Damage",
             "value": [
               200,
-              200,
-              300,
-              530,
-              900,
+              185,
+              275,
+              475,
+              800,
               505,
               505
             ]
@@ -3102,8 +3138,8 @@
             "name": "PassiveDamage",
             "value": [
               60,
-              60,
-              90,
+              70,
+              105,
               550,
               720,
               720,
@@ -3215,10 +3251,10 @@
             "name": "HEALING",
             "value": [
               0,
-              385,
-              440,
-              600,
-              760,
+              415,
+              470,
+              630,
+              790,
               0,
               0
             ]
@@ -3599,9 +3635,9 @@
             "name": "Damage",
             "value": [
               260,
-              380,
-              570,
-              915,
+              360,
+              540,
+              860,
               1555,
               810,
               810
@@ -3897,8 +3933,8 @@
             "name": "DebrisDamage",
             "value": [
               300,
-              260,
-              390,
+              280,
+              420,
               999,
               999,
               2,
@@ -3909,8 +3945,8 @@
             "name": "SlamDamage",
             "value": [
               2.5,
-              620,
-              930,
+              680,
+              1050,
               9999,
               9999,
               2.5,
@@ -4023,7 +4059,7 @@
         "armor": 35,
         "magicResist": 35,
         "damage": 35,
-        "attackSpeed": 0.800000011920929,
+        "attackSpeed": 0.75,
         "range": 1,
         "critChance": 0.25,
         "critMultiplier": 1.399999976158142,
@@ -4063,10 +4099,10 @@
             "name": "ADBleedDamage",
             "value": [
               2.5,
-              460,
-              690,
-              1090,
-              1855,
+              430,
+              645,
+              1000,
+              1700,
               2.5,
               2.5
             ]
@@ -4206,7 +4242,7 @@
         "critChance": 0.25,
         "critMultiplier": 1.399999976158142,
         "initialMana": 0,
-        "mana": 60
+        "mana": 55
       },
       "ability": {
         "name": "쏟아지는 별",
@@ -4259,7 +4295,7 @@
         "critChance": 0.25,
         "critMultiplier": 1.399999976158142,
         "initialMana": 40,
-        "mana": 145
+        "mana": 155
       },
       "ability": {
         "name": "재앙",
@@ -4294,8 +4330,8 @@
             "name": "StunDuration",
             "value": [
               0,
+              1.5,
               1.75,
-              2,
               8,
               16,
               0,
@@ -4355,7 +4391,7 @@
         "magicResist": 40,
         "damage": 15,
         "attackSpeed": 0.800000011920929,
-        "range": 10,
+        "range": 6,
         "critChance": 0.25,
         "critMultiplier": 1.399999976158142,
         "initialMana": 0,
@@ -4382,8 +4418,8 @@
             "name": "ShadowHandMagicDamage",
             "value": [
               200,
-              140,
-              210,
+              130,
+              195,
               1000,
               9999,
               200,
@@ -4565,15 +4601,15 @@
       },
       "ability": {
         "name": "현실 절단",
-        "desc": "<spellPassive>기본 지속 효과:</spellPassive> 스킬 사용 시 기본 공격이 <magicDamage>@ModifiedBonusDamage@&nbsp;(%i:scaleAP%)</magicDamage>의 추가 마법 피해를 입힙니다. 이 효과는 중첩됩니다. 스킬 사용 3회째부터 대신 <trueDamage>고정 피해</trueDamage>를 입힙니다.<br><br><spellActive>사용 시:</spellActive> @ShieldDuration@초 동안 <TFTBonus>@ModifiedShield@(%i:scaleHealth%%i:scaleAP%)</TFTBonus>의 보호막을 얻습니다. 이후 가장 큰 챔피언 무리에 균열을 열어 범위 내 모든 적에게 기본 지속 효과의 추가 피해를 입힙니다. 영향을 받은 적은 공격 속도가 <TFTBonus>@ASSlow*100@%</TFTBonus> 둔화되고, 아군은 공격 속도를 <TFTBonus>@BonusAS*100@%</TFTBonus> 얻습니다. 두 효과 모두 @BuffDebuffDuration@초에 걸쳐 빠르게 사라집니다.",
+        "desc": "<spellPassive>기본 지속 효과:</spellPassive> 스킬 사용 시 기본 공격에 <magicDamage>@ModifiedBonusDamage@(%i:scaleHealth%%i:scaleAP%)</magicDamage>의 중첩되는 추가 마법 피해량이 추가됩니다. 세 번째 스킬 사용부터 대신 <trueDamage>고정 피해</trueDamage>가 추가됩니다.<br><br><spellActive>사용 시:</spellActive> @ShieldDuration@초 동안 <TFTBonus>@ModifiedShield@(%i:scaleHealth%%i:scaleAP%)</TFTBonus>의 보호막을 얻습니다. 이후 가장 큰 챔피언 무리에 균열을 열어 범위 내 모든 적에게 기본 지속 효과의 추가 피해를 입힙니다. 영향을 받은 적은 공격 속도가 <TFTBonus>@ASSlow*100@%</TFTBonus> 둔화되고, 아군은 공격 속도를 <TFTBonus>@BonusAS*100@%</TFTBonus> 얻습니다. 두 효과 모두 @BuffDebuffDuration@초에 걸쳐 빠르게 사라집니다.",
         "icon": "ASSETS/Characters/TFT17_Shen/HUD/Icons2D/TFT17_Shen_RShield.TFT_Set17.tex",
         "variables": [
           {
             "name": "BonusDamageOnAttack",
             "value": [
               50,
-              40,
-              60,
+              45,
+              75,
               777,
               777,
               777,
@@ -4583,21 +4619,21 @@
           {
             "name": "ShieldHP",
             "value": [
-              0.07999999821186066,
-              0.07999999821186066,
-              0.07999999821186066,
-              0.07999999821186066,
-              0.07999999821186066,
-              0.07999999821186066,
-              0.07999999821186066
+              0.10000000149011612,
+              0.10000000149011612,
+              0.10000000149011612,
+              0.10000000149011612,
+              0.10000000149011612,
+              0.10000000149011612,
+              0.10000000149011612
             ]
           },
           {
             "name": "ShieldAP",
             "value": [
               0,
-              225,
-              300,
+              200,
+              250,
               3456,
               3456,
               3456,
@@ -4651,6 +4687,18 @@
               3,
               3
             ]
+          },
+          {
+            "name": "DamageHP",
+            "value": [
+              0.009999999776482582,
+              0.009999999776482582,
+              0.009999999776482582,
+              0.009999999776482582,
+              0.009999999776482582,
+              0.009999999776482582,
+              0.009999999776482582
+            ]
           }
         ]
       },
@@ -4685,10 +4733,10 @@
             "name": "Damage",
             "value": [
               200,
-              230,
-              345,
-              520,
-              885,
+              255,
+              380,
+              575,
+              975,
               900,
               700
             ]
@@ -4697,10 +4745,10 @@
             "name": "BounceDamage",
             "value": [
               80,
-              75,
-              115,
-              175,
-              300,
+              85,
+              130,
+              190,
+              325,
               330,
               330
             ]
@@ -4738,10 +4786,10 @@
             "name": "ADDamage",
             "value": [
               0,
-              155,
-              235,
-              355,
-              605,
+              160,
+              240,
+              365,
+              620,
               0,
               0
             ]
@@ -4750,10 +4798,10 @@
             "name": "APDamage",
             "value": [
               0,
-              10,
-              15,
-              25,
-              40,
+              14,
+              21,
+              32,
+              54,
               0,
               0
             ]
@@ -4921,7 +4969,7 @@
       },
       "ability": {
         "name": "통통별",
-        "desc": "현재 대상에 통통별을 날려 처음 적중한 대상에게 <magicDamage>@ModifiedDamage@(%i:scaleAP%)</magicDamage>의 마법 피해를 입히고, 그 외에는 관통하며 <magicDamage>@ModifiedSecondaryDamage@(%i:scaleAP%)</magicDamage>의 피해를 입힙니다. 투사체는 목표 지점에 도달하면 방향을 전환해 멀리 있는 적에게 날아가고, 이동 속도가 증가하며 동일한 피해를 입힙니다. 방향 전환은 @NumRedirects@회 발동됩니다.",
+        "desc": "현재 대상에 통통별을 날려 처음 적중한 대상에게 <magicDamage>@ModifiedDamage@(%i:scaleAP%)</magicDamage>의 마법 피해를 입히고, 그 외에는 관통하며 <magicDamage>@ModifiedSecondaryDamage@(%i:scaleAP%)</magicDamage>의 피해를 입힙니다. 투사체는 목표 지점에 도달하면 방향을 전환해 멀리 있는 적에게 날아가고, 이동 속도가 증가하며 동일한 피해를 입힙니다. 방향 전환은 <ShowIf.TFT17_Augment_Concentration_Active><TFTRadiantItemBonus>@AugmentedNumRedirects@</TFTRadiantItemBonus></ShowIf.TFT17_Augment_Concentration_Active><ShowIfNot.TFT17_Augment_Concentration_Active>@NumRedirects@</ShowIfNot.TFT17_Augment_Concentration_Active>회 발동됩니다.<br><br>",
         "icon": "ASSETS/Characters/TFT17_Zoe/HUD/Icons2D/TFT17_Zoe_Q2.TFT_Set17.tex",
         "variables": [
           {
@@ -4958,6 +5006,18 @@
               4,
               4,
               4
+            ]
+          },
+          {
+            "name": "AugmentedNumRedirects",
+            "value": [
+              6,
+              6,
+              6,
+              6,
+              6,
+              6,
+              6
             ]
           },
           {
@@ -5029,10 +5089,10 @@
             "name": "Shield",
             "value": [
               100,
-              225,
-              275,
+              250,
+              290,
               375,
-              525,
+              460,
               100,
               100
             ]
@@ -5113,11 +5173,11 @@
             "name": "BaseDamage",
             "value": [
               50,
-              45,
-              70,
-              110,
+              50,
+              75,
+              120,
               190,
-              330,
+              240,
               330
             ]
           },
@@ -5125,10 +5185,10 @@
             "name": "BonusDamageToAttacks",
             "value": [
               0,
-              50,
-              75,
-              130,
-              220,
+              52,
+              78,
+              135,
+              230,
               0,
               0
             ]
@@ -5166,9 +5226,9 @@
             "name": "BasicAttackDamage",
             "value": [
               0,
-              57,
-              86,
-              400,
+              62,
+              93,
+              250,
               450,
               0,
               0
@@ -5235,7 +5295,7 @@
         "싸움꾼"
       ],
       "stats": {
-        "hp": 650,
+        "hp": 700,
         "armor": 40,
         "magicResist": 40,
         "damage": 45,
@@ -5279,10 +5339,10 @@
             "name": "BonusHealthOnKill",
             "value": [
               35,
-              25,
-              35,
-              65,
-              110,
+              30,
+              40,
+              70,
+              115,
               35,
               35
             ]
@@ -5692,7 +5752,7 @@
       },
       "ability": {
         "name": "불멸",
-        "desc": "<TFTBonus>@ModifiedInitialShield@(%i:scaleAP%)</TFTBonus>의 보호막을 얻습니다. 다음 @Duration@초 동안 매초 <TFTBonus>@ModifiedShieldPerProc@(%i:scaleAP%)</TFTBonus>의 보호막을 더 얻고 인접한 적에게 <magicDamage>@ModifiedDamagePerProc@(%i:scaleAP%)</magicDamage>의 마법 피해를 입힙니다. 이 스킬이 끝나면 남은 보호막을 소모하고 보호막 수치의 <scaleHealth>@HealRefund*100@%</scaleHealth>만큼 체력을 회복합니다.",
+        "desc": "<TFTBonus>@ModifiedInitialShield@(%i:scaleAP%)</TFTBonus>의 보호막을 얻습니다. 다음 <ShowIf.TFT17_Augment_Concentration_Active><TFTRadiantItemBonus>@AugmentedDuration@</TFTRadiantItemBonus></ShowIf.TFT17_Augment_Concentration_Active><ShowIfNot.TFT17_Augment_Concentration_Active>@Duration@</ShowIfNot.TFT17_Augment_Concentration_Active>초 동안 매초 <TFTBonus>@ModifiedShieldPerProc@(%i:scaleAP%)</TFTBonus>의 보호막을 더 얻고 인접한 적에게 <magicDamage>@ModifiedDamagePerProc@(%i:scaleAP%)</magicDamage>의 마법 피해를 입힙니다. 이 스킬이 끝나면 남은 보호막을 소모하고 보호막 수치의 <scaleHealth>@HealRefund*100@%</scaleHealth>만큼 체력을 회복합니다.",
         "icon": "ASSETS/Characters/TFT17_Mordekaiser/HUD/Icons2D/TFT17_MordekaiserW.TFT_Set17.tex",
         "variables": [
           {
@@ -5754,6 +5814,18 @@
               4,
               4
             ]
+          },
+          {
+            "name": "AugmentedDuration",
+            "value": [
+              6,
+              6,
+              6,
+              6,
+              6,
+              6,
+              6
+            ]
           }
         ]
       },
@@ -5812,8 +5884,8 @@
             "name": "ADDamage",
             "value": [
               40,
-              48,
-              72,
+              45,
+              68,
               900,
               375,
               300,
@@ -5936,8 +6008,8 @@
             "name": "Damage",
             "value": [
               400,
-              360,
-              540,
+              390,
+              585,
               5555,
               5555,
               5555,
@@ -5948,8 +6020,8 @@
             "name": "SecondaryDamageAD",
             "value": [
               120,
-              120,
-              180,
+              135,
+              200,
               3333,
               3333,
               3333,
@@ -6025,8 +6097,8 @@
             "name": "HealAP",
             "value": [
               0,
-              275,
-              315,
+              300,
+              360,
               1500,
               2500,
               0,
@@ -6051,8 +6123,8 @@
               120,
               45,
               60,
-              800,
-              600,
+              1500,
+              1500,
               870,
               870
             ]
@@ -6200,7 +6272,7 @@
     },
     {
       "name": "렉사이",
-      "apiName": "TFT17_RekSai",
+      "apiName": "TFT17_Reksai",
       "cost": 1,
       "traits": [
         "태고족",
@@ -6221,7 +6293,7 @@
       "ability": {
         "name": "지반 돌출",
         "desc": "체력을 <scaleHealth>@TotalHealing@ (%i:scaleHealth%%i:scaleAP%)</scaleHealth> 회복한 후 인접한 적을 잠시 공중에 띄우고 <magicDamage>@ModifiedDamage@(%i:scaleAP%)</magicDamage>의 마법 피해를 입힙니다.<br>",
-        "icon": "ASSETS/Characters/TFT17_RekSai/HUD/Icons2D/TFT17_RekSai_W2.TFT_Set17.tex",
+        "icon": "ASSETS/Characters/TFT17_Reksai/HUD/Icons2D/TFT17_Reksai_W2.TFT_Set17.tex",
         "variables": [
           {
             "name": "PercentMaximumHealthHealing",
@@ -6368,49 +6440,61 @@
     {
       "name": "모르가나",
       "apiName": "TFT17_Morgana",
-      "cost": 5,
+      "cost": 4,
       "traits": [
         "어둠의 여인"
       ],
       "stats": {
-        "hp": 1000,
-        "armor": 50,
-        "magicResist": 50,
-        "damage": 50,
-        "attackSpeed": 0.8999999761581421,
+        "hp": 1300,
+        "armor": 70,
+        "magicResist": 70,
+        "damage": 60,
+        "attackSpeed": 0.6499999761581421,
         "range": 2,
         "critChance": 0.25,
         "critMultiplier": 1.399999976158142,
-        "initialMana": 20,
-        "mana": 60
+        "initialMana": 40,
+        "mana": 100
       },
       "ability": {
         "name": "어둠의 형상",
-        "desc": "<spellPassive>기본 지속 효과:</spellPassive> 스킬 피해량의 @OmnivampPercent*100@%만큼 체력을 회복합니다.<br><br><spellActive>사용 시:</spellActive> @Duration@초 동안 어둠의 형상으로 변신하고 지속시간 동안 <TFTBonus>@ModifiedShield@(%i:scaleAP%)</TFTBonus>의 보호막을 얻습니다. 어둠의 형상인 동안 가장 가까운 적 @NumEnemies@명을 사슬로 연결해 각각 매초 <magicDamage>@ModifiedDamagePerSecond@(%i:scaleAP%)</magicDamage>의 마법 피해를 입힙니다.<br><br>변신이 끝나면 연결된 모든 적에게 <magicDamage>@ModifiedFinalDamage@(%i:scaleAP%)</magicDamage>의 마법 피해를 입힙니다.",
+        "desc": "@HealthGainDuration@초 동안 변신하여 체력을 <scaleHealth>@ModifiedHealthGain@ (%i:scaleAP%%i:scaleHealth%)</scaleHealth> 얻고 주변 챔피언에게 사슬을 연결합니다. 지속시간 동안 가장 가까운 적 @NumEnemies@명에게 <magicDamage>@ModifiedDamage@(%i:scaleAP%)</magicDamage>의 마법 피해를 입히고, 가장 가까운 부상당한 아군 @NumAllies@명의 체력을 <scaleHealth>@ModifiedHeal@ (%i:scaleAP%)</scaleHealth> 회복시킵니다.",
         "icon": "ASSETS/Characters/TFT17_Morgana/HUD/Icons2D/FallenAngel_Empathize.TFT_Set17.tex",
         "variables": [
           {
-            "name": "Shield",
+            "name": "APHealthGain",
             "value": [
-              300,
-              250,
-              300,
-              4000,
-              4000,
-              4000,
-              300
+              0,
+              600,
+              700,
+              2500,
+              2500,
+              2500,
+              2500
             ]
           },
           {
-            "name": "TetherDamagePerSecond",
+            "name": "PercentHPHealthGain",
             "value": [
               0,
-              50,
-              75,
-              1500,
+              0.15000000596046448,
+              0.15000000596046448,
+              0.5,
               3000,
               0,
               0
+            ]
+          },
+          {
+            "name": "HealthGainDuration",
+            "value": [
+              3,
+              3,
+              3,
+              3,
+              3,
+              3,
+              3
             ]
           },
           {
@@ -6426,44 +6510,44 @@
             ]
           },
           {
-            "name": "FinalDamage",
+            "name": "NumAllies",
+            "value": [
+              2,
+              2,
+              2,
+              2,
+              2,
+              2,
+              2
+            ]
+          },
+          {
+            "name": "APDamage",
             "value": [
               0,
-              240,
-              360,
-              4000,
-              4000,
+              100,
+              150,
+              3000,
+              0,
               0,
               0
             ]
           },
           {
-            "name": "OmnivampPercent",
+            "name": "APHealing",
             "value": [
-              0.20000000298023224,
-              0.20000000298023224,
-              0.20000000298023224,
-              0.20000000298023224,
-              0.20000000298023224,
-              0.20000000298023224,
-              0.20000000298023224
-            ]
-          },
-          {
-            "name": "Duration",
-            "value": [
-              5,
-              5,
-              5,
-              5,
-              5,
-              5,
-              5
+              0,
+              100,
+              150,
+              3000,
+              0,
+              0,
+              0
             ]
           }
         ]
       },
-      "role": "APFighter"
+      "role": "APTank"
     },
     {
       "name": "우주 오징어",
@@ -6709,16 +6793,16 @@
       "cost": 5,
       "traits": [],
       "stats": {
-        "hp": 2000,
-        "armor": 70,
-        "magicResist": 70,
+        "hp": 8452,
+        "armor": 150,
+        "magicResist": 150,
         "damage": 90,
         "attackSpeed": 0.8999999761581421,
         "range": 1,
         "critChance": 0.25,
         "critMultiplier": 1.399999976158142,
         "initialMana": 50,
-        "mana": 100
+        "mana": 85
       },
       "ability": {
         "name": "종말의 선지자",
@@ -6728,49 +6812,49 @@
           {
             "name": "GridADDamage",
             "value": [
-              100,
-              100,
-              100,
-              100,
-              100,
-              100,
-              100
+              200,
+              200,
+              200,
+              200,
+              200,
+              200,
+              200
             ]
           },
           {
             "name": "GridAPDamage",
             "value": [
-              100,
-              100,
-              100,
-              100,
-              100,
-              100,
-              100
+              200,
+              200,
+              200,
+              200,
+              200,
+              200,
+              200
             ]
           },
           {
             "name": "SwordAoEADDamage",
             "value": [
-              300,
-              300,
-              300,
-              300,
-              300,
-              300,
-              300
+              800,
+              800,
+              800,
+              800,
+              800,
+              800,
+              800
             ]
           },
           {
             "name": "SwordAoEAPDamage",
             "value": [
-              300,
-              300,
-              300,
-              300,
-              300,
-              300,
-              300
+              800,
+              800,
+              800,
+              800,
+              800,
+              800,
+              800
             ]
           },
           {

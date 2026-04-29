@@ -5,7 +5,7 @@
  *   (2) DamageMultiplier=1 (placeholder), DamageTakenPercentModifier=0.08, 군체 유충 spawn — 후속 PR
  *   (3) DamageMultiplier=1.45 → 태고족 unit damageAmp +0.45 — 본 PR 범위
  *
- * 태고족 챔프 (3명): Briar, Belveth, RekSai.
+ * 태고족 챔프 (3명): Briar, Belveth, Reksai.
  */
 import { describe, it, expect } from 'vitest';
 import { simulateCombat } from '@/lib/simulator/engine/combatLoop';
@@ -15,7 +15,7 @@ import type { PlacedChampion, RawChampion, RawItem } from '@/types';
 const { champions, traits } = loadServerCatalogs();
 const apBriar = champions.find((c) => c.apiName === 'TFT17_Briar')!;
 const apBelveth = champions.find((c) => c.apiName === 'TFT17_Belveth')!;
-const apRekSai = champions.find((c) => c.apiName === 'TFT17_RekSai')!;
+const apReksai = champions.find((c) => c.apiName === 'TFT17_Reksai')!;
 const apTwistedFate = champions.find((c) => c.apiName === 'TFT17_TwistedFate')!;
 const dummyEnemy = champions.find((c) => c.apiName === 'TFT17_Aatrox')!;
 
@@ -28,7 +28,7 @@ describe('Primordian — (3) tier DamageMultiplier=1.45 → damageAmp +0.45', ()
     const team3 = [
       placed(apBriar, 0, 0),
       placed(apBelveth, 1, 0),
-      placed(apRekSai, 2, 0),
+      placed(apReksai, 2, 0),
     ];
     const team2 = [
       placed(apBriar, 0, 0),
@@ -73,7 +73,7 @@ describe('Primordian — 비-태고족 unit 영향 없음', () => {
     const team = [
       placed(apBriar, 0, 0),
       placed(apBelveth, 1, 0),
-      placed(apRekSai, 2, 0),
+      placed(apReksai, 2, 0),
       placed(apTwistedFate, 3, 0),
     ];
     const baseline = [placed(apTwistedFate, 0, 0)];
