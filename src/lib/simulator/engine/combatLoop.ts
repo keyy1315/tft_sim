@@ -3154,14 +3154,34 @@ export function simulateCombat(
             eventBus.emit('on_heal', { sourceId: unit.id, value: heal, tick });
           }
 
-          // 최신상 (GravesTrait) DoubleTap Frame — 25% 확률 추가 1회 공격 (동일 damage).
-          // 단순화: 같은 finalDamage 를 한 번 더 적용 + on_hit / on_damage 이벤트 emit.
+          // 최신상 (GravesTrait) DoubleTap Frame — 25% 확률 추가 1회 공격.
+          // codex P1 가드: rawDamage 부터 mitigation pipeline 다시 거쳐야 (shielded target
+          // 에 첫 hit post-shield 값 재사용 시 under-damage 발생).
+          // codex P2 가드: 풀 attack 이벤트 emit (on_attack/on_damage/on_hit/on_hit_taken)
+          // — item runtime counter 등 attack-count 기반 시스템 정확 작동.
           if (unit.gravesDoubleAttackChance > 0 && target.state !== 'dead'
               && rng.next() < unit.gravesDoubleAttackChance) {
-            target.currentHp -= finalDamage;
-            target.totalDamageTaken += finalDamage;
-            unit.totalDamageDealt += finalDamage;
-            eventBus.emit('on_hit', { sourceId: unit.id, targetId: target.id, value: finalDamage, damageType: 'physical', tick });
+            // 새 hit — rawDamage 재사용 (동일 source stats 기반) + mitigation 재계산.
+            // 단, crit 은 첫 hit 와 동일하게 취급 (rawDamage 에 critMult 이미 포함).
+            let extraFinal = applyResistance(rawDamage, target.stats.armor, unit.stats.armorPen);
+            if (target.damageReduction > 0) extraFinal *= (1 - target.damageReduction);
+            if ((target.role === 'Fighter' || target.role === 'Assassin') && target.target !== unit.id) {
+              extraFinal *= (1 - NON_TARGET_DAMAGE_REDUCTION);
+            }
+            extraFinal = applyShield(target, extraFinal, eventBus, tick);
+            if (target.statusEffects.some(e => e.type === 'invulnerable')) extraFinal = 0;
+
+            target.currentHp -= extraFinal;
+            target.totalDamageTaken += extraFinal;
+            unit.totalDamageDealt += extraFinal;
+            unit.attackCount++;
+
+            // 풀 attack 이벤트 emit — 일반 평타와 동일 path.
+            eventBus.emit('on_attack', { sourceId: unit.id, targetId: target.id, value: extraFinal, tick });
+            eventBus.emit('on_hit', { sourceId: unit.id, targetId: target.id, value: extraFinal, damageType: 'physical', tick });
+            eventBus.emit('on_damage', { sourceId: target.id, targetId: unit.id, value: extraFinal, damageType: 'physical', tick });
+            eventBus.emit('on_hit_taken', { sourceId: target.id, targetId: unit.id, value: extraFinal, damageType: 'physical', tick });
+
             if (target.currentHp <= 0) {
               target.currentHp = 0;
               target.state = 'dead';
@@ -3172,6 +3192,17 @@ export function simulateCombat(
               logs.push(dlog); tickLogs.push(dlog);
               eventBus.emit('on_kill', { sourceId: unit.id, targetId: target.id, tick });
               eventBus.emit('on_death', { sourceId: target.id, targetId: unit.id, tick });
+            }
+
+            // 별돌보미 뱀(Serpent) — DoubleTap 추가 hit 도 중독 적용.
+            triggerSerpentPoison(unit, target, extraFinal);
+
+            // omnivamp 도 추가 hit 에 적용 (attack 1회 와 동일).
+            if (unit.omnivamp > 0 && extraFinal > 0) {
+              const grievousReduction = target.augmentGrievousWounds > 0 ? (1 - target.augmentGrievousWounds) : 1;
+              const heal = extraFinal * unit.omnivamp * grievousReduction;
+              unit.currentHp = Math.min(unit.maxHp, unit.currentHp + heal);
+              eventBus.emit('on_heal', { sourceId: unit.id, value: heal, tick });
             }
           }
 
