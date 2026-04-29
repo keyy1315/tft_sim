@@ -30,6 +30,8 @@ const dummyEnemy = champions.find(c => c.apiName === 'TFT17_Aatrox')!;
 // 일반 PsyOps 아이템 (사용자 빌더에서 장착 가능)
 const droneMod = items.find(i => i.apiName === 'TFT17_Item_PsyOps_DroneMod')!;
 const targetlockMod = items.find(i => i.apiName === 'TFT17_Item_PsyOps_TargetlockMod')!;
+// 초능력 emblem (장착 unit 에 초능력 trait 부여)
+const psyOpsEmblem = items.find(i => i.apiName === 'TFT17_Item_PsyOpsEmblemItem')!;
 
 function placed(c: RawChampion, q: number, r: number, eqItems: RawItem[] = []): PlacedChampion {
   return { champion: c, starLevel: 2, position: { q, r }, items: eqItems };
@@ -98,6 +100,26 @@ describe('PsyOps (4) tier 자동 Radiant swap', () => {
     const viktor = result.playerUnits.find(u => u.champion.apiName === 'TFT17_Viktor')!;
     expect(viktor.items[0].apiName).toBe('TFT17_Item_PsyOps_DroneMod_Radiant');
     expect(viktor.items[1].apiName).toBe('TFT17_Item_PsyOps_TargetlockMod_Radiant');
+  });
+
+  it('emblem 으로 초능력 trait 받은 unit 도 swap 대상 (codex P1 회귀 가드)', () => {
+    // 비-초능력 unit (TwistedFate) 가 PsyOps emblem 장착 → 초능력 trait 추가.
+    // 일반 PsyOps 아이템도 함께 장착 → (4) tier 활성 시 _Radiant swap 발동.
+    const team: PlacedChampion[] = [
+      placed(apViktor, 0, 0),
+      placed(apPyke, 1, 0),
+      placed(apMasterYi, 2, 0),
+      // emblem + 일반 PsyOps 아이템 — emblem 으로 초능력 trait 받은 후 PsyOps tier 4 활성 (4명)
+      placed(apTwistedFate, 3, 0, [psyOpsEmblem, droneMod]),
+    ];
+    const enemy = [placed(dummyEnemy, 6, 3)];
+    const result = simulateCombat(team, enemy, {
+      seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
+    });
+    const tf = result.playerUnits.find(u => u.champion.apiName === 'TFT17_TwistedFate')!;
+    // emblem 보유 → placedHasTrait('초능력')=true → swap 발동
+    const droneItem = tf.items.find(it => it.apiName.includes('DroneMod'));
+    expect(droneItem?.apiName).toBe('TFT17_Item_PsyOps_DroneMod_Radiant');
   });
 
   it('Radiant 변종은 빌더 catalog 에서 제외됨 (loadServerCatalogs disabledContent 필터)', () => {

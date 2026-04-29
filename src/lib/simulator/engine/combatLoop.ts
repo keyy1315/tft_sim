@@ -1035,7 +1035,9 @@ function isPsyOpsTier4Active(activeTraits: ActiveTrait[]): boolean {
  */
 function applyPsyOpsRadiantSwap(placed: PlacedChampion, tier4Active: boolean): PlacedChampion {
   if (!tier4Active) return placed;
-  if (!placed.champion.traits.includes('초능력')) return placed;
+  // emblem (TFT17_Item_PsyOpsEmblemItem) 으로 초능력 trait 부여된 unit 도 포함 — placedHasTrait 사용.
+  // base champion.traits 만 체크하면 emblem 보유 comp 가 회귀 (codex P1 review).
+  if (!placedHasTrait(placed, '초능력')) return placed;
   let changed = false;
   const newItems = placed.items.map(it => {
     if (it.apiName.startsWith('TFT17_Item_PsyOps_') && !it.apiName.endsWith('_Radiant')) {
