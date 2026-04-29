@@ -170,6 +170,8 @@ function createCombatUnit(
     killCount: 0,
     spellCanCrit: computeSpellCanCrit(allItems, activeTraits),
     stargazerFountainHealPercent: 0,
+    fountainHealPctPerTick: 0,
+    fountainStackingAdapPerTick: 0,
     stargazerHuntressHealPercent: 0,
     stargazerSerpentPoisonPercent: 0,
     stargazerSerpentDurationSec: 0,
@@ -1380,40 +1382,53 @@ function applyStargazerEffects(
     return;
   }
 
-  // === Fountain (우물) — Teamwide ManaRegen + 별돌보미 추가 마나 + 스킬 힐 ===
-  // ⚠️ 17.2 LIVE 재설계 NOTE:
-  //    Fountain_HealPercent / Fountain_ManaRegen / Fountain_ManaRegen_Teamwide 모두 raw
-  //    data 에서 제거됨. 신규 hash 키 (`{13a2a786}`, `{8d19f5db}`, `{d7e6d620}`,
-  //    `{f2840aed}`) 로 메커니즘 변경 (스택 기반으로 추정 — 정확한 의미 미확정).
+  // === Fountain (우물) — 17.2 LIVE 비활성 (Riot patch note: "룰루와 자야 효과 찾는 중") ===
   //
-  //    legacy 변수 부재 감지 시 (= 17.2+) 명시 early return — 잘못된 hash 키 매핑으로
-  //    부정확한 시뮬 결과를 내는 것보다 효과 0 (Fountain 별자리 미구현) 이 보수적/안전.
-  //    사용자가 Fountain 별자리 선택해도 시뮬은 별자리 미선택과 동일 결과.
+  // 17.2 LIVE 패치노트에 "우물 비활성화" 명시. raw data 에는 hash 변수 + 값 정의되어 있지만
+  // 인게임에서는 효과 미발동 상태. 시뮬도 동일하게 no-op 처리 (codex P1 정확성 가드).
+  // 활성화하면 인게임에서 불가능한 combat power 발생 → 시뮬 결과 inflated.
   //
-  //    TODO(17.2-fountain-mig): lolchess/인게임 확인 후 신규 hash 변수 의미 매핑 +
-  //      메커니즘 재구현. 관련 테스트는 stargazer-fountain-heal.test.ts 등에서 .skip.
+  // 매핑 보존 — 다음 patch 에서 reenable 시 즉시 활성화 가능.
+  // legacy (pre-17.2) 경로는 유지: set 전환 / PBE rollback 시 자동 호환.
+  //
+  // raw hash 키 ↔ desc 변수 매핑 (minify 추정, 다음 reenable 시 사용):
+  //   {8d19f5db} = Fountain_Interval = 2 (초)
+  //   {d7e6d620} = Fountain_HealthRegen_Teamwide = 0.02 (2%)
+  //   {f2840aed} = Fountain_HealthRegen = 0.04 (4%, 별돌보미 추가)
+  //   {13a2a786} = Fountain_StackingADAP = 2 / 4 ((3)/(5) tier, % 단위)
+  //
+  // 17.2 메커니즘 (활성화 시):
+  //   "강화된 칸 아군 N초마다 max HP × Teamwide% heal.
+  //    강화된 칸 별돌보미 추가로 +HealthRegen% heal + StackingADAP% AD/AP 누적."
   if (apiName === 'TFT17_Stargazer_Fountain') {
-    const isLegacy = 'Fountain_HealPercent' in eff
-      || 'Fountain_ManaRegen' in eff
-      || 'Fountain_ManaRegen_Teamwide' in eff;
-    if (!isLegacy) {
-      // 17.2+ 재설계 — Fountain 효과 미반영 (의도된 no-op). hash 변수 매핑은 후속 PR.
+    // legacy (16.x / pre-17.2) 경로 — Fountain_HealPercent 기반 ability 힐. set 전환 호환.
+    const legacyHealPct = (eff.Fountain_HealPercent ?? 0) as number;
+    const legacyTeamwideMana = (eff.Fountain_ManaRegen_Teamwide ?? 0) as number;
+    const legacyOwnerMana = (eff.Fountain_ManaRegen ?? 0) as number;
+    if (legacyHealPct > 0 || legacyTeamwideMana > 0 || legacyOwnerMana > 0) {
+      for (const u of units) {
+        if (!isOnTile(u)) continue;
+        if (legacyTeamwideMana > 0) u.augmentManaRegen += legacyTeamwideMana;
+        if (isStargazerUnit(u)) {
+          if (legacyOwnerMana > 0) u.augmentManaRegen += legacyOwnerMana;
+          if (legacyHealPct > 0) u.stargazerFountainHealPercent = legacyHealPct;
+        }
+      }
       return;
     }
-    // legacy (16.x / pre-17.2) 경로 유지: PBE rollback 또는 set 변경 시 호환.
-    const teamwide = (eff.Fountain_ManaRegen_Teamwide ?? 0) as number; // 단순 mana/sec
-    const ownerExtra = (eff.Fountain_ManaRegen ?? 0) as number;
-    // (3) 0.18 → 즉발 ability dmg 의 18% 만큼 가장 체력 낮은 아군 회복.
-    // (5) 0.25. 강화 칸 안 별돌보미 unit 만 trigger 보유 (heal 적용은 ability 시전 hook 에서).
-    const healPercent = (eff.Fountain_HealPercent ?? 0) as number;
-    for (const u of units) {
-      if (!isOnTile(u)) continue;
-      if (teamwide > 0) u.augmentManaRegen += teamwide;
-      if (isStargazerUnit(u)) {
-        if (ownerExtra > 0) u.augmentManaRegen += ownerExtra;
-        if (healPercent > 0) u.stargazerFountainHealPercent = healPercent;
-      }
-    }
+    // 17.2 LIVE — Riot 비활성화 상태. 시뮬도 no-op.
+    // 활성화 reenable 시 아래 매핑 코드 활성화:
+    //   const teamRegenPct = (eff['{d7e6d620}'] ?? 0) as number;
+    //   const selfRegenBonusPct = (eff['{f2840aed}'] ?? 0) as number;
+    //   const stackingAdapPct = ((eff['{13a2a786}'] ?? 0) as number) / 100;
+    //   for (const u of units) {
+    //     if (!isOnTile(u)) continue;
+    //     u.fountainHealPctPerTick = teamRegenPct;
+    //     if (isStargazerUnit(u)) {
+    //       u.fountainHealPctPerTick = teamRegenPct + selfRegenBonusPct;
+    //       u.fountainStackingAdapPerTick = stackingAdapPct;
+    //     }
+    //   }
     return;
   }
 }
@@ -1571,6 +1586,8 @@ function spawnFreljordTurrets(
             killCount: 0,
             spellCanCrit: false,
             stargazerFountainHealPercent: 0,
+            fountainHealPctPerTick: 0,
+            fountainStackingAdapPerTick: 0,
             stargazerHuntressHealPercent: 0,
             stargazerSerpentPoisonPercent: 0,
             stargazerSerpentDurationSec: 0,
@@ -1712,6 +1729,8 @@ function trySpawnGalio(
     killCount: 0,
     spellCanCrit: false,
     stargazerFountainHealPercent: 0,
+    fountainHealPctPerTick: 0,
+    fountainStackingAdapPerTick: 0,
     stargazerHuntressHealPercent: 0,
     stargazerSerpentPoisonPercent: 0,
     stargazerSerpentDurationSec: 0,
@@ -2867,6 +2886,38 @@ export function simulateCombat(
       };
       checkLaw(playerLawResolved, options.playerArbiterLaw, playerArbiterState, playerArbiterUnits);
       checkLaw(enemyLawResolved, options.enemyArbiterLaw, enemyArbiterState, enemyArbiterUnits);
+    }
+
+    // 별돌보미 우물(Fountain) tick 처리 — 강화 칸 unit 에 heal/stack 적용.
+    // 17.2 LIVE 에서 우물 비활성 (applyStargazerEffects 가 fountainHealPctPerTick 설정 안 함)
+    // → 모든 unit 의 fountainHealPctPerTick / fountainStackingAdapPerTick 가 0 → no-op.
+    // 활성화 시 (legacy 경로 또는 reenable patch) interval 은 trait raw 변수에서 동적 읽기
+    // (codex P2 가드 — hardcoded drift 방지).
+    const fountainPlayerTrait = playerActiveTraits.find(t => t.trait.apiName === 'TFT17_Stargazer_Fountain');
+    const fountainEnemyTrait = enemyActiveTraits.find(t => t.trait.apiName === 'TFT17_Stargazer_Fountain');
+    const fountainPlayerVars = fountainPlayerTrait?.activeEffect?.variables;
+    const fountainEnemyVars = fountainEnemyTrait?.activeEffect?.variables;
+    // raw hash 키 {8d19f5db} = Fountain_Interval (초). legacy 데이터에는 미정의 → 기본 2초.
+    const fountainIntervalSecs = (
+      (fountainPlayerVars?.['{8d19f5db}'] as number | undefined)
+      ?? (fountainEnemyVars?.['{8d19f5db}'] as number | undefined)
+      ?? 2
+    );
+    const fountainTickPeriod = Math.max(1, Math.round(fountainIntervalSecs * TICKS_PER_SECOND));
+    if (tick > 0 && tick % fountainTickPeriod === 0) {
+      for (const u of allUnits) {
+        if (u.state === 'dead') continue;
+        if (u.fountainHealPctPerTick > 0) {
+          const healBase = u.maxHp * u.fountainHealPctPerTick;
+          const heal = healBase * (1 + (u.healAmp ?? 0));
+          u.currentHp = Math.min(u.maxHp, u.currentHp + heal);
+        }
+        if (u.fountainStackingAdapPerTick > 0) {
+          // damage 누적 multiplicative. ap 는 percentage points (×100 fraction → 가산).
+          u.stats.damage = u.stats.damage * (1 + u.fountainStackingAdapPerTick);
+          u.stats.ap = (u.stats.ap ?? 0) + u.fountainStackingAdapPerTick * 100;
+        }
+      }
     }
 
     // In-combat augment effects (apply every second = every 30 ticks)
