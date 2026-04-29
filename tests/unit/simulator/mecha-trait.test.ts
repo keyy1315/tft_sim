@@ -50,7 +50,7 @@ describe('Mecha — (3) tier AD+20%/AP+20', () => {
 });
 
 describe('Mecha — 메카 unit 만 buff', () => {
-  it('메카 3명 + TwistedFate (비-메카) → 메카 unit AP 가산만', () => {
+  it('메카 3명 + TwistedFate (비-메카) → 메카 unit 만 AP 가산, TF 는 가산 없음', () => {
     const team = [
       placed(apUrgot, 0, 0),
       placed(apAurelionSol, 1, 0),
@@ -61,14 +61,29 @@ describe('Mecha — 메카 unit 만 buff', () => {
     const result = simulateCombat(team, enemy, {
       seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
     });
+
+    // baseline: TwistedFate 단독 — 메카 trait inactive 상태의 TF AP 측정.
+    // 메카 trait 이 모든 아군에 잘못 적용되는 회귀가 있다면 메카 active 시뮬에서 TF AP 가
+    // baseline 보다 +20 (Mecha (3) tier flat) 만큼 증가. baseline 대비 차이를 직접 검증.
+    const tfBaselineResult = simulateCombat([placed(apTwistedFate, 0, 0)], enemy, {
+      seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
+    });
+    const tfBaseline = tfBaselineResult.playerUnits.find(u => u.champion.apiName === 'TFT17_TwistedFate')!;
+
     const urgot = result.playerUnits.find(u => u.champion.apiName === 'TFT17_Urgot')!;
     const aurelion = result.playerUnits.find(u => u.champion.apiName === 'TFT17_AurelionSol')!;
     const galio = result.playerUnits.find(u => u.champion.apiName === 'TFT17_Galio')!;
+    const tf = result.playerUnits.find(u => u.champion.apiName === 'TFT17_TwistedFate')!;
+
     // (3) tier AP+20 — 메카 unit 모두 baseline AP=0 + Mecha 효과 + 다른 trait 영향. AP >= 20.
     // 다른 trait 가 AP 더 줄 수도 있어 strict equality 어려움 → 최소 AP 20 보장 검증.
     expect(urgot.stats.ap).toBeGreaterThanOrEqual(20);
     expect(aurelion.stats.ap).toBeGreaterThanOrEqual(20);
     expect(galio.stats.ap).toBeGreaterThanOrEqual(20);
+
+    // 비-메카 unit (TF) 은 메카 trait flat +20 을 받지 않아야 함 — 메카 회귀 가드의 핵심.
+    // 단독 baseline 대비 차이가 < 20 이어야 메카 trait 의 +20 가산이 적용 안 됐음을 보장.
+    expect(tf.stats.ap - tfBaseline.stats.ap).toBeLessThan(20);
   });
 });
 
