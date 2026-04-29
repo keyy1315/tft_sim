@@ -530,6 +530,18 @@ export interface CombatUnit {
    */
   gravesAbilityDamageBonus: number;
   /**
+   * 최신상 (TFT17_GravesTrait) 무기고 stat upgrade 활성 ID 목록.
+   * 가장 강한 그레이브즈 1명에게만 채워지며 빈 배열 = 미적용.
+   * 예: ['LeechingImplants', 'HeavyPlating', 'PrecisionScope2'].
+   * upgrade 적용 후 stat (damage / range / armor / etc.) 는 직접 누적.
+   */
+  gravesUpgrades: string[];
+  /**
+   * Tankbuster (탱커 파괴자) 업그레이드 활성 시 target.role==='Tank' 한정 추가 damage amp.
+   * 0 = 미활성 (기본). inventionTankDamageAmp 와 별도로 합산.
+   */
+  gravesTankDamageAmp: number;
+  /**
    * 자폭(TFT17_Augment_GragasCarry) 활성 + 가장 강한 그라가스로 선정된 unit 만 true.
    * 그라가스 ability 가 거대한 폭발 (자기 자신 데미지, 다른 아군 X) 로 변환되며,
    * 자폭 데미지로 hp 가 1 미만으로 떨어지지 않음 (HP floor=1).
