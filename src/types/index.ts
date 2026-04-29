@@ -524,11 +524,23 @@ export interface CombatUnit {
   /** 스킬 치명타 가능 여부. 전투 시작 시 보건/무대 착용 또는 정밀 계열 시너지로 결정. */
   spellCanCrit: boolean;
   /**
-   * 별돌보미 우물(Fountain) 변종 — 스킬 시전 시 가장 체력 낮은 아군 회복.
-   * 강화 칸 안 별돌보미 unit 만 양수 (예: 0.18 → 스킬 즉발 피해의 18% heal).
-   * applyStargazerEffects 가 well 변종 활성 + 강화 칸 + 별돌보미 unit 에 설정.
+   * @deprecated 17.2 이전 (legacy) — Fountain_HealPercent 기반 스킬 힐 트리거.
+   * 17.2+ 에서는 {Fountain_StackingADAP / HealthRegen} 메커니즘으로 변경됨.
+   * combatLoop applyStargazerEffects 의 legacy 경로에서만 사용.
    */
   stargazerFountainHealPercent: number;
+  /**
+   * 별돌보미 우물(Fountain) 변종 17.2 — 강화 칸 unit 의 max HP 회복 % per tick.
+   * teamwide (강화 칸 아군) = 0.02, 별돌보미 추가 = 0.04 → 별돌보미 합산 0.06.
+   * 0 = 비활성. main loop tick 마다 fountainTickInterval 만료 시 heal 발동.
+   */
+  fountainHealPctPerTick: number;
+  /**
+   * 별돌보미 우물(Fountain) 변종 17.2 — 강화 칸 별돌보미 stacking AD/AP % per tick.
+   * (3) tier = 0.02, (5) tier = 0.04 — desc StackingADAP. 매 tick 누적 AD/AP 가산.
+   * 0 = 비활성 (강화 칸 별돌보미 아닌 unit).
+   */
+  fountainStackingAdapPerTick: number;
   /**
    * 별돌보미 여사냥꾼(Huntress) 변종 — 표식된 적 사망 시 maxHp 비율 회복.
    * 강화 칸 안 별돌보미 unit 만 양수 (예: 0.10 → maxHp × 10% heal).
