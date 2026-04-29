@@ -3439,9 +3439,10 @@ export function simulateCombat(
             unit.augmentExecuteThreshold,
             unit.darkStarExecuteThreshold,
           );
+          // Spec: HP/maxHp 가 임계값 이하 (≤) 시 execute. 정확히 임계값에 있는 적도 처치 대상.
           const shouldExecute = effectiveExecuteThreshold > 0
             && target.currentHp > 0
-            && target.currentHp / target.maxHp < effectiveExecuteThreshold;
+            && target.currentHp / target.maxHp <= effectiveExecuteThreshold;
 
           if ((target.currentHp <= 0 || shouldExecute) && target.state !== 'dead') {
             target.state = 'dead';
