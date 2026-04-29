@@ -3125,8 +3125,8 @@ export function simulateCombat(
               logs.push(selfLog);
               tickLogs.push(selfLog);
               // on_cast 이벤트 emit — PsyOps 등 cast event subscriber 호환 (codex P2 회귀 가드).
-              // targetId 는 self (적군 X). value 는 실제 입은 self damage.
-              eventBus.emit('on_cast', { sourceId: unit.id, targetId: unit.id, value: dmgApplied, tick });
+              // targetId 는 self (적군 X). value 는 실제 입은 self damage. rawValue 는 동일 (no resistance for self).
+              eventBus.emit('on_cast', { sourceId: unit.id, targetId: unit.id, value: dmgApplied, rawValue: rawAbilityDmg, tick });
               continue; // 일반 ability 흐름 skip — 적군/아군 데미지 없음
             }
 
@@ -3374,7 +3374,9 @@ export function simulateCombat(
               totalAbilityDmg += droneDmg;
             }
 
-            eventBus.emit('on_cast', { sourceId: unit.id, targetId: target.id, value: totalAbilityDmg, tick });
+            // rawValue = hitCountTotal (resistance 적용 전 raw 총 ability damage).
+            // value = totalAbilityDmg (실제 적용 mitigated total).
+            eventBus.emit('on_cast', { sourceId: unit.id, targetId: target.id, value: totalAbilityDmg, rawValue: hitCountTotal, tick });
           }
 
           // Execute threshold: kill if below HP %
@@ -3545,7 +3547,8 @@ export function simulateCombat(
           // (codex P1 회귀 가드: Talon/Corki 같은 dash user 가 사거리 밖 시전 시 누락 방지).
           triggerFountainHeal(unit, totalAbilityDmg, tick, time, tickLogs);
 
-          eventBus.emit('on_cast', { sourceId: unit.id, targetId: target.id, value: totalAbilityDmg, tick });
+          // rawValue = oorHitTotal (raw 총 ability damage), value = totalAbilityDmg (mitigated).
+          eventBus.emit('on_cast', { sourceId: unit.id, targetId: target.id, value: totalAbilityDmg, rawValue: oorHitTotal, tick });
         } else {
           // 일반 이동
           const newPos = findBestMoveToward(unit.position, target.position, occupiedPositions);

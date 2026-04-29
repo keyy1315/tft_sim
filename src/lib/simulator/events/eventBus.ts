@@ -27,7 +27,18 @@ export type CombatEventType =
 export interface CombatEventPayload {
   sourceId: string;
   targetId?: string;
+  /**
+   * 이벤트 결과값 (보통 mitigated damage / total damage dealt 등 적용 후 값).
+   * on_cast: 시전자가 적에게 실제로 입힌 mitigated total damage.
+   * on_hit: 적용된 hit damage.
+   */
   value?: number;
+  /**
+   * Raw value (resistance 적용 전 base ability damage).
+   * on_cast 에서 'pctDealtRaw' 등 raw 기반 follow-up effect 가 사용.
+   * SympatheticImplant TrueDamageConversion 등 raw damage 기반 산식.
+   */
+  rawValue?: number;
   damageType?: 'physical' | 'magic' | 'true';
   tick: number;
 }
