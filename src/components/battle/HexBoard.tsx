@@ -11,30 +11,59 @@ interface HexBoardProps {
   onCellClick: (pos: HexCoord) => void;
   selectedCell?: HexCoord | null;
   highlightColor?: string;
+  cellSize?: number;
 }
 
-const HEX_R = 44;
-const HEX_W = HEX_R * Math.sqrt(3);
-const HEX_H = HEX_R * 2;
+export const DEFAULT_HEX_R = 44;
 const PAD = 5;
 
-export function hexPoints(cx: number, cy: number, r: number): string {
-  const pts = [];
-  for (let i = 0; i < 6; i++) {
-    const angle = (Math.PI / 3) * i - Math.PI / 6;
-    pts.push(`${cx + r * Math.cos(angle)},${cy + r * Math.sin(angle)}`);
-  }
-  return pts.join(' ');
+export const DEFAULT_TEAM_GAP = 10;
+export const PLAYER_TEAM_ROW_START = 4;
+
+export interface HexLayout {
+  HEX_R: number;
+  HEX_W: number;
+  HEX_H: number;
+  PAD: number;
+  teamGap: number;
+  hexPoints: (cx: number, cy: number, r: number) => string;
+  hexCenter: (row: number, col: number) => { cx: number; cy: number };
 }
 
-export function hexCenter(row: number, col: number): { cx: number; cy: number } {
-  const offset = row % 2 === 1 ? HEX_W / 2 : 0;
-  const cx = col * (HEX_W + PAD) + HEX_W / 2 + 20 + offset;
-  const cy = row * (HEX_H * 0.75 + PAD) + HEX_R + 20;
-  return { cx, cy };
+export function createHexLayout(
+  hexR: number = DEFAULT_HEX_R,
+  teamGap: number = DEFAULT_TEAM_GAP,
+): HexLayout {
+  const HEX_W = hexR * Math.sqrt(3);
+  const HEX_H = hexR * 2;
+
+  const hexPoints = (cx: number, cy: number, r: number): string => {
+    const pts: string[] = [];
+    for (let i = 0; i < 6; i++) {
+      const angle = (Math.PI / 3) * i - Math.PI / 6;
+      pts.push(`${cx + r * Math.cos(angle)},${cy + r * Math.sin(angle)}`);
+    }
+    return pts.join(' ');
+  };
+
+  const hexCenter = (row: number, col: number): { cx: number; cy: number } => {
+    const offset = row % 2 === 1 ? HEX_W / 2 : 0;
+    const cx = col * (HEX_W + PAD) + HEX_W / 2 + 20 + offset;
+    const gapOffset = row >= PLAYER_TEAM_ROW_START ? teamGap : 0;
+    const cy = row * (HEX_H * 0.75 + PAD) + hexR + 20 + gapOffset;
+    return { cx, cy };
+  };
+
+  return { HEX_R: hexR, HEX_W, HEX_H, PAD, teamGap, hexPoints, hexCenter };
 }
 
-export { HEX_R, HEX_W, HEX_H, PAD };
+const defaultLayout = createHexLayout(DEFAULT_HEX_R);
+export const HEX_R = defaultLayout.HEX_R;
+export const HEX_W = defaultLayout.HEX_W;
+export const HEX_H = defaultLayout.HEX_H;
+export { PAD };
+export const hexPoints = defaultLayout.hexPoints;
+export const hexCenter = defaultLayout.hexCenter;
 
 export default function HexBoard({ rows, cols = BOARD_COLS, placedChampions, onCellClick, selectedCell, highlightColor = '#8b5cf6' }: HexBoardProps) {
   const width = cols * (HEX_W + PAD) + HEX_W / 2 + 40;

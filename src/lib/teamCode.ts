@@ -64,7 +64,9 @@ export function decodeTeamCode(
 
     result.champions.push({
       champion,
-      starLevel: starLevel === 0 ? 1 : starLevel,
+      // 팀 코드 import 시 star=0 (미지정) 은 "기본 2성" 으로 해석 — UX 요구사항.
+      // star=1/2/3 은 명시적 값이면 그대로 사용.
+      starLevel: starLevel === 0 ? 2 : starLevel,
     });
   }
 

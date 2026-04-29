@@ -13,12 +13,32 @@ export type CombatEventType =
   | 'on_death'
   | 'on_damage'
   | 'on_heal'
-  | 'on_shield_break';
+  | 'on_shield_break'
+  // v2 — item-effect-engine (설계: docs/02-design/features/item-effect-engine.design.md §5.2)
+  /** 매 tick. IntervalTimer dispatch 용. */
+  | 'on_tick'
+  /** 스킬 마나 소모 시점 (on_cast 이전). PsyOps 공감 임플란트 등. */
+  | 'on_mana_spent'
+  /** 피격 당한 시점 (방어자 관점). on_hit은 공격자 관점과 혼용되어 애매 → 분리. */
+  | 'on_hit_taken'
+  /** 공격 windup 시작. PsyOps AttackPct 버프 창 용. */
+  | 'on_windup_start';
 
 export interface CombatEventPayload {
   sourceId: string;
   targetId?: string;
+  /**
+   * 이벤트 결과값 (보통 mitigated damage / total damage dealt 등 적용 후 값).
+   * on_cast: 시전자가 적에게 실제로 입힌 mitigated total damage.
+   * on_hit: 적용된 hit damage.
+   */
   value?: number;
+  /**
+   * Raw value (resistance 적용 전 base ability damage).
+   * on_cast 에서 'pctDealtRaw' 등 raw 기반 follow-up effect 가 사용.
+   * SympatheticImplant TrueDamageConversion 등 raw damage 기반 산식.
+   */
+  rawValue?: number;
   damageType?: 'physical' | 'magic' | 'true';
   tick: number;
 }

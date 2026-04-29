@@ -2,12 +2,12 @@ import {
   CombatUnit, CombatResult, CombatLog, PlacedChampion,
   HexCoord, HexBuff, TickSnapshot, mapGameRole,
   RawTrait, RawAugment, RawItem, RawChampion, ActiveTrait, ItemEffect,
-  MF_MODE_CONFIG, ArbiterLaw,
+  MF_MODE_CONFIG, ArbiterLaw, STAR_SCALING,
 } from '@/types';
 import arbiterLawsData from '../../../../public/data/arbiter_laws.json';
 import { findCarryAugment } from '@/data/carryAugments';
 import type { StatusEffectType } from '@/types';
-import { calculateStats } from '@/lib/simulator/systems/stat';
+import { calculateStats, getItemEffects } from '@/lib/simulator/systems/stat';
 import { getAbilityDamage, getAbilityShield, findAbilityTargets, CHAMPION_ABILITY_PATTERNS, getChampionScaling, starValue, getSynergyScaling } from '@/lib/simulator/systems/ability';
 import type { AbilityConfig } from '@/lib/simulator/systems/ability';
 import { canAttack, getMoveTicks, findBestMoveToward, coordKey, getNeighbors, hexDistance } from '@/lib/simulator/systems/movement';
@@ -18,10 +18,35 @@ import { captureSnapshot } from '@/lib/simulator/engine/replayEngine';
 import { findTarget } from '@/lib/simulator/systems/targeting';
 import { gainManaOnAttack, gainManaPerTick, gainManaOnDamageTaken } from '@/lib/simulator/systems/mana';
 import { EventBus } from '@/lib/simulator/events/eventBus';
+import { ItemEffectRuntime } from '@/lib/simulator/systems/items';
+import type { ActionDeps, DamageType } from '@/lib/simulator/systems/items';
 import { ROLE_OMNIVAMP, getFighterASBonus } from '@/lib/simulator/models/unit';
-import { resolveTraits } from '@/lib/simulator/systems/trait';
+import { resolveTraits, getEmblemTraitNames } from '@/lib/simulator/systems/trait';
+import { CONSTELLATION_TILE_PATTERN } from '@/lib/actualData/stargazerMapping';
+import type { StargazerConstellationId } from '@/lib/actualData/types';
+import { isAutoUnit } from '@/data/specialUnits';
+
+/**
+ * unit 의 trait 멤버십 검사 헬퍼. champion.traits 직접 조회는 emblem 으로 부여된
+ * trait 를 누락 — `resolvedTraits` 가 항상 createCombatUnit 시점에 emblem 까지
+ * 합산해 둔 진짜 멤버십 list. fallback 은 champion.traits (resolvedTraits 미설정
+ * 시 기본 traits 와 동일).
+ */
+function unitHasTrait(u: CombatUnit, traitName: string): boolean {
+  return (u.resolvedTraits ?? u.champion.traits).includes(traitName);
+}
+
+/**
+ * PlacedChampion (createCombatUnit 전 시점) 의 trait 멤버십 — champion.traits +
+ * emblem 합산. unit 생성 후엔 unitHasTrait 사용.
+ */
+function placedHasTrait(p: PlacedChampion, traitName: string): boolean {
+  if (p.champion.traits.includes(traitName)) return true;
+  return getEmblemTraitNames(p.items).includes(traitName);
+}
 import { resolveAugmentEffects, resolveInCombatAugmentEffects, resolvePerUnitMods, applyPerUnitMods, AugmentWithStacks } from '@/lib/simulator/systems/augment';
 import type { IoniaPathType } from '@/data/traitModules';
+import { computeSpellCanCrit } from '@/lib/combat/spellCrit';
 
 /** 상태이상 한글 레이블 (엔진 로그용 — UI 모듈에 의존하지 않음) */
 const STATUS_EFFECT_LABELS: Record<StatusEffectType, string> = {
@@ -32,6 +57,8 @@ const STATUS_EFFECT_LABELS: Record<StatusEffectType, string> = {
   taunt: '도발',
   shield: '보호막',
   invulnerable: '무적',
+  mark: '표식',
+  poison: '중독',
 };
 
 function mergeEffects(a: ItemEffect, b: ItemEffect): ItemEffect {
@@ -73,6 +100,41 @@ export interface SimulateOptions {
   /** 중재자 법률 */
   playerArbiterLaw?: ArbiterLaw;
   enemyArbiterLaw?: ArbiterLaw;
+  /**
+   * A 팀(player) 별자리. 미지정 시 base trait 활성, 변종 effect 미적용.
+   * 게임 룰 상 한 게임 1 별자리지만 시뮬에서는 분석 편의로 팀별 독립.
+   */
+  playerStargazerConstellation?: StargazerConstellationId;
+  /** B 팀(enemy) 별자리. 의미는 player 와 동일. */
+  enemyStargazerConstellation?: StargazerConstellationId;
+  /**
+   * 별돌보미 제단(Shield) — 게임-level 누적 사망 카운트 (player 측 기준).
+   * 시뮬은 단일 전투지만 NumDeaths(=60) 도달 여부는 게임 진행 누적이라
+   * 외부에서 미리 입력 받음. 시뮬 안에서 누적되는 사망 + priorShieldDeaths
+   * 합산 ≥ NumDeaths 시 cashout buff 발동. 미지정 시 0.
+   */
+  priorPlayerShieldDeaths?: number;
+  /** B 팀(enemy) 누적 사망 카운트. 의미는 player 와 동일. */
+  priorEnemyShieldDeaths?: number;
+  /**
+   * 최신상 (TFT17_GravesTrait) Frame 선택 — A 팀(player) 의 가장 강한 그레이브즈 1명에 적용.
+   * 'CloseQuarters' (맹공): 사거리 -2, 공격력 전사 변환, +HP 250, +AD 25%, +흡혈 10%
+   * 'SharpshooterModule' (위력): 정밀 (spellCanCrit) + 스킬 피해 5% 증가
+   * 'DoubleTap' (사수): 25% 확률 2회 공격
+   * 미지정 시 Frame 미적용. 하위 업그레이드 (Buckshot 등) 는 후속 PR.
+   */
+  playerGravesFrame?: 'CloseQuarters' | 'SharpshooterModule' | 'DoubleTap';
+  /** B 팀(enemy) 그레이브즈 Frame. 의미는 player 와 동일. */
+  enemyGravesFrame?: 'CloseQuarters' | 'SharpshooterModule' | 'DoubleTap';
+  /**
+   * 최신상 무기고 stat upgrade 활성 ID 목록 (suffix only, prefix 'TFT17_GravesTrait_Offense_' 제외).
+   * A 팀(player) 의 가장 강한 그레이브즈 1명에 적용. 예:
+   *   ['LeechingImplants', 'HeavyPlating', 'PrecisionScope2', 'Heartseeker']
+   * Phase 2 단순 stat upgrade 18종만 처리. 메커닉 필요 항목 (RevUp 등) 은 후속.
+   */
+  playerGravesUpgrades?: string[];
+  /** B 팀(enemy) 그레이브즈 stat upgrade. 의미는 player 와 동일. */
+  enemyGravesUpgrades?: string[];
 }
 
 function createCombatUnit(
@@ -84,6 +146,8 @@ function createCombatUnit(
 ): CombatUnit {
   const allItems = placed.voidItem ? [...placed.items, placed.voidItem] : placed.items;
   const { stats } = calculateStats(placed.champion, placed.starLevel, allItems, activeTraits, augmentEffects);
+  // 아이템 기반 omnivamp / manaRegen — ItemEffect 확장 (Set 17 StatOmnivamp / ManaRegen)
+  const itemFx = getItemEffects(allItems);
   const role = mapGameRole(placed.champion.role);
   const unit: CombatUnit = {
     id: `${team}-${index}`,
@@ -103,26 +167,63 @@ function createCombatUnit(
     attackCooldown: 0,
     moveCooldown: 0,
     totalDamageDealt: 0,
+    itemDamageDealt: 0,
     totalDamageTaken: 0,
     statusEffects: [],
-    omnivamp: ROLE_OMNIVAMP[role],
+    omnivamp: ROLE_OMNIVAMP[role] + (itemFx.omnivamp ?? 0),
     damageAmp: 0,
     damageReduction: 0,
     shield: 0,
-    augmentManaRegen: 0,
+    augmentManaRegen: itemFx.manaRegen ?? 0,
     augmentGrievousWounds: 0,
     augmentExecuteThreshold: 0,
     augmentBurnPercent: 0,
     inventionTankDamageAmp: 0,
+    healAmp: itemFx.healAmp ?? 0,
+    darkStarExecuteThreshold: 0,
+    darkStarSupermassive: false,
+    gravesFrame: null,
+    gravesDoubleAttackChance: 0,
+    gravesAbilityDamageBonus: 0,
+    gravesUpgrades: [],
+    gravesTankDamageAmp: 0,
+    gragasCarryActive: false,
+    leonaCarryActive: false,
     attackCount: 0,
     castCount: 0,
     killCount: 0,
+    spellCanCrit: computeSpellCanCrit(allItems, activeTraits),
+    stargazerFountainHealPercent: 0,
+    fountainHealPctPerTick: 0,
+    fountainStackingAdapPerTick: 0,
+    stargazerHuntressHealPercent: 0,
+    stargazerSerpentPoisonPercent: 0,
+    stargazerSerpentDurationSec: 0,
+    stargazerShieldCashoutHpFrac: 0,
+    stargazerShieldCashoutAsFrac: 0,
+    bastionDoubleEndTick: 0,
+    bastionDoubleArmorBonus: 0,
+    bastionDoubleMrBonus: 0,
+    sniperBaseDA: 0,
+    sniperPerHexDA: 0,
   };
 
-  // MF 특성 선택 → 실제 트레이트로 치환
+  // MF 특성 선택 → 실제 트레이트로 치환 + emblem 으로 부여된 trait 합산.
+  // resolvedTraits 가 unit 의 진짜 trait 멤버십 — combat-time 효과 (시너지 per-unit
+  // bonus / arbiter law) 가 emblem 보유 unit 도 일관되게 인식하도록 한다.
+  const emblemTraits = getEmblemTraitNames(allItems);
+  let baseTraits = placed.champion.traits;
   if (placed.champion.apiName === 'TFT17_MissFortune' && placed.mfMode) {
     const modeCfg = MF_MODE_CONFIG[placed.mfMode];
-    unit.resolvedTraits = placed.champion.traits.map(t => t === '특성 선택' ? modeCfg.name : t);
+    baseTraits = baseTraits.map(t => t === '특성 선택' ? modeCfg.name : t);
+  }
+  if (emblemTraits.length > 0 || baseTraits !== placed.champion.traits) {
+    // dedup — 동일 trait 가 champion 에 이미 있으면 emblem 으로 재추가하지 않음
+    const merged = [...baseTraits];
+    for (const t of emblemTraits) {
+      if (!merged.includes(t)) merged.push(t);
+    }
+    unit.resolvedTraits = merged;
   }
 
   // 공허 돌연변이 전투 효과 적용
@@ -187,7 +288,7 @@ function applySet17SynergyBuffs(traits: ActiveTrait[], units: CombatUnit[]): voi
     const tierIdx = at.trait.effects.findIndex(e => e === at.activeEffect);
     const ti = Math.max(0, tierIdx);
 
-    const isChampTrait = (u: CombatUnit) => (u.resolvedTraits ?? u.champion.traits).includes(at.trait.name);
+    const isChampTrait = (u: CombatUnit) => unitHasTrait(u, at.trait.name);
 
     // 도전자: 아군 AS + 도전자 추가 AS
     if (sc.teamwideAS) {
@@ -299,8 +400,35 @@ function applyHexBuffs(units: CombatUnit[], hexBuffs: HexBuff[]): void {
   }
 }
 
+/**
+ * 자폭 (TFT17_Augment_GragasCarry) ability 변환 config.
+ * 거대한 폭발: 적군 데미지 없음, 자기 자신만 데미지 + HP floor=1 (자기 스킬로 죽지 않음).
+ * damage 값은 그라가스 ability "Damage" 변수 그대로 (heal 제거).
+ */
+const GRAGAS_CARRY_ABILITY: AbilityConfig = {
+  pattern: 'aoe_circle',
+  radius: 0,
+  selfDamage: true,
+  selfDamageHpFloor: 1,
+};
+
+/**
+ * 방패 여전사 (TFT17_Augment_LeonaCarry) ability 변환 config.
+ * 적 가로질러 dash + line 관통 물리 피해 + 첫 적중 대상에만 기절 (CC).
+ */
+const LEONA_CARRY_ABILITY: AbilityConfig = {
+  pattern: 'line',
+  maxTargets: 4,
+  dash: 'to_target',
+  stun: 1.5,
+  firstHitOnlyStun: true,
+};
+
 /** 캐리 증강 포함 AbilityConfig 결정 */
 function getAbilityConfigForUnit(unit: CombatUnit, augmentApiNames: string[]): AbilityConfig {
+  // hero augment carry 변환 — applyHeroCarryTransforms 가 활성 unit 에 flag 설정.
+  if (unit.gragasCarryActive) return GRAGAS_CARRY_ABILITY;
+  if (unit.leonaCarryActive) return LEONA_CARRY_ABILITY;
   const carry = findCarryAugment(unit.champion.apiName, augmentApiNames);
   if (carry) return carry.abilityOverride;
   return CHAMPION_ABILITY_PATTERNS[unit.champion.apiName] ?? { pattern: 'single' };
@@ -395,7 +523,7 @@ function applyIoniaPath(
   const vars = ionia.activeEffect.variables;
 
   const ioniaUnits = teamUnits.filter(u =>
-    u.state !== 'dead' && u.champion.traits.includes('아이오니아')
+    u.state !== 'dead' && unitHasTrait(u, '아이오니아')
   );
   if (ioniaUnits.length === 0) return;
 
@@ -503,7 +631,7 @@ function applyDefenderBonus(activeTraits: ActiveTrait[], units: CombatUnit[]): v
   const bonus = (defender.activeEffect.variables['BonusArmorMR'] ?? 0) as number;
   if (bonus <= 0) return;
   for (const u of units) {
-    if (u.champion.traits.includes('엄호대')) {
+    if (unitHasTrait(u, '엄호대')) {
       u.stats.armor += bonus;
       u.stats.magicResist += bonus;
     }
@@ -517,7 +645,7 @@ function applySorcererBonus(activeTraits: ActiveTrait[], units: CombatUnit[]): v
   const bonusAP = (sorc.activeEffect.variables['BonusAP'] ?? 0) as number;
   if (bonusAP <= 0) return;
   for (const u of units) {
-    if (u.champion.traits.includes('비전 마법사')) {
+    if (unitHasTrait(u, '비전 마법사')) {
       u.stats.ap += bonusAP;
     }
   }
@@ -534,6 +662,695 @@ function applyInvokerManaRegen(activeTraits: ActiveTrait[], units: CombatUnit[])
   }
 }
 
+/** 보루 (쉔) — 유물 인접 아군에게 보호막 + 공격 속도 부여. TFT17_ShenUniqueTrait, unique=1 */
+function applyShenBastionAura(activeTraits: ActiveTrait[], units: CombatUnit[]): void {
+  const bastion = activeTraits.find(t => t.trait.apiName === 'TFT17_ShenUniqueTrait' && t.activeEffect);
+  if (!bastion?.activeEffect) return;
+  const shieldPct = (bastion.activeEffect.variables['PercentHealthShield'] ?? 0.15) as number;
+  const asPct = (bastion.activeEffect.variables['AttackSpeed'] ?? 0.25) as number;
+  const artifact = units.find(u => u.champion.apiName === 'TFT17_ShenProp');
+  if (!artifact) return;
+  for (const u of units) {
+    if (u.id === artifact.id) continue;
+    if (hexDistance(u.position, artifact.position) > 1) continue;
+    const shieldAmount = u.maxHp * shieldPct;
+    u.shield += shieldAmount;
+    u.statusEffects.push({ type: 'shield', sourceId: 'shen-artifact', remainingTicks: 9999, value: shieldAmount });
+    if (asPct > 0) u.stats.attackSpeed *= (1 + asPct);
+  }
+}
+
+/** 말살자 (진) — 적 전체 방어력/마법 저항력 감소. TFT17_JhinUniqueTrait, unique=1 */
+function applyJhinAnnihilator(activeTraits: ActiveTrait[], enemies: CombatUnit[]): void {
+  const annih = activeTraits.find(t => t.trait.apiName === 'TFT17_JhinUniqueTrait' && t.activeEffect);
+  if (!annih?.activeEffect) return;
+  const reductionPct = (annih.activeEffect.variables['PctResists'] ?? 0.15) as number;
+  if (reductionPct <= 0) return;
+  for (const e of enemies) {
+    e.stats.armor *= (1 - reductionPct);
+    e.stats.magicResist *= (1 - reductionPct);
+  }
+}
+
+/**
+ * 운명술사 (Fateweaver) — 정밀 (Precision) innate + (4) crit stat.
+ *
+ * Spec (TFT17_Fateweaver):
+ *   - Innate: 운명술사 unit 은 Precision 보유 → ability crit 가능 (trait count 무관)
+ *   - (2) chance effects on abilities are Lucky (확률 두 번 굴려 좋은 결과 — 후속 PR)
+ *   - (4) Crit Chance +20%, Crit Damage +20% (운명술사 unit 한정)
+ *
+ * Lucky 메커니즘은 ability rng 처 곳곳 적용 필요 → 별도 PR 로 분리.
+ * 본 함수는 Innate Precision + (4) crit stat 만 적용.
+ */
+function applyFateweaverEffects(activeTraits: ActiveTrait[], units: CombatUnit[]): void {
+  const trait = activeTraits.find(t => t.trait.apiName === 'TFT17_Fateweaver');
+  if (!trait || trait.count === 0) return;
+
+  // Innate: 운명술사 unit 들에 spellCanCrit 활성 (trait 활성 여부 무관, count >= 1 이면).
+  // 주의: hasSpellCritItem (보건/무대) 으로 이미 true 인 unit 은 그대로 유지 (idempotent).
+  for (const u of units) {
+    if (unitHasTrait(u, '운명술사')) {
+      u.spellCanCrit = true;
+    }
+  }
+
+  // (4) tier 활성 시 운명술사 unit 들에 crit stat 가산.
+  if (!trait.activeEffect || trait.style === 0) return;
+  const critChanceBonus = (trait.activeEffect.variables['CritChance'] ?? 0) as number;
+  const critDamageBonusPct = (trait.activeEffect.variables['CritDamage'] ?? 0) as number; // percentage points
+  if (critChanceBonus <= 0 && critDamageBonusPct <= 0) return;
+  const critDamageBonusFrac = critDamageBonusPct / 100;
+  for (const u of units) {
+    if (!unitHasTrait(u, '운명술사')) continue;
+    if (critChanceBonus > 0) u.stats.critChance += critChanceBonus;
+    if (critDamageBonusFrac > 0) u.stats.critMultiplier += critDamageBonusFrac;
+  }
+}
+
+/** 어둠의 여인 (모르가나) — 아군 스킬 피해량 감소. TFT17_MorganaUniqueTrait, unique=1 */
+function applyMorganaDarklight(activeTraits: ActiveTrait[], units: CombatUnit[]): void {
+  const trait = activeTraits.find(t => t.trait.apiName === 'TFT17_MorganaUniqueTrait' && t.activeEffect);
+  if (!trait?.activeEffect) return;
+  const reduction = (trait.activeEffect.variables['UntransformedAbilityDA'] ?? 0.10) as number;
+  if (reduction <= 0) return;
+  for (const u of units) {
+    u.damageReduction = Math.min(0.9, (u.damageReduction ?? 0) + reduction);
+  }
+}
+
+/**
+ * 요새 (Bastion/ResistTank) — Teamwide Armor/MR + 요새 unit 추가 + 첫 N초 doubled.
+ *
+ * Spec (TFT17_ResistTank):
+ *   - 모든 아군 +TeamwideResists Armor/MR
+ *   - 요새 unit 추가 +BonusArmor / +BonusMR
+ *   - 전투 첫 Duration 초간 BonusArmor/MR 가 StatMultiplier 배 (=2)
+ *   - (6) tier 시 비-요새 unit 들이 추가 +EnhancedTeamwideArmor Armor/MR
+ *
+ * Tier 별 BonusArmor/MR: (2) 16 / (4) 40 / (6) 60.
+ * Duration 메커니즘: 시작 시 doubled 적용, Duration 후 single 로 복귀 (main loop tick check).
+ */
+function applyBastionEffects(activeTraits: ActiveTrait[], units: CombatUnit[]): void {
+  const trait = activeTraits.find(t => t.trait.apiName === 'TFT17_ResistTank');
+  if (!trait || !trait.activeEffect || trait.style === 0) return;
+  const v = trait.activeEffect.variables;
+  const teamwide = (v.TeamwideResists ?? 0) as number;
+  const bonusArmor = (v.BonusArmor ?? 0) as number;
+  const bonusMr = (v.BonusMR ?? 0) as number;
+  const enhancedTeamwide = (v.EnhancedTeamwideArmor ?? 0) as number;
+  const statMultiplier = (v.StatMultiplier ?? 1) as number;
+  const durationSec = (v.Duration ?? 0) as number;
+  const isHighTier = trait.count >= 6;
+  for (const u of units) {
+    if (teamwide > 0) {
+      u.stats.armor += teamwide;
+      u.stats.magicResist += teamwide;
+    }
+    if (isHighTier && enhancedTeamwide > 0 && !unitHasTrait(u, '요새')) {
+      u.stats.armor += enhancedTeamwide;
+      u.stats.magicResist += enhancedTeamwide;
+    }
+    if (unitHasTrait(u, '요새')) {
+      u.stats.armor += bonusArmor;
+      u.stats.magicResist += bonusMr;
+      if (statMultiplier > 1 && durationSec > 0) {
+        const extraArmor = bonusArmor * (statMultiplier - 1);
+        const extraMr = bonusMr * (statMultiplier - 1);
+        u.stats.armor += extraArmor;
+        u.stats.magicResist += extraMr;
+        u.bastionDoubleEndTick = Math.round(durationSec * TICKS_PER_SECOND);
+        u.bastionDoubleArmorBonus = extraArmor;
+        u.bastionDoubleMrBonus = extraMr;
+      }
+    }
+  }
+}
+
+/** 매 tick main loop 에서 호출 — 요새 doubled buff 만료 시 stat 차감. */
+function tickBastionDouble(unit: CombatUnit, tick: number): void {
+  if (unit.bastionDoubleEndTick === 0) return;
+  if (tick < unit.bastionDoubleEndTick) return;
+  unit.stats.armor -= unit.bastionDoubleArmorBonus;
+  unit.stats.magicResist -= unit.bastionDoubleMrBonus;
+  unit.bastionDoubleEndTick = 0;
+  unit.bastionDoubleArmorBonus = 0;
+  unit.bastionDoubleMrBonus = 0;
+}
+
+/**
+ * 저격수 (Sniper/RangedTrait) — base damage amp + per-hex 추가 amp.
+ *
+ * Spec (TFT17_RangedTrait):
+ *   (2) PercentDamageIncrease=18%, PerHexIncrease=2%/hex
+ *   (3) 24%, 3%/hex
+ *   (4) 28%, 4%/hex
+ *
+ * 저격수 unit 의 damage hit 시 (hit site 에서 hexDistance(caster, target) 계산):
+ *   추가 damageAmp = sniperBaseDA + sniperPerHexDA * dist
+ */
+function applySniperEffects(activeTraits: ActiveTrait[], units: CombatUnit[]): void {
+  const trait = activeTraits.find(t => t.trait.apiName === 'TFT17_RangedTrait');
+  if (!trait || !trait.activeEffect || trait.style === 0) return;
+  const v = trait.activeEffect.variables;
+  const baseDApct = (v.PercentDamageIncrease ?? 0) as number; // 18 = 18%
+  const perHexPct = (v.PerHexIncrease ?? 0) as number; // 2 = 2% per hex
+  if (baseDApct <= 0) return;
+  const baseDA = baseDApct / 100;
+  const perHexDA = perHexPct / 100;
+  for (const u of units) {
+    if (!unitHasTrait(u, '저격수')) continue;
+    u.sniperBaseDA = baseDA;
+    u.sniperPerHexDA = perHexDA;
+  }
+}
+
+/** 저격수 damage amp 계산 — caster 가 저격수면 base + perHex × distance, 아니면 0. */
+function computeSniperDamageAmp(caster: CombatUnit, target: CombatUnit): number {
+  if (caster.sniperBaseDA <= 0) return 0;
+  const dist = hexDistance(caster.position, target.position);
+  return caster.sniperBaseDA + caster.sniperPerHexDA * dist;
+}
+
+/**
+ * 선봉대 (Vanguard/ShieldTank) — 전투 시작 시 maxHp × ShieldPercent shield (10초).
+ *
+ * Spec (TFT17_ShieldTank):
+ *   - 전투 시작 + 체력 HealthThreshold(=50%) 도달 시: maxHp × ShieldPercentAmount shield (10초)
+ *   - 선봉대는 보호막 활성 중 Durability +5% (DamageReductionPct)
+ *   - (6) 추가 +8% Durability (EnhancedDurability)
+ *
+ * 본 PR 은 전투 시작 shield 만 구현 — HealthThreshold 발동 (tick 감시) +
+ * Durability 보너스 (보호막 활성 중) 는 후속 PR 분리.
+ *
+ * Tier 별 ShieldPercent: (2) 16% / (4) 30% / (6) 40%.
+ */
+function applyVanguardEffects(activeTraits: ActiveTrait[], units: CombatUnit[], tick: number, time: number, logs: CombatLog[]): void {
+  const trait = activeTraits.find(t => t.trait.apiName === 'TFT17_ShieldTank');
+  if (!trait || !trait.activeEffect || trait.style === 0) return;
+  const v = trait.activeEffect.variables;
+  const shieldPct = (v.ShieldPercentAmount ?? 0) as number;
+  const durationSec = (v.ShieldDuration ?? 0) as number;
+  if (shieldPct <= 0 || durationSec <= 0) return;
+  const ticks = Math.round(durationSec * TICKS_PER_SECOND);
+  for (const u of units) {
+    if (!unitHasTrait(u, '선봉대')) continue;
+    const shieldAmount = Math.round(u.maxHp * shieldPct);
+    u.shield += shieldAmount;
+    u.statusEffects.push({
+      type: 'shield', sourceId: 'vanguard',
+      remainingTicks: ticks, value: shieldAmount,
+    });
+    logs.push({
+      tick, time, type: 'status_apply',
+      sourceId: u.id, statusType: 'shield',
+      message: `${u.champion.name} 선봉대 보호막 ${shieldAmount} (${durationSec}초)`,
+      value: shieldAmount,
+    });
+  }
+}
+
+/**
+ * 정령족 (Astronaut/Meeple) — BonusHealth flat HP 가산.
+ *
+ * Spec (TFT17_Astronaut):
+ *   (3) +100 HP, Meeps=2
+ *   (5) +400 HP, Meeps=3
+ *   (7) +400 HP, Meeps=4 + Cloning Slot (게임-level, 시뮬 외)
+ *   (10) +500 HP, Meeps=6 + Four Meeplords (특수)
+ *
+ * Meeps 메커니즘은 챔프별 ability 에서 다르게 작동 (Bard MeepsPerMeep,
+ * Rammus FlatDRPerMeep, Poppy MeepShield 등) — 복잡 → 별도 PR.
+ * 본 함수는 BonusHealth flat 가산만.
+ *
+ * 정령족 챔프 (8명): Bard, Gnar, Fizz, Rammus, Poppy, Corki, Veigar, IvernMinion.
+ */
+function applyAstronautEffects(activeTraits: ActiveTrait[], units: CombatUnit[]): void {
+  const trait = activeTraits.find(t => t.trait.apiName === 'TFT17_Astronaut');
+  if (!trait || !trait.activeEffect || trait.style === 0) return;
+  const bonusHp = (trait.activeEffect.variables['BonusHealth'] ?? 0) as number;
+  if (bonusHp <= 0) return;
+  for (const u of units) {
+    if (!unitHasTrait(u, '정령족')) continue;
+    u.maxHp += bonusHp;
+    u.currentHp += bonusHp;
+  }
+}
+
+/**
+ * 시간 균열자 (Timebreaker/Pulsefire) — teamwide AS + 시간 균열자 추가 AS.
+ *
+ * Spec (TFT17_Timebreaker):
+ *   (2)/(3)/(4) 모두 모든 아군 +15% AS (AttackSpeed=0.15)
+ *   (3) 추가로 게임-level reroll/XP bonus ({aaae13a0}=1) — 시뮬 외
+ *   (4) 시간 균열자 unit 추가 +50% AS (TimebreakerAdditionalAS=0.50)
+ *
+ * 시간 균열자 챔프 (4명): Riven, Milio, Ezreal, Pantheon.
+ */
+function applyTimebreakerEffects(activeTraits: ActiveTrait[], units: CombatUnit[]): void {
+  const trait = activeTraits.find(t => t.trait.apiName === 'TFT17_Timebreaker');
+  if (!trait || !trait.activeEffect || trait.style === 0) return;
+  const v = trait.activeEffect.variables;
+  const teamwideAs = (v.AttackSpeed ?? 0) as number;
+  const additionalAs = (v.TimebreakerAdditionalAS ?? 0) as number;
+  for (const u of units) {
+    if (teamwideAs > 0) {
+      u.stats.attackSpeed *= (1 + teamwideAs);
+    }
+    if (additionalAs > 0 && unitHasTrait(u, '시간 균열자')) {
+      u.stats.attackSpeed *= (1 + additionalAs);
+    }
+  }
+}
+
+/**
+ * 싸움꾼 (Brawler/HPTank) — teamwide +5% maxHp + 싸움꾼 unit 추가 % maxHp.
+ *
+ * Spec (TFT17_HPTank):
+ *   (2)/(4)/(6) 모두 모든 아군 +5% maxHP (TeamwideBonus=0.05)
+ *   추가로 싸움꾼 unit 본인:
+ *     (2) +20% (HealthBonus=0.20)
+ *     (4) +40% (HealthBonus=0.40)
+ *     (6) +60% (HealthBonus=0.60)
+ *
+ * 싸움꾼 챔프 (7명): Maokai, Urgot, Gragas, Chogath, TahmKench, RekSai, Pantheon.
+ *
+ * Note: maxHp 가산 시 currentHp 도 비례 증가 (전투 시작 시점이라 unit 은 풀체).
+ */
+function applyBrawlerEffects(activeTraits: ActiveTrait[], units: CombatUnit[]): void {
+  const trait = activeTraits.find(t => t.trait.apiName === 'TFT17_HPTank');
+  if (!trait || !trait.activeEffect || trait.style === 0) return;
+  const v = trait.activeEffect.variables;
+  const teamwideBonus = (v.TeamwideBonus ?? 0) as number;
+  const brawlerBonus = (v.HealthBonus ?? 0) as number;
+  for (const u of units) {
+    let multiplier = 1;
+    if (teamwideBonus > 0) multiplier += teamwideBonus;
+    if (brawlerBonus > 0 && unitHasTrait(u, '싸움꾼')) multiplier += brawlerBonus;
+    if (multiplier === 1) continue;
+    u.maxHp *= multiplier;
+    u.currentHp *= multiplier;
+  }
+}
+
+/**
+ * 암흑의 별 (DarkStar) — tier 별 효과:
+ *
+ * Spec (TFT17_DarkStar) 17.2 raw (모든 tier 동일 변수):
+ *   ADAP=45, ExecuteHPPercent=0.08, PercentHealth=0.30, SupermassivePercentBonus=0.85
+ *
+ * Tier 차이는 코드 로직으로 처리:
+ *   (2) tier (style 1)  : 블랙홀 execute — currentHp/maxHp ≤ 0.08 적 즉사
+ *   (4) tier (style 3)  : (2) + ADAP 45% AD/AP 가산
+ *   (6) tier (style 5)  : (4) + 가장 강한 darkStar unit Supermassive
+ *                          (ADAP × (1 + 0.85), maxHp × (1 + 0.30))
+ *   (9) tier (style 6)  : 프리즘 — 별도 prism handler 처리 (10레벨 즉시 승리)
+ *
+ * 암흑의 별 챔프 (6명): Kaisa, Karma, Jhin, Chogath, Lissandra, Mordekaiser.
+ */
+function applyDarkStarEffects(activeTraits: ActiveTrait[], units: CombatUnit[]): void {
+  const trait = activeTraits.find(t => t.trait.apiName === 'TFT17_DarkStar');
+  if (!trait || !trait.activeEffect || trait.style === 0) return;
+  const v = trait.activeEffect.variables;
+  const adap = (v.ADAP ?? 0) as number;
+  const executePct = (v.ExecuteHPPercent ?? 0) as number;
+  const supermassiveBonus = (v.SupermassivePercentBonus ?? 0) as number;
+  // PercentHealth=0.30 raw 변수는 desc 에 미사용 → 적용 안 함 (codex 후속 검토).
+
+  // darkStar unit 식별 (FakeUnit 소형 블랙홀 은 traits=[] 라서 자연 제외됨)
+  const darkStarUnits = units.filter(u => unitHasTrait(u, '암흑의 별'));
+  if (darkStarUnits.length === 0) return;
+
+  // (2)+ tier: execute threshold 활성 — 모든 darkStar unit 에 적용.
+  if (trait.style >= 1 && executePct > 0) {
+    for (const u of darkStarUnits) {
+      u.darkStarExecuteThreshold = executePct;
+    }
+  }
+
+  // (4)+ tier (style 3): ADAP 45% — 모든 darkStar unit.
+  if (trait.style >= 3 && adap > 0) {
+    for (const u of darkStarUnits) {
+      u.stats.damage = Math.round(u.stats.damage * (1 + adap / 100));
+      u.stats.ap = (u.stats.ap ?? 0) + adap;
+    }
+  }
+
+  // (6)+ tier (style 5): 가장 강한 darkStar unit Supermassive — desc 명시:
+  //   "암흑의 별 효과 SupermassivePercentBonus(0.85) 만큼 증가 + 소형 블랙홀 2개 생성".
+  //   "암흑의 별 효과" = ADAP + ExecuteHPPercent 둘 다 포함 → 두 효과 모두 +85% 강화.
+  //   소형 블랙홀 spawn 은 useTeamManagement.syncDarkStarBlackholesInTeam (UI 단계).
+  if (trait.style >= 5 && supermassiveBonus > 0) {
+    const strongest = findStrongestDarkStarUnit(darkStarUnits);
+    if (strongest) {
+      strongest.darkStarSupermassive = true;
+      // ADAP 추가 강화: damage += baseAd × (adap/100) × bonus, ap += adap × bonus
+      const baseDamageBeforeAdap = strongest.stats.damage / (1 + adap / 100);
+      const extraDamage = baseDamageBeforeAdap * (adap / 100) * supermassiveBonus;
+      strongest.stats.damage = Math.round(strongest.stats.damage + extraDamage);
+      strongest.stats.ap = (strongest.stats.ap ?? 0) + adap * supermassiveBonus;
+      // ExecuteHPPercent 도 +85% 강화 — base 0.08 × 1.85 ≈ 0.148 (codex P1 회귀 가드).
+      if (executePct > 0) {
+        strongest.darkStarExecuteThreshold = executePct * (1 + supermassiveBonus);
+      }
+    }
+  }
+}
+
+/**
+ * "가장 강한" darkStar unit 선정 — Supermassive 단일 대상.
+ * 우선순위: starLevel → maxHp (아이템 보유 의미) → 첫 번째.
+ */
+function findStrongestDarkStarUnit(units: CombatUnit[]): CombatUnit | null {
+  if (units.length === 0) return null;
+  const maxStar = Math.max(...units.map(u => u.starLevel));
+  const top = units.filter(u => u.starLevel === maxStar);
+  if (top.length === 1) return top[0];
+  // 동급 → maxHp 최고 (아이템 보유 비중 반영)
+  return top.sort((a, b) => b.maxHp - a.maxHp)[0];
+}
+
+/**
+ * 태고족 (Primordian) — (3) tier DamageMultiplier=1.45 → 태고족 unit damageAmp +0.45.
+ *
+ * Spec (TFT17_Primordian):
+ *   (2) DamageMultiplier=1 (placeholder), DamageTakenPercentModifier=0.08, 군체 유충 spawn — 후속 PR
+ *   (3) DamageMultiplier=1.45 (style=5), 태고족 unit 입히는 피해 +45% — 본 PR 범위
+ *
+ * 군체 유충 spawn 메커니즘 + DamageTakenPercentModifier 는 별도 minion 시스템 필요 — 후속 PR.
+ *
+ * 태고족 챔프 (3명): Briar, Belveth, RekSai.
+ */
+function applyPrimordianEffects(activeTraits: ActiveTrait[], units: CombatUnit[]): void {
+  const trait = activeTraits.find(t => t.trait.apiName === 'TFT17_Primordian');
+  if (!trait || !trait.activeEffect || trait.style === 0) return;
+  const multiplier = (trait.activeEffect.variables.DamageMultiplier ?? 1) as number;
+  if (multiplier <= 1) return;
+  const ampDelta = multiplier - 1;
+  for (const u of units) {
+    if (!unitHasTrait(u, '태고족')) continue;
+    u.damageAmp += ampDelta;
+  }
+}
+
+/**
+ * 메카 (TFT17_Mecha) — AD%/AP flat 가산을 메카 unit 한정 적용.
+ *
+ * Spec (TFT17_Mecha):
+ *   (3) AD=0.20, AP=20
+ *   (4) AD=0.35, AP=35
+ *   (6) AD=0.35, AP=35 (4와 동일, +TeamSize sim 외)
+ *
+ * stat.ts 의 generic AD/AP processing 은 trait 멤버 체크 없이 모든 unit 에 적용되므로
+ * 메카 trait 은 generic 경로에서 제외 (stat.ts) 하고 여기서 멤버 한정 후처리.
+ * AD 는 % 가산 — base AD × star × ratio. AP 는 flat.
+ */
+function applyMechaEffects(activeTraits: ActiveTrait[], units: CombatUnit[]): void {
+  const mecha = activeTraits.find(t => t.trait.apiName === 'TFT17_Mecha');
+  if (!mecha?.activeEffect) return;
+  const vars = mecha.activeEffect.variables;
+  const adRatio = typeof vars.AD === 'number' ? vars.AD : 0;
+  const apFlat = typeof vars.AP === 'number' ? vars.AP : 0;
+  if (adRatio === 0 && apFlat === 0) return;
+  for (const u of units) {
+    if (!unitHasTrait(u, '메카')) continue;
+    if (adRatio !== 0) {
+      const baseAd = u.champion.stats.damage * (STAR_SCALING[u.starLevel] || 1);
+      u.stats.damage += baseAd * adRatio;
+    }
+    if (apFlat !== 0) {
+      u.stats.ap += apFlat;
+    }
+  }
+}
+
+/**
+ * PsyOps (4) tier 시너지 활성 여부.
+ *
+ * 17.2 PsyOps trait raw 데이터:
+ *   - (2) tier: minUnits=2, style=1 — 일반 효과 풀
+ *   - (4) tier: minUnits=4, style=5 — Radiant 강화 (초능력 unit 한정)
+ */
+function isPsyOpsTier4Active(activeTraits: ActiveTrait[]): boolean {
+  return activeTraits.some(t =>
+    t.trait.apiName === 'TFT17_PsyOps'
+    && t.activeEffect != null
+    && (t.activeEffect.minUnits ?? 0) >= 4
+  );
+}
+
+/**
+ * PsyOps (4) tier 활성 + 초능력 unit → 일반 PsyOps 아이템 → Radiant 변종 자동 swap.
+ *
+ * 게임 시스템 (17.2):
+ *   - 사용자는 빌더에서 일반 5종 PsyOps 아이템 (`TFT17_Item_PsyOps_*Mod`) 만 장착.
+ *   - (4) tier 활성 + 본인 초능력 trait 보유 시 자동으로 Radiant 강화 효과 발동.
+ *   - 비-초능력 unit 또는 (2) tier 활성 시 일반 효과만 적용 (swap 안 함).
+ *
+ * apiName 만 swap — ITEM_EFFECTS registry 가 apiName 기반 lookup 이라
+ * effects 객체 자체는 변경 불필요 (stat.ts getItemEffects 가 ITEM_EFFECTS 우선).
+ */
+function applyPsyOpsRadiantSwap(placed: PlacedChampion, tier4Active: boolean): PlacedChampion {
+  if (!tier4Active) return placed;
+  // emblem (TFT17_Item_PsyOpsEmblemItem) 으로 초능력 trait 부여된 unit 도 포함 — placedHasTrait 사용.
+  // base champion.traits 만 체크하면 emblem 보유 comp 가 회귀 (codex P1 review).
+  if (!placedHasTrait(placed, '초능력')) return placed;
+  let changed = false;
+  const newItems = placed.items.map(it => {
+    if (it.apiName.startsWith('TFT17_Item_PsyOps_') && !it.apiName.endsWith('_Radiant')) {
+      changed = true;
+      return { ...it, apiName: it.apiName + '_Radiant' };
+    }
+    return it;
+  });
+  return changed ? { ...placed, items: newItems } : placed;
+}
+
+/**
+ * "가장 강한" unit 선정 — hero carry augment 의 단일 대상 선정 룰.
+ *
+ * 우선순위:
+ *   1. 성급 (starLevel) 최고
+ *   2. 동급 시 아이템 보유 unit 우선 (아이템 수가 많은 쪽)
+ *   3. 둘 다 아이템 없음 → 첫 번째 (시뮬 결정론)
+ */
+function findStrongestUnitByApi(units: CombatUnit[], apiName: string): CombatUnit | null {
+  const candidates = units.filter(u => u.champion.apiName === apiName);
+  if (candidates.length === 0) return null;
+  // 1. 성급 최고
+  const maxStar = Math.max(...candidates.map(u => u.starLevel));
+  const top = candidates.filter(u => u.starLevel === maxStar);
+  if (top.length === 1) return top[0];
+  // 2. 아이템 보유 우선 → 아이템 수 많은 순
+  const withItems = top.filter(u => u.items.length > 0);
+  if (withItems.length > 0) {
+    return withItems.sort((a, b) => b.items.length - a.items.length)[0];
+  }
+  // 3. tie-break: 첫 번째 (deterministic)
+  return top[0];
+}
+
+/**
+ * Hero carry augment 변환 — 자폭(GragasCarry) / 방패 여전사(LeonaCarry).
+ *
+ * 자폭 (TFT17_Augment_GragasCarry):
+ *   - 가장 강한 그라가스 → "주문력 전사" 변환 (role='APFighter').
+ *   - ability 가 거대한 폭발 (자기 자신 데미지, 다른 아군 X) 로 변환.
+ *   - 자폭 self-damage 로 hp 가 1 미만으로 떨어지지 않음 (HP floor=1).
+ *
+ * 방패 여전사 (TFT17_Augment_LeonaCarry):
+ *   - 가장 강한 레오나 → "공격력 전사" 변환 (role='ADFighter').
+ *   - ability 가 적 가로질러 dash + 첫 적중 대상 기절 (CC) 로 변환.
+ *
+ * 변환 결과 unit 만 gragasCarryActive / leonaCarryActive 가 true. 일반 그라가스/레오나
+ * (carry 미선정) 는 기존 ability 그대로.
+ */
+function applyHeroCarryTransforms(augmentApiNames: string[], units: CombatUnit[]): void {
+  const augSet = new Set(augmentApiNames);
+  // 사용자 명세 "주문력 전사" / "공격력 전사" 는 raw GameRole 표기.
+  // 시뮬 내부 UnitRole 은 단순화 ('Fighter' 단일) — 마나 획득/타게팅 룰 동일하게 처리됨.
+  // 차별화 (AP vs AD) 는 ability config (selfDamage/firstHitOnlyStun) 로 표현.
+  if (augSet.has('TFT17_Augment_GragasCarry')) {
+    const target = findStrongestUnitByApi(units, 'TFT17_Gragas');
+    if (target) {
+      target.gragasCarryActive = true;
+      target.role = 'Fighter';
+    }
+  }
+  if (augSet.has('TFT17_Augment_LeonaCarry')) {
+    const target = findStrongestUnitByApi(units, 'TFT17_Leona');
+    if (target) {
+      target.leonaCarryActive = true;
+      target.role = 'Fighter';
+    }
+  }
+}
+
+/**
+ * 최신상 (TFT17_GravesTrait) Frame 변환 — 가장 강한 그레이브즈 1명에 적용.
+ *
+ * raw items (TFT17_GravesTrait_Offense_*):
+ *   CloseQuarters (맹공): { Range: -2, BaseHealth: 250, Omnivamp: 0.10, AttackDamage: 0.25 }
+ *     → 사거리 -2, 공격력 전사 변환, +HP 250, +AD 25%, +흡혈 10%
+ *   SharpshooterModule (위력): { AbilityDamagePercentIncrease: 0.05 }
+ *     → 정밀 (spellCanCrit) + 스킬 피해 +5%
+ *   DoubleTap (사수): { DoubleAttackChance: 0.25 }
+ *     → 25% 확률 2회 공격
+ *
+ * 본 PR (Phase 1) — Frame 3종 stat 적용 + DoubleTap chance flag + Sharp 정밀 / ability damage.
+ * 하위 업그레이드 (Buckshot, Heartseeker, GravBooster 등 30+) 는 후속 PR.
+ */
+function applyGravesFrameEffects(
+  units: CombatUnit[],
+  frame: 'CloseQuarters' | 'SharpshooterModule' | 'DoubleTap' | undefined,
+): void {
+  if (!frame) return;
+  const target = findStrongestUnitByApi(units, 'TFT17_Graves');
+  if (!target) return;
+  target.gravesFrame = frame;
+  if (frame === 'CloseQuarters') {
+    // 맹공: Range -2 (최소 1), +HP 250, +AD 25%, +흡혈 10%, role='Fighter' (공격력 전사 단순화).
+    target.stats.range = Math.max(1, target.stats.range - 2);
+    target.maxHp += 250;
+    target.currentHp += 250;
+    const baseAd = target.champion.stats.damage * (STAR_SCALING[target.starLevel] || 1);
+    target.stats.damage += baseAd * 0.25;
+    target.omnivamp += 0.10;
+    target.role = 'Fighter';
+    return;
+  }
+  if (frame === 'SharpshooterModule') {
+    // 위력: 정밀 (spellCanCrit) + 스킬 피해 +5%.
+    target.spellCanCrit = true;
+    target.gravesAbilityDamageBonus = 0.05;
+    return;
+  }
+  if (frame === 'DoubleTap') {
+    // 사수: 25% 확률 추가 공격 — eventBus on_attack hook 에서 처리.
+    target.gravesDoubleAttackChance = 0.25;
+    return;
+  }
+}
+
+/**
+ * 최신상 (TFT17_GravesTrait) 무기고 stat upgrade 적용 — Phase 2.
+ *
+ * raw items 기반 직접 stat 가산. 가장 강한 그레이브즈 1명에게만 적용.
+ * RevUp / RevUp2 (sticky target stacking AS) / Buckshot 류 (투사체) 등
+ * 메커닉 필요 항목은 본 함수 미처리 — 후속 Phase 3.
+ *
+ * 적용 18종 (raw effects 기반):
+ *   LeechingImplants    AD +10%, omnivamp +0.10
+ *   LeechingImplants2   AD +20%, omnivamp +0.15
+ *   HeavyPlating        +HP 300, +Armor 20, +MR 20
+ *   PrecisionScope      AD +12%, range +1
+ *   PrecisionScope2     AD +24%, range +2
+ *   PrecisionScope3     AD +36%, range +3
+ *   Fission             AD +10%, manaRegen +2/s
+ *   Fission2            AD +20%, manaRegen +3/s
+ *   Fission3            AD +30%, manaRegen +5/s
+ *   Heartseeker         critChance +0.10, critDmg +0.05
+ *   Heartseeker2        critChance +0.25, critDmg +0.10
+ *   Heartseeker3        critChance +0.40, critDmg +0.18
+ *   Tankbuster          탱커 상대 damage amp +0.15
+ *   Coolant             maxMana -10
+ *   Coolant2            maxMana -20
+ *   APRounds            armorPen +0.30
+ *   APRounds2           armorPen +0.60
+ *   SheerMass           maxHp × 1.25
+ *
+ * AD% 는 base × star scaling (Frame CloseQuarters 와 동일 기준).
+ */
+const GRAVES_STAT_UPGRADE_HANDLERS: Record<string, (u: CombatUnit, baseAd: number) => void> = {
+  LeechingImplants:  (u, ad) => { u.stats.damage += ad * 0.10; u.omnivamp += 0.10; },
+  LeechingImplants2: (u, ad) => { u.stats.damage += ad * 0.20; u.omnivamp += 0.15; },
+  HeavyPlating:      (u)     => { u.maxHp += 300; u.currentHp += 300; u.stats.armor += 20; u.stats.magicResist += 20; },
+  PrecisionScope:    (u, ad) => { u.stats.damage += ad * 0.12; u.stats.range += 1; },
+  PrecisionScope2:   (u, ad) => { u.stats.damage += ad * 0.24; u.stats.range += 2; },
+  PrecisionScope3:   (u, ad) => { u.stats.damage += ad * 0.36; u.stats.range += 3; },
+  Fission:           (u, ad) => { u.stats.damage += ad * 0.10; u.augmentManaRegen += 2; },
+  Fission2:          (u, ad) => { u.stats.damage += ad * 0.20; u.augmentManaRegen += 3; },
+  Fission3:          (u, ad) => { u.stats.damage += ad * 0.30; u.augmentManaRegen += 5; },
+  Heartseeker:       (u)     => { u.stats.critChance += 0.10; u.stats.critMultiplier += 0.05; },
+  Heartseeker2:      (u)     => { u.stats.critChance += 0.25; u.stats.critMultiplier += 0.10; },
+  Heartseeker3:      (u)     => { u.stats.critChance += 0.40; u.stats.critMultiplier += 0.18; },
+  Tankbuster:        (u)     => { u.gravesTankDamageAmp += 0.15; },
+  Coolant:           (u)     => { u.maxMana = Math.max(0, u.maxMana - 10); },
+  Coolant2:          (u)     => { u.maxMana = Math.max(0, u.maxMana - 20); },
+  APRounds:          (u)     => { u.stats.armorPen += 0.30; },
+  APRounds2:         (u)     => { u.stats.armorPen += 0.60; },
+  SheerMass:         (u)     => {
+    const newMax = Math.round(u.maxHp * 1.25);
+    u.maxHp = newMax;
+    u.currentHp = newMax;
+  },
+};
+
+/**
+ * Stable canonical 적용 순서 — deterministic 보장 (codex P2).
+ * 일부 upgrade 가 order-sensitive (SheerMass × maxHp vs HeavyPlating + maxHp 등) →
+ * 입력 array 순서가 달라도 동일 set 이면 항상 같은 결과를 내야 replay/serialize 가능.
+ *
+ * 적용 순서 원칙:
+ *   1. flat HP / armor / MR / range / mana 등 가산 먼저
+ *   2. AD% / armorPen / crit 등 stat 가산
+ *   3. maxHp 비례 multiplier (SheerMass) — 가장 마지막
+ *   4. 동일 카테고리 내에선 알파벳 순 (deterministic)
+ */
+const GRAVES_UPGRADE_APPLY_ORDER: ReadonlyArray<string> = [
+  // 1. flat additions (HP/armor/MR/range/mana)
+  'APRounds',
+  'APRounds2',
+  'Coolant',
+  'Coolant2',
+  'Fission',
+  'Fission2',
+  'Fission3',
+  'HeavyPlating',
+  'LeechingImplants',
+  'LeechingImplants2',
+  'PrecisionScope',
+  'PrecisionScope2',
+  'PrecisionScope3',
+  // 2. crit / damage amp
+  'Heartseeker',
+  'Heartseeker2',
+  'Heartseeker3',
+  'Tankbuster',
+  // 3. % multiplier (가장 마지막 — 1·2 단계의 flat HP/AD 가산 후 적용)
+  'SheerMass',
+];
+
+function applyGravesStatUpgrades(units: CombatUnit[], upgrades: string[] | undefined): void {
+  if (!upgrades || upgrades.length === 0) return;
+  const target = findStrongestUnitByApi(units, 'TFT17_Graves');
+  if (!target) return;
+  const baseAd = target.champion.stats.damage * (STAR_SCALING[target.starLevel] || 1);
+
+  // canonical order 로 정렬 — 입력 array 순서가 달라도 동일 set 이면 동일 결과.
+  // 미지원 upgrade (Phase 3 메커닉) 는 GRAVES_STAT_UPGRADE_HANDLERS 에 없으므로 skip.
+  // canonical order 에 없는 신규 upgrade 는 알파벳 순 fallback (정의 누락 가드).
+  const requested = new Set(upgrades);
+  const ordered: string[] = [];
+  for (const id of GRAVES_UPGRADE_APPLY_ORDER) {
+    if (requested.has(id) && GRAVES_STAT_UPGRADE_HANDLERS[id]) ordered.push(id);
+  }
+  const known = new Set(GRAVES_UPGRADE_APPLY_ORDER);
+  const fallback = upgrades
+    .filter(id => !known.has(id) && GRAVES_STAT_UPGRADE_HANDLERS[id])
+    .sort();
+  ordered.push(...fallback);
+
+  const applied: string[] = [];
+  for (const id of ordered) {
+    GRAVES_STAT_UPGRADE_HANDLERS[id](target, baseAd);
+    applied.push(id);
+  }
+  if (applied.length > 0) {
+    target.gravesUpgrades = [...target.gravesUpgrades, ...applied];
+  }
+}
+
 /** 전쟁기계 — BaseDR을 damageReduction에 적용 */
 function applyJuggernautDR(activeTraits: ActiveTrait[], units: CombatUnit[]): void {
   const jugg = activeTraits.find(t => t.trait.apiName === 'TFT16_Juggernaut' && t.activeEffect);
@@ -541,9 +1358,267 @@ function applyJuggernautDR(activeTraits: ActiveTrait[], units: CombatUnit[]): vo
   const baseDR = (jugg.activeEffect.variables['BaseDR'] ?? 0) as number;
   if (baseDR <= 0) return;
   for (const u of units) {
-    if (u.champion.traits.includes('전쟁기계')) {
+    if (unitHasTrait(u, '전쟁기계')) {
       u.damageReduction += baseDR;
     }
+  }
+}
+
+/**
+ * 별돌보미 변종 effects 적용. 활성 trait 가 변종 (TFT17_Stargazer_*) 인 경우만
+ * 해당 변종의 effect 변수를 적용. base TFT17_Stargazer 활성 (변종 미지정) 시
+ * 효과 미적용.
+ *
+ * "강화된 칸" (empowered tiles) — `CONSTELLATION_TILE_PATTERN[id]` 의 hex 좌표
+ * 풀 패턴 적용 (PR-3 단순화 — player level 점진 추가는 후속).
+ *
+ * 효과 분기:
+ *   - *_Teamwide 변수 (예: Wolf_Health_Teamwide) → **강화 칸의 모든 아군**
+ *     (별돌보미 trait 보유 무관)
+ *   - 비-Teamwide 변수 (예: Wolf_Health, Wolf_ADAP) → **강화 칸의 별돌보미만**
+ *     추가 stat
+ */
+function applyStargazerEffects(
+  traits: ActiveTrait[],
+  units: CombatUnit[],
+  opposingUnits: CombatUnit[],
+  constellation: StargazerConstellationId | undefined,
+): void {
+  const stargazer = traits.find((t) => t.trait.name === '별돌보미');
+  if (!stargazer || !stargazer.activeEffect || stargazer.style === 0) return;
+
+  const apiName = stargazer.trait.apiName;
+  if (apiName === 'TFT17_Stargazer') return; // base trait — 변종 미지정
+  if (!constellation) return;
+
+  const eff = stargazer.activeEffect.variables;
+  const empoweredTiles = CONSTELLATION_TILE_PATTERN[constellation];
+  const isStargazerUnit = (u: CombatUnit): boolean => unitHasTrait(u, '별돌보미');
+  // CONSTELLATION_TILE_PATTERN 은 player half (r=0..3) 만 정의. enemy 팀이
+  // mirror 된 보드 (r=4..7) 에 있을 때 (skipMirror=false 또는 simulator 직접 호출)
+  // 단순 좌표 비교는 항상 false → enemy 측이 효과 없음. mirror back 해서 검사.
+  const isOnTile = (u: CombatUnit): boolean => {
+    const checkPos = u.position.r >= 4 ? mirrorPosition(u.position) : u.position;
+    return empoweredTiles.some((t) => t.q === checkPos.q && t.r === checkPos.r);
+  };
+
+  // 한 변종에 두 패스 — 강화 칸 모든 아군 + 강화 칸 별돌보미.
+  // helper: per-unit stat 적용 (% fraction)
+  const applyPctStats = (
+    u: CombatUnit,
+    hpPct: number,
+    adapPct: number,
+    asPct: number,
+    drPct: number,
+    resistsFlat: number,
+  ) => {
+    if (hpPct > 0) {
+      u.maxHp = Math.round(u.maxHp * (1 + hpPct));
+      u.currentHp = u.maxHp;
+    }
+    if (adapPct > 0) {
+      u.stats.damage = Math.round(u.stats.damage * (1 + adapPct));
+      // AP 는 percentage points 단위 — fraction × 100 가산 (다른 trait 컨벤션).
+      u.stats.ap = (u.stats.ap ?? 0) + adapPct * 100;
+    }
+    if (asPct > 0) u.stats.attackSpeed *= (1 + asPct);
+    if (drPct > 0) u.damageReduction += drPct;
+    if (resistsFlat > 0) {
+      u.stats.armor += resistsFlat;
+      u.stats.magicResist += resistsFlat;
+    }
+  };
+
+  // === Mountain 변종 (강화 칸 별돌보미만, teamwide 없음) ===
+  if (apiName === 'TFT17_Stargazer_Mountain') {
+    const hpPct = (eff.Mountain_Health ?? 0) as number;
+    const adapPct = (eff.Mountain_ADAP ?? 0) as number;
+    const asPct = (eff.Mountain_AS ?? 0) as number;
+    const drPct = (eff.Mountain_DR ?? 0) as number;
+    const resistsFlat = (eff.Mountain_Resists ?? 0) as number;
+    // minUnits=8+ 활성 시 다른 모든 보너스를 (1 + StatIncrease) 배 증폭.
+    const statIncrease = (eff.Mountain_StatIncrease ?? 0) as number;
+    const amp = 1 + statIncrease;
+    for (const u of units) {
+      if (!isStargazerUnit(u) || !isOnTile(u)) continue;
+      applyPctStats(u, hpPct * amp, adapPct * amp, asPct * amp, drPct * amp, resistsFlat * amp);
+    }
+    return;
+  }
+
+  // === Wolf (멧돼지) — Teamwide HP/AD/AP + 별돌보미 추가 HP/ADAP ===
+  if (apiName === 'TFT17_Stargazer_Wolf') {
+    const teamwide = (eff.Wolf_Health_Teamwide ?? 0) as number; // HP/AD/AP 동시
+    const ownerHp = (eff.Wolf_Health ?? 0) as number;
+    const ownerAdap = (eff.Wolf_ADAP ?? 0) as number; // percentage points (예: 10 = 10%)
+    for (const u of units) {
+      if (!isOnTile(u)) continue;
+      // 강화 칸 모든 아군: HP/AD/AP +teamwide
+      if (teamwide > 0) {
+        u.maxHp = Math.round(u.maxHp * (1 + teamwide));
+        u.currentHp = u.maxHp;
+        u.stats.damage = Math.round(u.stats.damage * (1 + teamwide));
+        u.stats.ap = (u.stats.ap ?? 0) + teamwide * 100;
+      }
+      // 강화 칸 별돌보미: 추가 HP fraction + ADAP percentage points
+      if (isStargazerUnit(u)) {
+        if (ownerHp > 0) {
+          u.maxHp = Math.round(u.maxHp * (1 + ownerHp));
+          u.currentHp = u.maxHp;
+        }
+        if (ownerAdap > 0) {
+          u.stats.damage = Math.round(u.stats.damage * (1 + ownerAdap / 100));
+          u.stats.ap = (u.stats.ap ?? 0) + ownerAdap;
+        }
+      }
+    }
+    return;
+  }
+
+  // === Medallion (메달) — Teamwide DA + 3성당 IncreasePer3Star ===
+  if (apiName === 'TFT17_Stargazer_Medallion') {
+    const baseDA = (eff.Medallion_DA ?? 0) as number; // percentage points
+    const per3Star = (eff.Medallion_IncreasePer3Star ?? 0) as number;
+    const threeStarCount = units.filter((u) => u.starLevel === 3).length;
+    const totalDA = baseDA + per3Star * threeStarCount; // percentage points
+    if (totalDA <= 0) return;
+    const ampFraction = totalDA / 100;
+    for (const u of units) {
+      if (!isOnTile(u)) continue;
+      u.damageAmp += ampFraction;
+    }
+    return;
+  }
+
+  // === Huntress (여사냥꾼) — Teamwide AS + 별돌보미 추가 AS / Heal / 표식 ===
+  if (apiName === 'TFT17_Stargazer_Huntress') {
+    const teamwideAs = (eff.Huntress_AS_Teamwide ?? 0) as number;
+    const ownerAs = (eff.Huntress_AS ?? 0) as number;
+    const healPercent = (eff.Huntress_Heal ?? 0) as number;
+    const numMarks = Math.floor((eff.NumMarks ?? 0) as number);
+    for (const u of units) {
+      if (!isOnTile(u)) continue;
+      if (teamwideAs > 0) u.stats.attackSpeed *= (1 + teamwideAs);
+      if (isStargazerUnit(u)) {
+        if (ownerAs > 0) u.stats.attackSpeed *= (1 + ownerAs);
+        // 강화 칸 별돌보미 → 표식 적 사망 시 maxHp × healPercent 회복.
+        if (healPercent > 0) u.stargazerHuntressHealPercent = healPercent;
+      }
+    }
+    // 전투 시작 표식 — 적 팀 중 maxHp 기준 상위 numMarks 명에 'mark' statusEffect.
+    // 상시 유지 (전투 종료까지). 같은 적에 mark 중복 방지.
+    if (numMarks > 0 && opposingUnits.length > 0) {
+      const sorted = [...opposingUnits]
+        .filter((e) => e.state !== 'dead' && e.maxHp > 0)
+        .sort((a, b) => b.maxHp - a.maxHp);
+      const targets = sorted.slice(0, numMarks);
+      for (const t of targets) {
+        if (t.statusEffects.some((e) => e.type === 'mark')) continue;
+        t.statusEffects.push({
+          type: 'mark', sourceId: 'stargazer-huntress',
+          remainingTicks: MAX_TICKS,
+        });
+      }
+    }
+    return;
+  }
+
+  // === Serpent (뱀) — Teamwide DR + 별돌보미 추가 DR / 중독 ===
+  if (apiName === 'TFT17_Stargazer_Serpent') {
+    const teamwideDr = (eff.Serpent_DR_Teamwide ?? 0) as number;
+    const ownerDr = (eff.Serpent_DR ?? 0) as number;
+    const poisonPercent = (eff.Serpent_Poison ?? 0) as number;
+    const durationSec = (eff.Serpent_Duration ?? 0) as number;
+    for (const u of units) {
+      if (!isOnTile(u)) continue;
+      if (teamwideDr > 0) u.damageReduction += teamwideDr;
+      if (isStargazerUnit(u)) {
+        if (ownerDr > 0) u.damageReduction += ownerDr;
+        // 강화 칸 별돌보미 → 적 데미지 입힐 때 입힌 피해의 poisonPercent 를
+        // durationSec 초간 magic DOT 으로 추가 (poison statusEffect).
+        if (poisonPercent > 0 && durationSec > 0) {
+          u.stargazerSerpentPoisonPercent = poisonPercent;
+          u.stargazerSerpentDurationSec = durationSec;
+        }
+      }
+    }
+    return;
+  }
+
+  // === Shield (제단) — Teamwide HP/AS (percentage points) + 사망 트리거 cashout ===
+  if (apiName === 'TFT17_Stargazer_Shield') {
+    const teamwideHp = (eff.Shield_Health_Teamwide ?? 0) as number; // percentage points (예: 8 = 8%)
+    const teamwideAs = (eff.Shield_AS_Teamwide ?? 0) as number;
+    const cashoutHp = (eff.Shield_CashoutHP ?? 0) as number; // percentage points
+    const cashoutAs = (eff.Shield_CashoutAS ?? 0) as number;
+    const hpFrac = teamwideHp / 100;
+    const asFrac = teamwideAs / 100;
+    const cashoutHpFrac = cashoutHp / 100;
+    const cashoutAsFrac = cashoutAs / 100;
+    for (const u of units) {
+      if (!isOnTile(u)) continue;
+      if (hpFrac > 0) {
+        u.maxHp = Math.round(u.maxHp * (1 + hpFrac));
+        u.currentHp = u.maxHp;
+      }
+      if (asFrac > 0) u.stats.attackSpeed *= (1 + asFrac);
+      if (isStargazerUnit(u)) {
+        // cashout 발동 시 추가로 곱할 비율 저장 — 실제 적용은 NumDeaths 도달 시.
+        if (cashoutHpFrac > 0) u.stargazerShieldCashoutHpFrac = cashoutHpFrac;
+        if (cashoutAsFrac > 0) u.stargazerShieldCashoutAsFrac = cashoutAsFrac;
+      }
+    }
+    return;
+  }
+
+  // === Fountain (우물) — 17.2 LIVE 비활성 (Riot patch note: "룰루와 자야 효과 찾는 중") ===
+  //
+  // 17.2 LIVE 패치노트에 "우물 비활성화" 명시. raw data 에는 hash 변수 + 값 정의되어 있지만
+  // 인게임에서는 효과 미발동 상태. 시뮬도 동일하게 no-op 처리 (codex P1 정확성 가드).
+  // 활성화하면 인게임에서 불가능한 combat power 발생 → 시뮬 결과 inflated.
+  //
+  // 매핑 보존 — 다음 patch 에서 reenable 시 즉시 활성화 가능.
+  // legacy (pre-17.2) 경로는 유지: set 전환 / PBE rollback 시 자동 호환.
+  //
+  // raw hash 키 ↔ desc 변수 매핑 (minify 추정, 다음 reenable 시 사용):
+  //   {8d19f5db} = Fountain_Interval = 2 (초)
+  //   {d7e6d620} = Fountain_HealthRegen_Teamwide = 0.02 (2%)
+  //   {f2840aed} = Fountain_HealthRegen = 0.04 (4%, 별돌보미 추가)
+  //   {13a2a786} = Fountain_StackingADAP = 2 / 4 ((3)/(5) tier, % 단위)
+  //
+  // 17.2 메커니즘 (활성화 시):
+  //   "강화된 칸 아군 N초마다 max HP × Teamwide% heal.
+  //    강화된 칸 별돌보미 추가로 +HealthRegen% heal + StackingADAP% AD/AP 누적."
+  if (apiName === 'TFT17_Stargazer_Fountain') {
+    // legacy (16.x / pre-17.2) 경로 — Fountain_HealPercent 기반 ability 힐. set 전환 호환.
+    const legacyHealPct = (eff.Fountain_HealPercent ?? 0) as number;
+    const legacyTeamwideMana = (eff.Fountain_ManaRegen_Teamwide ?? 0) as number;
+    const legacyOwnerMana = (eff.Fountain_ManaRegen ?? 0) as number;
+    if (legacyHealPct > 0 || legacyTeamwideMana > 0 || legacyOwnerMana > 0) {
+      for (const u of units) {
+        if (!isOnTile(u)) continue;
+        if (legacyTeamwideMana > 0) u.augmentManaRegen += legacyTeamwideMana;
+        if (isStargazerUnit(u)) {
+          if (legacyOwnerMana > 0) u.augmentManaRegen += legacyOwnerMana;
+          if (legacyHealPct > 0) u.stargazerFountainHealPercent = legacyHealPct;
+        }
+      }
+      return;
+    }
+    // 17.2 LIVE — Riot 비활성화 상태. 시뮬도 no-op.
+    // 활성화 reenable 시 아래 매핑 코드 활성화:
+    //   const teamRegenPct = (eff['{d7e6d620}'] ?? 0) as number;
+    //   const selfRegenBonusPct = (eff['{f2840aed}'] ?? 0) as number;
+    //   const stackingAdapPct = ((eff['{13a2a786}'] ?? 0) as number) / 100;
+    //   for (const u of units) {
+    //     if (!isOnTile(u)) continue;
+    //     u.fountainHealPctPerTick = teamRegenPct;
+    //     if (isStargazerUnit(u)) {
+    //       u.fountainHealPctPerTick = teamRegenPct + selfRegenBonusPct;
+    //       u.fountainStackingAdapPerTick = stackingAdapPct;
+    //     }
+    //   }
+    return;
   }
 }
 
@@ -559,11 +1634,20 @@ function tickStatusEffects(
     if (effect.type === 'burn' && effect.value) {
       unit.currentHp -= effect.value;
     }
+    if (effect.type === 'poison' && effect.value) {
+      unit.currentHp -= effect.value;
+    }
   }
 
-  // 만료된 상태이상 로그 생성
+  // 만료된 상태이상 로그 생성 + side-effect cleanup (shield pool 차감 등).
   const expired = unit.statusEffects.filter(e => e.remainingTicks <= 0);
   for (const effect of expired) {
+    // shield statusEffect 만료 시 unit.shield 에서 잔존 amount 차감 (codex P1 회귀 가드).
+    // applyShield 가 damage 흡수 시 unit.shield 만 줄어들어 statusEffect.value 와 desync 가능.
+    // Math.max(0, ...) 로 over-subtract 방지 — broken 상태 (unit.shield=0) 시에도 안전.
+    if (effect.type === 'shield' && effect.value) {
+      unit.shield = Math.max(0, unit.shield - effect.value);
+    }
     const label = STATUS_EFFECT_LABELS[effect.type as StatusEffectType];
     if (label) {
       const log: CombatLog = {
@@ -669,6 +1753,7 @@ function spawnFreljordTurrets(
             attackCooldown: 0,
             moveCooldown: 0,
             totalDamageDealt: 0,
+            itemDamageDealt: 0,
             totalDamageTaken: 0,
             statusEffects: [],
             omnivamp: 0,
@@ -680,9 +1765,33 @@ function spawnFreljordTurrets(
             augmentExecuteThreshold: 0,
             augmentBurnPercent: 0,
             inventionTankDamageAmp: 0,
+            healAmp: 0,
+            darkStarExecuteThreshold: 0,
+            darkStarSupermassive: false,
+            gravesFrame: null,
+            gravesDoubleAttackChance: 0,
+            gravesAbilityDamageBonus: 0,
+            gravesUpgrades: [],
+            gravesTankDamageAmp: 0,
+            gragasCarryActive: false,
+            leonaCarryActive: false,
             attackCount: 0,
             castCount: 0,
             killCount: 0,
+            spellCanCrit: false,
+            stargazerFountainHealPercent: 0,
+            fountainHealPctPerTick: 0,
+            fountainStackingAdapPerTick: 0,
+            stargazerHuntressHealPercent: 0,
+            stargazerSerpentPoisonPercent: 0,
+            stargazerSerpentDurationSec: 0,
+            stargazerShieldCashoutHpFrac: 0,
+            stargazerShieldCashoutAsFrac: 0,
+            bastionDoubleEndTick: 0,
+            bastionDoubleArmorBonus: 0,
+            bastionDoubleMrBonus: 0,
+            sniperBaseDA: 0,
+            sniperPerHexDA: 0,
           };
           // Store stun duration for prismatic tier
           if (stunDuration > 0) {
@@ -712,6 +1821,7 @@ function trySpawnGalio(
   logs: CombatLog[],
   tickLogs: CombatLog[],
   spawnedFlag: { spawned: boolean },
+  eventBus: EventBus,
 ): CombatUnit | null {
   if (spawnedFlag.spawned) return null;
   if (!galioInfo) return null;
@@ -791,6 +1901,7 @@ function trySpawnGalio(
     attackCooldown: 0,
     moveCooldown: 0,
     totalDamageDealt: 0,
+    itemDamageDealt: 0,
     totalDamageTaken: 0,
     statusEffects: [],
     omnivamp: 0,
@@ -802,9 +1913,33 @@ function trySpawnGalio(
     augmentExecuteThreshold: 0,
     augmentBurnPercent: 0,
     inventionTankDamageAmp: 0,
+    healAmp: 0,
+    darkStarExecuteThreshold: 0,
+    darkStarSupermassive: false,
+    gravesFrame: null,
+    gravesDoubleAttackChance: 0,
+    gravesAbilityDamageBonus: 0,
+    gravesUpgrades: [],
+    gravesTankDamageAmp: 0,
+    gragasCarryActive: false,
+    leonaCarryActive: false,
     attackCount: 0,
     castCount: 0,
     killCount: 0,
+    spellCanCrit: false,
+    stargazerFountainHealPercent: 0,
+    fountainHealPctPerTick: 0,
+    fountainStackingAdapPerTick: 0,
+    stargazerHuntressHealPercent: 0,
+    stargazerSerpentPoisonPercent: 0,
+    stargazerSerpentDurationSec: 0,
+    stargazerShieldCashoutHpFrac: 0,
+    stargazerShieldCashoutAsFrac: 0,
+    bastionDoubleEndTick: 0,
+    bastionDoubleArmorBonus: 0,
+    bastionDoubleMrBonus: 0,
+    sniperBaseDA: 0,
+    sniperPerHexDA: 0,
   };
 
   // 착지 충격파 — 영웅 시너지 variables
@@ -837,6 +1972,8 @@ function trySpawnGalio(
     if (enemy.currentHp <= 0) {
       enemy.currentHp = 0;
       enemy.state = 'dead';
+      // 누락된 on_death emit (codex P1) — Shield cashout sacrifice 카운트 등 event-driven 핸들러 보장.
+      eventBus.emit('on_death', { sourceId: enemy.id, targetId: galioId, tick });
     }
   }
 
@@ -855,7 +1992,7 @@ function trySpawnGalio(
   const enemyTrueDamage = (dVars['EnemyTrueDamage'] ?? 0) as number;
 
   for (const u of teamUnits) {
-    if (!u.champion.traits.includes('데마시아') || u.state === 'dead') continue;
+    if (!unitHasTrait(u, '데마시아') || u.state === 'dead') continue;
     u.stats.armor += rallyArmorMR;
     u.stats.magicResist += rallyArmorMR;
     if (manaReductionPct > 0) {
@@ -938,6 +2075,7 @@ function applyPiltoverInvention(
   tickLogs: CombatLog[],
   time: number,
   rng: SeededRNG,
+  eventBus: EventBus,
 ): void {
   const piltover = activeTraits.find(t => t.trait.apiName === 'TFT16_Piltover' && t.activeEffect);
   if (!piltover || !piltover.activeEffect) return;
@@ -976,7 +2114,7 @@ function applyPiltoverInvention(
     if (moduleKey === 'VoltageConduit') {
       const reduction = (item.effects['ManaReduction'] ?? 0.30) as number;
       for (const ally of aliveTeam) {
-        if (ally.champion.traits.includes('필트오버')) {
+        if (unitHasTrait(ally, '필트오버')) {
           ally.maxMana = Math.round(ally.maxMana * (1 - reduction));
         }
       }
@@ -1000,6 +2138,8 @@ function applyPiltoverInvention(
         if (target.currentHp <= 0) {
           target.currentHp = 0;
           target.state = 'dead';
+          // 누락된 on_death emit (codex P1) — Shield cashout 등 event-driven 핸들러 보장.
+          eventBus.emit('on_death', { sourceId: target.id, targetId: sourceUnit.id, tick });
         }
       }
       pushInventionLog(logs, tickLogs, tick, time, sourceUnit.id,
@@ -1084,6 +2224,8 @@ function applyPiltoverInvention(
         if (enemy.currentHp <= 0) {
           enemy.currentHp = 0;
           enemy.state = 'dead';
+          // 누락된 on_death emit (codex P1) — Shield cashout 등 event-driven 핸들러 보장.
+          eventBus.emit('on_death', { sourceId: enemy.id, targetId: sourceUnit.id, tick });
         }
       }
       pushInventionLog(logs, tickLogs, tick, time, sourceUnit.id,
@@ -1215,6 +2357,81 @@ function applyArbiterEffect(effectId: string, value: number, units: CombatUnit[]
   tickLogs.push(log);
 }
 
+/**
+ * 프리즘 시너지 — 최고 tier 활성 시 게임 메타 효과 (무조건 승리 등).
+ *
+ * raw data 의 `style: 6` 가 prism 시그널. 4종 알려진 prism trait:
+ *   - DarkStar (9): "10레벨 달성 시 모두를 빨아들임"
+ *   - Astronaut (10): "정령군주 넷 소환!"
+ *   - SpaceGroove (10): ADAPPerSecond=10, EffectBonus=500%, Duration=60초
+ *   - Stargazer Mountain (11): Mountain 별자리 한정 11명
+ *
+ * 카운터 룰: 5코스트 3성 유닛 보유 측은 상대측 prism 을 무력화하고 승리.
+ *   (게임 내 룰 — TFT17 5코 3성이 prism 대결 시 우선)
+ *
+ * sim 처리 전략: prism 활성 측을 즉시 winner 결정. 양쪽 동시 활성 시 무승부.
+ * 별도 hidden unit 소환/effect 적용은 후속 PR (정확도 개선용).
+ */
+export function detectPrismTraits(activeTraits: ActiveTrait[]): { active: boolean; names: string[] } {
+  const PRISM_API_NAMES = [
+    'TFT17_DarkStar',
+    'TFT17_Astronaut',
+    'TFT17_SpaceGroove',
+    'TFT17_Stargazer_Mountain',
+  ];
+  const names: string[] = [];
+  for (const t of activeTraits) {
+    if (!PRISM_API_NAMES.includes(t.trait.apiName)) continue;
+    if (!t.activeEffect) continue;
+    // style=6 만 prism 시그널 (다른 tier 는 style 1/3/5).
+    if (t.activeEffect.style === 6) {
+      names.push(`${t.trait.name}(${t.count})`);
+    }
+  }
+  return { active: names.length > 0, names };
+}
+
+/** 팀에 5코스트 3성 유닛이 있는지 — prism counter 로 작용. */
+export function hasFiveCostStar3(team: PlacedChampion[]): boolean {
+  return team.some(p => p.champion.cost === 5 && p.starLevel === 3);
+}
+
+/**
+ * prism + 5코3성 카운터 결과 산출. 사용 가능 시 winner, 그 외 null (정상 sim).
+ *
+ * 우선순위:
+ *   1. 단방 prism + 상대측 5코3성 보유 → 5코3성 측 win (counter)
+ *   2. 양쪽 prism (양측 5코3성 없거나 양쪽 모두 보유) → draw
+ *   3. 양쪽 prism + 한쪽만 5코3성 → 5코3성 측 win
+ *   4. 단방 prism + 상대측 5코3성 없음 → prism 측 win
+ *   5. 둘 다 prism 비활성 → null (정상 sim)
+ */
+export function resolvePrismOutcome(
+  playerPrism: { active: boolean; names: string[] },
+  enemyPrism: { active: boolean; names: string[] },
+  playerHas5cs3: boolean,
+  enemyHas5cs3: boolean,
+): { winner: 'player' | 'enemy' | 'draw'; reason: string } | null {
+  if (!playerPrism.active && !enemyPrism.active) return null;
+
+  // 5코3성 카운터 우선 적용
+  if (playerHas5cs3 && enemyPrism.active && !enemyHas5cs3) {
+    return { winner: 'player', reason: `5코스트 3성 카운터 (vs ${enemyPrism.names.join(', ')})` };
+  }
+  if (enemyHas5cs3 && playerPrism.active && !playerHas5cs3) {
+    return { winner: 'enemy', reason: `5코스트 3성 카운터 (vs ${playerPrism.names.join(', ')})` };
+  }
+
+  // 양쪽 다 prism 활성
+  if (playerPrism.active && enemyPrism.active) {
+    return { winner: 'draw', reason: '양측 프리즘 동시 발동' };
+  }
+  if (playerPrism.active) {
+    return { winner: 'player', reason: `프리즘 발동: ${playerPrism.names.join(', ')}` };
+  }
+  return { winner: 'enemy', reason: `프리즘 발동: ${enemyPrism.names.join(', ')}` };
+}
+
 export function simulateCombat(
   allyTeam: PlacedChampion[],
   enemyTeam: PlacedChampion[],
@@ -1241,8 +2458,19 @@ export function simulateCombat(
   const playerInCombatEffects = resolveInCombatAugmentEffects(playerAugsWithStacks);
   const enemyInCombatEffects = resolveInCombatAugmentEffects(enemyAugsWithStacks);
 
-  const playerActiveTraits = resolveTraits(allyTeam, allTraits);
-  const enemyActiveTraits = resolveTraits(enemyTeam, allTraits);
+  const playerActiveTraits = resolveTraits(allyTeam, allTraits, {
+    stargazerConstellation: options.playerStargazerConstellation,
+  });
+  const enemyActiveTraits = resolveTraits(enemyTeam, allTraits, {
+    stargazerConstellation: options.enemyStargazerConstellation,
+  });
+
+  // 프리즘 시너지 사전 판정 — unit 생성 후 short-circuit 결정 (units/snapshot 보존).
+  const playerPrism = detectPrismTraits(playerActiveTraits);
+  const enemyPrism = detectPrismTraits(enemyActiveTraits);
+  const playerHas5cs3 = hasFiveCostStar3(allyTeam);
+  const enemyHas5cs3 = hasFiveCostStar3(enemyTeam);
+  const prismOutcome = resolvePrismOutcome(playerPrism, enemyPrism, playerHas5cs3, enemyHas5cs3);
 
   // Bilgewater stat effects — merge into augmentEffects for bilgewater units
   const playerBWEffects = options.playerBilgewaterEffects ?? {};
@@ -1269,29 +2497,66 @@ export function simulateCombat(
     ? { champion: enemyGalioPlaced.champion, starLevel: enemyGalioPlaced.starLevel }
     : options.enemyGalio ?? null;
 
+  // PsyOps (4) 시너지 활성 시 초능력 unit 의 일반 PsyOps 아이템 → Radiant 변종 자동 swap.
+  // 게임 시스템: (2) tier 는 일반 효과만, (4) tier + 초능력 unit 만 Radiant 강화 효과.
+  const playerPsyOpsT4 = isPsyOpsTier4Active(playerActiveTraits);
+  const enemyPsyOpsT4 = isPsyOpsTier4Active(enemyActiveTraits);
+
   const playerUnits = playerTeamFiltered.map((p, i) => {
-    const isBW = p.champion.traits.includes('빌지워터');
+    const swapped = applyPsyOpsRadiantSwap(p, playerPsyOpsT4);
+    const isBW = placedHasTrait(swapped, '빌지워터');
     const effects = isBW ? mergeEffects(playerAugmentEffects, playerBWEffects) : playerAugmentEffects;
-    const unit = createCombatUnit(p, 'player', i, playerActiveTraits, effects);
-    const mod = resolvePerUnitMods(playerAugsWithStacks, p.champion);
+    const unit = createCombatUnit(swapped, 'player', i, playerActiveTraits, effects);
+    const mod = resolvePerUnitMods(playerAugsWithStacks, swapped.champion);
     applyPerUnitMods(unit, mod);
-    applyPermanentStacks(unit, p);
+    applyPermanentStacks(unit, swapped);
     applyCarryAugmentRange(unit, playerAugApiNames);
     applyStartPassives(unit);
     return unit;
   });
   const enemies = enemyTeamFiltered.map((p, i) => {
     const positioned = options.skipMirror ? p : { ...p, position: mirrorPosition(p.position) };
-    const isBW = p.champion.traits.includes('빌지워터');
+    const swapped = applyPsyOpsRadiantSwap(positioned, enemyPsyOpsT4);
+    const isBW = placedHasTrait(swapped, '빌지워터');
     const effects = isBW ? mergeEffects(enemyAugmentEffects, enemyBWEffects) : enemyAugmentEffects;
-    const unit = createCombatUnit(positioned, 'enemy', i, enemyActiveTraits, effects);
-    const mod = resolvePerUnitMods(enemyAugsWithStacks, p.champion);
+    const unit = createCombatUnit(swapped, 'enemy', i, enemyActiveTraits, effects);
+    const mod = resolvePerUnitMods(enemyAugsWithStacks, swapped.champion);
     applyPerUnitMods(unit, mod);
-    applyPermanentStacks(unit, positioned);
+    applyPermanentStacks(unit, swapped);
     applyCarryAugmentRange(unit, enemyAugApiNames);
     applyStartPassives(unit);
     return unit;
   });
+
+  // 프리즘 short-circuit — unit/snapshot populated 상태로 즉시 결과 반환.
+  // downstream (defeat-report, replay) 가 빈 배열에 대한 가정으로 깨지지 않도록.
+  if (prismOutcome) {
+    const prismLogs: CombatLog[] = [];
+    if (playerPrism.active) {
+      prismLogs.push({
+        tick: 0, time: 0, type: 'ability', sourceId: 'prism',
+        message: `프리즘 시너지 (player): ${playerPrism.names.join(', ')}`,
+      });
+    }
+    if (enemyPrism.active) {
+      prismLogs.push({
+        tick: 0, time: 0, type: 'ability', sourceId: 'prism',
+        message: `프리즘 시너지 (enemy): ${enemyPrism.names.join(', ')}`,
+      });
+    }
+    prismLogs.push({
+      tick: 0, time: 0, type: 'ability', sourceId: 'prism',
+      message: `결과: ${prismOutcome.winner} — ${prismOutcome.reason}`,
+    });
+    return {
+      winner: prismOutcome.winner,
+      duration: 0,
+      logs: prismLogs,
+      playerUnits,
+      enemyUnits: enemies,
+      snapshots: [captureSnapshot(-1, [...playerUnits, ...enemies], [])],
+    };
+  }
 
   // Apply trait omnivamp bonuses
   const playerTraitOmnivamp = playerActiveTraits.find(t => t.trait.apiName === 'TFT16_Slayer' && t.activeEffect);
@@ -1342,6 +2607,144 @@ export function simulateCombat(
   applyInvokerManaRegen(enemyActiveTraits, enemies);
   applyJuggernautDR(playerActiveTraits, playerUnits);
   applyJuggernautDR(enemyActiveTraits, enemies);
+  applyShenBastionAura(playerActiveTraits, playerUnits);
+  applyShenBastionAura(enemyActiveTraits, enemies);
+  applyJhinAnnihilator(playerActiveTraits, enemies);  // 적 대상
+  applyJhinAnnihilator(enemyActiveTraits, playerUnits);
+  // Astronaut/Brawler HP 가산은 Stargazer (Huntress) maxHp 상위 N명 mark 선택 전에
+  // 적용해야 정확한 maxHp 기준으로 mark — codex P2 회귀 가드.
+  applyAstronautEffects(playerActiveTraits, playerUnits);
+  applyAstronautEffects(enemyActiveTraits, enemies);
+  // 싸움꾼 +HP — multiplicative. Astronaut flat (+BonusHealth) 적용 후 multiply.
+  // 정령족+싸움꾼 동시 보유 챔프 없어 corner case 영향 없음.
+  applyBrawlerEffects(playerActiveTraits, playerUnits);
+  applyBrawlerEffects(enemyActiveTraits, enemies);
+  applyStargazerEffects(playerActiveTraits, playerUnits, enemies, options.playerStargazerConstellation);
+  applyStargazerEffects(enemyActiveTraits, enemies, playerUnits, options.enemyStargazerConstellation);
+  applyMorganaDarklight(playerActiveTraits, playerUnits);
+  applyMorganaDarklight(enemyActiveTraits, enemies);
+  applyFateweaverEffects(playerActiveTraits, playerUnits);
+  applyFateweaverEffects(enemyActiveTraits, enemies);
+  applyBastionEffects(playerActiveTraits, playerUnits);
+  applyBastionEffects(enemyActiveTraits, enemies);
+  applySniperEffects(playerActiveTraits, playerUnits);
+  applySniperEffects(enemyActiveTraits, enemies);
+  applyTimebreakerEffects(playerActiveTraits, playerUnits);
+  applyTimebreakerEffects(enemyActiveTraits, enemies);
+  applyDarkStarEffects(playerActiveTraits, playerUnits);
+  applyDarkStarEffects(enemyActiveTraits, enemies);
+  applyPrimordianEffects(playerActiveTraits, playerUnits);
+  applyPrimordianEffects(enemyActiveTraits, enemies);
+  // 메카 (TFT17_Mecha) — 메카 unit 한정 AD%/AP flat 가산.
+  // stat.ts generic processing 에서 제외 (모든 아군 적용 회귀 방지).
+  applyMechaEffects(playerActiveTraits, playerUnits);
+  applyMechaEffects(enemyActiveTraits, enemies);
+  // hero augment carry 변환 — 자폭(그라가스) / 방패 여전사(레오나).
+  applyHeroCarryTransforms(playerAugApiNames, playerUnits);
+  applyHeroCarryTransforms(enemyAugApiNames, enemies);
+  // 최신상 (GravesTrait) Frame — 가장 강한 그레이브즈 1명에 stat/메커닉 적용.
+  applyGravesFrameEffects(playerUnits, options.playerGravesFrame);
+  applyGravesFrameEffects(enemies, options.enemyGravesFrame);
+  // 최신상 무기고 stat upgrade — Frame 과 동일 unit 에 누적.
+  applyGravesStatUpgrades(playerUnits, options.playerGravesUpgrades);
+  applyGravesStatUpgrades(enemies, options.enemyGravesUpgrades);
+  // 선봉대 보호막은 전투 시작 시점 (tick=0, time=0).
+  applyVanguardEffects(playerActiveTraits, playerUnits, 0, 0, logs);
+  applyVanguardEffects(enemyActiveTraits, enemies, 0, 0, logs);
+
+  /**
+   * N.O.V.A. (DRX) — power surge.
+   *
+   * Spec (TFT17_DRX):
+   *   (2) TeamAttackDelay(=6) 초 후 N.O.V.A. 챔프별 효과 발동:
+   *     - Aatrox: 적 ShredAndSunder=30% Armor/MR 감소
+   *     - Caitlyn: 모든 아군 +AS=20%
+   *     - Akali: 모든 아군 Precision (spell crit 가능)
+   *     - Maokai: 모든 아군 maxHp × Heal=12% 회복
+   *     - Kindred: 가장 강한 Tank 에 ShieldValue=800 shield
+   *     - Emblem: BonusTrueDamage=10% (stacking — 후속)
+   *   (5) Striker selector — 게임-level (후속)
+   *
+   * 챔프가 unit list 에 살아있어야 그 효과 활성. tick=TeamAttackDelay×TICKS_PER_SECOND
+   * 시점에 main loop 가 발동.
+   */
+  const setupDrxNova = (activeTraits: ActiveTrait[], teamUnits: CombatUnit[], opposingTeam: CombatUnit[]) => {
+    const trait = activeTraits.find(t => t.trait.apiName === 'TFT17_DRX' && t.activeEffect);
+    if (!trait?.activeEffect) return null;
+    const v = trait.activeEffect.variables;
+    const delayTicks = Math.round(((v.TeamAttackDelay ?? 0) as number) * TICKS_PER_SECOND);
+    if (delayTicks <= 0) return null;
+    return {
+      teamUnits, opposingTeam, delayTicks, triggered: false,
+      shredPct: (v.ShredAndSunder ?? 0) as number,
+      asBonus: (v.AS ?? 0) as number,
+      maokaiHealPct: (v.Heal ?? 0) as number,
+      kindredShield: (v.ShieldValue ?? 0) as number,
+    };
+  };
+  const playerDrxState = setupDrxNova(playerActiveTraits, playerUnits, enemies);
+  const enemyDrxState = setupDrxNova(enemyActiveTraits, enemies, playerUnits);
+
+  /**
+   * main loop tick 마다 호출 — delayTicks 도달 시 한 번만 effect 적용.
+   * 챔프 alive 체크는 surge 발동 시점에 재평가 (codex P1 회귀 가드):
+   * setup 시점에 살아 있어도 delayTicks 전에 죽으면 그 챔프 효과 발동 안 됨.
+   */
+  const tickDrxNova = (state: ReturnType<typeof setupDrxNova>, tick: number, time: number) => {
+    if (!state || state.triggered || tick < state.delayTicks) return;
+    state.triggered = true;
+    // surge 시점에 alive 한 N.O.V.A. 챔프만 효과 활성.
+    const isAlive = (api: string) => state.teamUnits.some(u => u.champion.apiName === api && u.state !== 'dead');
+    const hasAatrox = isAlive('TFT17_Aatrox');
+    const hasCaitlyn = isAlive('TFT17_Caitlyn');
+    const hasAkali = isAlive('TFT17_Akali');
+    const hasMaokai = isAlive('TFT17_Maokai');
+    const hasKindred = isAlive('TFT17_Kindred');
+    if (hasAatrox && state.shredPct > 0) {
+      for (const e of state.opposingTeam) {
+        if (e.state === 'dead') continue;
+        e.stats.armor *= (1 - state.shredPct);
+        e.stats.magicResist *= (1 - state.shredPct);
+      }
+    }
+    if (hasCaitlyn && state.asBonus > 0) {
+      for (const u of state.teamUnits) {
+        if (u.state === 'dead') continue;
+        u.stats.attackSpeed *= (1 + state.asBonus);
+      }
+    }
+    if (hasAkali) {
+      for (const u of state.teamUnits) {
+        if (u.state === 'dead') continue;
+        u.spellCanCrit = true;
+      }
+    }
+    if (hasMaokai && state.maokaiHealPct > 0) {
+      for (const u of state.teamUnits) {
+        if (u.state === 'dead') continue;
+        // healAmp 곱셈 적용 — GrenadeMod_Radiant 등 회복량 증폭 효과 반영.
+        const heal = u.maxHp * state.maokaiHealPct * (1 + (u.healAmp ?? 0));
+        u.currentHp = Math.min(u.maxHp, u.currentHp + heal);
+      }
+    }
+    if (hasKindred && state.kindredShield > 0) {
+      // 가장 강한 Tank = role==='Tank' 중 maxHp 최고
+      const tanks = state.teamUnits.filter(u => u.state !== 'dead' && u.role === 'Tank');
+      const strongest = tanks.sort((a, b) => b.maxHp - a.maxHp)[0];
+      if (strongest) {
+        strongest.shield += state.kindredShield;
+        strongest.statusEffects.push({
+          type: 'shield', sourceId: 'drx-kindred',
+          remainingTicks: 9999, value: state.kindredShield,
+        });
+      }
+    }
+    logs.push({
+      tick, time, type: 'ability',
+      sourceId: 'drx-nova',
+      message: `N.O.V.A. power surge 발동 (${hasAatrox ? 'Aatrox ' : ''}${hasCaitlyn ? 'Caitlyn ' : ''}${hasAkali ? 'Akali ' : ''}${hasMaokai ? 'Maokai ' : ''}${hasKindred ? 'Kindred' : ''})`.trim(),
+    });
+  };
 
   // 아이오니아 길 적용
   if (options.playerIoniaPath) {
@@ -1350,6 +2753,81 @@ export function simulateCombat(
   if (options.enemyIoniaPath) {
     applyIoniaPath(enemyActiveTraits, enemies, options.enemyIoniaPath, logs);
   }
+
+  /**
+   * 별돌보미 뱀(Serpent) — 강화 칸 별돌보미 가 적에게 데미지 입힐 때 호출.
+   * dmg × poisonPercent 를 durationSec 초간 분산해서 'poison' statusEffect 로 적용 (magic DOT).
+   * 같은 caster 의 기존 poison 이 있으면 합산 (피해 누적, 만료 시간은 기존 유지).
+   */
+  const triggerSerpentPoison = (
+    caster: CombatUnit,
+    target: CombatUnit,
+    dmgDealt: number,
+  ): void => {
+    if (caster.stargazerSerpentPoisonPercent <= 0 || caster.stargazerSerpentDurationSec <= 0) return;
+    if (dmgDealt <= 0 || target.state === 'dead') return;
+    const totalPoison = dmgDealt * caster.stargazerSerpentPoisonPercent;
+    const ticks = Math.round(caster.stargazerSerpentDurationSec * TICKS_PER_SECOND);
+    if (ticks <= 0) return;
+    // 기존 poison (같은 caster source) 가 있으면:
+    //   - 잔여 totalDamage 보존 (residualTotal = old.value × old.remainingTicks)
+    //   - 새 totalPoison 합산 후 새 ticks 기준 perTick 재계산
+    //   - duration refresh (codex P1: refresh 안 하면 hit 마다 partial 전달 → under-proc)
+    const existing = target.statusEffects.find(
+      (e) => e.type === 'poison' && e.sourceId === caster.id,
+    );
+    if (existing) {
+      const residualTotal = (existing.value ?? 0) * existing.remainingTicks;
+      existing.value = (residualTotal + totalPoison) / ticks;
+      existing.remainingTicks = ticks;
+    } else {
+      target.statusEffects.push({
+        type: 'poison', sourceId: caster.id,
+        remainingTicks: ticks, value: totalPoison / ticks,
+      });
+    }
+  };
+
+  /**
+   * 별돌보미 우물(Fountain) — ability 시전 후 호출.
+   * 시전자가 stargazerFountainHealPercent > 0 이고 즉발 dmg > 0 일 때
+   * 같은 팀 살아있는 unit 중 currentHp/maxHp 비율 가장 낮은 unit 회복 (자기 포함).
+   * in-range cast path 와 OOR (dash/self_buff) cast path 모두 호출 (codex P1 회귀 가드).
+   * tickLogs 는 caller 가 tick 단위 local 배열을 주입.
+   */
+  const triggerFountainHeal = (
+    caster: CombatUnit,
+    totalAbilityDmg: number,
+    castTick: number,
+    castTime: number,
+    tickLogsRef: CombatLog[],
+  ): void => {
+    if (caster.stargazerFountainHealPercent <= 0 || totalAbilityDmg <= 0) return;
+    const teammates = caster.team === 'player' ? playerUnits : enemies;
+    let lowest: CombatUnit | null = null;
+    let lowestRatio = Infinity;
+    for (const a of teammates) {
+      if (a.state === 'dead') continue;
+      if (a.maxHp <= 0) continue;
+      const ratio = a.currentHp / a.maxHp;
+      if (ratio < lowestRatio) {
+        lowestRatio = ratio;
+        lowest = a;
+      }
+    }
+    if (!lowest) return;
+    // healAmp 곱셈 적용 — Fountain heal 은 17.2 비활성 (legacy) 이지만 reactivate 시 일관성 보장.
+    const healAmount = totalAbilityDmg * caster.stargazerFountainHealPercent * (1 + (lowest.healAmp ?? 0));
+    lowest.currentHp = Math.min(lowest.maxHp, lowest.currentHp + healAmount);
+    const healLog: CombatLog = {
+      tick: castTick, time: castTime, type: 'ability',
+      sourceId: caster.id, targetId: lowest.id,
+      value: Math.round(healAmount),
+      message: `${caster.champion.name} 우물 효과: ${lowest.champion.name} 체력 ${Math.round(healAmount)} 회복`,
+    };
+    logs.push(healLog);
+    tickLogsRef.push(healLog);
+  };
 
   // 수확자 — 적 사망 시 마나 획득 + 적 방저 감소
   function registerHarvester(activeTraits: ActiveTrait[], killerTeam: CombatUnit[], enemyTeam: CombatUnit[]): void {
@@ -1360,7 +2838,7 @@ export function simulateCombat(
     if (manaPerKill <= 0 && armorMRReduction <= 0) return;
     eventBus.on('on_death', 'harvester', () => {
       for (const u of killerTeam) {
-        if (u.champion.traits.includes('수확자') && u.state !== 'dead') {
+        if (unitHasTrait(u, '수확자') && u.state !== 'dead') {
           u.currentMana = Math.min(u.maxMana, u.currentMana + manaPerKill);
         }
       }
@@ -1374,6 +2852,88 @@ export function simulateCombat(
   }
   registerHarvester(playerActiveTraits, playerUnits, enemies);
   registerHarvester(enemyActiveTraits, enemies, playerUnits);
+
+  /**
+   * 별돌보미 여사냥꾼(Huntress) — 표식된 적 사망 시 같은 팀 강화 칸 별돌보미들이
+   * maxHp × healPercent 만큼 회복. event-driven 으로 등록 (사망 원인 무관).
+   * sourceId 는 죽은 unit (target) — opposingTeam 에서 마크 보유했는지 확인.
+   */
+  const registerHuntressHeal = (huntressTeam: CombatUnit[], huntressEnemies: CombatUnit[], handlerKey: string): void => {
+    eventBus.on('on_death', handlerKey, ({ sourceId }) => {
+      const dead = huntressEnemies.find((e) => e.id === sourceId);
+      if (!dead) return; // 죽은 unit 이 huntressTeam 의 적군이 아니면 무관
+      if (!dead.statusEffects.some((e) => e.type === 'mark')) return;
+      for (const h of huntressTeam) {
+        if (h.state === 'dead') continue;
+        if (h.stargazerHuntressHealPercent <= 0) continue;
+        // healAmp 곱셈 적용 — GrenadeMod_Radiant 등 회복량 증폭 효과 반영.
+        const healAmount = h.maxHp * h.stargazerHuntressHealPercent * (1 + (h.healAmp ?? 0));
+        h.currentHp = Math.min(h.maxHp, h.currentHp + healAmount);
+      }
+    });
+  };
+  registerHuntressHeal(playerUnits, enemies, 'stargazer-huntress-player');
+  registerHuntressHeal(enemies, playerUnits, 'stargazer-huntress-enemy');
+
+  /**
+   * 별돌보미 제단(Shield) — 같은 팀 unit 사망 시 제물 카운트 증가.
+   * 누적 (priorShieldDeaths + 시뮬 내 사망) ≥ NumDeaths 도달 시 그 팀 강화 칸
+   * 별돌보미들에게 cashout buff (HP × 1+CashoutHP, AS × 1+CashoutAS) 일회 적용.
+   * 게임-level 누적 (전 게임의 player 사망) 은 priorShieldDeaths 로 외부 입력.
+   */
+  // Shield_NumDeaths — raw trait variable 에서 동적 읽기 (drift 방지). 미정의 시 60 fallback.
+  // player / enemy 가 다른 별자리 활성 가능성 → 각 팀별 trait active 여부 체크 후 변수 추출.
+  const playerShieldTrait = playerActiveTraits.find(t => t.trait.apiName === 'TFT17_Stargazer_Shield' && t.activeEffect);
+  const enemyShieldTrait = enemyActiveTraits.find(t => t.trait.apiName === 'TFT17_Stargazer_Shield' && t.activeEffect);
+  const playerShieldNumDeaths = (playerShieldTrait?.activeEffect?.variables?.Shield_NumDeaths as number | undefined) ?? 60;
+  const enemyShieldNumDeaths = (enemyShieldTrait?.activeEffect?.variables?.Shield_NumDeaths as number | undefined) ?? 60;
+  let playerShieldDeaths = options.priorPlayerShieldDeaths ?? 0;
+  let enemyShieldDeaths = options.priorEnemyShieldDeaths ?? 0;
+  let playerShieldCashoutDone = false;
+  let enemyShieldCashoutDone = false;
+  const applyShieldCashout = (team: CombatUnit[]): void => {
+    for (const u of team) {
+      if (u.state === 'dead') continue;
+      if (u.stargazerShieldCashoutHpFrac <= 0 && u.stargazerShieldCashoutAsFrac <= 0) continue;
+      if (u.stargazerShieldCashoutHpFrac > 0) {
+        const newMaxHp = Math.round(u.maxHp * (1 + u.stargazerShieldCashoutHpFrac));
+        u.currentHp = Math.min(newMaxHp, u.currentHp + (newMaxHp - u.maxHp));
+        u.maxHp = newMaxHp;
+      }
+      if (u.stargazerShieldCashoutAsFrac > 0) {
+        u.stats.attackSpeed *= (1 + u.stargazerShieldCashoutAsFrac);
+      }
+    }
+  };
+  // priorShieldDeaths 만 으로 이미 threshold 도달했으면 전투 시작 시 즉시 적용.
+  if (playerShieldDeaths >= playerShieldNumDeaths) {
+    applyShieldCashout(playerUnits);
+    playerShieldCashoutDone = true;
+  }
+  if (enemyShieldDeaths >= enemyShieldNumDeaths) {
+    applyShieldCashout(enemies);
+    enemyShieldCashoutDone = true;
+  }
+  eventBus.on('on_death', 'stargazer-shield', ({ sourceId }) => {
+    // sourceId 는 죽은 unit 의 id. 어느 팀인지 식별 후 그 팀의 카운트 증가.
+    // 소환체 (포탑/티버스/Azir 병사/Voyager 소환/Shen 분신) 는 제물 카운트 제외 (codex P2).
+    const deadPlayerUnit = playerUnits.find((u) => u.id === sourceId);
+    const deadEnemyUnit = enemies.find((u) => u.id === sourceId);
+    if (deadPlayerUnit && !isAutoUnit(deadPlayerUnit.champion.apiName)) {
+      playerShieldDeaths++;
+      if (!playerShieldCashoutDone && playerShieldDeaths >= playerShieldNumDeaths) {
+        applyShieldCashout(playerUnits);
+        playerShieldCashoutDone = true;
+      }
+    }
+    if (deadEnemyUnit && !isAutoUnit(deadEnemyUnit.champion.apiName)) {
+      enemyShieldDeaths++;
+      if (!enemyShieldCashoutDone && enemyShieldDeaths >= enemyShieldNumDeaths) {
+        applyShieldCashout(enemies);
+        enemyShieldCashoutDone = true;
+      }
+    }
+  });
 
   // 전투 시작 시 유닛별 랜덤 첫 공격 딜레이 (0~0.3초)
   const maxDelayTicks = Math.round(INITIAL_ATTACK_DELAY * TICKS_PER_SECOND);
@@ -1402,8 +2962,8 @@ export function simulateCombat(
   const enemyGalioFlag = { spawned: false };
 
   // 중재자 법률 런타임
-  const playerArbiterUnits = playerUnits.filter(u => u.champion.traits.includes('중재자'));
-  const enemyArbiterUnits = enemies.filter(u => u.champion.traits.includes('중재자'));
+  const playerArbiterUnits = playerUnits.filter(u => unitHasTrait(u, '중재자'));
+  const enemyArbiterUnits = enemies.filter(u => unitHasTrait(u, '중재자'));
   const playerLawResolved = options.playerArbiterLaw && playerArbiterUnits.length >= 2
     ? resolveArbiterValue(options.playerArbiterLaw, playerArbiterUnits.length) : null;
   const enemyLawResolved = options.enemyArbiterLaw && enemyArbiterUnits.length >= 2
@@ -1421,7 +2981,54 @@ export function simulateCombat(
     applyArbiterEffect(options.enemyArbiterLaw.effectId, enemyLawResolved.value * totalStars, enemyArbiterUnits, 0, 0, logs, []);
   }
 
+  // === Item Effect Runtime 설치 ===
+  // applyResistance/applyShield/HP 감소/on_damage emit 까지 캡슐화한 고수준 피해 헬퍼.
+  // Item Action 에서 발생하는 피해는 이 경로로만 적용 (중복 로직 방지).
+  const applyDamageForItem = (
+    target: CombatUnit,
+    amount: number,
+    type: DamageType,
+    source: CombatUnit,
+    tick: number,
+  ): number => {
+    const resistance = type === 'physical' ? target.stats.armor
+      : type === 'magic' ? target.stats.magicResist : 0;
+    const pen = type === 'physical' ? source.stats.armorPen
+      : type === 'magic' ? source.stats.magicPen : 0;
+    const amped = amount * (1 + source.damageAmp);
+    const reduced = target.damageReduction > 0 ? amped * (1 - target.damageReduction) : amped;
+    let dmg = type === 'true' ? reduced : applyResistance(reduced, resistance, pen);
+    dmg = applyShield(target, dmg, eventBus, 0);
+    if (dmg > 0) {
+      target.currentHp -= dmg;
+      target.totalDamageTaken += dmg;
+      source.totalDamageDealt += dmg;
+      source.itemDamageDealt += dmg;
+    }
+    eventBus.emit('on_damage', {
+      sourceId: target.id,
+      targetId: source.id,
+      value: dmg,
+      damageType: type,
+      tick,
+    });
+    return dmg;
+  };
+  const itemRuntime = new ItemEffectRuntime(eventBus);
+  const itemRuntimeDeps: ActionDeps = {
+    allUnits,
+    rng,
+    eventBus,
+    applyDamage: applyDamageForItem,
+  };
+  itemRuntime.install(allUnits, itemRuntimeDeps);
+
   eventBus.emit('on_combat_start', { sourceId: '', tick: 0 });
+
+  // 초기 배치 스냅샷 — tick 0 처리 이전의 원본 포지션 보존.
+  // 리플레이 첫 프레임에 배치 상태를 노출하여, tick 0 에 발생하는
+  // 이동/공격/돌진 시전 등의 상태 변화를 사용자가 관찰 가능하게 한다.
+  snapshots.push(captureSnapshot(-1, allUnits, []));
 
   for (let tick = 0; tick < MAX_TICKS; tick++) {
     const time = +(tick * TICK_DURATION).toFixed(4);
@@ -1431,11 +3038,24 @@ export function simulateCombat(
 
     if (alivePlayers.length === 0 || aliveEnemies.length === 0) break;
 
+    // 요새 (Bastion) doubled buff 만료 처리 — 모든 global per-tick handlers (Piltover invention,
+    // Galio impact 등) 가 mitigation 계산 시점에 정확한 stats 를 보도록 가장 먼저 처리 (codex P2).
+    for (const u of allUnits) {
+      if (u.state === 'dead') continue;
+      tickBastionDouble(u, tick);
+    }
+    // N.O.V.A. (DRX) power surge — TeamAttackDelay 도달 시 한 번만 발동.
+    tickDrxNova(playerDrxState, tick, time);
+    tickDrxNova(enemyDrxState, tick, time);
+
+    // 아이템 효과 runtime — interval timer dispatch
+    itemRuntime.onTick(tick);
+
     // 갈리오 영웅 소환 체크 (매초)
     if (tick > 0 && tick % TICKS_PER_SECOND === 0) {
-      const playerGalio = trySpawnGalio(playerActiveTraits, 'player', playerUnits, enemies, allUnits, effectivePlayerGalio, tick, time, logs, tickLogs, playerGalioFlag);
+      const playerGalio = trySpawnGalio(playerActiveTraits, 'player', playerUnits, enemies, allUnits, effectivePlayerGalio, tick, time, logs, tickLogs, playerGalioFlag, eventBus);
       if (playerGalio) { allUnits.push(playerGalio); playerUnits.push(playerGalio); }
-      const enemyGalio = trySpawnGalio(enemyActiveTraits, 'enemy', enemies, playerUnits, allUnits, effectiveEnemyGalio, tick, time, logs, tickLogs, enemyGalioFlag);
+      const enemyGalio = trySpawnGalio(enemyActiveTraits, 'enemy', enemies, playerUnits, allUnits, effectiveEnemyGalio, tick, time, logs, tickLogs, enemyGalioFlag, eventBus);
       if (enemyGalio) { allUnits.push(enemyGalio); enemies.push(enemyGalio); }
     }
 
@@ -1481,6 +3101,38 @@ export function simulateCombat(
       checkLaw(enemyLawResolved, options.enemyArbiterLaw, enemyArbiterState, enemyArbiterUnits);
     }
 
+    // 별돌보미 우물(Fountain) tick 처리 — 강화 칸 unit 에 heal/stack 적용.
+    // 17.2 LIVE 에서 우물 비활성 (applyStargazerEffects 가 fountainHealPctPerTick 설정 안 함)
+    // → 모든 unit 의 fountainHealPctPerTick / fountainStackingAdapPerTick 가 0 → no-op.
+    // 활성화 시 (legacy 경로 또는 reenable patch) interval 은 trait raw 변수에서 동적 읽기
+    // (codex P2 가드 — hardcoded drift 방지).
+    const fountainPlayerTrait = playerActiveTraits.find(t => t.trait.apiName === 'TFT17_Stargazer_Fountain');
+    const fountainEnemyTrait = enemyActiveTraits.find(t => t.trait.apiName === 'TFT17_Stargazer_Fountain');
+    const fountainPlayerVars = fountainPlayerTrait?.activeEffect?.variables;
+    const fountainEnemyVars = fountainEnemyTrait?.activeEffect?.variables;
+    // raw hash 키 {8d19f5db} = Fountain_Interval (초). legacy 데이터에는 미정의 → 기본 2초.
+    const fountainIntervalSecs = (
+      (fountainPlayerVars?.['{8d19f5db}'] as number | undefined)
+      ?? (fountainEnemyVars?.['{8d19f5db}'] as number | undefined)
+      ?? 2
+    );
+    const fountainTickPeriod = Math.max(1, Math.round(fountainIntervalSecs * TICKS_PER_SECOND));
+    if (tick > 0 && tick % fountainTickPeriod === 0) {
+      for (const u of allUnits) {
+        if (u.state === 'dead') continue;
+        if (u.fountainHealPctPerTick > 0) {
+          const healBase = u.maxHp * u.fountainHealPctPerTick;
+          const heal = healBase * (1 + (u.healAmp ?? 0));
+          u.currentHp = Math.min(u.maxHp, u.currentHp + heal);
+        }
+        if (u.fountainStackingAdapPerTick > 0) {
+          // damage 누적 multiplicative. ap 는 percentage points (×100 fraction → 가산).
+          u.stats.damage = u.stats.damage * (1 + u.fountainStackingAdapPerTick);
+          u.stats.ap = (u.stats.ap ?? 0) + u.fountainStackingAdapPerTick * 100;
+        }
+      }
+    }
+
     // In-combat augment effects (apply every second = every 30 ticks)
     if (tick > 0 && tick % TICKS_PER_SECOND === 0) {
       const combatSecond = tick / TICKS_PER_SECOND;
@@ -1507,12 +3159,28 @@ export function simulateCombat(
     // Piltover invention trigger
     const playerModules = options.playerPiltoverModules ?? [];
     const enemyModules = options.enemyPiltoverModules ?? [];
-    applyPiltoverInvention(playerActiveTraits, playerUnits, enemies, playerModules, tick, logs, tickLogs, time, rng);
-    applyPiltoverInvention(enemyActiveTraits, enemies, playerUnits, enemyModules, tick, logs, tickLogs, time, rng);
+    applyPiltoverInvention(playerActiveTraits, playerUnits, enemies, playerModules, tick, logs, tickLogs, time, rng, eventBus);
+    applyPiltoverInvention(enemyActiveTraits, enemies, playerUnits, enemyModules, tick, logs, tickLogs, time, rng, eventBus);
 
     const occupiedPositions = new Set(
       allUnits.filter(u => u.state !== 'dead').map(u => coordKey(u.position))
     );
+
+    // 도전자(TFT17_ASTrait) 시너지 활성 유닛 id 집합 — 매 틱 lookup 비용 절감.
+    // 타겟 사망 시 새 타겟으로 돌진하는 hook 조건에 사용.
+    const playerChallengerActive = playerActiveTraits.some(t => t.trait.apiName === 'TFT17_ASTrait' && t.activeEffect);
+    const enemyChallengerActive = enemyActiveTraits.some(t => t.trait.apiName === 'TFT17_ASTrait' && t.activeEffect);
+    const challengerIds = new Set<string>();
+    if (playerChallengerActive) {
+      for (const u of playerUnits) {
+        if (unitHasTrait(u, '도전자')) challengerIds.add(u.id);
+      }
+    }
+    if (enemyChallengerActive) {
+      for (const u of enemies) {
+        if (unitHasTrait(u, '도전자')) challengerIds.add(u.id);
+      }
+    }
 
     for (const unit of allUnits) {
       if (unit.state === 'dead') continue;
@@ -1534,9 +3202,25 @@ export function simulateCombat(
 
       if (!canAct(unit)) continue;
 
+      // Totem(쉔 유물 등): 공격/이동 불가. 편집창에서 배치된 자리 고정 유지.
+      if (unit.stats.range === 0 && unit.stats.damage === 0 && unit.stats.attackSpeed === 0) continue;
+
       const enemyTeamAlive = unit.team === 'player' ? aliveEnemies : alivePlayers;
+      const prevTargetId = unit.target;
       const target = findTarget(unit, enemyTeamAlive, rng);
       if (!target) continue;
+
+      // 도전자 시너지: 이전 타겟이 사망해 새 타겟으로 바뀐 순간 돌진.
+      if (
+        challengerIds.has(unit.id) &&
+        prevTargetId && prevTargetId !== target.id
+      ) {
+        const allEnemy = unit.team === 'player' ? enemies : playerUnits;
+        const prev = allEnemy.find(e => e.id === prevTargetId);
+        if (prev && prev.state === 'dead') {
+          applyAbilityDash(unit, 'to_target', target, enemyTeamAlive, occupiedPositions, logs, tickLogs, tick, time);
+        }
+      }
 
       unit.target = target.id;
 
@@ -1545,12 +3229,21 @@ export function simulateCombat(
           const attackInterval = Math.round(1 / (getEffectiveAttackSpeed(unit) * TICK_DURATION));
           unit.attackCooldown = attackInterval;
 
+          // 공격 windup 시작 — PsyOps AttackPct 등의 공격 직전 버프 창 훅
+          eventBus.emit('on_windup_start', { sourceId: unit.id, targetId: target.id, tick });
+
           const isCrit = rng.next() < unit.stats.critChance;
           const critMult = isCrit ? unit.stats.critMultiplier : 1;
           let totalDamageAmp = unit.damageAmp;
           if (unit.inventionTankDamageAmp > 0 && target.role === 'Tank') {
             totalDamageAmp += unit.inventionTankDamageAmp;
           }
+          // 최신상 Tankbuster — 탱커 상대 추가 damage amp
+          if (unit.gravesTankDamageAmp > 0 && target.role === 'Tank') {
+            totalDamageAmp += unit.gravesTankDamageAmp;
+          }
+          // 저격수 (Sniper) — 거리 기반 추가 damage amp
+          totalDamageAmp += computeSniperDamageAmp(unit, target);
           const rawDamage = unit.stats.damage * critMult * (1 + totalDamageAmp);
           let finalDamage = applyResistance(rawDamage, target.stats.armor, unit.stats.armorPen);
 
@@ -1581,6 +3274,9 @@ export function simulateCombat(
           target.totalDamageTaken += finalDamage;
           unit.totalDamageDealt += finalDamage;
 
+          // 별돌보미 뱀(Serpent) — 강화 칸 별돌보미 가 평타로 적 명중 시 중독 적용
+          triggerSerpentPoison(unit, target, finalDamage);
+
           // 자동공격으로 적 처치
           if (target.currentHp <= 0 && target.state !== 'dead') {
             target.currentHp = 0;
@@ -1591,14 +3287,68 @@ export function simulateCombat(
             else enemyArbiterState.enemyDeathCount++;
             const deathLog: CombatLog = { tick, time, type: 'death', sourceId: target.id, message: `${target.champion.name} 사망! (${unit.champion.name}의 기본 공격)` };
             logs.push(deathLog); tickLogs.push(deathLog);
-            eventBus.emit('on_death', { sourceId: target.id, tick });
+            eventBus.emit('on_kill', { sourceId: unit.id, targetId: target.id, tick });
+            eventBus.emit('on_death', { sourceId: target.id, targetId: unit.id, tick });
           }
 
           if (unit.omnivamp > 0 && finalDamage > 0) {
             const grievousReduction = target.augmentGrievousWounds > 0 ? (1 - target.augmentGrievousWounds) : 1;
-            const heal = finalDamage * unit.omnivamp * grievousReduction;
+            // healAmp 곱셈 적용 — 모든 피해 흡혈 (omnivamp) 도 회복량 증폭 효과 대상.
+            const heal = finalDamage * unit.omnivamp * grievousReduction * (1 + (unit.healAmp ?? 0));
             unit.currentHp = Math.min(unit.maxHp, unit.currentHp + heal);
             eventBus.emit('on_heal', { sourceId: unit.id, value: heal, tick });
+          }
+
+          // 최신상 (GravesTrait) DoubleTap Frame — 25% 확률 추가 1회 공격.
+          // codex P1 가드: rawDamage 부터 mitigation pipeline 다시 거쳐야 (shielded target
+          // 에 첫 hit post-shield 값 재사용 시 under-damage 발생).
+          // codex P2 가드: 풀 attack 이벤트 emit (on_attack/on_damage/on_hit/on_hit_taken)
+          // — item runtime counter 등 attack-count 기반 시스템 정확 작동.
+          if (unit.gravesDoubleAttackChance > 0 && target.state !== 'dead'
+              && rng.next() < unit.gravesDoubleAttackChance) {
+            // 새 hit — rawDamage 재사용 (동일 source stats 기반) + mitigation 재계산.
+            // 단, crit 은 첫 hit 와 동일하게 취급 (rawDamage 에 critMult 이미 포함).
+            let extraFinal = applyResistance(rawDamage, target.stats.armor, unit.stats.armorPen);
+            if (target.damageReduction > 0) extraFinal *= (1 - target.damageReduction);
+            if ((target.role === 'Fighter' || target.role === 'Assassin') && target.target !== unit.id) {
+              extraFinal *= (1 - NON_TARGET_DAMAGE_REDUCTION);
+            }
+            extraFinal = applyShield(target, extraFinal, eventBus, tick);
+            if (target.statusEffects.some(e => e.type === 'invulnerable')) extraFinal = 0;
+
+            target.currentHp -= extraFinal;
+            target.totalDamageTaken += extraFinal;
+            unit.totalDamageDealt += extraFinal;
+            unit.attackCount++;
+
+            // 풀 attack 이벤트 emit — 일반 평타와 동일 path.
+            eventBus.emit('on_attack', { sourceId: unit.id, targetId: target.id, value: extraFinal, tick });
+            eventBus.emit('on_hit', { sourceId: unit.id, targetId: target.id, value: extraFinal, damageType: 'physical', tick });
+            eventBus.emit('on_damage', { sourceId: target.id, targetId: unit.id, value: extraFinal, damageType: 'physical', tick });
+            eventBus.emit('on_hit_taken', { sourceId: target.id, targetId: unit.id, value: extraFinal, damageType: 'physical', tick });
+
+            if (target.currentHp <= 0) {
+              target.currentHp = 0;
+              target.state = 'dead';
+              unit.killCount++;
+              if (unit.team === 'player') playerArbiterState.enemyDeathCount++;
+              else enemyArbiterState.enemyDeathCount++;
+              const dlog: CombatLog = { tick, time, type: 'death', sourceId: target.id, message: `${target.champion.name} 사망! (사수 프레임 추가 공격)` };
+              logs.push(dlog); tickLogs.push(dlog);
+              eventBus.emit('on_kill', { sourceId: unit.id, targetId: target.id, tick });
+              eventBus.emit('on_death', { sourceId: target.id, targetId: unit.id, tick });
+            }
+
+            // 별돌보미 뱀(Serpent) — DoubleTap 추가 hit 도 중독 적용.
+            triggerSerpentPoison(unit, target, extraFinal);
+
+            // omnivamp 도 추가 hit 에 적용 (attack 1회 와 동일). healAmp 곱셈 적용.
+            if (unit.omnivamp > 0 && extraFinal > 0) {
+              const grievousReduction = target.augmentGrievousWounds > 0 ? (1 - target.augmentGrievousWounds) : 1;
+              const heal = extraFinal * unit.omnivamp * grievousReduction * (1 + (unit.healAmp ?? 0));
+              unit.currentHp = Math.min(unit.maxHp, unit.currentHp + heal);
+              eventBus.emit('on_heal', { sourceId: unit.id, value: heal, tick });
+            }
           }
 
           // Augment burn: apply burn DoT on auto-attack
@@ -1630,7 +3380,7 @@ export function simulateCombat(
           unit.attackCount++;
 
           // 중재자 법률 카운터 업데이트
-          if (unit.champion.traits.includes('중재자')) {
+          if (unitHasTrait(unit, '중재자')) {
             const arbState = unit.team === 'player' ? playerArbiterState : enemyArbiterState;
             arbState.hitCount++;
             arbState.attackCount++;
@@ -1681,10 +3431,11 @@ export function simulateCombat(
                 sDmg = applyShield(target, sDmg, eventBus, tick);
                 target.currentHp -= sDmg;
                 unit.totalDamageDealt += sDmg;
-                // 피오라 급소 회복
+                // 피오라 급소 회복 — healAmp 곱셈 적용.
                 const healPct = atkSc.healPercent as number | undefined;
                 if (healPct && sDmg > 0) {
-                  unit.currentHp = Math.min(unit.maxHp, unit.currentHp + sDmg * healPct);
+                  const healAmount = sDmg * healPct * (1 + (unit.healAmp ?? 0));
+                  unit.currentHp = Math.min(unit.maxHp, unit.currentHp + healAmount);
                 }
               }
             }
@@ -1700,6 +3451,8 @@ export function simulateCombat(
           eventBus.emit('on_attack', { sourceId: unit.id, targetId: target.id, value: finalDamage, tick });
           eventBus.emit('on_hit', { sourceId: unit.id, targetId: target.id, value: finalDamage, damageType: 'physical', tick });
           eventBus.emit('on_damage', { sourceId: target.id, targetId: unit.id, value: finalDamage, damageType: 'physical', tick });
+          // 피격 방어자 관점 — 거인의 결의 / 반도체 카운터 등
+          eventBus.emit('on_hit_taken', { sourceId: target.id, targetId: unit.id, value: finalDamage, damageType: 'physical', tick });
 
           const log: CombatLog = {
             tick, time, type: 'attack',
@@ -1710,13 +3463,19 @@ export function simulateCombat(
           logs.push(log);
           tickLogs.push(log);
 
-          if (unit.currentMana >= unit.maxMana) {
+          // mana=0/0 챔프 (예: Caitlyn) 는 main ability 가 패시브 — 평타 트리거 onAttack
+          // 핸들러로만 처리. cast 시스템에 진입하면 매 평타마다 ability "Damage" var 값이
+          // 한 번 더 가산되는 이중 발동 버그 발생.
+          if (unit.maxMana > 0 && unit.currentMana >= unit.maxMana) {
+            const spentMana = unit.maxMana;
             unit.currentMana = 0;
             unit.state = 'casting';
             unit.castCount++;
-            if (unit.champion.traits.includes('중재자')) {
+            if (unitHasTrait(unit, '중재자')) {
               (unit.team === 'player' ? playerArbiterState : enemyArbiterState).manaSpent += unit.maxMana;
             }
+            // 마나 소모 시점 — PsyOps 공감 임플란트 등
+            eventBus.emit('on_mana_spent', { sourceId: unit.id, value: spentMana, tick });
 
             const augNames = unit.team === 'player' ? playerAugApiNames : enemyAugApiNames;
             const config: AbilityConfig = getAbilityConfigForUnit(unit, augNames);
@@ -1724,9 +3483,34 @@ export function simulateCombat(
             // 스킬 시전 후 cast time — 이 시간 동안 공격 불가
             unit.attackCooldown = config.pattern === 'self_buff' ? SELF_BUFF_CAST_TICKS : CAST_TICKS;
 
-            const { damage: rawAbilityDmg, type: dmgType } = getAbilityDamage(
+            const { damage: rawAbilityDmgBase, type: dmgType } = getAbilityDamage(
               unit.champion, unit.starLevel, unit.stats.ap, 0, config.damageVar
             );
+            // SharpshooterModule (위력 프레임) — 스킬 피해 +5% 가산.
+            const rawAbilityDmg = rawAbilityDmgBase * (1 + (unit.gravesAbilityDamageBonus ?? 0));
+
+            // 자폭 (GragasCarry) — 일반 ability target 흐름 skip + self 에 데미지 + HP floor.
+            // 사용자 명세: 그라가스 본인 데미지, 다른 아군 X, 자기 스킬로 죽지 않음 (HP >= 1).
+            if (config.selfDamage) {
+              const hpFloor = config.selfDamageHpFloor ?? 0;
+              const beforeHp = unit.currentHp;
+              const dmgApplied = Math.max(0, Math.min(rawAbilityDmg, beforeHp - hpFloor));
+              unit.currentHp = Math.max(hpFloor, beforeHp - rawAbilityDmg);
+              unit.totalDamageTaken += dmgApplied;
+              const selfLog: CombatLog = {
+                tick, time, type: 'ability',
+                sourceId: unit.id, targetId: unit.id,
+                value: Math.round(dmgApplied),
+                message: `${unit.champion.name}이(가) 자폭! 자기 자신에게 ${Math.round(dmgApplied)} 피해 (HP floor=${hpFloor})`,
+              };
+              logs.push(selfLog);
+              tickLogs.push(selfLog);
+              // on_cast 이벤트 emit — PsyOps 등 cast event subscriber 호환 (codex P2 회귀 가드).
+              // targetId 는 self (적군 X). value 는 실제 입은 self damage. rawValue 는 동일 (no resistance for self).
+              eventBus.emit('on_cast', { sourceId: unit.id, targetId: unit.id, value: dmgApplied, rawValue: rawAbilityDmg, tick });
+              continue; // 일반 ability 흐름 skip — 적군/아군 데미지 없음
+            }
+
             // hitCount: single은 곱연산, AOE/multi는 총 피해를 타겟 수로 분배 (후술)
             const hitCountTotal = config.hitCount ? rawAbilityDmg * config.hitCount : rawAbilityDmg;
             const isSplitDamage = config.hitCount && config.pattern !== 'single';
@@ -1760,6 +3544,10 @@ export function simulateCombat(
 
             // 다중 타겟 피해 루프
             let totalAbilityDmg = 0;
+            // raw total — per-target modifier (damageAmp/sniper/crit/secondary/Chogath %hp 등) 적용 후,
+            // resistance/shield/DR/invulnerable 적용 전. on_cast.rawValue 로 emit 되어
+            // SympatheticImplant TrueDamageConversion 등 raw 기반 follow-up effect 가 사용.
+            let totalRawAbilityDmg = 0;
             const aliveTargets = abilityTargets.filter(t => t.state !== 'dead');
             const abilityDmg = isSplitDamage && aliveTargets.length > 0
               ? hitCountTotal / aliveTargets.length
@@ -1772,7 +3560,9 @@ export function simulateCombat(
                 // DOT도 방어력/피해감소 적용
                 const resistance = dmgType === 'magic' ? t.stats.magicResist : dmgType === 'physical' ? t.stats.armor : 0;
                 const pen = dmgType === 'magic' ? unit.stats.magicPen : dmgType === 'physical' ? unit.stats.armorPen : 0;
-                const mitigated = dmgType === 'true' ? abilityDmg * (1 + unit.damageAmp) : applyResistance(abilityDmg * (1 + unit.damageAmp), resistance, pen);
+                // 저격수 (Sniper) — DOT 도 거리 기반 추가 amp 포함 (codex P2 회귀 가드).
+                const dotDamageAmp = unit.damageAmp + computeSniperDamageAmp(unit, t);
+                const mitigated = dmgType === 'true' ? abilityDmg * (1 + dotDamageAmp) : applyResistance(abilityDmg * (1 + dotDamageAmp), resistance, pen);
                 const perTickDmg = mitigated / config.dot.duration * TICK_DURATION;
                 t.statusEffects.push({
                   type: 'burn', sourceId: unit.id,
@@ -1797,6 +3587,12 @@ export function simulateCombat(
                 if (unit.inventionTankDamageAmp > 0 && t.role === 'Tank') {
                   abilityDamageAmp += unit.inventionTankDamageAmp;
                 }
+                // 최신상 Tankbuster — 탱커 상대 추가 damage amp (per target)
+                if (unit.gravesTankDamageAmp > 0 && t.role === 'Tank') {
+                  abilityDamageAmp += unit.gravesTankDamageAmp;
+                }
+                // 저격수 (Sniper) — 거리 기반 추가 damage amp (per target)
+                abilityDamageAmp += computeSniperDamageAmp(unit, t);
                 // 초가스: % 최대체력 피해 추가
                 let baseDmg = abilityDmg;
                 if (unit.champion.apiName === 'TFT17_Chogath') {
@@ -1827,6 +3623,11 @@ export function simulateCombat(
                 if (config.damageDecay && ti > 0) {
                   dmg *= Math.pow(1 - config.damageDecay, ti);
                 }
+                if (unit.spellCanCrit && rng.next() < unit.stats.critChance) {
+                  dmg *= unit.stats.critMultiplier;
+                }
+                // raw (mitigation 전) 누적 — on_cast.rawValue 용.
+                totalRawAbilityDmg += dmg;
 
                 const resistance = dmgType === 'magic' ? t.stats.magicResist
                   : dmgType === 'physical' ? t.stats.armor : 0;
@@ -1853,6 +3654,9 @@ export function simulateCombat(
                 unit.totalDamageDealt += effectiveDmg;
                 totalAbilityDmg += effectiveDmg;
 
+                // 별돌보미 뱀(Serpent) — 강화 칸 별돌보미 ability 명중 시 중독 적용
+                triggerSerpentPoison(unit, t, effectiveDmg);
+
                 const abilityLog: CombatLog = {
                   tick, time, type: 'ability',
                   sourceId: unit.id, targetId: t.id,
@@ -1876,22 +3680,28 @@ export function simulateCombat(
                   };
                   logs.push(deathLog);
                   tickLogs.push(deathLog);
-                  eventBus.emit('on_death', { sourceId: t.id, tick });
+                  eventBus.emit('on_kill', { sourceId: unit.id, targetId: t.id, tick });
+                  eventBus.emit('on_death', { sourceId: t.id, targetId: unit.id, tick });
                 }
               }
             }
 
-            // 전체 피해량 기반 흡혈
+            // 전체 피해량 기반 흡혈 — healAmp 곱셈 적용.
             if (unit.omnivamp > 0 && totalAbilityDmg > 0) {
               const grievousReduction = target.augmentGrievousWounds > 0 ? (1 - target.augmentGrievousWounds) : 1;
-              const heal = totalAbilityDmg * unit.omnivamp * grievousReduction;
+              const heal = totalAbilityDmg * unit.omnivamp * grievousReduction * (1 + (unit.healAmp ?? 0));
               unit.currentHp = Math.min(unit.maxHp, unit.currentHp + heal);
             }
+
+            // 별돌보미 우물(Fountain) — 강화 칸 안 별돌보미 스킬 시전 시
+            // 즉발 피해 × HealPercent 만큼 같은 팀 중 가장 체력 낮은 아군 회복.
+            triggerFountainHeal(unit, totalAbilityDmg, tick, time, tickLogs);
 
             // === CC 기절 적용 ===
             if (config.stun && config.stun > 0) {
               const stunTicks = Math.round(config.stun * TICKS_PER_SECOND);
-              const stunLimit = config.stunTargets ?? abilityTargets.length;
+              // firstHitOnlyStun (방패 여전사 LeonaCarry) — line 첫 적중만 stun.
+              const stunLimit = config.firstHitOnlyStun ? 1 : (config.stunTargets ?? abilityTargets.length);
               let stunCount = 0;
               for (const t of abilityTargets) {
                 if (t.state === 'dead' || stunCount >= stunLimit) break;
@@ -1921,7 +3731,9 @@ export function simulateCombat(
                   ? (healVal < 1 ? Math.round(unit.maxHp * healVal) : Math.round(healVal * (1 + unit.stats.ap / 100)))
                   : 0;
                 if (healAmount > 0) {
-                  unit.currentHp = Math.min(unit.maxHp, unit.currentHp + healAmount);
+                  // healAmp 곱셈 적용 — ability self-heal 도 회복량 증폭 효과 대상.
+                  const finalHeal = healAmount * (1 + (unit.healAmp ?? 0));
+                  unit.currentHp = Math.min(unit.maxHp, unit.currentHp + finalHeal);
                 }
               }
             }
@@ -1955,13 +3767,23 @@ export function simulateCombat(
               totalAbilityDmg += droneDmg;
             }
 
-            eventBus.emit('on_cast', { sourceId: unit.id, targetId: target.id, value: totalAbilityDmg, tick });
+            // rawValue = totalRawAbilityDmg (per-target modifier 적용 후, resistance 미적용 누적).
+            // value = totalAbilityDmg (실제 적용 mitigated total).
+            // dot path 면 totalRawAbilityDmg 누적 안 됨 → hitCountTotal 폴백 (DOT total raw).
+            const rawForCast = totalRawAbilityDmg > 0 ? totalRawAbilityDmg : hitCountTotal;
+            eventBus.emit('on_cast', { sourceId: unit.id, targetId: target.id, value: totalAbilityDmg, rawValue: rawForCast, tick });
           }
 
-          // Execute threshold: kill if below HP %
-          const shouldExecute = unit.augmentExecuteThreshold > 0
+          // Execute threshold: kill if below HP %.
+          // augmentExecuteThreshold (augment) + darkStarExecuteThreshold (DarkStar (2)+ tier).
+          const effectiveExecuteThreshold = Math.max(
+            unit.augmentExecuteThreshold,
+            unit.darkStarExecuteThreshold,
+          );
+          // Spec: HP/maxHp 가 임계값 이하 (≤) 시 execute. 정확히 임계값에 있는 적도 처치 대상.
+          const shouldExecute = effectiveExecuteThreshold > 0
             && target.currentHp > 0
-            && target.currentHp / target.maxHp < unit.augmentExecuteThreshold;
+            && target.currentHp / target.maxHp <= effectiveExecuteThreshold;
 
           if ((target.currentHp <= 0 || shouldExecute) && target.state !== 'dead') {
             target.state = 'dead';
@@ -1974,7 +3796,7 @@ export function simulateCombat(
               tick, time, type: 'death',
               sourceId: target.id,
               message: shouldExecute && target.currentHp > 0
-                ? `${target.champion.name} 처형됨! (HP ${Math.round(unit.augmentExecuteThreshold * 100)}% 이하)`
+                ? `${target.champion.name} 처형됨! (HP ${Math.round(effectiveExecuteThreshold * 100)}% 이하${unit.darkStarExecuteThreshold > 0 ? ' — 블랙홀' : ''})`
                 : `${target.champion.name} 사망!`,
             };
             logs.push(deathLog);
@@ -1990,10 +3812,13 @@ export function simulateCombat(
           && (outOfRangeConfig.dash || outOfRangeConfig.pattern === 'self_buff');
 
         if (canDashCast) {
+          const spentManaOOR = unit.maxMana;
           unit.currentMana = 0;
           unit.state = 'casting';
           unit.castCount++;
           unit.attackCooldown = outOfRangeConfig.pattern === 'self_buff' ? SELF_BUFF_CAST_TICKS : CAST_TICKS;
+          // 마나 소모 시점 (사거리 밖 dash cast 경로)
+          eventBus.emit('on_mana_spent', { sourceId: unit.id, value: spentManaOOR, tick });
 
           const { damage: rawOORDmg, type: dmgType } = getAbilityDamage(
             unit.champion, unit.starLevel, unit.stats.ap, 0, outOfRangeConfig.damageVar
@@ -2031,6 +3856,9 @@ export function simulateCombat(
 
           // 피해 적용
           let totalAbilityDmg = 0;
+          // raw total — per-target modifier (damageAmp/sniper/crit) 적용 후, mitigation 전.
+          // on_cast.rawValue 로 emit 되어 SympatheticImplant 등 raw 기반 effect 가 사용.
+          let totalRawAbilityDmg = 0;
           const oorAlive = abilityTargets.filter(t => t.state !== 'dead');
           const abilityDmg = oorIsSplit && oorAlive.length > 0
             ? oorHitTotal / oorAlive.length
@@ -2041,7 +3869,9 @@ export function simulateCombat(
             for (const t of oorAlive) {
               const resistance = dmgType === 'magic' ? t.stats.magicResist : dmgType === 'physical' ? t.stats.armor : 0;
               const pen = dmgType === 'magic' ? unit.stats.magicPen : dmgType === 'physical' ? unit.stats.armorPen : 0;
-              const mitigated = dmgType === 'true' ? abilityDmg * (1 + unit.damageAmp) : applyResistance(abilityDmg * (1 + unit.damageAmp), resistance, pen);
+              // 저격수 (Sniper) — OOR DOT 도 거리 기반 추가 amp 포함 (codex P2 회귀 가드).
+              const oorDotDamageAmp = unit.damageAmp + computeSniperDamageAmp(unit, t);
+              const mitigated = dmgType === 'true' ? abilityDmg * (1 + oorDotDamageAmp) : applyResistance(abilityDmg * (1 + oorDotDamageAmp), resistance, pen);
               const perTickDmg = mitigated / outOfRangeConfig.dot.duration * TICK_DURATION;
               t.statusEffects.push({
                 type: 'burn', sourceId: unit.id,
@@ -2049,11 +3879,21 @@ export function simulateCombat(
               });
             }
           } else {
+            // firstHitOnlyStun (방패 여전사 LeonaCarry): OOR dash cast 에서도 첫 적중만 stun.
+            let oorStunApplied = false;
             for (const t of abilityTargets) {
               if (t.state === 'dead') continue;
               const resistance = dmgType === 'magic' ? t.stats.magicResist : t.stats.armor;
               const pen = dmgType === 'magic' ? unit.stats.magicPen : unit.stats.armorPen;
-              let dmg = dmgType === 'true' ? abilityDmg * (1 + unit.damageAmp) : applyResistance(abilityDmg * (1 + unit.damageAmp), resistance, pen);
+              // 저격수 (Sniper) — 거리 기반 추가 damage amp
+              const sniperAmp = computeSniperDamageAmp(unit, t);
+              let rawDmg = abilityDmg * (1 + unit.damageAmp + sniperAmp);
+              if (unit.spellCanCrit && rng.next() < unit.stats.critChance) {
+                rawDmg *= unit.stats.critMultiplier;
+              }
+              // raw 누적 — mitigation 전 per-target modifier 적용 후.
+              totalRawAbilityDmg += rawDmg;
+              let dmg = dmgType === 'true' ? rawDmg : applyResistance(rawDmg, resistance, pen);
               if (t.damageReduction > 0) dmg *= (1 - t.damageReduction);
               dmg = applyShield(t, dmg, eventBus, tick);
               if (t.statusEffects.some(e => e.type === 'invulnerable')) dmg = 0;
@@ -2061,6 +3901,9 @@ export function simulateCombat(
               t.totalDamageTaken += dmg;
               unit.totalDamageDealt += dmg;
               totalAbilityDmg += dmg;
+
+              // 별돌보미 뱀(Serpent) — OOR ability 명중 시 중독 적용
+              triggerSerpentPoison(unit, t, dmg);
 
               if (t.currentHp <= 0) {
                 t.state = 'dead';
@@ -2074,10 +3917,13 @@ export function simulateCombat(
               }
 
               if (outOfRangeConfig.stun && outOfRangeConfig.stun > 0 && t.currentHp > 0) {
+                // firstHitOnlyStun → 이미 한 번 적용했으면 skip (LeonaCarry 첫 적중 only).
+                if (outOfRangeConfig.firstHitOnlyStun && oorStunApplied) continue;
                 const stunTicks = Math.round(outOfRangeConfig.stun * TICKS_PER_SECOND);
                 t.statusEffects.push({ type: 'stun', sourceId: unit.id, remainingTicks: stunTicks });
                 t.state = 'idle';
                 t.attackCooldown = 0;
+                oorStunApplied = true;
               }
             }
           }
@@ -2103,7 +3949,14 @@ export function simulateCombat(
           logs.push(castLog);
           tickLogs.push(castLog);
 
-          eventBus.emit('on_cast', { sourceId: unit.id, targetId: target.id, value: totalAbilityDmg, tick });
+          // 별돌보미 우물(Fountain) — OOR cast (dash/self_buff) path 도 동일 heal 적용
+          // (codex P1 회귀 가드: Talon/Corki 같은 dash user 가 사거리 밖 시전 시 누락 방지).
+          triggerFountainHeal(unit, totalAbilityDmg, tick, time, tickLogs);
+
+          // rawValue = totalRawAbilityDmg (per-target modifier 적용 후, resistance 미적용 누적).
+          // dot path 면 raw 누적 안 됨 → oorHitTotal 폴백.
+          const oorRawForCast = totalRawAbilityDmg > 0 ? totalRawAbilityDmg : oorHitTotal;
+          eventBus.emit('on_cast', { sourceId: unit.id, targetId: target.id, value: totalAbilityDmg, rawValue: oorRawForCast, tick });
         } else {
           // 일반 이동
           const newPos = findBestMoveToward(unit.position, target.position, occupiedPositions);
@@ -2138,6 +3991,7 @@ export function simulateCombat(
   const duration = lastLog ? lastLog.time : 0;
 
   eventBus.emit('on_combat_end', { sourceId: '', tick: MAX_TICKS, value: duration });
+  itemRuntime.dispose();
   eventBus.clear();
 
   return { winner, duration, logs, playerUnits, enemyUnits: enemies, snapshots };

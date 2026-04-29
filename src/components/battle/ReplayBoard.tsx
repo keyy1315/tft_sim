@@ -1,10 +1,14 @@
 'use client';
 
+import { useState } from 'react';
 import { TickSnapshot, HexCoord, axialToOffset, COST_COLORS } from '@/types';
 import type { StatusEffectType } from '@/types';
 import { getChampionImage } from '@/data/imageMap';
 import { BOARD_COLS } from '@/lib/simulator/models/constants';
 import { STATUS_EFFECT_CONFIG, CATEGORY_BORDER } from '@/lib/statusEffectConfig';
+import { createHexLayout } from './HexBoard';
+import { formatStargazerEffectSummary } from '@/lib/actualData/stargazerMapping';
+import type { StargazerConstellationId } from '@/lib/actualData/types';
 
 interface ReplayBoardProps {
   snapshot: TickSnapshot | null;
@@ -21,39 +25,46 @@ interface ReplayBoardProps {
   }>;
   selectedUnitId: string | null;
   onUnitClick?: (unitId: string) => void;
+  /** A 팀(player) 강화 칸 데이터-row 좌표 (0-3 기준). 보드 표시 시 r → 7-r mirror 매핑. */
+  playerStargazerTiles?: ReadonlyArray<HexCoord>;
+  /** B 팀(enemy) 강화 칸 데이터-row 좌표 (0-3 기준). 그대로 표시. */
+  enemyStargazerTiles?: ReadonlyArray<HexCoord>;
+  /** 별돌보미 hover tooltip 용 (SetupBoardCore 와 동일). */
+  playerStargazerConstellation?: StargazerConstellationId | null;
+  enemyStargazerConstellation?: StargazerConstellationId | null;
+  playerStargazerEffectVariables?: Record<string, number | null | undefined> | null;
+  enemyStargazerEffectVariables?: Record<string, number | null | undefined> | null;
+  playerStargazerCount?: number;
+  enemyStargazerCount?: number;
+  cellSize?: number;
 }
 
-const HEX_R = 40;
-const HEX_W = HEX_R * Math.sqrt(3);
-const HEX_H = HEX_R * 2;
-const PAD = 5;
+const REPLAY_DEFAULT_HEX_R = 40;
 const ROWS = 8; // player 4 + enemy 4
-
-function hexPoints(cx: number, cy: number, r: number): string {
-  const pts = [];
-  for (let i = 0; i < 6; i++) {
-    const angle = (Math.PI / 3) * i - Math.PI / 6;
-    pts.push(`${cx + r * Math.cos(angle)},${cy + r * Math.sin(angle)}`);
-  }
-  return pts.join(' ');
-}
-
-function hexCenter(row: number, col: number): { cx: number; cy: number } {
-  const offset = row % 2 === 1 ? HEX_W / 2 : 0;
-  const cx = col * (HEX_W + PAD) + HEX_W / 2 + 20 + offset;
-  const cy = row * (HEX_H * 0.75 + PAD) + HEX_R + 20;
-  return { cx, cy };
-}
 
 export default function ReplayBoard({
   snapshot,
   unitMeta,
   selectedUnitId,
   onUnitClick,
+  playerStargazerTiles = [],
+  enemyStargazerTiles = [],
+  playerStargazerConstellation,
+  enemyStargazerConstellation,
+  playerStargazerEffectVariables,
+  enemyStargazerEffectVariables,
+  playerStargazerCount = 0,
+  enemyStargazerCount = 0,
+  cellSize = REPLAY_DEFAULT_HEX_R,
 }: ReplayBoardProps) {
+  const { HEX_R, HEX_W, HEX_H, PAD, teamGap, hexCenter, hexPoints } = createHexLayout(cellSize);
   const cols = BOARD_COLS;
+  // hover 강화 칸 — tooltip 표시용 (SetupBoardCore 와 동일 패턴).
+  const [hoverTile, setHoverTile] = useState<{ zoneKey: string; team: 'player' | 'enemy'; cx: number; cy: number } | null>(null);
   const width = cols * (HEX_W + PAD) + HEX_W / 2 + 40;
-  const height = ROWS * (HEX_H * 0.75 + PAD) + HEX_R + 40;
+  const height = ROWS * (HEX_H * 0.75 + PAD) + HEX_R + 40 + teamGap;
+  const splitY = 4 * (HEX_H * 0.75 + PAD) + 10;
+  const dividerY = splitY + teamGap / 2;
 
   // Build position → unitId map from snapshot (axial → offset for grid matching)
   const posMap = new Map<string, string>();
@@ -80,6 +91,24 @@ export default function ReplayBoard({
       }
     }
   }
+
+  // 강화 칸 (별돌보미 별자리) — 보라색 테두리.
+  // CONSTELLATION_TILE_PATTERN 은 player half (data row 0-3) 만 정의.
+  // combat 의 applyStargazerEffects 는 r>=4 unit 을 mirrorPosition 으로 r=0..3 변환 후
+  // 패턴 체크 (mirrorPosition: r → 7-r, offset col 보존).
+  // 따라서 player tiles 는 보드 r=7-data_r 위치에 표시해야 실제 효과 적용 위치와 일치.
+  // hover tooltip 위해 player/enemy 별 분리 — 클릭/hover 시 어느 별자리 효과인지 식별.
+  const playerStargazerTileSet = new Set<string>();
+  const enemyStargazerTileSet = new Set<string>();
+  for (const t of playerStargazerTiles) {
+    const off = axialToOffset(t);
+    playerStargazerTileSet.add(`${7 - off.row}-${off.col}`);
+  }
+  for (const t of enemyStargazerTiles) {
+    const off = axialToOffset(t);
+    enemyStargazerTileSet.add(`${off.row}-${off.col}`);
+  }
+  const stargazerTileSet = new Set([...playerStargazerTileSet, ...enemyStargazerTileSet]);
 
   // Helper: get pixel center for a unit by id
   function getUnitCenter(unitId: string): { cx: number; cy: number } | null {
@@ -114,17 +143,17 @@ export default function ReplayBoard({
       {/* Dividing line between player/enemy */}
       <line
         x1={10}
-        y1={4 * (HEX_H * 0.75 + PAD) + 10}
+        y1={dividerY}
         x2={width - 10}
-        y2={4 * (HEX_H * 0.75 + PAD) + 10}
+        y2={dividerY}
         stroke="#374151"
         strokeWidth={1}
         strokeDasharray="4,4"
       />
-      <text x={width - 16} y={4 * (HEX_H * 0.75 + PAD) + 6} textAnchor="end" fill="#4b5563" fontSize="8">
+      <text x={width - 16} y={dividerY - 4} textAnchor="end" fill="#4b5563" fontSize="8">
         TEAM B
       </text>
-      <text x={width - 16} y={4 * (HEX_H * 0.75 + PAD) + 18} textAnchor="end" fill="#4b5563" fontSize="8">
+      <text x={width - 16} y={dividerY + teamGap + 6} textAnchor="end" fill="#4b5563" fontSize="8">
         TEAM A
       </text>
 
@@ -132,10 +161,27 @@ export default function ReplayBoard({
         Array.from({ length: cols }, (_, col) => {
           const { cx, cy } = hexCenter(row, col);
           const posKey = `${row},${col}`;
+          const zoneKey = `${row}-${col}`;
+          const isStargazerTile = stargazerTileSet.has(zoneKey);
           const unitId = posMap.get(posKey);
           const meta = unitId ? unitMeta[unitId] : null;
           const unitSnap = unitId && snapshot ? snapshot.units[unitId] : null;
           const isSelected = unitId === selectedUnitId;
+
+          // 강화 칸 hover 핸들러 — SetupBoardCore 와 동일 패턴.
+          const onStargazerEnter = () => {
+            const isPlayerTile = playerStargazerTileSet.has(zoneKey);
+            const isEnemyTile = enemyStargazerTileSet.has(zoneKey);
+            if (!isPlayerTile && !isEnemyTile) return;
+            setHoverTile({
+              zoneKey,
+              team: isPlayerTile ? 'player' : 'enemy',
+              cx, cy,
+            });
+          };
+          const onStargazerLeave = () => {
+            setHoverTile((prev) => (prev?.zoneKey === zoneKey ? null : prev));
+          };
 
           if (!unitId || !meta || !unitSnap) {
             // Empty cell
@@ -144,8 +190,10 @@ export default function ReplayBoard({
                 key={posKey}
                 points={hexPoints(cx, cy, HEX_R)}
                 fill="#0d1117"
-                stroke="#1e2535"
-                strokeWidth={0.5}
+                stroke={isStargazerTile ? '#A855F7' : '#1e2535'}
+                strokeWidth={isStargazerTile ? 2.5 : 0.5}
+                onMouseEnter={isStargazerTile ? onStargazerEnter : undefined}
+                onMouseLeave={isStargazerTile ? onStargazerLeave : undefined}
               />
             );
           }
@@ -177,8 +225,10 @@ export default function ReplayBoard({
               <polygon
                 points={hexPoints(cx, cy, HEX_R)}
                 fill={`url(#replay-${unitId})`}
-                stroke={isSelected ? '#f59e0b' : costColor}
-                strokeWidth={isSelected ? 3 : 2}
+                stroke={isSelected ? '#f59e0b' : isStargazerTile ? '#A855F7' : costColor}
+                strokeWidth={isSelected ? 3 : isStargazerTile ? 2.5 : 2}
+                onMouseEnter={isStargazerTile ? onStargazerEnter : undefined}
+                onMouseLeave={isStargazerTile ? onStargazerLeave : undefined}
               />
 
               {/* Star level */}
@@ -353,6 +403,44 @@ export default function ReplayBoard({
           </text>
         );
       })}
+      {/* 강화 칸 hover tooltip — SetupBoardCore 와 동일 패턴 */}
+      {hoverTile && (() => {
+        const constellation = hoverTile.team === 'player'
+          ? playerStargazerConstellation
+          : enemyStargazerConstellation;
+        if (!constellation) return null;
+        const variables = hoverTile.team === 'player'
+          ? playerStargazerEffectVariables
+          : enemyStargazerEffectVariables;
+        const count = hoverTile.team === 'player' ? playerStargazerCount : enemyStargazerCount;
+        const summary = formatStargazerEffectSummary(constellation, variables ?? null, count);
+        const ttWidth = 220;
+        const ttHeight = 130;
+        let ttX = hoverTile.cx - ttWidth / 2;
+        let ttY = hoverTile.cy - HEX_R - ttHeight - 6;
+        if (ttX < 4) ttX = 4;
+        if (ttX + ttWidth > width - 4) ttX = width - 4 - ttWidth;
+        if (ttY < 4) ttY = hoverTile.cy + HEX_R + 6;
+        return (
+          <foreignObject x={ttX} y={ttY} width={ttWidth} height={ttHeight} style={{ pointerEvents: 'none' }}>
+            <div
+              style={{
+                background: 'rgba(15,23,42,0.96)',
+                border: '1px solid #A855F7',
+                borderRadius: 6,
+                padding: '6px 8px',
+                color: '#e5e7eb',
+                fontSize: 10,
+                lineHeight: 1.35,
+                whiteSpace: 'pre-line',
+                fontFamily: 'system-ui, sans-serif',
+              }}
+            >
+              {summary}
+            </div>
+          </foreignObject>
+        );
+      })()}
     </svg>
   );
 }

@@ -1,0 +1,145 @@
+# 시뮬 정확도 작업 — v1 이후 후속 스펙 (deferred)
+
+> 2026-04-24 브레인스토밍에서 **v1 스펙(A안)에서 제외된 항목** 보존용 메모.
+> v1 = "수동으로 `survivors` 채우고 → actual-data vs 시뮬 기본 diff 리포트 생성"
+> v1 끝난 후 실제 비교 데이터가 쌓이면 여기서 우선순위 재판단 예정.
+
+## v1 스펙 (참고)
+
+- **포함**: (1) Schema 확장 (`survivors`, optional `opponentDamageChart`) + (2) 수동 입력 UI + (4) 시뮬 실행·수집 + (5) 기본 diff 리포트
+- **목표 산출물**: 라운드별 `winner` 적중 / `survivors` 상태 / player 딜량 오차 비교표
+- **스펙 파일**: `docs/superpowers/specs/2026-04-24-sim-accuracy-diff-design.md` (예정)
+
+---
+
+## 후속 (3) — 영상 자동 추출 파이프라인
+
+**스코프:**
+- `ffmpeg`로 `videoEndTime - {3,2,1,0.5,0}s` 5프레임 PNG 추출
+- Claude Vision (또는 로컬 CV)으로 프레임 선택: "다음 라운드 UI 미표시 + HP bar 가시 + 사망 애니메이션 종료" 조건
+- 선택 프레임에서 유닛 머리 위 HP bar 픽셀 비율 → `survivors[].hpPercent` 자동 채움
+- HUD 데미지 차트가 열려있는 프레임이 있으면 `opponentDamageChart`도 자동 채움 (optional)
+
+**Why v1에서 뺐나:**
+- HP bar 읽기 정확도는 **해상도·HUD 레이아웃·라인별 픽셀 패턴 캘리브레이션** 결과를 직접 돌려봐야 알 수 있음 → 스펙에 미리 확정하면 현실과 틀어질 가능성 큼
+- v1에서 수동 입력으로 2~3판 돌려본 후 **"자동 추출이 정말로 병목인지"** 판단 필요
+
+**재고 트리거:**
+- v1 리포트 생성 후 "데이터 더 쌓고 싶은데 수동 입력이 너무 느림" 체감 시
+- 또는 HP bar 픽셀 샘플 한두 장 직접 찍어봐서 **Vision 판독 정확도 > 80%** 확인되면 즉시 스펙화
+
+**초기 리스크:**
+- 유닛 간 HP bar 가림 (앞뒤 겹침)
+- 사망 직후 시체는 HP bar 없음 → 생존 여부 판정만 가능
+- 해상도가 서로 다른 영상 (720p vs 1080p vs 1440p)
+- 상대 HUD 데미지 차트는 **사용자가 인게임에서 열어본 경우만 존재**
+
+---
+
+## 데이터 정합 이슈 (v1 구현 중 발견, 2026-04-24)
+
+### `ioniaPath` 필드 — Set 17에 아이오니아 trait 없음
+
+**발견**: `public/data/tft_set17_champions.json` 트레잇 목록에 "아이오니아" 없음. Set 17 trait는
+동물특공대/태고족/불한당/도전자/습격자/기동총격여신/파멸자 등. `TFT17_Yasuo` 챔피언도 데이터에 없음.
+
+**현 상태**: 스펙과 schema 확장에 `ioniaPath` 포함됐으나 Set 17에선 활성 트레잇이 없어 쓰임 없음.
+- schemaAdapter의 ionia warning은 방어적으로 처리 — 트레잇 없으면 조용히 스킵
+- 엔진 `SimulateOptions.playerIoniaPath`는 이전 세트 잔존 옵션
+- 해가 없음 (optional 필드)
+
+**재고 트리거**: Set 18 이후 아이오니아 재등장 시 자동 활성. 그 전엔 놔둬도 무해.
+혹시 Set 17 데이터 업데이트로 아이오니아 재추가되면 schema와 adapter는 그대로 작동.
+
+**대안 판단**: v1 끝난 후 사용자가 "Set 17 전용으로 정돈하고 싶다" 판단 시:
+1. schema 에서 `ioniaPath` 제거
+2. schemaAdapter에서 `playerIoniaPath` 매핑 제거
+3. 관련 warning 룰 제거
+
+---
+
+## 후속 — arbiterLaw 입력 UI (v1에서 보류)
+
+**현 상태**: `TeamSnapshotSchema` 에 `arbiterLaw: { triggerId, effectId }` optional 필드는
+존재하나, `src/components/actual-data/` 어디에도 입력 UI 가 없음 (2026-04-27 grep 확인).
+
+**v1에서 뺀 이유**: Phase 5 작업 시점에 arbiterLaw 가 활성화된 게임 데이터가 한 건도 없어서
+warning 경로 (schemaAdapter) 가 missing 값을 graceful 처리. UI 추가 비용 대비 즉시 효용 적음.
+
+**재고 트리거**: 사용자가 실제 라운드에서 arbiter law 발동을 기록하기 시작하면
+`public/data/arbiter_laws.json` 기반 dropdown (triggerId/effectId 페어) 추가 — TeamEditor 옆
+또는 PvPRoundEditor 의 winner 선택 옆에 작은 셀렉트 두 개.
+
+---
+
+## 후속 — Set 17 trait 시스템 미구현 (2026-04-27 발견)
+
+v1 측정 도구로 game-20260423-001 (N=10) 돌려본 결과 **모든 player 챔프가
+sim 에서 -50% ~ -94% 데미지** (TwistedFate 만 +28% 예외). 이 systemic 적자의
+주 원인은 **Set 17 핵심 trait 4개가 sim 엔진에 미구현**.
+
+### 챔프별 평균 diff (Caitlyn fix + NoScoutNoPivot fix 후 baseline)
+
+| 챔프 | actual 평균 | sim 평균 | avg diff | 비고 |
+|------|------|------|------|------|
+| Corki | 4884 | 256 | -94% | 정령족·운명술사 미구현 직접 영향 |
+| Milio | 2191 | 374 | -78% | 시간 균열자·운명술사 |
+| Jax | 1444 | 511 | -63% | 별돌보미·요새 |
+| Talon | 2603 | 1280 | -60% | 별돌보미·불한당 |
+| Caitlyn | 1531 | 576 | -57% | N.O.V.A.·운명술사 |
+| Aatrox | 762 | 311 | -53% | N.O.V.A.·요새 |
+| TwistedFate | 5111 | 4698 | +28% | 별돌보미·운명술사 |
+
+### grep 검증
+
+`grep -rln "Stargazer|Fateweaver|N.O.V.A|Astronaut" src/lib/simulator/` → **0 hits**.
+(`src/lib/actualData/{schema,types}.ts` 에서만 언급 — data layer 만 인식, 엔진 무시.)
+
+### 미구현 trait 우선순위
+
+| trait | apiName | player 활성 | 핵심 효과 | 영향 추정 |
+|------|---------|------------|---------|---------|
+| **별돌보미** | TFT17_Stargazer_Wolf 외 | 6명 (3명 + Emblem 3개) | Wolf_ADAP=10%, Wolf_Health=2%, Teamwide=8% | 매우 큼 |
+| **운명술사** | TFT17_Fateweaver | 4명 | "행운: ProcChance 두 번 시도" + CritDamage | Corki/Caitlyn ProcChance 1.8x |
+| **N.O.V.A.** | (capstone) | 2명 | 표식 + 헤드샷 추가 | 중간 |
+| **정령족** | (Astronaut) | 1명 (Corki) | 8초마다 Meep 폭발 (★3 = 180/8s = 22.5dps × 26s = 585 추가) | Corki 단독 큼 |
+
+### 다음 PR 권장 순서
+
+1. **별돌보미 (Stargazer) Wolf 컨스텔레이션** — 가장 영향 큼. effects key (Wolf_ADAP/Wolf_Health/Wolf_Health_Teamwide) 가산 처리.
+2. **운명술사 (Fateweaver)** — ProcChance 호출 지점 (Caitlyn line 1786, Corki/Milio 추가) 에 trait 활성 시 best-of-2 RNG 로직.
+3. **N.O.V.A. capstone** — Caitlyn description 의 "<ShowIf.TFT17_DRX_CapstoneActive>" 분기 처리. 표식 시스템 추가 필요.
+4. **정령족 (Astronaut)** — Meep 8초 cooldown 폭발. 챔프별 onAttack 패시브 시스템에 추가.
+
+### 재고 트리거
+
+trait 4개 중 하나라도 구현 후 diff cache 재실행 시 game-20260423-001 의
+winnerMatchRate 가 50% 넘기면 다음 trait 으로 진행 결정.
+
+### 추적 메트릭 (재실행 시 기록)
+
+baseline (2026-04-27 trait 4개 모두 미구현):
+- winnerMatchRate: **40.9%**
+- avgPlayerDamageErrorPct: **-44.8%**
+- avgSurvivorHpErrorPts: 9.4 pt
+- weakSignalRoundCount: 0
+
+각 trait fix 후 위 4개 값 추가 기록.
+
+---
+
+## 후속 (6) — 시스템별 오차 귀속 (Attribution)
+
+**스코프:**
+- v1 diff 리포트에서 나온 오차를 **엔진 시스템(타겟팅 / 데미지 공식 / 마나 획득 / 아이템 / 증강 / 트레잇)** 중 어디 탓인지 자동 분류
+- 예: "Xayah 딜 3200 (실제 8933) + 종료 시 상대 탱 HP 80% 남음" → "타겟팅 or 데미지 공식 중 하나, 마나는 무관" 후보군 제시
+- 각 시스템별 오차 패턴 카탈로그 구축
+
+**Why v1에서 뺐나:**
+- **비교 데이터 0건 상태에서 귀속 로직 설계는 추상적**이 됨
+- 실제로 몇 판 돌려보면 "어떤 신호가 귀속에 유용한지" (예: HP 패턴이 타겟팅 증거인지 데미지 증거인지)가 경험적으로 드러남
+- 그 때 도메인 지식 있는 상태에서 설계하는 게 훨씬 견고함
+
+**재고 트리거:**
+- v1 리포트를 3~5판 돌려봤는데 **"오차는 보이는데 어디를 고쳐야 할지 감이 안 옴"** 상태 도달 시
+- 또는 단일 원인이 명확 (예: "모든 라운드에서 일관되게 내 팀 딜이 50% 낮음" → 데미지 공식 한 곳만 파면 됨) → 귀속 툴 없이 수동 처리 가능

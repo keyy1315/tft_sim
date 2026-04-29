@@ -38,7 +38,110 @@ const EMPTY_MOD: PerUnitAugmentMod = {
 
 // === Tier helpers ===
 
+/**
+ * GodAugment 라인 중 태그로 자동 분류가 안 되는 특수 케이스들을 명시적으로 지정.
+ * 주로 "신 은총" 테마이지만 태그가 비어있거나, 반대로 신 이름을 쓰지만 실제로는 일반 티어인 경우.
+ */
+const APINAME_TIER_OVERRIDES: Readonly<Record<string, AugmentTier>> = {
+  // 은총 (태그 빠진 변형들 + 아우솔 은총 본체에서 파생되는 퀘스트 선택지)
+  'TFT17_Augment_AurelionSolGodAugment_BoonOfResurrection': 'boon',
+  'TFT17_Augment_KayleGodAugment_Scrapper': 'boon',
+  'TFT17_Augment_AurelionSolGodAugment_SmallQuest': 'boon',
+  'TFT17_Augment_AurelionSolGodAugment_MediumQuest': 'boon',
+  'TFT17_Augment_AurelionSolGodAugment_LargeQuest': 'boon',
+
+  // 챔피언 Carry 증강 중 실제는 실버/골드인 것들 (기본 Carry 휴리스틱 보정)
+  'TFT17_Augment_NasusCarry': 'silver',          // 꽁!
+  'TFT17_Augment_AatroxCarry': 'silver',         // 별빛 연계
+  'TFT17_Augment_PoppyCarry': 'silver',          // 정령단 속도
+  'TFT17_Augment_LeonaCarry': 'silver',          // 방패 여전사 (lolchess tier=1)
+  'TFT17_Augment_IvernMinionCarry': 'gold',      // 빅뱅
+  'TFT17_Augment_JaxCarry': 'gold',              // 저 별을 향해
+  'TFT17_Augment_PykeCarry': 'gold',             // 청부 살인마
+  'TFT17_Augment_GragasCarry': 'gold',           // 자폭 (lolchess tier=2)
+  'TFT17_Augment_MordekaiserCarry': 'gold',      // 뜨거운 죽음 (lolchess tier=2)
+
+  // GodAugment suffix지만 실제는 일반 티어 (신 변형 중 일반 증강)
+  'TFT17_Augment_EvelynnGodAugment_BloodPrice': 'gold',   // 피의 대가
+  'TFT17_Augment_YasuoGodAugment_MoreHexes': 'gold',       // 야스오 스포트라이트 공유
+  'TFT17_Augment_YasuoGodAugment_GoldenHex': 'silver',     // 야스오 황금 칸
+
+  // 실버 태그 → 실제는 골드 (CDragon 태그 부정확, 사용자 검수 반영)
+  'TFT11_Augment_Reinfourcement': 'gold',       // 4후지원
+  'TFT6_Augment_CalculatedLoss': 'gold',        // 계산된 패배
+  'TFT6_Augment_Electrocharge2': 'gold',        // 고전압 II
+  'TFT6_Augment_TradeSector': 'gold',           // 교환의 장
+  'TFT9_Augment_LearningFromExperience2': 'gold', // 끈질긴 연구
+  'TFT7_Augment_BestFriends2': 'gold',          // 단짝 II
+  'TFT6_Augment_ClearMind': 'gold',             // 맑은 정신
+  'TFT9_Augment_JeweledLotus': 'gold',          // 보석 연꽃 I
+  'TFT6_Augment_CyberneticImplants2': 'gold',   // 사이버네틱 이식술
+  'TFT6_Augment_CyberneticUplink2': 'gold',     // 사이버네틱 통신
+  'TFT11_Augment_Epoch': 'gold',                // 새로운 시대
+  'TFT11_Augment_EpochPlus': 'gold',            // 새로운 시대+
+  'TFT6_Augment_HyperRoll': 'gold',             // 수완가
+  'TFT7_Augment_ClutteredMind': 'gold',         // 어수선한 마음
+  'TFT9_Augment_TonsOfStats': 'gold',           // 엄청나게 이로운 효과!
+  'TFT10_Augment_HeroicGrabBag': 'gold',        // 영웅 꾸러미
+  'TFT6_Augment_MakeshiftArmor2': 'gold',       // 임시변통 방어구 II
+  'TFT10_Augment_LittleBuddies': 'gold',        // 작은 친구들
+  'TFT11_Augment_Slammin': 'gold',              // 재빠른 무장
+  'TFT11_Augment_Slammin_Plus': 'gold',         // 재빠른 무장+
+  'TFT6_Augment_SecondWind2': 'gold',           // 재생의 바람 II
+  'TFT6_Augment_SalvageBin': 'gold',            // 재활용 쓰레기통
+  'TFT8_Augment_SalvageBinPlus': 'gold',        // 재활용 쓰레기통+
+  'TFT9_Augment_Commander_Ascension': 'gold',   // 초월
+  'TFT6_Augment_Distancing2': 'gold',           // 추방자 II
+  'TFT10_Augment_CrashTestDummies': 'gold',     // 충돌 시험용 봇
+  'TFT9_Augment_BigGrabBag': 'gold',            // 큰 꾸러미
+  'TFT6_Augment_SunfireBoard': 'gold',          // 태양불꽃판
+  'TFT11_Augment_Prizefighter': 'gold',         // 파이트 머니
+  'TFT7_Augment_PandorasBench': 'gold',         // 판도라의 대기석
+  'TFT9_Augment_PandorasItems2': 'gold',        // 판도라의 아이템 II
+  'TFT9_Augment_YouHaveMyBow': 'gold',          // 활의 수호자
+  'TFT9_Augment_HealingOrbsII': 'gold',         // 회복의 구 II
+  'TFT6_Augment_PortableForge': 'gold',         // 휴대용 대장간
+  'TFT_Augment_Dhampyr1': 'gold',               // 흡혈의 활력 I
+  'TFT16_Augment_UltraRapidFire': 'gold',       // U.R.F
+
+  // 실버 태그 → 실제는 프리즘 (주로 고가 경제/특수 증강)
+  'TFT9_Augment_Legend_HighEndSector': 'prismatic',          // 흥청망청
+  'TFT6_Augment_TheGoldenEgg': 'prismatic',                  // 황금 알
+  'TFT11_Augment_Calltochaos': 'prismatic',                  // 혼돈의 부름
+  'TFT6_Augment_ThriftShop': 'prismatic',                    // 현명한 소비
+  'TFT9_Augment_HedgeFundPlus': 'prismatic',                 // 헤지 펀드+
+  'TFT9_Augment_HedgeFund': 'prismatic',                     // 헤지 펀드
+  'TFT7_Augment_LuckyGlovesPlus': 'prismatic',               // 행운의 장갑+
+  'TFT7_Augment_LuckyGloves': 'prismatic',                   // 행운의 장갑
+  'TFT6_Augment_GachaAddict': 'prismatic',                   // 프리즘 티켓
+  'TFT9_Augment_PandorasRadiantBox': 'prismatic',            // 판도라의 아이템 III
+  'TFT9_Augment_BuildingACollectionPlusPlus': 'prismatic',   // 파묻힌 보물
+  'TFT11_Augment_Buildabud': 'prismatic',                    // 친구 만들기 (사용자 검수: prismatic 변종만 set17 풀에 노출 — TFT_Augment_ForgeAFriend silver 변종은 disable=true)
+  'TFT9_Augment_RollTheDice': 'prismatic',                   // 찬란한 장난꾸러기
+  'TFT7_Augment_CursedCrown': 'prismatic',                   // 저주받은 왕관
+  'TFT10_Augment_GoingLong': 'prismatic',                    // 장기 투자
+  'TFT11_Augment_TinyButDeadly': 'prismatic',                // 작지만 치명적인
+  'TFT11_Augment_AtWhatCost': 'prismatic',                   // 응당한 대가
+  'TFT7_Augment_UrfsGrabBag2': 'prismatic',                  // 우르프의 꾸러미
+  'TFT6_Augment_ForceOfNature': 'prismatic',                 // 신병
+  'TFT7_Augment_BirthdayPresents': 'prismatic',              // 생일 선물
+  'TFT9_Augment_GreaterJeweledLotus': 'prismatic',           // 보석 연꽃 II
+  'TFT6_Augment_MaxLevel10': 'prismatic',                    // 레벨 업!
+  'TFT6_Augment_BandOfThieves2': 'prismatic',                // 도둑 무리 II
+  'TFT6_Augment_BandOfThieves2Plus': 'prismatic',            // 도둑 무리 II+
+  'TFT6_Augment_BandOfThieves2PlusPlus': 'prismatic',        // 도둑 무리 II++
+  'TFT9_Augment_TiniestTitanPlus': 'prismatic',              // 꼬꼬마 거인
+  'TFT6_Augment_TradeSector2': 'prismatic',                  // 거래 중심지
+  'TFT7_Augment_LivingForge': 'prismatic',                   // 간이 대장간
+};
+
 export function getAugmentTier(aug: RawAugment): AugmentTier {
+  const api = aug.apiName;
+  // 1. 명시적 override
+  if (APINAME_TIER_OVERRIDES[api]) return APINAME_TIER_OVERRIDES[api];
+  // 2. 챔피언 Carry 증강은 태그에 silver가 붙어있어도 실제는 프리즘
+  if (api.endsWith('Carry') || api.includes('_Carry')) return 'prismatic';
+  // 3. 명시적 tier 태그 ({719abef1} → 'boon', 기타 실버/골드/프리즘)
   for (const tag of aug.tags) {
     if (tag in AUGMENT_TIER_TAGS) return AUGMENT_TIER_TAGS[tag];
   }
@@ -98,6 +201,21 @@ export function resolveAugmentEffects(augments: AugmentWithStacks[]): ItemEffect
     // HPBonus → flat HP × stacks
     const hpBonus = ef(e, 'HPBonus');
     if (hpBonus != null) result.hp = (result.hp ?? 0) + hpBonus * stacks;
+
+    // NoScoutNoPivot 누적 — PvP 라운드 후 % HP / AD / AP 가산.
+    // stack = 거친 PvP 라운드 수 (사용자 augmentStacks 입력).
+    // ADScale=0.015 → +1.5% AD per stack. APScale 은 데이터에 1.5 (이미 % 단위)
+    // 로 들어와 있어 1 보다 크면 /100 으로 정규화.
+    const adScale = ef(e, 'ADScale');
+    if (adScale != null) {
+      const pct = (adScale > 1 ? adScale / 100 : adScale) * stacks;
+      result.ad = (result.ad ?? 0) + pct;
+    }
+    const apScale = ef(e, 'APScale');
+    if (apScale != null) {
+      const pct = (apScale > 1 ? apScale / 100 : apScale) * stacks;
+      result.ap = (result.ap ?? 0) + pct;
+    }
 
     // === Direct flat/percentage AD ===
     const ad = ef(e, 'AD');
@@ -325,6 +443,13 @@ export function resolvePerUnitMods(
     // PercentHealth → fractional HP bonus
     const percentHealth = ef(e, 'PercentHealth');
     if (percentHealth != null && percentHealth < 1) mod.hpMultiplier *= (1 + percentHealth);
+
+    // NoScoutNoPivot HPScale — % HP per stack (raid 누적)
+    const hpScale = ef(e, 'HPScale');
+    if (hpScale != null) {
+      const perStack = hpScale > 1 ? hpScale / 100 : hpScale;
+      mod.hpMultiplier *= (1 + perStack * stackCount);
+    }
 
     // HealthIncrease → % HP bonus
     const healthIncrease = ef(e, 'HealthIncrease');

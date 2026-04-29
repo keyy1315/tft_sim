@@ -57,13 +57,23 @@ export default function ItemIcon({ item, size = 32, onClick, onRemove, showToolt
         <div className="max-w-[200px]">
           <div className="font-bold text-yellow-400">{item.name}</div>
           <div className="text-xs text-gray-300 mt-1 whitespace-pre-line">{resolveDescription(item.desc, item.effects)}</div>
-          {Object.entries(item.effects).length > 0 && (
-            <div className="mt-1 text-xs text-gray-400">
-              {Object.entries(item.effects).map(([k, v]) => (
-                <div key={k}>{STAT_NAME_KO[k] ?? k}: {typeof v === 'number' ? (v < 1 && v > 0 ? `${(v * 100).toFixed(0)}%` : v) : v}</div>
-              ))}
-            </div>
-          )}
+          {(() => {
+            // hash key ({hex8}) / null / 내부 변수는 표시하지 않음.
+            // desc 에서 이미 치환된 변수(Duration, BurnPercent 등)도 중복 표기 방지 위해 STAT_NAME_KO 에 매핑된 것만 노출.
+            const visible = Object.entries(item.effects).filter(
+              ([k, v]) => !k.startsWith('{') && v != null && STAT_NAME_KO[k] != null,
+            );
+            if (visible.length === 0) return null;
+            return (
+              <div className="mt-1 text-xs text-gray-400">
+                {visible.map(([k, v]) => (
+                  <div key={k}>
+                    {STAT_NAME_KO[k]}: {typeof v === 'number' ? (v < 1 && v > 0 ? `${(v * 100).toFixed(0)}%` : v) : v}
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
         </div>
       }
     >

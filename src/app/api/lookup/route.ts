@@ -9,9 +9,23 @@ import {
   parseMatchForPlayer,
 } from '@/lib/riot';
 import type { ParsedMatch } from '@/lib/riot';
+import { resolveDescription } from '@/lib/utils/text';
+import { getRiotIdAliases } from '@/lib/analysis/itemIdAliases';
 
-function stripHtml(s: string): string {
-  return s.replace(/<[^>]*>/g, '').replace(/\{\{[^}]*\}\}/g, '').replace(/@\w+@/g, '?').trim();
+/**
+ * 아이템/특성 desc 를 사용자에게 보여주기 전 정리.
+ *
+ * 이전 구현 `s.replace(/@\w+@/g, '?')` 는 `@DamageAmp*100@` 같이 곱셈/특수문자가
+ * 들어간 placeholder 를 매칭하지 못해 raw 코드 (`@DamageAmp*100@%`) 그대로 노출됐음.
+ *
+ * resolveDescription 을 사용해 effects 로 placeholder 를 치환한다. effects 누락
+ * 등으로 잔여 placeholder 가 남으면 "?" 로 sanitize.
+ */
+function formatDesc(desc: string, effects: Record<string, number | null> = {}): string {
+  if (!desc) return '';
+  const resolved = resolveDescription(desc, effects);
+  // 잔여 placeholder (effects 에 없는 변수) 정리
+  return resolved.replace(/@[^@]+@/g, '?').replace(/\{\{[^}]*\}\}/g, '').trim();
 }
 
 /* ─── TraitMeta ─── */
@@ -40,7 +54,7 @@ function loadTraitsFromFile(filePath: string, result: Record<string, TraitMeta>)
       name: t.name,
       icon: `${base}/${filename}`,
       isUnique: Array.isArray(t.effects) ? t.effects.length === 1 : false,
-      desc: stripHtml(t.desc ?? ''),
+      desc: formatDesc(t.desc ?? '', {}),
     };
   }
 }
@@ -111,6 +125,22 @@ function resolveItemIcon(apiName: string, iconField: string): string {
 
 let cachedItemMeta: Record<string, ItemMeta> | null = null;
 
+/**
+ * Canonical apiName 으로 ItemMeta 를 등록하고, 찬란/타락 변형인 경우
+ * Riot 매치 API 가 반환하는 raw ID alias 들도 같은 meta 로 미러 등록한다.
+ * 이미 canonical 로 등록된 키는 덮지 않는다 (정확도 우선).
+ */
+function registerItemWithAliases(
+  apiName: string,
+  meta: ItemMeta,
+  dict: Record<string, ItemMeta>,
+): void {
+  dict[apiName] = meta;
+  for (const alias of getRiotIdAliases(apiName)) {
+    if (!dict[alias]) dict[alias] = meta;
+  }
+}
+
 function getItemMeta(): Record<string, ItemMeta> {
   if (cachedItemMeta) return cachedItemMeta;
   cachedItemMeta = {};
@@ -120,11 +150,12 @@ function getItemMeta(): Record<string, ItemMeta> {
   if (fs.existsSync(commonPath)) {
     const common = JSON.parse(fs.readFileSync(commonPath, 'utf-8'));
     for (const item of common.items ?? common) {
-      cachedItemMeta[item.apiName] = {
+      const meta: ItemMeta = {
         name: item.name,
-        desc: stripHtml(item.desc ?? ''),
+        desc: formatDesc(item.desc ?? '', item.effects ?? {}),
         icon: resolveItemIcon(item.apiName, item.icon ?? ''),
       };
+      registerItemWithAliases(item.apiName, meta, cachedItemMeta);
     }
   }
 
@@ -134,16 +165,20 @@ function getItemMeta(): Record<string, ItemMeta> {
     const data = JSON.parse(fs.readFileSync(fp, 'utf-8'));
     for (const item of data.items ?? data) {
       if (cachedItemMeta[item.apiName]) continue;
-      cachedItemMeta[item.apiName] = {
+      const meta: ItemMeta = {
         name: item.name,
-        desc: stripHtml(item.desc ?? ''),
+        desc: formatDesc(item.desc ?? '', item.effects ?? {}),
         icon: resolveItemIcon(item.apiName, item.icon ?? ''),
       };
+      registerItemWithAliases(item.apiName, meta, cachedItemMeta);
     }
   }
 
   return cachedItemMeta;
 }
+
+/** Riot + Supabase 매치 조회 최대 개수. 클라이언트 페이지네이션 (페이지당 20) 과 맞물림. */
+const MATCH_FETCH_LIMIT = 60;
 
 export async function POST(req: NextRequest) {
   const { gameName, tagLine } = (await req.json()) as {
@@ -175,47 +210,60 @@ export async function POST(req: NextRequest) {
         { onConflict: 'puuid' }
       );
 
-    // 3. DB에 저장된 매치 ID 조회
-    const { data: existingMatches } = await supabase
+    // 3. DB에 저장된 매치 ID + set_id 조회 (이미 저장된 매치는 detail 재호출 불필요)
+    const { data: existingRows } = await supabase
       .from('matches')
-      .select('match_id')
+      .select('match_id, set_id')
       .eq('puuid', puuid);
 
-    const existingIds = new Set((existingMatches ?? []).map((m) => m.match_id));
+    const existingSetMap = new Map<string, string>(
+      (existingRows ?? []).map((r) => [r.match_id, r.set_id ?? 'set17']),
+    );
 
-    // 4. Riot에서 최근 매치 ID 가져오기
-    const matchIds = await getMatchIds(puuid, 20);
-    const newMatchIds = matchIds.filter((id) => !existingIds.has(id));
+    // 4. Riot에서 최근 매치 ID 가져오기 (최신순)
+    const matchIds = await getMatchIds(puuid, MATCH_FETCH_LIMIT);
 
-    // 5. 새 매치 상세 조회 + DB 저장
-    const newMatches: ParsedMatch[] = [];
-    for (const matchId of newMatchIds) {
-      const detail = await getMatchDetail(matchId);
-      const parsed = parseMatchForPlayer(detail, puuid);
-      if (!parsed) continue;
-
-      newMatches.push(parsed);
-
-      await supabase.from('matches').insert({
-        match_id: parsed.matchId,
-        puuid,
-        placement: parsed.placement,
-        champions: parsed.champions,
-        game_datetime: parsed.gameDatetime,
-        game_length: parsed.gameLength,
-        queue_id: parsed.queueId,
-        set_id: parsed.setId,
-        traits: parsed.traits,
-      });
+    // 5. 최신순 스캔 — set17 이 아닌 매치를 만나면 그 이전 (더 오래된) 매치는 페치/응답 모두 차단.
+    //    DB 기존 매치는 setId 를 DB에서 읽고, 신규 매치만 getMatchDetail 호출.
+    const allowedMatchIds: string[] = [];
+    for (const matchId of matchIds) {
+      let setId: string;
+      if (existingSetMap.has(matchId)) {
+        setId = existingSetMap.get(matchId)!;
+      } else {
+        const detail = await getMatchDetail(matchId);
+        const parsed = parseMatchForPlayer(detail, puuid);
+        if (!parsed) continue;
+        setId = parsed.setId;
+        if (setId === 'set17') {
+          await supabase.from('matches').insert({
+            match_id: parsed.matchId,
+            puuid,
+            placement: parsed.placement,
+            champions: parsed.champions,
+            game_datetime: parsed.gameDatetime,
+            game_length: parsed.gameLength,
+            queue_id: parsed.queueId,
+            set_id: parsed.setId,
+            traits: parsed.traits,
+          });
+        }
+      }
+      if (setId !== 'set17') break;
+      allowedMatchIds.push(matchId);
     }
 
-    // 6. 전체 매치 반환 (DB에서 정렬된 전체 목록)
-    const { data: allMatches } = await supabase
-      .from('matches')
-      .select('*')
-      .eq('puuid', puuid)
-      .order('game_datetime', { ascending: false })
-      .limit(20);
+    // 6. 응답에 포함할 매치만 조회 (컷오프 이후 매치는 DB에 있어도 제외).
+    //    puuid 필터 필수 — matches 테이블은 (match_id, puuid) unique 이므로
+    //    puuid 를 빼면 다른 유저가 저장한 동일 match_id row 까지 딸려와 React key 중복 발생.
+    const { data: allMatches } = allowedMatchIds.length === 0
+      ? { data: [] as ParsedMatch[] }
+      : await supabase
+          .from('matches')
+          .select('*')
+          .eq('puuid', puuid)
+          .in('match_id', allowedMatchIds)
+          .order('game_datetime', { ascending: false });
 
     return NextResponse.json({
       summoner: {

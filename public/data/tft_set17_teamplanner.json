@@ -1,3 +1,263 @@
 {
-  "mapping": []
+  "meta": {
+    "set": 17,
+    "source": "communitydragon",
+    "endpoint": "tftchampions-teamplanner.json",
+    "fetchedAt": "2026-04-21T04:29:01.915Z",
+    "count": 63
+  },
+  "mapping": [
+    {
+      "apiName": "TFT17_MissFortune",
+      "teamPlannerCode": 1
+    },
+    {
+      "apiName": "TFT17_Akali",
+      "teamPlannerCode": 13
+    },
+    {
+      "apiName": "TFT17_Briar",
+      "teamPlannerCode": 14
+    },
+    {
+      "apiName": "TFT17_Belveth",
+      "teamPlannerCode": 15
+    },
+    {
+      "apiName": "TFT17_Aurora",
+      "teamPlannerCode": 16
+    },
+    {
+      "apiName": "TFT17_Illaoi",
+      "teamPlannerCode": 17
+    },
+    {
+      "apiName": "TFT17_Jinx",
+      "teamPlannerCode": 18
+    },
+    {
+      "apiName": "TFT17_Fiora",
+      "teamPlannerCode": 19
+    },
+    {
+      "apiName": "TFT17_IvernMinion",
+      "teamPlannerCode": 20
+    },
+    {
+      "apiName": "TFT17_Fizz",
+      "teamPlannerCode": 21
+    },
+    {
+      "apiName": "TFT17_Veigar",
+      "teamPlannerCode": 22
+    },
+    {
+      "apiName": "TFT17_Gnar",
+      "teamPlannerCode": 23
+    },
+    {
+      "apiName": "TFT17_Rammus",
+      "teamPlannerCode": 24
+    },
+    {
+      "apiName": "TFT17_Corki",
+      "teamPlannerCode": 25
+    },
+    {
+      "apiName": "TFT17_Poppy",
+      "teamPlannerCode": 26
+    },
+    {
+      "apiName": "TFT17_Caitlyn",
+      "teamPlannerCode": 27
+    },
+    {
+      "apiName": "TFT17_Bard",
+      "teamPlannerCode": 28
+    },
+    {
+      "apiName": "TFT17_Aatrox",
+      "teamPlannerCode": 29
+    },
+    {
+      "apiName": "TFT17_Maokai",
+      "teamPlannerCode": 30
+    },
+    {
+      "apiName": "TFT17_Kindred",
+      "teamPlannerCode": 31
+    },
+    {
+      "apiName": "TFT17_Kaisa",
+      "teamPlannerCode": 32
+    },
+    {
+      "apiName": "TFT17_Rhaast",
+      "teamPlannerCode": 33
+    },
+    {
+      "apiName": "TFT17_Karma",
+      "teamPlannerCode": 34
+    },
+    {
+      "apiName": "TFT17_Jhin",
+      "teamPlannerCode": 35
+    },
+    {
+      "apiName": "TFT17_Urgot",
+      "teamPlannerCode": 36
+    },
+    {
+      "apiName": "TFT17_Pantheon",
+      "teamPlannerCode": 37
+    },
+    {
+      "apiName": "TFT17_AurelionSol",
+      "teamPlannerCode": 38
+    },
+    {
+      "apiName": "TFT17_Galio",
+      "teamPlannerCode": 39
+    },
+    {
+      "apiName": "TFT17_Sona",
+      "teamPlannerCode": 41
+    },
+    {
+      "apiName": "TFT17_Talon",
+      "teamPlannerCode": 42
+    },
+    {
+      "apiName": "TFT17_TwistedFate",
+      "teamPlannerCode": 43
+    },
+    {
+      "apiName": "TFT17_Jax",
+      "teamPlannerCode": 44
+    },
+    {
+      "apiName": "TFT17_Pyke",
+      "teamPlannerCode": 45
+    },
+    {
+      "apiName": "TFT17_Viktor",
+      "teamPlannerCode": 46
+    },
+    {
+      "apiName": "TFT17_MasterYi",
+      "teamPlannerCode": 47
+    },
+    {
+      "apiName": "TFT17_Lulu",
+      "teamPlannerCode": 48
+    },
+    {
+      "apiName": "TFT17_Gragas",
+      "teamPlannerCode": 49
+    },
+    {
+      "apiName": "TFT17_Samira",
+      "teamPlannerCode": 50
+    },
+    {
+      "apiName": "TFT17_Teemo",
+      "teamPlannerCode": 51
+    },
+    {
+      "apiName": "TFT17_Nasus",
+      "teamPlannerCode": 52
+    },
+    {
+      "apiName": "TFT17_Gwen",
+      "teamPlannerCode": 53
+    },
+    {
+      "apiName": "TFT17_Ornn",
+      "teamPlannerCode": 54
+    },
+    {
+      "apiName": "TFT17_Nami",
+      "teamPlannerCode": 55
+    },
+    {
+      "apiName": "TFT17_Blitzcrank",
+      "teamPlannerCode": 56
+    },
+    {
+      "apiName": "TFT17_Nunu",
+      "teamPlannerCode": 57
+    },
+    {
+      "apiName": "TFT17_Vex",
+      "teamPlannerCode": 58
+    },
+    {
+      "apiName": "TFT17_Shen",
+      "teamPlannerCode": 59
+    },
+    {
+      "apiName": "TFT17_Riven",
+      "teamPlannerCode": 60
+    },
+    {
+      "apiName": "TFT17_Milio",
+      "teamPlannerCode": 61
+    },
+    {
+      "apiName": "TFT17_Ezreal",
+      "teamPlannerCode": 62
+    },
+    {
+      "apiName": "TFT17_Xayah",
+      "teamPlannerCode": 63
+    },
+    {
+      "apiName": "TFT17_Zoe",
+      "teamPlannerCode": 65
+    },
+    {
+      "apiName": "TFT17_Leona",
+      "teamPlannerCode": 66
+    },
+    {
+      "apiName": "TFT17_Diana",
+      "teamPlannerCode": 67
+    },
+    {
+      "apiName": "TFT17_Leblanc",
+      "teamPlannerCode": 68
+    },
+    {
+      "apiName": "TFT17_Chogath",
+      "teamPlannerCode": 69
+    },
+    {
+      "apiName": "TFT17_Lissandra",
+      "teamPlannerCode": 70
+    },
+    {
+      "apiName": "TFT17_Zed",
+      "teamPlannerCode": 71
+    },
+    {
+      "apiName": "TFT17_Mordekaiser",
+      "teamPlannerCode": 78
+    },
+    {
+      "apiName": "TFT17_TahmKench",
+      "teamPlannerCode": 79
+    },
+    {
+      "apiName": "TFT17_Graves",
+      "teamPlannerCode": 80
+    },
+    {
+      "apiName": "TFT17_Morgana",
+      "teamPlannerCode": 88
+    },
+    {
+      "apiName": "TFT17_Reksai",
+      "teamPlannerCode": 104
+    }
+  ]
 }

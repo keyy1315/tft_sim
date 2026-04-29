@@ -50,6 +50,21 @@ export interface AbilityConfig {
   damageVar?: string;
   /** 2차 피해 변수명 (폭발, 추가 투사체 등) — 주 피해와 합산 */
   secondaryDamageVar?: string;
+  /**
+   * 자기 자신에게 데미지 적용 (적군 데미지 없음). 자폭(GragasCarry) 전용.
+   * 데미지 값은 일반 ability "damage" 변수에서 그대로 가져옴.
+   */
+  selfDamage?: boolean;
+  /**
+   * selfDamage 적용 시 currentHp 최소값 (default 0). 그라가스 자폭의 경우 1 — 자기
+   * 스킬로 죽지 않음.
+   */
+  selfDamageHpFloor?: number;
+  /**
+   * line / multi 패턴에서 첫 적중 대상에만 stun 적용 (방패 여전사 LeonaCarry 전용).
+   * 미지정 / false 시 기존 동작 (stunTargets 만큼 stun).
+   */
+  firstHitOnlyStun?: boolean;
 }
 
 /** 챔피언별 스킬 타게팅 패턴 매핑 */
@@ -178,7 +193,7 @@ export const CHAMPION_ABILITY_PATTERNS: Record<string, AbilityConfig> = {
   TFT17_Leona:       { pattern: 'single', stun: 1.5, selfBuff: { durability: 0.3, duration: 4 } },  // 보호막 + 기절
   TFT17_Chogath:     { pattern: 'single', heal: true, damageVar: 'BonusDamage' },  // %최대체력 + 고정 추가 피해 (combatLoop 특수 처리)
   TFT17_Lissandra:   { pattern: 'aoe_circle', radius: 1, secondaryDamageVar: 'SecondaryDamage' },  // 단검 Damage + 폭발 SecondaryDamage
-  TFT17_RekSai:      { pattern: 'aoe_circle', radius: 1, stun: 1.0, heal: true },  // 회복 + 인접 공중띄움
+  TFT17_Reksai:      { pattern: 'aoe_circle', radius: 1, stun: 1.0, heal: true },  // 회복 + 인접 공중띄움 (17.2: RekSai → Reksai)
 
   // === 2코스트 ===
   TFT17_Belveth:     { pattern: 'single', hitCount: 12 },  // 연속 12회 베기
@@ -213,7 +228,7 @@ export const CHAMPION_ABILITY_PATTERNS: Record<string, AbilityConfig> = {
   // === 4코스트 ===
   TFT17_Rammus:      { pattern: 'line', maxTargets: 3, selfBuff: { durability: 0.3, duration: 4 } },  // 보호막 + 직선 3칸
   TFT17_Corki:       { pattern: 'aoe_circle', radius: 2, dash: 'to_target', hitCount: 21, damageVar: 'MissileAD' },  // 저공비행 + 미사일 21개 AOE
-  TFT17_Kindred:     { pattern: 'multi', maxTargets: 3, dash: 'to_farthest', damageVar: 'ADDamage' },  // 도약 + 화살 3명 ADDamage (표식 패시브는 combatLoop)
+  TFT17_Kindred:     { pattern: 'multi', maxTargets: 3, damageVar: 'ADDamage' },  // 제자리에서 화살 3명 ADDamage. 이동은 기본 공격 AI 의 한 칸 이동에 맡긴다 (표식 패시브는 combatLoop)
   TFT17_Karma:       { pattern: 'multi', maxTargets: 3, secondaryDamageVar: 'SecondaryDamage' },  // 블랙홀 3명 분배 + 대상 추가 SecondaryDamage
   TFT17_AurelionSol: { pattern: 'line', damageDecay: 0.15, dot: { duration: 3 } },  // 직선 광선 3초 DOT + 관통 감소
   TFT17_Galio:       { pattern: 'aoe_circle', radius: 2, heal: true, selfBuff: { durability: 0.3, duration: 4 } },  // 방어 태세 + 충격파

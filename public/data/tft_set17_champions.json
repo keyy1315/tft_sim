@@ -3,9 +3,9 @@
     "set": 17,
     "name": "Set17",
     "patch_version": "25.S1.1",
-    "fetched_at": "2026-04-15",
+    "fetched_at": "2026-04-29",
     "source": "CommunityDragon TFT ko_kr.json",
-    "totalChampions": 82
+    "totalChampions": 83
   },
   "champions": [
     {
@@ -27,7 +27,7 @@
       },
       "ability": {
         "name": "골렘의 강타",
-        "desc": "대상을 강타해 @ModifiedDamage@()의 마법 피해를 입힙니다.",
+        "desc": "대상을 강타해 <magicDamage>@ModifiedDamage@(%i:scaleAP%)</magicDamage>의 마법 피해를 입힙니다.",
         "icon": "ASSETS/Characters/TFT_BlueGolem/HUD/TFT_BlueGolem_Spell.tex",
         "variables": [
           {
@@ -65,7 +65,7 @@
       },
       "ability": {
         "name": "수영 속도",
-        "desc": "기본 지속 효과: 때때로 전장을 이리저리 돌진합니다.",
+        "desc": "<spellPassive>기본 지속 효과:</spellPassive> 때때로 전장을 이리저리 돌진합니다.",
         "icon": "ASSETS/Characters/TFT9_SLIME_Crab/HUD/Icons2D/TFT9_SLIME_Crab_Spell.TFT_Set13.tex",
         "variables": []
       },
@@ -347,7 +347,7 @@
       },
       "ability": {
         "name": "물고기 광분",
-        "desc": "기본 지속 효과: 잃은 체력 1%당 공격 속도를 2% () 얻습니다.\n\n사용 시: 대상에게 130()의 물리 피해를 입힙니다. 대상이 탱커일 경우 피해량이 50% 증가합니다.",
+        "desc": "기본 지속 효과: 잃은 체력 @PercentMissingHealth@%당 공격 속도를 <TFTBonus>@ModifiedAS@% (%i:scaleAP%)</TFTBonus> 얻습니다.<br><br>사용 시: 대상에게 <physicalDamage>@ModifiedDamage@(%i:scaleAD%)</physicalDamage>의 물리 피해를 입힙니다. 대상이 탱커일 경우 피해량이 <TFTBonus>@PercentBonusDamage*100@%</TFTBonus> 증가합니다.",
         "icon": "ASSETS/Characters/TFT17_Briar/HUD/Icons2D/TFT17_BriarQ.TFT_Set17.tex",
         "variables": [
           {
@@ -437,7 +437,7 @@
       },
       "ability": {
         "name": "파도 가르기",
-        "desc": "현재 대상을 2초 동안 연속 12()회 베어 각각 20()의 물리 피해를 입힙니다.",
+        "desc": "현재 대상을 @SlashDuration@초 동안 연속 <TFTBonus>@TotalNumSlashes@(%i:scaleAS%)</TFTBonus>회 베어 각각 <physicalDamage>@TotalDamage@(%i:scaleAD%%i:scaleAP%)</physicalDamage>의 물리 피해를 입힙니다.",
         "icon": "ASSETS/Characters/TFT17_Belveth/HUD/Icons2D/TFT17_BelvethE.TFT_Set17.tex",
         "variables": [
           {
@@ -627,7 +627,7 @@
       },
       "ability": {
         "name": "별의 일격",
-        "desc": "가장 많은 적을 타격할 수 있는 대상 옆으로 위치를 이동한 후, 관통하는 단검 5개를 던져 각각 처음 적중하는 적에게 4()의 물리 피해를, 이후 적중하는 대상에게 각각 ?()의 피해를 입힙니다. 단검은 방어력을 1 감소시키며, 치명타 적용 시 2 감소시킵니다.",
+        "desc": "가장 많은 적을 타격할 수 있는 대상 옆으로 위치를 이동한 후, 관통하는 단검 @NumShurikens@개를 던져 각각 처음 적중하는 적에게 <physicalDamage>@ModifiedDamage@(%i:scaleAD%)</physicalDamage>의 물리 피해를, 이후 적중하는 대상에게 각각 <physicalDamage>@ModifiedSecondaryDamage@(%i:scaleAD%)</physicalDamage>의 피해를 입힙니다. 단검은 방어력을 <TFTBonus>@ArmorShred@</TFTBonus> 감소시키며, 치명타 적용 시 <TFTBonus>@ArmorShredCrit@</TFTBonus> 감소시킵니다.<br><br><ShowIf.TFT17_DRX_CapstoneActive><scaleLevel enabled=TFT17_DRX_isSelected alternate=TFTGuildInactive>N.O.V.A. 타격: 모든 적을 베어 상처를 적용하고 매초 <physicalDamage enabled=TFT17_DRX_isSelected>@ModifiedNovaDamage@(%i:scaleAD%)</physicalDamage>의 물리 피해를 입히는 출혈 효과를 부여합니다. 단검은 출혈 피해량을 @NovaShurikenBonusDamage*100@% 증가시킵니다.</scaleLevel></ShowIf.TFT17_DRX_CapstoneActive>",
         "icon": "ASSETS/Characters/TFT17_Akali/HUD/Icons2D/TFT17_Akali_Q.TFT_Set17.tex",
         "variables": [
           {
@@ -752,7 +752,7 @@
       },
       "ability": {
         "name": "미확인 친절 물체",
-        "desc": "현재 대상 위에 4초 동안 유지되는 비행접시를 소환합니다. 비행접시는 매초 대상에게 220()의 마법 피해를 입히고, 1칸 내 모든 적에게 135()의 마법 피해를 나누어 입힙니다. 비행접시는 탱커에게 30% 증가한 피해를 입힙니다.\n\n비행접시 아래에 있는 적이 사망하면 바드가 15% 확률로 해당 적을 납치하고 대기석에 1성 복사본을 생성합니다.\n\n정령 추가 효과: 전투 시작 시, 가장 가까운 아군 정령족 ?()명에게 추가 정령 1마리를 부여합니다.\n\n납치한 친구: ?",
+        "desc": "현재 대상 위에 <ShowIf.TFT17_Augment_Concentration_Active><TFTRadiantItemBonus>@AugmentedDuration@</TFTRadiantItemBonus></ShowIf.TFT17_Augment_Concentration_Active><ShowIfNot.TFT17_Augment_Concentration_Active>@Duration@</ShowIfNot.TFT17_Augment_Concentration_Active>초 동안 유지되는 비행접시를 소환합니다. 비행접시는 매초 대상에게 <magicDamage>@ModifiedDamagePerSecond@(%i:scaleAP%)</magicDamage>의 마법 피해를 입히고, @SecondaryHexRange@칸 내 모든 적에게 <magicDamage>@ModifiedSplitDamagePerSecond@(%i:scaleAP%)</magicDamage>의 마법 피해를 나누어 입힙니다. 비행접시는 탱커에게 <TFTBonus>@TankDamageIncrease*100@%</TFTBonus> 증가한 피해를 입힙니다.<br><br>비행접시 아래에 있는 적이 사망하면 바드가 <TFTBonus>@AbductChance*100@%</TFTBonus> 확률로 해당 적을 납치하고 대기석에 1성 복사본을 생성합니다.<br><br><mainText enabled=TFT17_Astronaut_IsActive alternate=rules><spellActive enabled=TFT17_Astronaut_IsActive alternate=rules>정령 추가 효과:</spellActive> 전투 시작 시, 가장 가까운 아군 정령족 <TFTBonus>@ModifiedNumAllies@</TFTBonus>(%i:set14AmpIcon%)명에게 추가 정령 1마리를 부여합니다.</mainText><br><br><rules>납치한 친구: @TFTUnitProperty.:TFT17_Bard_FriendsAbducted@</rules>",
         "icon": "ASSETS/Characters/TFT17_Bard/HUD/Icons2D/TFT17_Bard_E.TFT_Set17.tex",
         "variables": [
           {
@@ -789,6 +789,18 @@
               4,
               4,
               4
+            ]
+          },
+          {
+            "name": "AugmentedDuration",
+            "value": [
+              5,
+              5,
+              5,
+              5,
+              5,
+              5,
+              5
             ]
           },
           {
@@ -889,7 +901,7 @@
       },
       "ability": {
         "name": "폭발적 성향",
-        "desc": "원뿔 범위에 로켓 ?()발을 발사해 각각 처음 적중한 대상에게 27()의 물리 피해를 입힙니다.",
+        "desc": "원뿔 범위에 로켓 <TFTBonus>@ModifiedNumRockets@(%i:scaleAS%)</TFTBonus>발을 발사해 각각 처음 적중한 대상에게 <physicalDamage>@TotalDamage@(%i:scaleAD%)</physicalDamage>의 물리 피해를 입힙니다.",
         "icon": "ASSETS/Characters/TFT17_Jinx/HUD/Icons2D/TFT17_Jinx_Q1.TFT_Set17.tex",
         "variables": [
           {
@@ -920,10 +932,10 @@
             "name": "ADDamage",
             "value": [
               3,
-              27,
-              40,
-              60,
-              102,
+              29,
+              44,
+              65,
+              110,
               3,
               3
             ]
@@ -1015,7 +1027,7 @@
       },
       "ability": {
         "name": "영혼의 시험",
-        "desc": "3초 동안 450()의 보호막을 얻습니다. 지속시간 동안 가장 가까운 적 3명으로부터 체력을 55 () 흡수합니다. 이후 땅을 내려찍어 2칸 내 모든 적에게 80()의 마법 피해를 입힙니다.",
+        "desc": "@Duration@초 동안 <TFTBonus>@ModifiedShield@(%i:scaleAP%)</TFTBonus>의 보호막을 얻습니다. 지속시간 동안 가장 가까운 적 @NumEnemies@명으로부터 체력을 <trueDamage>@ModifiedHealthDrain@ (%i:scaleAP%)</trueDamage> 흡수합니다. 이후 땅을 내려찍어 2칸 내 모든 적에게 <magicDamage>@ModifiedDamage@(%i:scaleAP%)</magicDamage>의 마법 피해를 입힙니다.",
         "icon": "ASSETS/Characters/TFT17_Illaoi/HUD/Icons2D/TFT17_Illaoi_E_Debuff.TFT_Set17.tex",
         "variables": [
           {
@@ -1104,7 +1116,7 @@
       },
       "ability": {
         "name": "고양된 해킹",
-        "desc": "대상이 포함된 2칸 균열을 열어 범위 내 적을 4초 동안 해킹하고 각각 80()의 마법 피해를 입힙니다. 또한 적중한 모든 적에게 370()의 마법 피해를 나누어 입힙니다.\n\n해킹당한 적은 받는 모든 피해의 10%를 저장합니다. 해킹이 끝나면 저장된 피해량만큼 고정 피해를 입습니다. 대상이 처치될 경우 해킹이 일찍 종료됩니다.",
+        "desc": "대상이 포함된 @SpellHexRadius@칸 균열을 열어 범위 내 적을 @HexDuration@초 동안 해킹하고 각각 <magicDamage>@ModifiedDamage@(%i:scaleAP%)</magicDamage>의 마법 피해를 입힙니다. 또한 적중한 모든 적에게 <magicDamage>@ModifiedSplitDamage@(%i:scaleAP%)</magicDamage>의 마법 피해를 나누어 입힙니다.<br><br>해킹당한 적은 받는 모든 피해의 @HexPercent*100@%를 저장합니다. 해킹이 끝나면 저장된 피해량만큼 고정 피해를 입습니다. 대상이 처치될 경우 해킹이 일찍 종료됩니다.",
         "icon": "ASSETS/Characters/TFT17_Aurora/HUD/Icons2D/TFT17_AuroraE.TFT_Set17.tex",
         "variables": [
           {
@@ -1190,11 +1202,11 @@
         "critChance": 0.25,
         "critMultiplier": 1.399999976158142,
         "initialMana": 0,
-        "mana": 80
+        "mana": 70
       },
       "ability": {
         "name": "완벽한 대가의 검술",
-        "desc": "기본 지속 효과: 기본 공격 2회마다 대상의 급소를 드러냅니다. 급소가 드러나 있다면, 돌진하여 급소를 공격해 40()의 추가 고정 피해를 입히고, 입힌 피해량의 15%만큼 체력을 회복합니다.\n\n사용 시: 대상의 급소 6개를 드러내고 모든 급소를 빠르게 공격합니다. 대상이 사망하면 남은 급소가 가장 가까운 적에게 이전됩니다. 마지막 급소를 타격하면 주변 2칸에 오라를 생성하여 범위 내 아군의 체력을 5초 동안 ? () 회복시킵니다.",
+        "desc": "<spellPassive>기본 지속 효과:</spellPassive> 기본 공격 @NumAttacks@회마다 대상의 급소를 드러냅니다. 급소가 드러나 있다면, 돌진하여 급소를 공격해 <trueDamage>@ModifiedVitalDamage@(%i:scaleAD%)</trueDamage>의 추가 고정 피해를 입히고, 입힌 피해량의 @PercentHealing*100@%만큼 체력을 회복합니다.<br><br><spellActive>사용 시:</spellActive> 대상의 급소 @NumVitals@개를 드러내고 모든 급소를 빠르게 공격합니다. 대상이 사망하면 남은 급소가 가장 가까운 적에게 이전됩니다. 마지막 급소를 타격하면 주변 2칸에 오라를 생성하여 범위 내 아군의 체력을 @AuraDuration@초 동안 <scaleHealth>@ModifiedHealing@ (%i:scaleAP%)</scaleHealth> 회복시킵니다.",
         "icon": "ASSETS/Characters/TFT17_Fiora/HUD/Icons2D/TFT17_Fiora_P.TFT_Set17.tex",
         "variables": [
           {
@@ -1295,7 +1307,7 @@
       },
       "ability": {
         "name": "새총 기동",
-        "desc": "기본 지속 효과: 기본 공격 5회마다 대상에게 부메랑을 던집니다. 부메랑은 처음 적중한 적을 관통해 2칸 더 날아갔다가 돌아오며, 225()의 물리 피해를 입힙니다. 적중할 때마다 피해량이 75% 감소합니다.\n\n정령 추가 효과: 1 () 정령들이 나르와 함께 공격해 매초 23%()의 물리 피해를 입힙니다.",
+        "desc": "<spellPassive>기본 지속 효과:</spellPassive> 기본 공격 5회마다 대상에게 부메랑을 던집니다. 부메랑은 처음 적중한 적을 관통해 2칸 더 날아갔다가 돌아오며, <physicalDamage>@ModifiedDamage@(%i:scaleAD%%i:scaleAP%)</physicalDamage>의 물리 피해를 입힙니다. 적중할 때마다 피해량이 @DamageReductionPerHit*100@% 감소합니다.<br><br><mainText enabled=TFT17_Astronaut_IsActive alternate=rules><spellActive enabled=TFT17_Astronaut_IsActive alternate=rules>정령 추가 효과:</spellActive><TFTBonus><ShowIfNot.TFT17_Astronaut_IsActive></ShowIfNot.TFT17_Astronaut_IsActive><ShowIf.TFT17_Astronaut_IsActive></ShowIf.TFT17_Astronaut_IsActive></TFTBonus> <TFTBonus>@ModifiedNumMeeps@ (%i:set14AmpIcon%)</TFTBonus> 정령들이 나르와 함께 공격해 매초 <physicalDamage>@ModifiedMeepDPS@(%i:scaleAD%%i:scaleAS%)</physicalDamage>의 물리 피해를 입힙니다.</mainText>",
         "icon": "ASSETS/Characters/TFT17_Gnar/HUD/Icons2D/TFT17_Gnar_Q.TFT_Set17.tex",
         "variables": [
           {
@@ -1304,7 +1316,7 @@
               200,
               225,
               340,
-              525,
+              560,
               860,
               600,
               600
@@ -1396,7 +1408,7 @@
       },
       "ability": {
         "name": "정령 미끼",
-        "desc": "현재 대상을 관통해 돌진하며 ?()의 마법 피해를 입힙니다. 스킬을 3회 사용할 때마다 추가로 잠시 후 초강력 정령을 소환해 대상을 잠시 공중에 띄우고 185()의 마법 피해를 입힙니다. 인접한 적은 50%의 피해를 입습니다.\n\n정령 추가 효과: 미끼에 정령 1()마리가 추가되고 초강력 정령 피해량이 ? () 증가합니다.",
+        "desc": "현재 대상을 관통해 돌진하며 <magicDamage>@ModifiedDamage@(%i:scaleAP%)</magicDamage>의 마법 피해를 입힙니다. 스킬을 3회 사용할 때마다 추가로 잠시 후 초강력 정령을 소환해 대상을 잠시 공중에 띄우고 <magicDamage>@ModifiedChompDamage@(%i:scaleAP%%i:set14AmpIcon%)</magicDamage>의 마법 피해를 입힙니다. 인접한 적은 @SecondaryDamage*100@%의 피해를 입습니다.<br><br><mainText enabled=TFT17_Astronaut_IsActive alternate=rules><spellActive enabled=TFT17_Astronaut_IsActive alternate=rules>정령 추가 효과:</spellActive><TFTBonus><ShowIfNot.TFT17_Astronaut_IsActive></ShowIfNot.TFT17_Astronaut_IsActive><ShowIf.TFT17_Astronaut_IsActive></ShowIf.TFT17_Astronaut_IsActive></TFTBonus> 미끼에 정령 <TFTBonus>@ModifiedNumMeeps@(%i:set14AmpIcon%)</TFTBonus>마리가 추가되고 초강력 정령 피해량이 <magicDamage>@ModifiedMeepBonusDamage@ (%i:scaleAP%)</magicDamage> 증가합니다.</mainText>",
         "icon": "ASSETS/Characters/TFT17_Fizz/HUD/Icons2D/TFT17_Fizz_R.TFT_Set17.tex",
         "variables": [
           {
@@ -1497,7 +1509,7 @@
       },
       "ability": {
         "name": "중력 회전",
-        "desc": "4초 동안 675()의 보호막을 얻습니다. 이후 일직선 3칸 내 적을 타격해 50()의 마법 피해를 입힙니다.\n\n정령 추가 효과: 받는 공격 피해량이 ? () 감소합니다. 20회 공격받은 후 반경 2칸에 ?()의 마법 피해를 입힙니다.",
+        "desc": "@ShieldDuration@초 동안 <TFTBonus>@ModifiedShield@(%i:scaleAP%)</TFTBonus>의 보호막을 얻습니다. 이후 일직선 3칸 내 적을 타격해 <magicDamage>@ModifiedDamage@(%i:scaleAP%%i:scaleArmor%)</magicDamage>의 마법 피해를 입힙니다.<br><br><mainText enabled=TFT17_Astronaut_IsActive alternate=rules><spellActive enabled=TFT17_Astronaut_IsActive alternate=rules>정령 추가 효과:</spellActive><TFTBonus><ShowIfNot.TFT17_Astronaut_IsActive></ShowIfNot.TFT17_Astronaut_IsActive><ShowIf.TFT17_Astronaut_IsActive></ShowIf.TFT17_Astronaut_IsActive></TFTBonus> 받는 공격 피해량이 <TFTBonus>@ModifiedFlatDR@ (%i:set14AmpIcon%)</TFTBonus> 감소합니다. @AttacksPerPassiveTrigger@회 공격받은 후 반경 2칸에 <magicDamage>@ModifiedPassiveDamage@(%i:scaleArmor%%i:set14AmpIcon%)</magicDamage>의 마법 피해를 입힙니다.</mainText>",
         "icon": "ASSETS/Characters/TFT17_Rammus/HUD/Icons2D/Armordillo_Powerball.TFT_Set17.tex",
         "variables": [
           {
@@ -1622,7 +1634,7 @@
       },
       "ability": {
         "name": "다들 모여!",
-        "desc": "4초 동안 400()의 보호막을 얻습니다. 지속시간 동안 2칸 내 아군이 방어력 및 마법 저항력을 15 () 얻습니다.\n\n정령 추가 효과: 정령들이 가장 가까운 아군 1()명에게 4초 동안 125()의 보호막을 부여합니다.",
+        "desc": "@ShieldDuration@초 동안 <TFTBonus>@ModifiedShield@(%i:scaleAP%)</TFTBonus>의 보호막을 얻습니다. 지속시간 동안 2칸 내 아군이 방어력 및 마법 저항력을 <TFTBonus>@ModifiedResists@ (%i:scaleAP%)</TFTBonus> 얻습니다.<br><br><mainText enabled=TFT17_Astronaut_IsActive alternate=rules><spellActive enabled=TFT17_Astronaut_IsActive alternate=rules>정령 추가 효과:</spellActive><TFTBonus><ShowIfNot.TFT17_Astronaut_IsActive></ShowIfNot.TFT17_Astronaut_IsActive><ShowIf.TFT17_Astronaut_IsActive></ShowIf.TFT17_Astronaut_IsActive></TFTBonus> 정령들이 가장 가까운 아군 <TFTBonus>@ModifiedNumMeeps@(%i:set14AmpIcon%)</TFTBonus>명에게 @ShieldDuration@초 동안 <TFTBonus>@ModifiedMeepShield@(%i:scaleAP%)</TFTBonus>의 보호막을 부여합니다.</mainText>",
         "icon": "ASSETS/Characters/TFT17_Poppy/HUD/Icons2D/TFT17_Poppy_W.TFT_Set17.tex",
         "variables": [
           {
@@ -1711,7 +1723,7 @@
       },
       "ability": {
         "name": "소행성 발사기",
-        "desc": "주변 위치로 저공 비행한 뒤 대상 및 2칸 이내 모든 적에게 미사일을 21개 나누어 발사합니다. 미사일은 ?()의 물리 피해를 입히며 20% 확률로 초강력 미사일을 발사해 대신 ?()의 피해를 입힙니다.\n\n정령 추가 효과: 8()초마다 대상에게 폭발성 정령을 날려 적중 시 반경 1칸에 120()의 물리 피해를 입힙니다.",
+        "desc": "주변 위치로 저공 비행한 뒤 대상 및 2칸 이내 모든 적에게 미사일을 @BaseMissiles@개 나누어 발사합니다. 미사일은 <physicalDamage>@ModifiedDamage@(%i:scaleAD%%i:scaleAP%)</physicalDamage>의 물리 피해를 입히며 @ProcChance@%<ShowIf.TFT17_Fateweaver_LuckyAbility> <TFTKeyword>행운</TFTKeyword></ShowIf.TFT17_Fateweaver_LuckyAbility> 확률로 초강력 미사일을 발사해 대신 <physicalDamage>@ModifiedProcDamage@(%i:scaleAD%)</physicalDamage>의 피해를 입힙니다.<br><br><mainText enabled=TFT17_Astronaut_IsActive alternate=rules><spellActive enabled=TFT17_Astronaut_IsActive alternate=rules>정령 추가 효과:</spellActive><TFTBonus><ShowIfNot.TFT17_Astronaut_IsActive></ShowIfNot.TFT17_Astronaut_IsActive><ShowIf.TFT17_Astronaut_IsActive></ShowIf.TFT17_Astronaut_IsActive></TFTBonus> <TFTBonus>@ModifiedMeepCooldown@(%i:set14AmpIcon%)</TFTBonus>초마다 대상에게 폭발성 정령을 날려 적중 시 반경 1칸에 <physicalDamage>@ModifiedMeepDamage@(%i:scaleAD%)</physicalDamage>의 물리 피해를 입힙니다.</mainText><br><br><ShowIf.TFT17_Fateweaver_LuckyAbility><rules>행운: 두 번 시도하고 더 나은 결과를 선택합니다.</rules></ShowIf.TFT17_Fateweaver_LuckyAbility>",
         "icon": "ASSETS/Characters/TFT17_Corki/HUD/Icons2D/TFT17_Corki_MissileBarrage.TFT_Set17.tex",
         "variables": [
           {
@@ -1730,8 +1742,8 @@
             "name": "MissileAD",
             "value": [
               25,
-              28,
-              42,
+              30,
+              44,
               280,
               200,
               25,
@@ -1860,7 +1872,7 @@
       },
       "ability": {
         "name": "정령유성우",
-        "desc": "대상에게 정령유성을 떨어뜨려 310()의 마법 피해를 입힙니다.\n\n정령 추가 효과: 주변 대상에게 미니 정령유성 ?()개를 떨어뜨려 각각 31()의 마법 피해를 입힙니다.",
+        "desc": "대상에게 정령유성을 떨어뜨려 <magicDamage>@ModifiedDamage@(%i:scaleAP%)</magicDamage>의 마법 피해를 입힙니다.<br><br><mainText enabled=TFT17_Astronaut_IsActive alternate=rules><spellActive enabled=TFT17_Astronaut_IsActive alternate=rules>정령 추가 효과:</spellActive><TFTBonus><ShowIfNot.TFT17_Astronaut_IsActive></ShowIfNot.TFT17_Astronaut_IsActive><ShowIf.TFT17_Astronaut_IsActive></ShowIf.TFT17_Astronaut_IsActive></TFTBonus> 주변 대상에게 미니 정령유성 <TFTBonus>@ModifiedMiniMeeps@(%i:set14AmpIcon%)</TFTBonus>개를 떨어뜨려 각각 <magicDamage>@ModifiedMiniDamage@(%i:scaleAP%)</magicDamage>의 마법 피해를 입힙니다.</mainText>",
         "icon": "ASSETS/Characters/TFT17_Veigar/HUD/Icons2D/TFT17_VeigarDarkMatter.TFT_Set17.tex",
         "variables": [
           {
@@ -1925,7 +1937,7 @@
       },
       "ability": {
         "name": "별빛 베기",
-        "desc": "체력을 0.1 () 회복한 후, 현재 대상에게 80()의 물리 피해를 입힙니다.",
+        "desc": "체력을 <scaleHealth>@ModifiedHeal@ (%i:scaleAP%)</scaleHealth> 회복한 후, 현재 대상에게 <physicalDamage>@ModifiedDamage@(%i:scaleAD%%i:scaleArmor%)</physicalDamage>의 물리 피해를 입힙니다.<br><br><ShowIf.TFT17_DRX_CapstoneActive><scaleLevel enabled=TFT17_DRX_isSelected alternate=TFTGuildInactive>N.O.V.A. 타격: 전장을 갈라 모든 적을 공중에 띄우고 <physicalDamage enabled=TFT17_DRX_isSelected>@ModifiedNovaDamage@(%i:scaleAD%%i:scaleArmor%)</physicalDamage>의 물리 피해를 입힙니다.</scaleLevel></ShowIf.TFT17_DRX_CapstoneActive>",
         "icon": "ASSETS/Characters/TFT17_Aatrox/HUD/Icons2D/TFT17_Aatrox_Q2.TFT_Set17.tex",
         "variables": [
           {
@@ -2014,7 +2026,7 @@
       },
       "ability": {
         "name": "머리를 노려라",
-        "desc": "기본 지속 효과: 기본 공격 시 15% 확률로 강화된 헤드샷을 발사해 ?()의 물리 피해를 입힙니다.",
+        "desc": "<spellPassive>기본 지속 효과:</spellPassive> 기본 공격 시 @ProcChance@%<ShowIf.TFT17_Fateweaver_LuckyAbility> <TFTKeyword>행운</TFTKeyword></ShowIf.TFT17_Fateweaver_LuckyAbility> 확률로 강화된 헤드샷을 발사해 <physicalDamage>@ModifiedHeadshotDamage@(%i:scaleAD%%i:scaleAP%)</physicalDamage>의 물리 피해를 입힙니다.<br><br><ShowIf.TFT17_DRX_CapstoneActive><scaleLevel enabled=TFT17_DRX_isSelected alternate=TFTGuildInactive>N.O.V.A. 타격: 모든 적에게 표식을 남겨 대상이 받는 피해를 @NovaMarkDamageAmp*100@% 증가시킵니다. 표식이 남은 대상의 체력이 처음으로 @NovaMarkThreshold*100@% 아래로 떨어지면 헤드샷을 날려 <physicalDamage enabled=TFT17_DRX_isSelected>@ModifiedNovaHeadshotDamage@(%i:scaleAD%%i:scaleAP%)</physicalDamage>의 물리 피해를 입힙니다.<br><br></scaleLevel></ShowIf.TFT17_DRX_CapstoneActive><ShowIf.TFT17_Fateweaver_LuckyAbility><rules>행운: 두 번 시도하고 더 나은 결과를 선택합니다.</rules></ShowIf.TFT17_Fateweaver_LuckyAbility>",
         "icon": "ASSETS/Characters/TFT17_Caitlyn/HUD/Icons2D/TFT17_Caitlyn_Headshot.TFT_Set17.tex",
         "variables": [
           {
@@ -2115,19 +2127,19 @@
       },
       "ability": {
         "name": "교차의 마수",
-        "desc": "기본 지속 효과: 모든 요소로부터 최대 체력을 45% 더 얻습니다.\n\n사용 시: 대상에게 X자 형태 덩굴을 교차시켜 적중한 적에게 100()의 마법 피해를 입히고 1.5초 동안 기절시킵니다.",
+        "desc": "<spellPassive>기본 지속 효과:</spellPassive> 모든 요소로부터 최대 체력을 <TFTBonus>@PassiveRatio*100@%</TFTBonus> 더 얻습니다.<br><br><spellActive>사용 시:</spellActive> 대상에게 X자 형태 덩굴을 교차시켜 적중한 적에게 <magicDamage>@DamageTotal@(%i:scaleAP%)</magicDamage>의 마법 피해를 입히고 <scaleLevel>@StunDuration@</scaleLevel>초 동안 기절시킵니다. <br><br><ShowIf.TFT17_DRX_CapstoneActive><scaleLevel enabled=TFT17_DRX_isSelected alternate=TFTGuildInactive>N.O.V.A. 타격: 드래곤 무리를 내보내 모든 적을 @NovaStunDuration@초 동안 기절시킵니다. 전투가 끝날 때까지 마오카이의 기본 공격이 <physicalDamage enabled=TFT17_DRX_isSelected>@ModifiedNovaDamage@(%i:scaleHealth%)</physicalDamage>의 추가 물리 피해를 입힙니다.</scaleLevel></ShowIf.TFT17_DRX_CapstoneActive>",
         "icon": "ASSETS/Characters/TFT17_Maokai/HUD/Icons2D/TFT17_Maokai_W.TFT_Set17.tex",
         "variables": [
           {
             "name": "PassiveRatio",
             "value": [
-              0.44999998807907104,
-              0.44999998807907104,
-              0.44999998807907104,
-              0.44999998807907104,
-              0.44999998807907104,
-              0.44999998807907104,
-              0.44999998807907104
+              0.5,
+              0.5,
+              0.5,
+              0.5,
+              0.5,
+              0.5,
+              0.5
             ]
           },
           {
@@ -2204,7 +2216,7 @@
       },
       "ability": {
         "name": "우주의 추적",
-        "desc": "기본 지속 효과: 기본 공격 및 스킬이 대상에게 표식을 남깁니다. 적이 3표식에 도달하면 늑대가 표식을 소모하고 115() 의 물리 피해를 입힙니다. \n\n사용 시: 최대 1칸 멀리 도약한 후 가장 가까운 적 3명에게 화살을 발사해 각각 115()의 물리 피해를 입힙니다.",
+        "desc": "<spellPassive>기본 지속 효과:</spellPassive> 기본 공격 및 스킬이 대상에게 표식을 남깁니다. 적이 @MaxMarks@표식에 도달하면 늑대가 표식을 소모하고 <physicalDamage>@TotalDamage@(%i:scaleAD%%i:scaleAP%)</physicalDamage> 의 물리 피해를 입힙니다. <br><br><spellActive>사용 시:</spellActive> 최대 @HexDistance@칸 멀리 도약한 후 가장 가까운 적 <scaleLevel>@NumTargets@</scaleLevel>명에게 화살을 발사해 각각 <physicalDamage>@ModifiedDamage@(%i:scaleAD%)</physicalDamage>의 물리 피해를 입힙니다. <br><br><ShowIf.TFT17_DRX_CapstoneActive><scaleLevel enabled=TFT17_DRX_isSelected alternate=TFTGuildInactive>N.O.V.A. 타격: 피해 증폭을 @NovaDamageAmp*100@% 얻습니다. 즉시 및 @NovaRepeatTimer@초마다 모든 적에게 표식을 남깁니다.</scaleLevel></ShowIf.TFT17_DRX_CapstoneActive>",
         "icon": "ASSETS/Characters/TFT17_Kindred/HUD/Icons2D/TFT17_Kindred_Q.TFT_Set17.tex",
         "variables": [
           {
@@ -2235,8 +2247,8 @@
             "name": "SpellDamage",
             "value": [
               0,
-              60,
-              90,
+              75,
+              115,
               600,
               810,
               0,
@@ -2329,7 +2341,7 @@
       },
       "ability": {
         "name": "탄환 세례",
-        "desc": "기본 지속 효과: 처치 관여 시 마나를 10 얻습니다.\n\n사용 시: 현재 대상 주변 반경 2칸에 미사일 16개를 발사하여 각각 32()의 물리 피해를 입힙니다.",
+        "desc": "<tftPassive>기본 지속 효과:</tftPassive> 처치 관여 시 마나를 @ManaPerKill@ 얻습니다.<br><br><tftActive>사용 시:</tftActive> 현재 대상 주변 반경 @HexRange@칸에 미사일 @BaseNumMissiles@개를 발사하여 각각 <physicalDamage>@TotalDamage@(%i:scaleAD%)</physicalDamage>의 물리 피해를 입힙니다.<br>",
         "icon": "ASSETS/Characters/TFT17_Kaisa/HUD/Icons2D/TFT17_Kaisa_Q2.TFT_Set17.tex",
         "variables": [
           {
@@ -2433,7 +2445,7 @@
         "armor": 30,
         "magicResist": 30,
         "damage": 40,
-        "attackSpeed": 0.75,
+        "attackSpeed": 0.800000011920929,
         "range": 4,
         "critChance": 0.25,
         "critMultiplier": 1.399999976158142,
@@ -2442,7 +2454,7 @@
       },
       "ability": {
         "name": "특이점",
-        "desc": "블랙홀의 힘을 모아 대상 및 대상과 가장 가까운 적 2명에게 570()의 마법 피해를 나누어 입힙니다. 대상은 추가로 120()의 마법 피해를 입습니다.",
+        "desc": "블랙홀의 힘을 모아 대상 및 대상과 가장 가까운 적 <scaleLevel>@NumEnemies@</scaleLevel>명에게 <magicDamage>@ModifiedDamage@(%i:scaleAP%)</magicDamage>의 마법 피해를 나누어 입힙니다. 대상은 추가로 <magicDamage>@ModifiedSecondaryDamage@(%i:scaleAP%)</magicDamage>의 마법 피해를 입습니다.",
         "icon": "ASSETS/Characters/TFT17_Karma/HUD/Icons2D/TFT17_Karma_Q1.TFT_Set17.tex",
         "variables": [
           {
@@ -2461,8 +2473,8 @@
             "name": "SecondaryDamage",
             "value": [
               0,
-              120,
-              180,
+              150,
+              225,
               1000,
               1320,
               0,
@@ -2556,7 +2568,7 @@
       },
       "ability": {
         "name": "우주 활극",
-        "desc": "기본 지속 효과: 진은 0.9의 고정된 공격 속도를 가지며 모든 추가 공격 속도의 1%를 0.8의 추가 공격력으로 전환합니다.\n\n사용 시: 잔상 손 4개를 소환합니다. 잔상 손은 다음 4회의 기본 공격 동안 진과 함께 사격합니다. 각 손은 사격마다 38()의 물리 피해를 입힙니다. 마지막 사격은 일직선상 적이 가장 많은 방향으로 관통하며 244% 증가한 피해를 입힙니다. 대상에게 적중할 때마다 피해량이 44%씩 감소합니다.",
+        "desc": "<spellPassive>기본 지속 효과:</spellPassive> 진은 <scaleLevel>@FixedAS@</scaleLevel>의 고정된 공격 속도를 가지며 모든 추가 공격 속도의 @PercentBonusASToConvert*100@%를 @ADConversionRate@의 추가 공격력으로 전환합니다.<br><br><spellActive>사용 시:</spellActive> 잔상 손 @NumAttacks@개를 소환합니다. 잔상 손은 다음 @NumHands@회의 기본 공격 동안 진과 함께 사격합니다. 각 손은 사격마다 <physicalDamage>@TotalDamage@(%i:scaleAD%)</physicalDamage>의 물리 피해를 입힙니다. 마지막 사격은 일직선상 적이 가장 많은 방향으로 관통하며 <TFTBonus>@FinalShotPercentDamageIncrease*100@%</TFTBonus> 증가한 피해를 입힙니다. 대상에게 적중할 때마다 피해량이 @PercentDamageReductionPerTargetHit*100@%씩 감소합니다. ",
         "icon": "ASSETS/Characters/TFT17_Jhin/HUD/Icons2D/TFT17_Jhin_Spell_Icon.TFT_Set17.tex",
         "variables": [
           {
@@ -2635,8 +2647,8 @@
             "name": "ADDamage",
             "value": [
               0,
-              38,
-              57,
+              41,
+              62,
               644,
               444,
               0,
@@ -2698,7 +2710,7 @@
       },
       "ability": {
         "name": "멈출 수 없는 살상 병기",
-        "desc": "기본 지속 효과 - 근접 폭발: 적이 반경 5()칸 내로 들어올 때마다 가장 가까운 인접 칸을 향해 원뿔 범위 폭발 탄환을 발사하여 85()의 물리 피해를 입힙니다. 피해량은 칸마다 30% 감소합니다. 인접한 칸마다 5초의 재사용 대기시간이 적용되며, 재사용 대기 상태로 전투를 시작합니다.\n\n사용 시: 3초 동안 150()의 보호막을 얻고, 근접 폭발 반경에 최대한 많은 대상이 포함되도록 최대 1칸 이동합니다. 근접 폭발의 재사용 대기시간이 초기화됩니다.",
+        "desc": "<spellPassive>기본 지속 효과 - 근접 폭발:</spellPassive> 적이 반경 <TFTBonus>@ShotgunRange@(%i:scaleRange%)</TFTBonus>칸 내로 들어올 때마다 가장 가까운 인접 칸을 향해 원뿔 범위 폭발 탄환을 발사하여 <physicalDamage>@ModifiedShotgunDamage@(%i:scaleAD%)</physicalDamage>의 물리 피해를 입힙니다. 피해량은 칸마다 @FalloffPerHex*100@% 감소합니다. 인접한 칸마다 @ShotgunCooldown@초의 재사용 대기시간이 적용되며, 재사용 대기 상태로 전투를 시작합니다.<br><br><spellActive>사용 시:</spellActive> @ShieldDuration@초 동안 <TFTBonus>@ModifiedShield@(%i:scaleAP%)</TFTBonus>의 보호막을 얻고, 근접 폭발 반경에 최대한 많은 대상이 포함되도록 최대 1칸 이동합니다. 근접 폭발의 재사용 대기시간이 초기화됩니다.",
         "icon": "ASSETS/Characters/TFT17_Urgot/HUD/Icons2D/TFT17_Urgot_E.TFT_Set17.tex",
         "variables": [
           {
@@ -2787,7 +2799,7 @@
       },
       "ability": {
         "name": "죽음의 광선",
-        "desc": "현재 대상을 향해 일직선으로 3초 동안 죽음의 광선을 발사합니다. 광선은 매초 ?()의 마법 피해를 입힙니다. 관통한 적 하나당 피해량이 60%씩 감소합니다. 죽음의 광선은 적의 마법 저항력을 30% 무시합니다.",
+        "desc": "현재 대상을 향해 일직선으로 <ShowIf.TFT17_Augment_Concentration_Active><TFTRadiantItemBonus>@AugmentedDuration@</TFTRadiantItemBonus></ShowIf.TFT17_Augment_Concentration_Active><ShowIfNot.TFT17_Augment_Concentration_Active>@Duration@</ShowIfNot.TFT17_Augment_Concentration_Active>초 동안 죽음의 광선을 발사합니다. 광선은 매초 <magicDamage>@ModifiedDamage@(%i:scaleAP%)</magicDamage>의 마법 피해를 입힙니다. 관통한 적 하나당 피해량이 @DamageReductionPerTarget*100@%씩 감소합니다. 죽음의 광선은 적의 마법 저항력을 @MagicPen*100@% 무시합니다.",
         "icon": "ASSETS/Characters/TFT17_AurelionSol/HUD/Icons2D/TFT17_AurelionSolQ.TFT_Set17.tex",
         "variables": [
           {
@@ -2803,12 +2815,24 @@
             ]
           },
           {
+            "name": "AugmentedDuration",
+            "value": [
+              4,
+              4,
+              4,
+              4,
+              4,
+              4,
+              4
+            ]
+          },
+          {
             "name": "DamagePerSecond",
             "value": [
               250,
               185,
               280,
-              2700,
+              2000,
               2000,
               1650,
               1650
@@ -2864,7 +2888,7 @@
       },
       "ability": {
         "name": "중력 매트릭스",
-        "desc": "4초 동안 방어 태세에 진입해 내구력을 20% 얻습니다. 방어 태세일 때 주변 적 투사체를 끌어당기고 지속 시간 동안 체력을 850() 회복합니다. 이 효과가 끝나면 충격파를 방출해 2칸 내에 ?()의 물리 피해를 입힙니다.",
+        "desc": "@DurabilityDuration@초 동안 방어 태세에 진입해 내구력을 <TFTBonus>@Durability*100@%</TFTBonus> 얻습니다. 방어 태세일 때 주변 적 투사체를 끌어당기고 지속 시간 동안 체력을 <scaleHealth>@ModifiedHeal@(%i:scaleAP%)</scaleHealth> 회복합니다. 이 효과가 끝나면 충격파를 방출해 @HexRange@칸 내에 <physicalDamage>@ModifiedDamage@(%i:scaleArmor%%i:scaleMR%)</physicalDamage>의 물리 피해를 입힙니다.",
         "icon": "ASSETS/Characters/TFT17_Galio/HUD/Icons2D/TFT17_Galio_W.TFT_Set17.tex",
         "variables": [
           {
@@ -2885,8 +2909,8 @@
               0,
               0.20000000298023224,
               0.20000000298023224,
-              0.8999999761581421,
-              0.8999999761581421,
+              0.6000000238418579,
+              0.6000000238418579,
               0,
               0
             ]
@@ -2919,8 +2943,8 @@
             "name": "Heal",
             "value": [
               0,
-              850,
-              1200,
+              900,
+              1300,
               3000,
               5000,
               0,
@@ -2953,7 +2977,7 @@
       },
       "ability": {
         "name": "초능력 폭풍",
-        "desc": "정신을 집중해 4초 동안 적을 따라다니는 1칸 범위 초능력 폭풍을 소환합니다. 폭풍은 매초 크기가 커지며 범위 내 적에게 220()의 마법 피해를 입힙니다. 피해량은 중심으로부터 1칸 멀어질 때마다 60% 감소합니다.",
+        "desc": "정신을 집중해 <ShowIf.TFT17_Augment_Concentration_Active><TFTRadiantItemBonus>@AugmentedDuration@</TFTRadiantItemBonus></ShowIf.TFT17_Augment_Concentration_Active><ShowIfNot.TFT17_Augment_Concentration_Active>@Duration@</ShowIfNot.TFT17_Augment_Concentration_Active>초 동안 적을 따라다니는 1칸 범위 초능력 폭풍을 소환합니다. 폭풍은 매초 크기가 커지며 범위 내 적에게 <magicDamage>@ModifiedDamage@(%i:scaleAP%)</magicDamage>의 마법 피해를 입힙니다. 피해량은 중심으로부터 1칸 멀어질 때마다 @FalloffPerHex*100@% 감소합니다.",
         "icon": "ASSETS/Characters/TFT17_Viktor/HUD/Icons2D/TFT17_Viktor_R1.TFT_Set17.tex",
         "variables": [
           {
@@ -2969,13 +2993,25 @@
             ]
           },
           {
+            "name": "AugmentedDuration",
+            "value": [
+              5,
+              5,
+              5,
+              5,
+              5,
+              5,
+              5
+            ]
+          },
+          {
             "name": "Damage",
             "value": [
               200,
-              220,
-              330,
-              545,
-              930,
+              185,
+              275,
+              475,
+              800,
               505,
               505
             ]
@@ -3030,7 +3066,7 @@
       },
       "ability": {
         "name": "죽음의 표식",
-        "desc": "위치를 최대 1칸 이동하여 가장 멀리 있는 적에게 작살을 던집니다. 작살은 처음 적중하는 적을 1칸 앞으로 끌어당기고 ?()의 물리 피해를 입힙니다. 이후 대상 뒤로 순간이동하여 베어 가르며 대상에게 210()의 물리 피해를 입히고 주변 적에게 ?() 의 물리 피해를 입힙니다.",
+        "desc": "위치를 최대 1칸 이동하여 가장 멀리 있는 적에게 작살을 던집니다. 작살은 처음 적중하는 적을 1칸 앞으로 끌어당기고 <physicalDamage>@ModifiedDamage@(%i:scaleAP%)</physicalDamage>의 물리 피해를 입힙니다. 이후 대상 뒤로 순간이동하여 베어 가르며 대상에게 <physicalDamage>@ModifiedTargetDamage@(%i:scaleAD%)</physicalDamage>의 물리 피해를 입히고 주변 적에게 <physicalDamage>@ModifiedAreaDamage@(%i:scaleAD%)</physicalDamage> 의 물리 피해를 입힙니다.",
         "icon": "ASSETS/Characters/TFT17_Pyke/HUD/Icons2D/TFT17_PykeQ.TFT_Set17.tex",
         "variables": [
           {
@@ -3095,15 +3131,15 @@
       },
       "ability": {
         "name": "일격 초필살",
-        "desc": "기본 지속 효과: 기본 공격 3회마다 연속으로 베어 날려 60()의 추가 물리 피해를 입힙니다.\n\n사용 시: 잠시 명상한 후 5초 동안 초필살 상태에 돌입하여 모든 피해 흡혈을 15%, 공격 속도를 70% 얻고 이동 속도가 상승합니다. 초당 두 번, 무작위 주변 적 1명에게 초능력 잔상을 날려 50()의 물리 피해를 입힙니다.",
+        "desc": "<spellPassive>기본 지속 효과:</spellPassive> 기본 공격 3회마다 연속으로 베어 날려 <physicalDamage>@ModifiedPassiveDamage@(%i:scaleAD%)</physicalDamage>의 추가 물리 피해를 입힙니다.<br><br><spellActive>사용 시:</spellActive> 잠시 명상한 후 @Duration@초 동안 초필살 상태에 돌입하여 모든 피해 흡혈을 <TFTBonus>@Omnivamp*100@%</TFTBonus>, 공격 속도를 <TFTBonus>@AttackSpeed*100@%</TFTBonus> 얻고 이동 속도가 상승합니다. 초당 두 번, 무작위 주변 적 1명에게 초능력 잔상을 날려 <physicalDamage>@ModifiedDamage@(%i:scaleAD%%i:scaleAP%)</physicalDamage>의 물리 피해를 입힙니다.",
         "icon": "ASSETS/Characters/TFT17_MasterYi/HUD/Icons2D/TFT17_MasterYi_Q.TFT_Set17.tex",
         "variables": [
           {
             "name": "PassiveDamage",
             "value": [
               60,
-              60,
-              90,
+              70,
+              105,
               550,
               720,
               720,
@@ -3196,7 +3232,7 @@
       },
       "ability": {
         "name": "화학적 분노",
-        "desc": "?초 동안 체력을 ? () 회복합니다. 이후 대상 및 인접한 적에게 200()의 마법 피해를 입히고 2초 동안 30% 냉각을 적용합니다.\n\n냉각: 공격 속도 50% 감소",
+        "desc": "@Duration@초 동안 체력을 <scaleHealth>@ModifiedHeal@ (%i:scaleHealth%%i:scaleAP%)</scaleHealth> 회복합니다. 이후 대상 및 인접한 적에게 <magicDamage>@DamageTotal@(%i:scaleAP%)</magicDamage>의 마법 피해를 입히고 @CCDuration@초 동안 @ASSlow*100@% <TFTKeyword>냉각</TFTKeyword>을 적용합니다.<br><br>{{TFT_Keyword_Chill}}",
         "icon": "ASSETS/Characters/TFT17_Gragas/HUD/Icons2D/TFT17_GragasDrunkenRage.TFT_Set17.tex",
         "variables": [
           {
@@ -3215,10 +3251,10 @@
             "name": "HEALING",
             "value": [
               0,
-              385,
-              440,
-              600,
-              760,
+              415,
+              470,
+              630,
+              790,
               0,
               0
             ]
@@ -3297,7 +3333,7 @@
       },
       "ability": {
         "name": "더블 타임",
-        "desc": "기본 지속 효과: 기본 공격 시 30()의 추가 마법 피해를 입히고, 6초 동안 70()의 추가 마법 피해를 입힙니다. 지속 피해 효과는 중첩됩니다. 적의 중첩이 5 이상이면 티모가 그루브 상태가 됩니다.\n\n사용 시: 3회의 기본 공격 동안 공격 속도를 150% 얻습니다.",
+        "desc": "<spellPassive>기본 지속 효과:</spellPassive> 기본 공격 시 <magicDamage>@ModifiedHitDamage@(%i:scaleAP%)</magicDamage>의 추가 마법 피해를 입히고, @PoisonDuration@초 동안 <magicDamage>@ModifiedMagicDamage@(%i:scaleAP%)</magicDamage>의 추가 마법 피해를 입힙니다. 지속 피해 효과는 중첩됩니다. 적의 중첩이 @GrooveStacks@ 이상이면 티모가 {{TFT17_SpaceGroove_TheGroove}} 상태가 됩니다.<br><br><spellActive>사용 시:</spellActive> @ActiveAttacks@회의 기본 공격 동안 공격 속도를 <TFTBonus>@AttackSpeed*100@%</TFTBonus> 얻습니다.",
         "icon": "ASSETS/Characters/TFT17_Teemo/HUD/Icons2D/TFT17_TeemoW.TFT_Set17.tex",
         "variables": [
           {
@@ -3398,7 +3434,7 @@
       },
       "ability": {
         "name": "두둠칫 수잔",
-        "desc": "6초 동안 변신하여 일시적으로 최대 체력을 250 얻고 그루브 상태가 되며 인접한 적에게 매초 30()의 마법 피해를 입힙니다.",
+        "desc": "@Duration@초 동안 변신하여 일시적으로 최대 체력을 <scaleLevel>@MaxHealth@</scaleLevel> 얻고 {{TFT17_SpaceGroove_TheGroove}} 상태가 되며 인접한 적에게 매초 <magicDamage>@ModifiedDamage@(%i:scaleHealth%%i:scaleAP%)</magicDamage>의 마법 피해를 입힙니다. ",
         "icon": "ASSETS/Characters/TFT17_Nasus/HUD/Icons2D/TFT17_Nasus_R.TFT_Set17.tex",
         "variables": [
           {
@@ -3475,7 +3511,7 @@
       },
       "ability": {
         "name": "춤추고 토막내기",
-        "desc": "기본 지속 효과: 기본 공격 시 마법 피해를 입힙니다. 그웬이 체력이 40% 아래인 적을 대상으로 지정하는 동안 그루브 상태가 됩니다.\n\n기본 지속 효과: 주변 칸으로 돌진해 체력 비율이 가장 낮은 적을 가위질하여 대상에게 145()의 마법 피해를 입히고 원뿔 범위 내 적에게 75()의 마법 피해를 입힙니다. 이 스킬로 적을 처치하면 다시 돌진해 가위질하여 65%의 피해를 입힙니다!",
+        "desc": "<spellPassive>기본 지속 효과:</spellPassive> 기본 공격 시 마법 피해를 입힙니다. 그웬이 체력이 @GrooveThreshold*100@% 아래인 적을 대상으로 지정하는 동안 {{TFT17_SpaceGroove_TheGroove}} 상태가 됩니다.<br><br><spellActive>기본 지속 효과:</spellActive> 주변 칸으로 돌진해 체력 비율이 가장 낮은 적을 가위질하여 대상에게 <magicDamage>@ModifiedDamage@(%i:scaleAP%)</magicDamage>의 마법 피해를 입히고 원뿔 범위 내 적에게 <magicDamage>@ModifiedAreaDamage@(%i:scaleAP%)</magicDamage>의 마법 피해를 입힙니다. 이 스킬로 적을 처치하면 다시 돌진해 가위질하여 @ResetDamage*100@%의 피해를 입힙니다!",
         "icon": "ASSETS/Characters/TFT17_Gwen/HUD/Icons2D/TFT17_Gwen_E.TFT_Set17.tex",
         "variables": [
           {
@@ -3556,7 +3592,7 @@
       },
       "ability": {
         "name": "도약 난무",
-        "desc": "기본 지속 효과: 적이 공중에 뜰 때마다 55()의 물리 피해를 입히고 3초 동안 그루브 상태가 됩니다.\n\n사용 시: 대상에게 탄환을 퍼부어 380()의 물리 피해를 입히고 1.3초 동안 공중으로 띄워 올립니다.",
+        "desc": "<spellPassive>기본 지속 효과:</spellPassive> 적이 공중에 뜰 때마다 <physicalDamage>@ModifiedPassiveDamage@(%i:scaleAD%%i:scaleAP%)</physicalDamage>의 물리 피해를 입히고 @GrooveDuration@초 동안 {{TFT17_SpaceGroove_TheGroove}} 상태가 됩니다.<br><br><spellActive>사용 시:</spellActive> 대상에게 탄환을 퍼부어 <physicalDamage>@ModifiedDamage@(%i:scaleAD%)</physicalDamage>의 물리 피해를 입히고 @StunDuration@초 동안 공중으로 띄워 올립니다.",
         "icon": "ASSETS/Characters/TFT17_Samira/HUD/Icons2D/TFT17_SamiraE.TFT_Set17.tex",
         "variables": [
           {
@@ -3599,9 +3635,9 @@
             "name": "Damage",
             "value": [
               260,
-              380,
-              570,
-              915,
+              360,
+              540,
+              860,
               1555,
               810,
               810
@@ -3645,7 +3681,7 @@
       },
       "ability": {
         "name": "디스코 지옥불",
-        "desc": "기본 지속 효과: 전투 시작 시 임시 완성 아이템 1개를 제작합니다. 이미 아이템 3개를 장착한 경우, 대신 무작위 완성 아이템 하나가 이번 전투에서 찬란한 아이템이 됩니다.\n\n사용 시: 3초 동안 100()의 보호막을 얻습니다. 이후 원뿔 범위에 불을 내뿜어 180()의 마법 피해를 입힙니다. 오른에게 부여된 보호막이 사라지면 오른은 3초 동안 그루브 상태가 됩니다.",
+        "desc": "<spellPassive>기본 지속 효과:</spellPassive> 전투 시작 시 임시 완성 아이템 1개를 제작합니다. 이미 아이템 3개를 장착한 경우, 대신 무작위 완성 아이템 하나가 이번 전투에서 <TFTRadiantItemBonus>찬란한 아이템</TFTRadiantItemBonus>이 됩니다.<br><br><spellActive>사용 시:</spellActive> @ShieldDuration@초 동안 <TFTBonus>@ModifiedShield@(%i:scaleAP%)</TFTBonus>의 보호막을 얻습니다. 이후 원뿔 범위에 불을 내뿜어 <magicDamage>@ModifiedDamage@(%i:scaleAP%)</magicDamage>의 마법 피해를 입힙니다. 오른에게 부여된 보호막이 사라지면 오른은 @GrooveDuration@초 동안 {{TFT17_SpaceGroove_TheGroove}} 상태가 됩니다.",
         "icon": "ASSETS/Characters/TFT17_Ornn/HUD/Icons2D/TFT17_OrnnW.TFT_Set17.tex",
         "variables": [
           {
@@ -3722,7 +3758,7 @@
       },
       "ability": {
         "name": "버블 팝",
-        "desc": "대상에게 디스코 방울을 던져 반경 1칸 내 적에게 410()의 피해를 나누어 입힙니다. 폭발 시 주변 적에게 작은 방울 3개가 날아가 110()의 마법 피해를 입힙니다. 스킬 사용 시 나미가 3초 동안 그루브 상태가 됩니다.",
+        "desc": "대상에게 디스코 방울을 던져 반경 1칸 내 적에게 <magicDamage>@ModifiedDamage@(%i:scaleAP%)</magicDamage>의 피해를 나누어 입힙니다. 폭발 시 주변 적에게 작은 방울 @NumProjectiles@개가 날아가 <magicDamage>@ModifiedFirstBounceDamage@(%i:scaleAP%)</magicDamage>의 마법 피해를 입힙니다. 스킬 사용 시 나미가 @GrooveDuration@초 동안 {{TFT17_SpaceGroove_TheGroove}} 상태가 됩니다.",
         "icon": "ASSETS/Characters/TFT17_Nami/HUD/Icons2D/TFT17_NamiQ.TFT_Set17.tex",
         "variables": [
           {
@@ -3800,7 +3836,7 @@
       },
       "ability": {
         "name": "불청객",
-        "desc": "기본 지속 효과: 2초마다 체력이 가장 높은 주변 적에게 번개를 내려 60()의 마법 피해를 입힙니다.\n\n사용 시: 가장 큰 적 무리에 디스코 볼을 소환한 후, 현재 대상을 디스코 볼로 띄워 올려 150()의 마법 피해를 입힙니다. 해당 적이 디스코 볼과 충돌해 떨어지며 반경 3칸에 175()의 마법 피해를 입힙니다. 적중한 적 하나당 1초 동안 그루브 상태가 됩니다.",
+        "desc": "<spellPassive>기본 지속 효과:</spellPassive> <scaleLevel>@BoltCooldown@</scaleLevel>초마다 체력이 가장 높은 주변 적에게 번개를 내려 <magicDamage>@ModifiedBoltDamage@(%i:scaleAP%)</magicDamage>의 마법 피해를 입힙니다.<br><br><spellActive>사용 시:</spellActive> 가장 큰 적 무리에 디스코 볼을 소환한 후, 현재 대상을 디스코 볼로 띄워 올려 <magicDamage>@ModifiedUppercutDamage@(%i:scaleAP%)</magicDamage>의 마법 피해를 입힙니다. 해당 적이 디스코 볼과 충돌해 떨어지며 반경 3칸에 <magicDamage>@ModifiedExplosionDamage@(%i:scaleAP%)</magicDamage>의 마법 피해를 입힙니다. 적중한 적 하나당 @GrooveDurationPerTarget@초 동안 {{TFT17_SpaceGroove_TheGroove}} 상태가 됩니다.",
         "icon": "ASSETS/Characters/TFT17_Blitzcrank/HUD/Icons2D/TFT17_BlitzcrankW.TFT_Set17.tex",
         "variables": [
           {
@@ -3890,15 +3926,15 @@
       },
       "ability": {
         "name": "초능력 분쇄",
-        "desc": "자성 파편이 없는 가장 가까운 대상에게 자성 파편 덩어리를 던져 부착시키고 240()의 마법 피해를 입힙니다. 파편이 부착된 적이 사망하면 파편이 없는 가장 가까운 적에게 파편이 이전됩니다.\n\n스킬을 5회 사용할 때마다 대신 모든 파편을 뜯어내 120()의 마법 피해를 입힙니다. 이후 모든 파편을 대상에게 내리꽂아 620()의 마법 피해를 입히고 잠시 기절시킵니다.",
+        "desc": "자성 파편이 없는 가장 가까운 대상에게 자성 파편 덩어리를 던져 부착시키고 <magicDamage>@ModifiedDebrisDamage@(%i:scaleAP%)</magicDamage>의 마법 피해를 입힙니다. 파편이 부착된 적이 사망하면 파편이 없는 가장 가까운 적에게 파편이 이전됩니다.<br><br>스킬을 @NumCasts@회 사용할 때마다 대신 모든 파편을 뜯어내 <magicDamage>@ModifiedDebrisRipDamage@(%i:scaleAP%)</magicDamage>의 마법 피해를 입힙니다. 이후 모든 파편을 대상에게 내리꽂아 <magicDamage>@ModifiedSlamDamage@(%i:scaleAP%)</magicDamage>의 마법 피해를 입히고 잠시 기절시킵니다.",
         "icon": "ASSETS/Characters/TFT17_Sona/HUD/Icons2D/TFT17_Sona_E.TFT_Set17.tex",
         "variables": [
           {
             "name": "DebrisDamage",
             "value": [
               300,
-              240,
-              360,
+              280,
+              420,
               999,
               999,
               2,
@@ -3909,8 +3945,8 @@
             "name": "SlamDamage",
             "value": [
               2.5,
-              620,
-              930,
+              680,
+              1050,
               9999,
               9999,
               2.5,
@@ -3979,7 +4015,7 @@
       },
       "ability": {
         "name": "운명의 한 수",
-        "desc": "확률에 따라 1~9 카드 중 하나를 뽑은 후, 뽑은 카드를 대상에게 던집니다. 뽑은 카드에 따라 190()~380()의 마법 피해를 입힙니다. 대상 처치 후 남는 피해는 가장 가까운 적에게 입힙니다. \n\n3성 추가 효과: 9를 뽑으면 1골드를 생성합니다.",
+        "desc": "<ShowIf.TFT17_Fateweaver_LuckyAbility><TFTKeyword>행운</TFTKeyword></ShowIf.TFT17_Fateweaver_LuckyAbility> 확률에 따라 1~9 카드 중 하나를 뽑은 후, 뽑은 카드를 대상에게 던집니다. 뽑은 카드에 따라 <magicDamage>@ModifiedDamageMin@(%i:scaleAP%)</magicDamage>~<magicDamage>@ModifiedDamageMax@(%i:scaleAP%)</magicDamage>의 마법 피해를 입힙니다. 대상 처치 후 남는 피해는 가장 가까운 적에게 입힙니다. <br><br><spellActive>3성 추가 효과:</spellActive> 9를 뽑으면 1골드를 생성합니다.<br><br><ShowIf.TFT17_Fateweaver_LuckyAbility><rules>행운: 두 번 시도하고 더 나은 결과를 선택합니다.</rules></ShowIf.TFT17_Fateweaver_LuckyAbility>",
         "icon": "ASSETS/Characters/TFT17_TwistedFate/HUD/Icons2D/CardMaster_FatesGambit.TFT_Set17.tex",
         "variables": [
           {
@@ -4023,7 +4059,7 @@
         "armor": 35,
         "magicResist": 35,
         "damage": 35,
-        "attackSpeed": 0.800000011920929,
+        "attackSpeed": 0.75,
         "range": 1,
         "critChance": 0.25,
         "critMultiplier": 1.399999976158142,
@@ -4032,7 +4068,7 @@
       },
       "ability": {
         "name": "점술가의 심판",
-        "desc": "대상을 찔러 18초 동안 460()의 물리 피해를 입히는 출혈 효과를 적용합니다. 공격 후 3칸 내 체력 비율이 가장 높은 적에게 도약합니다.",
+        "desc": "대상을 찔러 @BleedDuration@초 동안 <physicalDamage>@ModifiedBleedDamage@(%i:scaleAD%%i:scaleAP%)</physicalDamage>의 물리 피해를 입히는 출혈 효과를 적용합니다. 공격 후 @HexDistance@칸 내 체력 비율이 가장 높은 적에게 도약합니다.",
         "icon": "ASSETS/Characters/TFT17_Talon/HUD/Icons2D/TFT17_TalonE.TFT_Set17.tex",
         "variables": [
           {
@@ -4063,10 +4099,10 @@
             "name": "ADBleedDamage",
             "value": [
               2.5,
-              460,
-              690,
-              1090,
-              1855,
+              430,
+              645,
+              1000,
+              1700,
               2.5,
               2.5
             ]
@@ -4109,7 +4145,7 @@
       },
       "ability": {
         "name": "별의 반격",
-        "desc": "3초 동안 방어 태세에 들어가 받는 피해량이 15 () 감소하고 400()의 보호막을 얻습니다. 방어 태세가 끝나면 주변 적을 후려쳐 ?()의 마법 피해를 입히고 1초 동안 기절시킵니다.",
+        "desc": "@Duration@초 동안 방어 태세에 들어가 받는 피해량이 <TFTBonus>@ModifiedFlatDR@ (%i:scaleAP%)</TFTBonus> 감소하고 <TFTBonus>@ModifiedShield@(%i:scaleAP%)</TFTBonus>의 보호막을 얻습니다. 방어 태세가 끝나면 주변 적을 후려쳐 <magicDamage>@ModifiedDamage@(%i:scaleArmor%%i:scaleMR%)</magicDamage>의 마법 피해를 입히고 <scaleLevel>@StunDuration@</scaleLevel>초 동안 기절시킵니다.",
         "icon": "ASSETS/Characters/TFT17_Jax/HUD/Icons2D/TFT17_JaxE.TFT_Set17.tex",
         "variables": [
           {
@@ -4178,7 +4214,7 @@
               0,
               400,
               500,
-              675,
+              625,
               850,
               0,
               0
@@ -4206,11 +4242,11 @@
         "critChance": 0.25,
         "critMultiplier": 1.399999976158142,
         "initialMana": 0,
-        "mana": 60
+        "mana": 55
       },
       "ability": {
         "name": "쏟아지는 별",
-        "desc": "기본 지속 효과: 별돌보미 별자리에 따라 게임마다 다른 부가 효과를 가집니다.\n\n사용 시: 하늘에서 무언가를 떨어뜨려 주변 적 3명에게 150()의 마법 피해를 입힙니다. 또한 이번 게임의 별돌보미 별자리에 따라 특별한 효과를 발동시킵니다.",
+        "desc": "<spellPassive>기본 지속 효과:</spellPassive> 별돌보미 별자리에 따라 게임마다 다른 <TFTStargazer>부가 효과</TFTStargazer>를 가집니다.<br><br><spellActive>사용 시:</spellActive> 하늘에서 무언가를 떨어뜨려 주변 적 @NumEnemies@명에게 <magicDamage>@ModifiedDamage@(%i:scaleAP%)</magicDamage>의 마법 피해를 입힙니다. <TFTStargazer>또한 이번 게임의 별돌보미 별자리에 따라 특별한 효과를 발동시킵니다</TFTStargazer>.",
         "icon": "ASSETS/Characters/TFT17_Lulu/HUD/Icons2D/TFT17_Lulu_Glitterbolt.TFT_Set17.tex",
         "variables": [
           {
@@ -4259,11 +4295,11 @@
         "critChance": 0.25,
         "critMultiplier": 1.399999976158142,
         "initialMana": 40,
-        "mana": 145
+        "mana": 155
       },
       "ability": {
         "name": "재앙",
-        "desc": "4초 동안 475()의 보호막을 얻습니다. 주변 칸에 아스트롤라베를 소환하고 떨어뜨려 2칸 내 적에게 120() 의 마법 피해를 입힙니다. 이후 아스트롤라베를 전장 끝으로 밀어 100()의 마법 피해를 입힙니다. 아스트롤라베에 적중당한 모든 적은 1.8초 동안 공중으로 띄워 올려집니다.",
+        "desc": "@ShieldDuration@초 동안 <TFTBonus>@ModifiedShield@(%i:scaleAP%)</TFTBonus>의 보호막을 얻습니다. 주변 칸에 아스트롤라베를 소환하고 떨어뜨려 2칸 내 적에게 <magicDamage>@ModifiedInitialDamage@(%i:scaleAP%)</magicDamage> 의 마법 피해를 입힙니다. 이후 아스트롤라베를 전장 끝으로 밀어 <magicDamage>@ModifiedFollowupDamage@(%i:scaleAP%)</magicDamage>의 마법 피해를 입힙니다. 아스트롤라베에 적중당한 모든 적은 @StunDuration@초 동안 공중으로 띄워 올려집니다.",
         "icon": "ASSETS/Characters/TFT17_Nunu/HUD/Icons2D/TFT17_NunuE.TFT_Set17.tex",
         "variables": [
           {
@@ -4294,8 +4330,8 @@
             "name": "StunDuration",
             "value": [
               0,
+              1.5,
               1.75,
-              2,
               8,
               16,
               0,
@@ -4355,7 +4391,7 @@
         "magicResist": 40,
         "damage": 15,
         "attackSpeed": 0.800000011920929,
-        "range": 10,
+        "range": 6,
         "critChance": 0.25,
         "critMultiplier": 1.399999976158142,
         "initialMana": 0,
@@ -4363,7 +4399,7 @@
       },
       "ability": {
         "name": "그림자야, 도와줘!",
-        "desc": "기본 지속 효과: 벡스가 기본 공격을 가할 때마다 그림자가 주변 적을 타격해 30()의 마법 피해를 입힙니다. 적이 그림자에게 5회 타격당할 때마다 그림자가 해당 적을 다시 타격합니다.\n\n사용 시: 그림자가 강화 타격을 3회 날려 대신140()의 마법 피해를 입힙니다.",
+        "desc": "<spellPassive>기본 지속 효과:</spellPassive> 벡스가 기본 공격을 가할 때마다 그림자가 주변 적을 타격해 <magicDamage>@ModifiedShadowHandDamage@(%i:scaleAP%)</magicDamage>의 마법 피해를 입힙니다. 적이 그림자에게 @NumStrikesForPassive@회 타격당할 때마다 그림자가 해당 적을 다시 타격합니다.<br><br><spellActive>사용 시:</spellActive> 그림자가 강화 타격을 @NumActiveStrikes@회 날려 대신<magicDamage>@ModifiedShadowHandMagicDamage@(%i:scaleAP%)</magicDamage>의 마법 피해를 입힙니다.",
         "icon": "ASSETS/Characters/TFT17_Vex/HUD/Icons2D/Icons_TFT17_Vex_E01.TFT_Set17.tex",
         "variables": [
           {
@@ -4382,8 +4418,8 @@
             "name": "ShadowHandMagicDamage",
             "value": [
               200,
-              140,
-              210,
+              130,
+              195,
               1000,
               9999,
               200,
@@ -4440,7 +4476,7 @@
       },
       "ability": {
         "name": "시간 왜곡",
-        "desc": "기본 지속 효과: 이 스킬은 공격력 또는 주문력 중 더 높은 능력치에 따라 변화합니다. 기본 공격 시  피해를 입힙니다.\n\n사용 시: 주변 칸으로 돌진해 2초 동안 100의 보호막을 얻고 인접한 적을 베어  피해를 입힙니다. 스킬을 3회 사용할 때마다 공중으로 도약한 후 커다란 에너지 파동을 발사해 일직선상의 적에게  피해를 입힙니다.",
+        "desc": "<spellPassive>기본 지속 효과:</spellPassive> 이 스킬은 공격력 또는 주문력 중 더 높은 능력치에 따라 변화합니다. 기본 공격 시 <ShowIfNot.TFT17_Riven_IsAD><magicDamage>@ModifiedPassiveAPDamage@(%i:scaleAP%)</magicDamage>의 마법</ShowIfNot.TFT17_Riven_IsAD><ShowIf.TFT17_Riven_IsAD><physicalDamage>@ModifiedPassiveADDamage@(%i:scaleAD%)</physicalDamage>의 물리</ShowIf.TFT17_Riven_IsAD> 피해를 입힙니다.<br><br><spellActive>사용 시:</spellActive> 주변 칸으로 돌진해 @ShieldDuration@초 동안 <TFTBonus>@Shield@</TFTBonus>의 보호막을 얻고 인접한 적을 베어 <ShowIfNot.TFT17_Riven_IsAD><magicDamage>@ModifiedAPDamage@(%i:scaleAP%)</magicDamage>의 마법</ShowIfNot.TFT17_Riven_IsAD><ShowIf.TFT17_Riven_IsAD><physicalDamage>@ModifiedADDamage@(%i:scaleAD%)</physicalDamage>의 물리</ShowIf.TFT17_Riven_IsAD> 피해를 입힙니다. 스킬을 3회 사용할 때마다 공중으로 도약한 후 커다란 에너지 파동을 발사해 일직선상의 적에게 <ShowIfNot.TFT17_Riven_IsAD><magicDamage>@ModifiedAPWaveDamage@(%i:scaleAP%)</magicDamage>의 마법</ShowIfNot.TFT17_Riven_IsAD><ShowIf.TFT17_Riven_IsAD><physicalDamage>@ModifiedADWaveDamage@(%i:scaleAD%)</physicalDamage>의 물리</ShowIf.TFT17_Riven_IsAD> 피해를 입힙니다.",
         "icon": "ASSETS/Characters/TFT17_Riven/HUD/Icons2D/TFT17_RivenPathoftheExile.TFT_Set17.tex",
         "variables": [
           {
@@ -4565,15 +4601,15 @@
       },
       "ability": {
         "name": "현실 절단",
-        "desc": "기본 지속 효과: 스킬 사용 시 기본 공격이 40&nbsp;()의 추가 마법 피해를 입힙니다. 이 효과는 중첩됩니다. 스킬 사용 3회째부터 대신 고정 피해를 입힙니다.\n\n사용 시: 3초 동안 225()의 보호막을 얻습니다. 이후 가장 큰 챔피언 무리에 균열을 열어 범위 내 모든 적에게 기본 지속 효과의 추가 피해를 입힙니다. 영향을 받은 적은 공격 속도가 50% 둔화되고, 아군은 공격 속도를 80% 얻습니다. 두 효과 모두 3초에 걸쳐 빠르게 사라집니다.",
+        "desc": "<spellPassive>기본 지속 효과:</spellPassive> 스킬 사용 시 기본 공격에 <magicDamage>@ModifiedBonusDamage@(%i:scaleHealth%%i:scaleAP%)</magicDamage>의 중첩되는 추가 마법 피해량이 추가됩니다. 세 번째 스킬 사용부터 대신 <trueDamage>고정 피해</trueDamage>가 추가됩니다.<br><br><spellActive>사용 시:</spellActive> @ShieldDuration@초 동안 <TFTBonus>@ModifiedShield@(%i:scaleHealth%%i:scaleAP%)</TFTBonus>의 보호막을 얻습니다. 이후 가장 큰 챔피언 무리에 균열을 열어 범위 내 모든 적에게 기본 지속 효과의 추가 피해를 입힙니다. 영향을 받은 적은 공격 속도가 <TFTBonus>@ASSlow*100@%</TFTBonus> 둔화되고, 아군은 공격 속도를 <TFTBonus>@BonusAS*100@%</TFTBonus> 얻습니다. 두 효과 모두 @BuffDebuffDuration@초에 걸쳐 빠르게 사라집니다.",
         "icon": "ASSETS/Characters/TFT17_Shen/HUD/Icons2D/TFT17_Shen_RShield.TFT_Set17.tex",
         "variables": [
           {
             "name": "BonusDamageOnAttack",
             "value": [
               50,
-              40,
-              60,
+              45,
+              75,
               777,
               777,
               777,
@@ -4583,21 +4619,21 @@
           {
             "name": "ShieldHP",
             "value": [
-              0.07999999821186066,
-              0.07999999821186066,
-              0.07999999821186066,
-              0.07999999821186066,
-              0.07999999821186066,
-              0.07999999821186066,
-              0.07999999821186066
+              0.10000000149011612,
+              0.10000000149011612,
+              0.10000000149011612,
+              0.10000000149011612,
+              0.10000000149011612,
+              0.10000000149011612,
+              0.10000000149011612
             ]
           },
           {
             "name": "ShieldAP",
             "value": [
               0,
-              225,
-              300,
+              200,
+              250,
               3456,
               3456,
               3456,
@@ -4622,10 +4658,10 @@
               0.5,
               0.5,
               0.5,
-              9.989999771118164,
-              99,
-              99,
-              99
+              0.9900000095367432,
+              0.9900000095367432,
+              0.9900000095367432,
+              0.9900000095367432
             ]
           },
           {
@@ -4650,6 +4686,18 @@
               3,
               3,
               3
+            ]
+          },
+          {
+            "name": "DamageHP",
+            "value": [
+              0.009999999776482582,
+              0.009999999776482582,
+              0.009999999776482582,
+              0.009999999776482582,
+              0.009999999776482582,
+              0.009999999776482582,
+              0.009999999776482582
             ]
           }
         ]
@@ -4678,17 +4726,17 @@
       },
       "ability": {
         "name": "특급 시간 킥",
-        "desc": "현재 대상에게 공을 차 230()의 마법 피해를 입힙니다. 적중 시, 공은 100%  확률로 새로운 대상에게 튕겨 75()의 마법 피해를 입힙니다. 튕겨 나온 공 또한 추가로 튕길 수 있지만, 튕길 때마다 확률이 절반으로 줄어듭니다.",
+        "desc": "현재 대상에게 공을 차 <magicDamage>@ModifiedDamage@(%i:scaleAP%)</magicDamage>의 마법 피해를 입힙니다. 적중 시, 공은 100% <ShowIf.TFT17_Fateweaver_LuckyAbility><TFTKeyword>행운</TFTKeyword></ShowIf.TFT17_Fateweaver_LuckyAbility> 확률로 새로운 대상에게 튕겨 <magicDamage>@ModifiedBounceDamage@(%i:scaleAP%)</magicDamage>의 마법 피해를 입힙니다. 튕겨 나온 공 또한 추가로 튕길 수 있지만, 튕길 때마다 확률이 절반으로 줄어듭니다.<br><br><ShowIf.TFT17_Fateweaver_LuckyAbility><rules>행운: 두 번 시도하고 더 나은 결과를 선택합니다.</rules></ShowIf.TFT17_Fateweaver_LuckyAbility>",
         "icon": "ASSETS/Characters/TFT17_Milio/HUD/Icons2D/TFT17_Milio_Q.TFT_Set17.tex",
         "variables": [
           {
             "name": "Damage",
             "value": [
               200,
-              230,
-              345,
-              520,
-              885,
+              255,
+              380,
+              575,
+              975,
               900,
               700
             ]
@@ -4697,10 +4745,10 @@
             "name": "BounceDamage",
             "value": [
               80,
-              75,
-              115,
-              175,
-              300,
+              85,
+              130,
+              190,
+              325,
               330,
               330
             ]
@@ -4731,17 +4779,17 @@
       },
       "ability": {
         "name": "시간의 일격",
-        "desc": "사용 시: 현재 대상에게 파동을 방출해 155()의 물리 피해를 입힙니다. 처치 관여 8회마다 드론을 획득합니다. 드론은 스킬 사용 시 현재 대상에게 8()의 물리 피해를 입힙니다. \n(처치 관여: 총 ?)",
+        "desc": "<spellActive>사용 시:</spellActive> 현재 대상에게 파동을 방출해 <physicalDamage>@TotalDamage@(%i:scaleAD%%i:scaleAP%)</physicalDamage>의 물리 피해를 입힙니다. 처치 관여 @TakedownsToDrone@회마다 드론을 획득합니다. 드론은 스킬 사용 시 현재 대상에게 <physicalDamage>@ModifiedDroneDamage@(%i:scaleAD%)</physicalDamage>의 물리 피해를 입힙니다. <br><rules>(처치 관여: 총 @TFTUnitProperty.:TFT17_Ezreal_Takedowns@)</rules>",
         "icon": "ASSETS/Characters/TFT17_Ezreal/HUD/Icons2D/TFT17_Ezreal_Passive.TFT_Set17.tex",
         "variables": [
           {
             "name": "ADDamage",
             "value": [
               0,
-              155,
-              235,
-              355,
-              605,
+              160,
+              240,
+              365,
+              620,
               0,
               0
             ]
@@ -4750,10 +4798,10 @@
             "name": "APDamage",
             "value": [
               0,
-              10,
-              15,
-              25,
-              40,
+              14,
+              21,
+              32,
+              54,
               0,
               0
             ]
@@ -4832,7 +4880,7 @@
       },
       "ability": {
         "name": "여명의 방패",
-        "desc": "4초 동안 420()의 보호막을 얻습니다. 현재 대상을 강타해 100()의 마법 피해를 입히고 1.8초 동안 기절시킵니다.",
+        "desc": "@ShieldDuration@초 동안 <TFTBonus>@ModifiedShield@(%i:scaleAP%)</TFTBonus>의 보호막을 얻습니다. 현재 대상을 강타해 <magicDamage>@ModifiedDamage@(%i:scaleArmor%%i:scaleMR%)</magicDamage>의 마법 피해를 입히고 <scaleLevel>@StunDuration@</scaleLevel>초 동안 기절시킵니다.",
         "icon": "ASSETS/Characters/TFT17_Leona/HUD/Icons2D/TFT17_LeonaQ.TFT_Set17.tex",
         "variables": [
           {
@@ -4921,7 +4969,7 @@
       },
       "ability": {
         "name": "통통별",
-        "desc": "현재 대상에 통통별을 날려 처음 적중한 대상에게 68()의 마법 피해를 입히고, 그 외에는 관통하며 34()의 피해를 입힙니다. 투사체는 목표 지점에 도달하면 방향을 전환해 멀리 있는 적에게 날아가고, 이동 속도가 증가하며 동일한 피해를 입힙니다. 방향 전환은 4회 발동됩니다.",
+        "desc": "현재 대상에 통통별을 날려 처음 적중한 대상에게 <magicDamage>@ModifiedDamage@(%i:scaleAP%)</magicDamage>의 마법 피해를 입히고, 그 외에는 관통하며 <magicDamage>@ModifiedSecondaryDamage@(%i:scaleAP%)</magicDamage>의 피해를 입힙니다. 투사체는 목표 지점에 도달하면 방향을 전환해 멀리 있는 적에게 날아가고, 이동 속도가 증가하며 동일한 피해를 입힙니다. 방향 전환은 <ShowIf.TFT17_Augment_Concentration_Active><TFTRadiantItemBonus>@AugmentedNumRedirects@</TFTRadiantItemBonus></ShowIf.TFT17_Augment_Concentration_Active><ShowIfNot.TFT17_Augment_Concentration_Active>@NumRedirects@</ShowIfNot.TFT17_Augment_Concentration_Active>회 발동됩니다.<br><br>",
         "icon": "ASSETS/Characters/TFT17_Zoe/HUD/Icons2D/TFT17_Zoe_Q2.TFT_Set17.tex",
         "variables": [
           {
@@ -4958,6 +5006,18 @@
               4,
               4,
               4
+            ]
+          },
+          {
+            "name": "AugmentedNumRedirects",
+            "value": [
+              6,
+              6,
+              6,
+              6,
+              6,
+              6,
+              6
             ]
           },
           {
@@ -5010,7 +5070,7 @@
       },
       "ability": {
         "name": "은빛 가호",
-        "desc": "기본 지속 효과: 기본 공격 시 50()의 추가 마법 피해를 입힙니다.\n\n사용 시: 3초 동안 225()의 보호막을 얻고 주변을 맴도는 구체 3개를 소환합니다. 구체는 적을 관통하며 ?()의 마법 피해를 입히고 공격 속도에 비례해 더 빠르게 회전합니다.",
+        "desc": "<spellPassive>기본 지속 효과:</spellPassive> 기본 공격 시 <magicDamage>@ModifiedBonusDamageToAttacks@(%i:scaleAP%)</magicDamage>의 추가 마법 피해를 입힙니다.<br><br><spellPassive>사용 시:</spellPassive> @ShieldDuration@초 동안 <TFTBonus>@ModifiedShield@(%i:scaleAP%)</TFTBonus>의 보호막을 얻고 주변을 맴도는 구체 3개를 소환합니다. 구체는 적을 관통하며 <magicDamage>@ModifiedDamage@(%i:scaleAP%)</magicDamage>의 마법 피해를 입히고 공격 속도에 비례해 더 빠르게 회전합니다.",
         "icon": "ASSETS/Characters/TFT17_Diana/HUD/Icons2D/TFT17_Diana_W_LunarShower.TFT_Set17.tex",
         "variables": [
           {
@@ -5029,10 +5089,10 @@
             "name": "Shield",
             "value": [
               100,
-              225,
-              275,
+              250,
+              290,
               375,
-              525,
+              460,
               100,
               100
             ]
@@ -5113,11 +5173,11 @@
             "name": "BaseDamage",
             "value": [
               50,
-              45,
-              70,
-              110,
+              50,
+              75,
+              120,
               190,
-              330,
+              240,
               330
             ]
           },
@@ -5125,10 +5185,10 @@
             "name": "BonusDamageToAttacks",
             "value": [
               0,
-              50,
-              75,
-              130,
-              220,
+              52,
+              78,
+              135,
+              230,
               0,
               0
             ]
@@ -5159,16 +5219,16 @@
       },
       "ability": {
         "name": "현실 분열",
-        "desc": "기본 지속 효과: 기본 공격 시 대신 64()의 마법 피해를 입힙니다.\n\n사용 시: 분신 5명을 소환합니다. 분신은 함께 5회 공격하며 25%의 피해를 입힙니다. 마지막 공격 시 분신이 투사체를 발사해 70()의 마법 피해를 입힙니다.",
+        "desc": "<spellPassive>기본 지속 효과:</spellPassive> 기본 공격 시 대신 <magicDamage>@ModifiedBaseAttackDamage@(%i:scaleAP%)</magicDamage>의 마법 피해를 입힙니다.<br><br><spellActive>사용 시:</spellActive> 분신 @NumClones@명을 소환합니다. 분신은 함께 @NumAttacks@회 공격하며 <scaleLevel>@CloneDamageMultiplier*100@%</scaleLevel>의 피해를 입힙니다. 마지막 공격 시 분신이 투사체를 발사해 <magicDamage>@ModifiedBoltDamage@(%i:scaleAP%)</magicDamage>의 마법 피해를 입힙니다.",
         "icon": "ASSETS/Characters/TFT17_Leblanc/HUD/Icons2D/TFT17_LeblancW.TFT_Set17.tex",
         "variables": [
           {
             "name": "BasicAttackDamage",
             "value": [
               0,
-              64,
-              96,
-              400,
+              62,
+              93,
+              250,
               450,
               0,
               0
@@ -5235,7 +5295,7 @@
         "싸움꾼"
       ],
       "stats": {
-        "hp": 650,
+        "hp": 700,
         "armor": 40,
         "magicResist": 40,
         "damage": 45,
@@ -5248,7 +5308,7 @@
       },
       "ability": {
         "name": "응축",
-        "desc": "사거리 내 체력이 가장 낮은 적에게 ?()의 마법 피해를 입히고 최대 체력을 영구적으로 12 얻습니다. 이 효과로 적을 처치하면 대신 최대 체력을 영구적으로 25 얻습니다.\n\n(현재 추가 효과: 체력 +?)",
+        "desc": "사거리 내 체력이 가장 낮은 적에게 <magicDamage>@TotalDamage@(%i:scaleHealth%%i:scaleAP%)</magicDamage>의 마법 피해를 입히고 최대 체력을 영구적으로 <scaleHealth>@BonusHealthPerCast@</scaleHealth> 얻습니다. 이 효과로 적을 처치하면 대신 최대 체력을 영구적으로 <scaleHealth>@BonusHealthOnKill@</scaleHealth> 얻습니다.<br><br><rules>(현재 추가 효과: 체력 +@TFTUnitProperty.:TFT17_ChoGathBonusHealth@)</rules>",
         "icon": "ASSETS/Characters/TFT17_Chogath/HUD/Icons2D/GreenTerror_Feast.TFT_Set17.tex",
         "variables": [
           {
@@ -5279,10 +5339,10 @@
             "name": "BonusHealthOnKill",
             "value": [
               35,
-              25,
-              35,
-              65,
-              110,
+              30,
+              40,
+              70,
+              115,
               35,
               35
             ]
@@ -5350,7 +5410,7 @@
       },
       "ability": {
         "name": "암흑 물질",
-        "desc": "현재 대상에게 파편을 던져 처음 적중한 대상에게 250()의 마법 피해를 입힙니다. 처음 대상에게 적중하거나 사거리 끝에 도달하면 단검이 폭발하며 주변 대상에게 50()의 마법 피해를 입힙니다.",
+        "desc": "현재 대상에게 파편을 던져 처음 적중한 대상에게 <magicDamage>@ModifiedDamage@(%i:scaleAP%)</magicDamage>의 마법 피해를 입힙니다. 처음 대상에게 적중하거나 사거리 끝에 도달하면 단검이 폭발하며 주변 대상에게 <magicDamage>@ModifiedSecondaryDamage@(%i:scaleAP%)</magicDamage>의 마법 피해를 입힙니다.",
         "icon": "ASSETS/Characters/TFT17_Lissandra/HUD/Icons2D/TFT17_Lissandra_Q.TFT_Set17.tex",
         "variables": [
           {
@@ -5402,7 +5462,7 @@
       },
       "ability": {
         "name": "양자 분신",
-        "desc": "대상 뒤에 33% 감소한 최대 체력과 30 증가한 마나 소모량을 지닌 분신을 생성합니다. 분신은 제드와 동일한 아이템, 능력치, 현재 체력을 가지며 양자 분신을 사용할 수 있습니다.",
+        "desc": "대상 뒤에 @HPPenalty*100@% 감소한 최대 체력과 @ManaCostIncrease@ 증가한 마나 소모량을 지닌 분신을 생성합니다. 분신은 제드와 동일한 아이템, 능력치, 현재 체력을 가지며 양자 분신을 사용할 수 있습니다.",
         "icon": "ASSETS/Characters/TFT17_Zed/HUD/Icons2D/3.TFT_Set17.tex",
         "variables": [
           {
@@ -5452,7 +5512,7 @@
       },
       "ability": {
         "name": "울음소리",
-        "desc": "기본 지속 효과: 기본 공격 시 50()의 추가 마법 피해를 입힙니다.\n\n사용 시: 4초 동안 125()의 보호막을 얻고 전투가 끝날 때까지 아군에게 주문력을 20% 부여합니다.",
+        "desc": "<spellPassive>기본 지속 효과:</spellPassive> 기본 공격 시 <magicDamage>@ModifiedAADamage@(%i:scaleAP%)</magicDamage>의 추가 마법 피해를 입힙니다.<br><br><spellActive>사용 시:</spellActive> @ShieldDuration@초 동안 <TFTBonus>@ModifiedShield@(%i:scaleAP%)</TFTBonus>의 보호막을 얻고 전투가 끝날 때까지 아군에게 주문력을 @BonusAP@% 부여합니다.",
         "icon": "ASSETS/Characters/TFT17_Summon/HUD/TFT17_Summon_Square.TFT_Set17.tex",
         "variables": [
           {
@@ -5566,7 +5626,7 @@
       },
       "ability": {
         "name": "정령 충격",
-        "desc": "3초 동안 체력을 ? () 회복합니다. 대상을 강타해 160()의 마법 피해를 입히고 1.5초 동안 공중으로 띄워 올립니다. 적중 시 정령 파동을 생성해 대상이 위치한 열에 이 효과의 50%만큼 피해를 입힙니다.\n\n정령 추가 효과: 정령들이 꼬마 정령의 꽃에 물을 뿌려 모든 받는 체력 회복 및 보호막 효과를 0.1 () 증가시킵니다.",
+        "desc": "@HealDuration@초 동안 체력을 <scaleHealth>@ModifiedHeal@ (%i:scaleHealth%%i:scaleAP%)</scaleHealth> 회복합니다. 대상을 강타해 <magicDamage>@ModifiedDamage@(%i:scaleAP%)</magicDamage>의 마법 피해를 입히고 <scaleLevel>@StunDuration@</scaleLevel>초 동안 공중으로 띄워 올립니다. 적중 시 정령 파동을 생성해 대상이 위치한 열에 이 효과의 @PercentEffects*100@%만큼 피해를 입힙니다.<br><br><mainText enabled=TFT17_Astronaut_IsActive alternate=rules><spellActive enabled=TFT17_Astronaut_IsActive alternate=rules>정령 추가 효과:</spellActive><TFTBonus><ShowIfNot.TFT17_Astronaut_IsActive></ShowIfNot.TFT17_Astronaut_IsActive><ShowIf.TFT17_Astronaut_IsActive></ShowIf.TFT17_Astronaut_IsActive></TFTBonus> 정령들이 꼬마 정령의 꽃에 물을 뿌려 모든 받는 체력 회복 및 보호막 효과를 <TFTBonus>@ModifiedHealingAndShielding@ (%i:set14AmpIcon%)</TFTBonus> 증가시킵니다.</mainText>",
         "icon": "ASSETS/Characters/TFT17_IvernMinion/HUD/Icons2D/TFT17_IvernMinion_R.TFT_Set17.tex",
         "variables": [
           {
@@ -5692,7 +5752,7 @@
       },
       "ability": {
         "name": "불멸",
-        "desc": "300()의 보호막을 얻습니다. 다음 4초 동안 매초 75()의 보호막을 더 얻고 인접한 적에게 45()의 마법 피해를 입힙니다. 이 스킬이 끝나면 남은 보호막을 소모하고 보호막 수치의 40%만큼 체력을 회복합니다.",
+        "desc": "<TFTBonus>@ModifiedInitialShield@(%i:scaleAP%)</TFTBonus>의 보호막을 얻습니다. 다음 <ShowIf.TFT17_Augment_Concentration_Active><TFTRadiantItemBonus>@AugmentedDuration@</TFTRadiantItemBonus></ShowIf.TFT17_Augment_Concentration_Active><ShowIfNot.TFT17_Augment_Concentration_Active>@Duration@</ShowIfNot.TFT17_Augment_Concentration_Active>초 동안 매초 <TFTBonus>@ModifiedShieldPerProc@(%i:scaleAP%)</TFTBonus>의 보호막을 더 얻고 인접한 적에게 <magicDamage>@ModifiedDamagePerProc@(%i:scaleAP%)</magicDamage>의 마법 피해를 입힙니다. 이 스킬이 끝나면 남은 보호막을 소모하고 보호막 수치의 <scaleHealth>@HealRefund*100@%</scaleHealth>만큼 체력을 회복합니다.",
         "icon": "ASSETS/Characters/TFT17_Mordekaiser/HUD/Icons2D/TFT17_MordekaiserW.TFT_Set17.tex",
         "variables": [
           {
@@ -5754,6 +5814,18 @@
               4,
               4
             ]
+          },
+          {
+            "name": "AugmentedDuration",
+            "value": [
+              6,
+              6,
+              6,
+              6,
+              6,
+              6,
+              6
+            ]
           }
         ]
       },
@@ -5781,7 +5853,7 @@
       },
       "ability": {
         "name": "별빛 튕기는 깃털",
-        "desc": "기본 지속 효과: 기본 공격이 튕기며 3회 타격하고 대상에게 적중할 때마다 60% 감소한 피해를 입힙니다. 또한 마지막 대상 뒤에 깃털을 남깁니다.\n\n사용 시: 4초 동안 공격 속도를 75% 얻습니다. 지속시간이 끝나면 모든 깃털을 불러들여 가장 가까운 적 3명에게 각각 48()의 물리 피해를 입힙니다.",
+        "desc": "<spellPassive>기본 지속 효과:</spellPassive> 기본 공격이 튕기며 <scaleLevel>@AttackNumEnemies@</scaleLevel>회 타격하고 대상에게 적중할 때마다 <scaleLevel>@PassivePercentReducedDamage*100@%</scaleLevel> 감소한 피해를 입힙니다. 또한 마지막 대상 뒤에 깃털을 남깁니다.<br><br><spellActive>사용 시:</spellActive> @Duration@초 동안 공격 속도를 <TFTBonus>@AttackSpeed*100@%</TFTBonus> 얻습니다. 지속시간이 끝나면 모든 깃털을 불러들여 가장 가까운 적 @RecallFeatherTargets@명에게 각각 <physicalDamage>@TotalDamage@(%i:scaleAD%)</physicalDamage>의 물리 피해를 입힙니다.",
         "icon": "ASSETS/Characters/TFT17_Xayah/HUD/Icons2D/TFT17_XayahW.TFT_Set17.tex",
         "variables": [
           {
@@ -5812,8 +5884,8 @@
             "name": "ADDamage",
             "value": [
               40,
-              48,
-              72,
+              45,
+              68,
               900,
               375,
               300,
@@ -5905,7 +5977,7 @@
       },
       "ability": {
         "name": "무고한 희생자",
-        "desc": "기본 지속 효과: 기본 공격 시 원뿔 범위에 투사체 5개를 발사해 각각 33%()의 물리 피해를 입힙니다.\n\n사용 시: 폭발성 탄환을 발사해 대상에게 360()의 물리 피해를 입히고, 인접한 적에게 120()의 물리 피해를 입힙니다.",
+        "desc": "<spellPassive>기본 지속 효과:</spellPassive> 기본 공격 시 원뿔 범위에 투사체 @NumProjectiles@개를 발사해 각각 <physicalDamage>@ModifiedPassiveDamage@(%i:TFTBaseAD%)</physicalDamage>의 물리 피해를 입힙니다.<br><br><spellActive>사용 시:</spellActive> 폭발성 탄환을 발사해 대상에게 <physicalDamage>@ModifiedDamage@(%i:scaleAD%)</physicalDamage>의 물리 피해를 입히고, 인접한 적에게 <physicalDamage>@ModifiedSecondaryDamage@(%i:scaleAD%%i:scaleAP%)</physicalDamage>의 물리 피해를 입힙니다.",
         "icon": "ASSETS/Characters/TFT17_Graves/HUD/Icons2D/TFT17_GravesR.TFT_Set17.tex",
         "variables": [
           {
@@ -5936,8 +6008,8 @@
             "name": "Damage",
             "value": [
               400,
-              360,
-              540,
+              390,
+              585,
               5555,
               5555,
               5555,
@@ -5948,8 +6020,8 @@
             "name": "SecondaryDamageAD",
             "value": [
               120,
-              120,
-              180,
+              135,
+              200,
               3333,
               3333,
               3333,
@@ -5990,11 +6062,11 @@
         "critChance": 0.25,
         "critMultiplier": 1.399999976158142,
         "initialMana": 50,
-        "mana": 120
+        "mana": 110
       },
       "ability": {
         "name": "혀 채찍",
-        "desc": "기본 지속 효과: 전투당 1회 체력이 35% 아래로 떨어지면 4초 동안 이번 전투에서 받은 체력 회복량의 40%에 해당하는 보호막을 얻습니다.\n\n사용 시: 체력을 0.1 () 회복한 후 2칸 내 모든 적에게 혀 채찍을 날려 45()의 마법 피해를 입힙니다.",
+        "desc": "<spellPassive>기본 지속 효과:</spellPassive> 전투당 1회 체력이 @HPThreshold*100@% 아래로 떨어지면 @ShieldDuration@초 동안 이번 전투에서 받은 체력 회복량의 @PercentHealingToShield*100@%에 해당하는 보호막을 얻습니다.<br><br><spellActive>사용 시:</spellActive> 체력을 <scaleHealth>@ModifiedHeal@ (%i:scaleHealth%%i:scaleAP%)</scaleHealth> 회복한 후 2칸 내 모든 적에게 혀 채찍을 날려 <magicDamage>@ModifiedDamage@(%i:scaleAP%%i:scaleHealth%)</magicDamage>의 마법 피해를 입힙니다.",
         "icon": "ASSETS/Characters/TFT17_TahmKench/HUD/Icons2D/TFT17_TahmKenchQ.TFT_Set17.tex",
         "variables": [
           {
@@ -6025,8 +6097,8 @@
             "name": "HealAP",
             "value": [
               0,
-              275,
-              315,
+              300,
+              360,
               1500,
               2500,
               0,
@@ -6051,8 +6123,8 @@
               120,
               45,
               60,
-              800,
-              600,
+              1500,
+              1500,
               870,
               870
             ]
@@ -6106,7 +6178,7 @@
       },
       "ability": {
         "name": "신성한 낫",
-        "desc": "2초 동안 내구력을 20% 얻고 지속시간 동안 체력을 500 () 회복합니다. 이후 전방을 일직선으로 베어 적중한 적에게 120()의 물리 피해를 입히고 1초 동안 공중에 띄웁니다.",
+        "desc": "@Duration@초 동안 내구력을 <TFTBonus>@Durability*100@%</TFTBonus> 얻고 지속시간 동안 체력을 <scaleHealth>@ModifiedHeal@ (%i:scaleAP%)</scaleHealth> 회복합니다. 이후 전방을 일직선으로 베어 적중한 적에게 <physicalDamage>@ModifiedDamage@(%i:scaleAD%)</physicalDamage>의 물리 피해를 입히고 @KnockupDuration@초 동안 공중에 띄웁니다.",
         "icon": "ASSETS/Characters/TFT17_Rhaast/HUD/Icons2D/TFT17_Kayn_Passive_Slay.TFT_Set17.tex",
         "variables": [
           {
@@ -6192,7 +6264,7 @@
       },
       "ability": {
         "name": "시간 코어",
-        "desc": "코어 판매 시 ?의 경험치를 획득합니다.",
+        "desc": "코어 판매 시 @TFTUnitProperty.:TFT17_Timebreaker_NumEXP@의 경험치를 획득합니다.",
         "icon": "",
         "variables": []
       },
@@ -6200,7 +6272,7 @@
     },
     {
       "name": "렉사이",
-      "apiName": "TFT17_RekSai",
+      "apiName": "TFT17_Reksai",
       "cost": 1,
       "traits": [
         "태고족",
@@ -6220,8 +6292,8 @@
       },
       "ability": {
         "name": "지반 돌출",
-        "desc": "체력을 6% () 회복한 후 인접한 적을 잠시 공중에 띄우고 80()의 마법 피해를 입힙니다.",
-        "icon": "ASSETS/Characters/TFT17_RekSai/HUD/Icons2D/TFT17_RekSai_W2.TFT_Set17.tex",
+        "desc": "체력을 <scaleHealth>@TotalHealing@ (%i:scaleHealth%%i:scaleAP%)</scaleHealth> 회복한 후 인접한 적을 잠시 공중에 띄우고 <magicDamage>@ModifiedDamage@(%i:scaleAP%)</magicDamage>의 마법 피해를 입힙니다.<br>",
+        "icon": "ASSETS/Characters/TFT17_Reksai/HUD/Icons2D/TFT17_Reksai_W2.TFT_Set17.tex",
         "variables": [
           {
             "name": "PercentMaximumHealthHealing",
@@ -6298,7 +6370,7 @@
       },
       "ability": {
         "name": "고급 방어술",
-        "desc": "4초 동안 보호막을 275(), 내구력을 15% 얻습니다. 지속시간 동안 원뿔 범위 내 적에게 매초 ?()의 물리 피해를 입힙니다.",
+        "desc": "@Duration@초 동안 보호막을 <TFTBonus>@ModifiedShield@(%i:scaleHealth%%i:scaleAP%)</TFTBonus>, 내구력을 <TFTBonus>@Durability*100@%</TFTBonus> 얻습니다. 지속시간 동안 원뿔 범위 내 적에게 매초 <physicalDamage>@ModifiedDamage@(%i:scaleAD%)</physicalDamage>의 물리 피해를 입힙니다.",
         "icon": "ASSETS/Characters/TFT17_Pantheon/HUD/Icons2D/TFT17_Pantheon_E1.TFT_Set17.tex",
         "variables": [
           {
@@ -6368,49 +6440,61 @@
     {
       "name": "모르가나",
       "apiName": "TFT17_Morgana",
-      "cost": 5,
+      "cost": 4,
       "traits": [
         "어둠의 여인"
       ],
       "stats": {
-        "hp": 1000,
-        "armor": 50,
-        "magicResist": 50,
-        "damage": 50,
-        "attackSpeed": 0.8999999761581421,
+        "hp": 1300,
+        "armor": 70,
+        "magicResist": 70,
+        "damage": 60,
+        "attackSpeed": 0.6499999761581421,
         "range": 2,
         "critChance": 0.25,
         "critMultiplier": 1.399999976158142,
-        "initialMana": 20,
-        "mana": 60
+        "initialMana": 40,
+        "mana": 100
       },
       "ability": {
         "name": "어둠의 형상",
-        "desc": "기본 지속 효과: 스킬 피해량의 20%만큼 체력을 회복합니다.\n\n사용 시: 5초 동안 어둠의 형상으로 변신하고 지속시간 동안 250()의 보호막을 얻습니다. 어둠의 형상인 동안 가장 가까운 적 3명을 사슬로 연결해 각각 매초 ?()의 마법 피해를 입힙니다.\n\n변신이 끝나면 연결된 모든 적에게 240()의 마법 피해를 입힙니다.",
+        "desc": "@HealthGainDuration@초 동안 변신하여 체력을 <scaleHealth>@ModifiedHealthGain@ (%i:scaleAP%%i:scaleHealth%)</scaleHealth> 얻고 주변 챔피언에게 사슬을 연결합니다. 지속시간 동안 가장 가까운 적 @NumEnemies@명에게 <magicDamage>@ModifiedDamage@(%i:scaleAP%)</magicDamage>의 마법 피해를 입히고, 가장 가까운 부상당한 아군 @NumAllies@명의 체력을 <scaleHealth>@ModifiedHeal@ (%i:scaleAP%)</scaleHealth> 회복시킵니다.",
         "icon": "ASSETS/Characters/TFT17_Morgana/HUD/Icons2D/FallenAngel_Empathize.TFT_Set17.tex",
         "variables": [
           {
-            "name": "Shield",
+            "name": "APHealthGain",
             "value": [
-              300,
-              250,
-              300,
-              4000,
-              4000,
-              4000,
-              300
+              0,
+              600,
+              700,
+              2500,
+              2500,
+              2500,
+              2500
             ]
           },
           {
-            "name": "TetherDamagePerSecond",
+            "name": "PercentHPHealthGain",
             "value": [
               0,
-              50,
-              75,
-              1500,
+              0.15000000596046448,
+              0.15000000596046448,
+              0.5,
               3000,
               0,
               0
+            ]
+          },
+          {
+            "name": "HealthGainDuration",
+            "value": [
+              3,
+              3,
+              3,
+              3,
+              3,
+              3,
+              3
             ]
           },
           {
@@ -6426,44 +6510,44 @@
             ]
           },
           {
-            "name": "FinalDamage",
+            "name": "NumAllies",
+            "value": [
+              2,
+              2,
+              2,
+              2,
+              2,
+              2,
+              2
+            ]
+          },
+          {
+            "name": "APDamage",
             "value": [
               0,
-              240,
-              360,
-              4000,
-              4000,
+              100,
+              150,
+              3000,
+              0,
               0,
               0
             ]
           },
           {
-            "name": "OmnivampPercent",
+            "name": "APHealing",
             "value": [
-              0.20000000298023224,
-              0.20000000298023224,
-              0.20000000298023224,
-              0.20000000298023224,
-              0.20000000298023224,
-              0.20000000298023224,
-              0.20000000298023224
-            ]
-          },
-          {
-            "name": "Duration",
-            "value": [
-              5,
-              5,
-              5,
-              5,
-              5,
-              5,
-              5
+              0,
+              100,
+              150,
+              3000,
+              0,
+              0,
+              0
             ]
           }
         ]
       },
-      "role": "APFighter"
+      "role": "APTank"
     },
     {
       "name": "우주 오징어",
@@ -6509,7 +6593,7 @@
       },
       "ability": {
         "name": "볼 것 없음!",
-        "desc": "우주 고철 수집가는 무언가를 하기에는 지능이 부족하며 아무 생각 없이 공격만 할 뿐입니다. 그래도 최선을 다하고 있답니다!",
+        "desc": "우주 고철 수집가는 무언가를 하기에는 지능이 부족하며 아무 생각 없이 공격만 할 뿐입니다. 그래도 최선을 다하고 있답니다! ",
         "icon": "ASSETS/Characters/TFT17_PVE_Raptor/HUD/TFT17_PVE_Raptor_AbilityIcon.TFT_Set17.tex",
         "variables": []
       },
@@ -6534,7 +6618,7 @@
       },
       "ability": {
         "name": "볼 것 없음!",
-        "desc": "우주 난동꾼은 무언가를 하기에는 지능이 부족하며 아무 생각 없이 공격만 할 뿐입니다. 조심하세요, 상당히 강력합니다!",
+        "desc": "우주 난동꾼은 무언가를 하기에는 지능이 부족하며 아무 생각 없이 공격만 할 뿐입니다. 조심하세요, 상당히 강력합니다! ",
         "icon": "ASSETS/Characters/TFT17_PVE_Krug/Skins/HUD/TFT17_PVE_Krug_AbilityIcon.TFT_Set17.tex",
         "variables": []
       },
@@ -6547,7 +6631,7 @@
       "traits": [],
       "stats": {
         "hp": 0,
-        "armor": 0,
+        "armor": 20,
         "magicResist": 20,
         "damage": 0,
         "attackSpeed": 0.800000011920929,
@@ -6559,7 +6643,7 @@
       },
       "ability": {
         "name": "볼 것 없음! ",
-        "desc": "우주 요정나비는 무언가를 하기에는 지능이 부족하며 아무 생각 없이 공격만 할 뿐입니다. 약간 성가신 정도죠.",
+        "desc": "우주 요정나비는 무언가를 하기에는 지능이 부족하며 아무 생각 없이 공격만 할 뿐입니다. 약간 성가신 정도죠. ",
         "icon": "ASSETS/Characters/TFT17_PVE_Pix/HUD/TFT17_PVE_Pix_AbilityIcon.TFT_Set17.tex",
         "variables": []
       },
@@ -6609,7 +6693,7 @@
       },
       "ability": {
         "name": "태초의 숨결",
-        "desc": "기본 지속 효과: 기본 공격 시 대상 뒤 원뿔 범위에 광역 피해를 입힙니다. 조심하세요!",
+        "desc": "<spellPassive>기본 지속 효과:</spellPassive> 기본 공격 시 대상 뒤 원뿔 범위에 광역 피해를 입힙니다. 조심하세요! ",
         "icon": "ASSETS/Characters/TFT17_PVE_ElderDragon/HUD/Dragon_Square_Elder.TFT_Set17.tex",
         "variables": []
       },
@@ -6684,7 +6768,7 @@
       },
       "ability": {
         "name": "중력 붕괴",
-        "desc": "초신성에 의해 생성된 소형 블랙홀입니다.\n\n아군 암흑의 별 체력의 30%만큼 최대 체력을 얻습니다.",
+        "desc": "초신성에 의해 생성된 소형 블랙홀입니다.<br><br>아군 암흑의 별 체력의 <scaleHealth>@TOOLTIPDarkStarPercentHP@%</scaleHealth>만큼 최대 체력을 얻습니다.",
         "icon": "ASSETS/Characters/TFT17_DarkStar_FakeUnit/HUD/TFT17_DarkStar_FakeUnit_SmallSplash.TFT_Set17.tex",
         "variables": [
           {
@@ -6702,6 +6786,116 @@
         ]
       },
       "role": "APTank"
+    },
+    {
+      "name": "태고족 우두머리",
+      "apiName": "TFT17_Enemy_Aatrox",
+      "cost": 5,
+      "traits": [],
+      "stats": {
+        "hp": 8452,
+        "armor": 150,
+        "magicResist": 150,
+        "damage": 90,
+        "attackSpeed": 0.8999999761581421,
+        "range": 1,
+        "critChance": 0.25,
+        "critMultiplier": 1.399999976158142,
+        "initialMana": 50,
+        "mana": 85
+      },
+      "ability": {
+        "name": "종말의 선지자",
+        "desc": "기본 지속 효과: 검들이 격자 형태로 날아가 적중한 적에게 <physicalDamage>@TotalGridDamage@(%i:scaleAD%%i:scaleAP%)</physicalDamage>의 물리 피해를 입힙니다. <br><br>사용 시: 검 @NumSwords@개를 공중으로 날리고 내구력을 <TFTBonus>@Durability*100@%</TFTBonus> 얻습니다. 검은 착지하며 @HexRange@칸 내 적중한 적에게 <physicalDamage>@TotalSwordAoEDamage@(%i:scaleAD%%i:scaleAP%)</physicalDamage>의 물리 피해를 입힙니다.",
+        "icon": "ASSETS/Characters/TFT17_Enemy_Aatrox/HUD/Icons2D/TFT17_Enemy_Aatrox_R.TFT_Set17.tex",
+        "variables": [
+          {
+            "name": "GridADDamage",
+            "value": [
+              200,
+              200,
+              200,
+              200,
+              200,
+              200,
+              200
+            ]
+          },
+          {
+            "name": "GridAPDamage",
+            "value": [
+              200,
+              200,
+              200,
+              200,
+              200,
+              200,
+              200
+            ]
+          },
+          {
+            "name": "SwordAoEADDamage",
+            "value": [
+              800,
+              800,
+              800,
+              800,
+              800,
+              800,
+              800
+            ]
+          },
+          {
+            "name": "SwordAoEAPDamage",
+            "value": [
+              800,
+              800,
+              800,
+              800,
+              800,
+              800,
+              800
+            ]
+          },
+          {
+            "name": "NumSwords",
+            "value": [
+              20,
+              20,
+              20,
+              20,
+              20,
+              20,
+              20
+            ]
+          },
+          {
+            "name": "HexRange",
+            "value": [
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          {
+            "name": "Durability",
+            "value": [
+              0.75,
+              0.75,
+              0.75,
+              0.75,
+              0.75,
+              0.75,
+              0.75
+            ]
+          }
+        ]
+      },
+      "role": "ADTank"
     }
   ]
 }

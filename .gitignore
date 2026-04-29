@@ -1,6 +1,8 @@
 .bkit
 .claude
+.worktrees
 .next
+.superpowers
 .vscode
 /node_modules
 /raw-data
@@ -12,6 +14,15 @@ next-env.d.ts
 
 # docs
 /docs/*
+!/docs/01-plan/
+!/docs/02-design/
+!/docs/meta/
+!/docs/superpowers/
 /scripts/*.playwright-mcp/
 raw-data/
 scripts/
+
+# actual-data videos (로컬 전용, 각 기기에서만 보관)
+actual-data/videos/*
+!actual-data/videos/.gitkeep
+.DS_Store

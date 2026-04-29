@@ -155,6 +155,11 @@ export function getAugmentImage(icon: string): string {
   // Convert ASSETS/Maps/TFT/Icons/Augments/Hexcore/Xxx.TFT_Set16.tex
   // → https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/xxx.tft_set16.png
   const lower = icon.toLowerCase().replace('.tex', '.png');
+  // 17.2 PostLaunchAugments (예: LeonaHero_I) 는 latest 브랜치에 아직 미반영.
+  // PBE branch 에 있으므로 해당 패턴 한정으로 PBE URL 사용.
+  if (lower.includes('postlaunchaugments')) {
+    return `https://raw.communitydragon.org/pbe/game/${lower}`;
+  }
   return `https://raw.communitydragon.org/latest/game/${lower}`;
 }
 
@@ -162,12 +167,14 @@ export const TIER_BORDER_COLORS: Record<AugmentTier, string> = {
   silver: 'border-gray-400',
   gold: 'border-yellow-500',
   prismatic: 'border-fuchsia-400',
+  boon: 'border-amber-400',
 };
 
 export const TIER_BG_COLORS: Record<AugmentTier, string> = {
   silver: 'from-gray-600 to-gray-500',
   gold: 'from-yellow-700 to-yellow-500',
   prismatic: 'from-fuchsia-700 to-fuchsia-400',
+  boon: 'from-amber-700 to-amber-400',
 };
 
 export const COST_BORDER_COLORS: Record<number, string> = {

@@ -68,12 +68,11 @@ body {
   filter: brightness(1.1);
 }
 
-/* Tooltip */
+/* Tooltip — 항상 최상위. 모달(z-50), hoverUnit(z-50) 등보다 위로 올린다. */
 .tooltip-content {
   background: var(--bg-secondary);
   border: 1px solid var(--bg-tertiary);
   border-radius: 8px;
   padding: 8px 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-  z-index: 50;
 }

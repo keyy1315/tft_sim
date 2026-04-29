@@ -1,5 +1,6 @@
 import { RawChampion, RawItem, ChampionStats, StatBreakdown, ItemEffect, ActiveTrait, STAR_SCALING } from '@/types';
 import { ITEM_EFFECT_KEYS } from '@/lib/simulator/models/constants';
+import { ITEM_EFFECTS } from '@/lib/simulator/systems/items/registry';
 
 /** 빌지워터 능력치 구매 → ItemEffect 변환 (빌지워터 유닛에만 적용) */
 export function resolveBilgewaterStatEffects(
@@ -27,17 +28,49 @@ export function resolveBilgewaterStatEffects(
   return result;
 }
 
+/**
+ * 아이템 → ItemEffect 누적.
+ *
+ * Registry 우선 + legacy fallback 전략 (Design §8.1):
+ * - ITEM_EFFECTS[apiName] 에 entry 존재 → StatPatch descriptor 합산 (새 경로)
+ * - entry 없음 → 기존 ITEM_EFFECT_KEYS 매핑으로 effects 순회 (legacy 경로)
+ *
+ * Phase 2: 이관 완료 아이템과 미이관 아이템이 공존. 두 경로가 동일한 결과를 내도록 유지.
+ */
 export function getItemEffects(items: RawItem[]): ItemEffect {
   const result: ItemEffect = {};
   for (const item of items) {
-    for (const [key, value] of Object.entries(item.effects)) {
-      const mapped = ITEM_EFFECT_KEYS[key];
-      if (mapped && typeof value === 'number') {
-        (result as Record<string, number>)[mapped] = ((result as Record<string, number>)[mapped] || 0) + value;
+    const descriptors = ITEM_EFFECTS[item.apiName];
+    if (descriptors && descriptors.length > 0) {
+      for (const d of descriptors) {
+        if (d.kind === 'stat') mergeStatPatch(result, d.stats);
       }
+      continue;
     }
+    mergeLegacy(result, item.effects);
   }
   return result;
+}
+
+function mergeStatPatch(target: ItemEffect, patch: Partial<ItemEffect>): void {
+  const t = target as Record<string, number>;
+  const p = patch as Record<string, number | undefined>;
+  for (const key in p) {
+    const v = p[key];
+    if (typeof v === 'number') {
+      t[key] = (t[key] ?? 0) + v;
+    }
+  }
+}
+
+function mergeLegacy(target: ItemEffect, effects: Record<string, number>): void {
+  const t = target as Record<string, number>;
+  for (const [key, value] of Object.entries(effects)) {
+    const mapped = ITEM_EFFECT_KEYS[key];
+    if (mapped && typeof value === 'number') {
+      t[mapped] = (t[mapped] ?? 0) + value;
+    }
+  }
 }
 
 /** Trait-specific variable → stat mapping table */
@@ -68,6 +101,9 @@ export function getTraitBonuses(activeTraits: ActiveTrait[]): ExtendedTraitEffec
   const result: ExtendedTraitEffect = {};
   for (const at of activeTraits) {
     if (!at.activeEffect) continue;
+    // 메카 (TFT17_Mecha): 메카 unit 한정 효과. generic AD/AP team-wide 적용 회피.
+    // combatLoop.applyMechaEffects 에서 멤버 한정 후처리.
+    if (at.trait.apiName === 'TFT17_Mecha') continue;
     const vars = at.activeEffect.variables;
 
     // Generic variable mapping

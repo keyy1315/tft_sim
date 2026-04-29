@@ -2,8 +2,9 @@
   "meta": {
     "trait": "TFT17_ADMIN",
     "traitName": "중재자",
-    "source": "lolchess.gg/synergies/set17",
-    "extractedAt": "2026-04-17"
+    "source": "lolchess.gg/rewards/set17/arbiter",
+    "extractedAt": "2026-04-29",
+    "patch": "17.2"
   },
   "triggers": [
     {
@@ -124,10 +125,10 @@
   "laws": {
     "on_deal_10_hits": [
       { "effect": "mana",          "silver": 10,  "gold": 15 },
-      { "effect": "ap",            "silver": 8,   "gold": 12 },
+      { "effect": "ap",            "silver": 7,   "gold": 10 },
       { "effect": "armor_mr",      "silver": 16,  "gold": 24 },
       { "effect": "attack_speed",  "silver": 5,   "gold": 8 },
-      { "effect": "permanent_hp",  "silver": 11,  "gold": 17 },
+      { "effect": "permanent_hp",  "silver": 13,  "gold": 20 },
       { "effect": "shield",        "silver": 10,  "gold": 15 },
       { "effect": "free_reroll",   "silver": 10,  "gold": 15 }
     ],
@@ -143,7 +144,7 @@
     ],
     "on_3_basic_attacks": [
       { "effect": "mana",          "silver": 7,   "gold": 10 },
-      { "effect": "ap",            "silver": 6,   "gold": 9 },
+      { "effect": "ap",            "silver": 5,   "gold": 8 },
       { "effect": "permanent_hp",  "silver": 8,   "gold": 12 },
       { "effect": "attack_speed",  "silver": 3,   "gold": 5 },
       { "effect": "shield",        "silver": 7,   "gold": 10 },
@@ -154,15 +155,15 @@
       { "effect": "armor_mr",      "silver": 45,  "gold": 70 },
       { "effect": "leona_drop",    "silver": 50,  "gold": 100 },
       { "effect": "attack_speed",  "silver": 30,  "gold": 45 },
-      { "effect": "permanent_hp",  "silver": 50,  "gold": 75 },
-      { "effect": "shield",        "silver": 40,  "gold": 60 },
+      { "effect": "permanent_hp",  "silver": 67,  "gold": 100 },
+      { "effect": "shield",        "silver": 44,  "gold": 66 },
       { "effect": "gold_drop",     "silver": 22,  "gold": 22, "silverGold": 2, "goldGold": 4 }
     ],
     "every_4_seconds": [
       { "effect": "mana",          "silver": 8,   "gold": 12 },
       { "effect": "ap",            "silver": 10,  "gold": 15 },
       { "effect": "armor_mr",      "silver": 16,  "gold": 24 },
-      { "effect": "leona_drop",    "silver": 18,  "gold": 25 },
+      { "effect": "leona_drop",    "silver": 15,  "gold": 22 },
       { "effect": "attack_speed",  "silver": 11,  "gold": 17 },
       { "effect": "permanent_hp",  "silver": 14,  "gold": 21 },
       { "effect": "free_reroll",   "silver": 18,  "gold": 25 },
@@ -176,9 +177,9 @@
       { "effect": "leona_drop",    "silver": 25,  "gold": 50 },
       { "effect": "permanent_hp",  "silver": 55,  "gold": 85 },
       { "effect": "free_reroll",   "silver": 25,  "gold": 50 },
-      { "effect": "shield",        "silver": 55,  "gold": 85 },
+      { "effect": "shield",        "silver": 50,  "gold": 75 },
       { "effect": "gold_drop",     "silver": 11,  "gold": 11, "silverGold": 2, "goldGold": 4 },
-      { "effect": "attack_speed",  "silver": 70,  "gold": 100 }
+      { "effect": "attack_speed",  "silver": 80,  "gold": 120 }
     ],
     "on_spend_50_mana": [
       { "effect": "mana",          "silver": 10,  "gold": 15 },
@@ -189,17 +190,17 @@
       { "effect": "free_reroll",   "silver": 12,  "gold": 20 },
       { "effect": "shield",        "silver": 8,   "gold": 12 },
       { "effect": "gold_drop",     "silver": 4,   "gold": 4,  "silverGold": 2, "goldGold": 4 },
-      { "effect": "permanent_hp",  "silver": 24,  "gold": 36 }
+      { "effect": "permanent_hp",  "silver": 20,  "gold": 30 }
     ],
     "on_combat_start_per_star": [
       { "effect": "ap",            "silver": 7,   "gold": 7 },
       { "effect": "armor_mr",      "silver": 10,  "gold": 10 },
       { "effect": "leona_drop",    "silver": 12,  "gold": 12 },
       { "effect": "attack_speed",  "silver": 7,   "gold": 7 },
-      { "effect": "permanent_hp",  "silver": 10,  "gold": 10 },
+      { "effect": "permanent_hp",  "silver": 12,  "gold": 12 },
       { "effect": "free_reroll",   "silver": 12,  "gold": 12 },
       { "effect": "shield",        "silver": 7,   "gold": 7 },
-      { "effect": "gold_drop",     "silver": 5,   "gold": 5,  "silverGold": 2, "goldGold": 2 }
+      { "effect": "gold_drop",     "silver": 8,   "gold": 8,  "silverGold": 2, "goldGold": 2 }
     ],
     "on_enemy_death": [
       { "effect": "mana",          "silver": 8,   "gold": 12 },

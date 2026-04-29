@@ -1,0 +1,6358 @@
+{
+  "gameId": "game-20260424-001",
+  "videoSource": {
+    "kind": "local",
+    "filename": "game-20260424-001.mp4",
+    "mimeType": "video/mp4",
+    "sizeBytes": 3716103679,
+    "durationSeconds": 1961.431667,
+    "uploadedAt": "2026-04-24T02:14:15.353Z"
+  },
+  "patchVersion": "17.1",
+  "playerRiotId": "무례한 친구#0129",
+  "finalPlacement": 4,
+  "shrinesInPlay": [
+    "thresh",
+    "ahri"
+  ],
+  "timeline": [],
+  "createdAt": "2026-04-24T02:13:50.300Z",
+  "updatedAt": "2026-04-27T04:33:47.396Z",
+  "rounds": [
+    {
+      "type": "pvp",
+      "roundName": "2-1",
+      "videoStartTime": 188.7,
+      "videoEndTime": 222.3,
+      "playerTeam": {
+        "units": [
+          {
+            "championId": "TFT17_Jinx",
+            "hex": {
+              "q": 2,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Aurora",
+            "hex": {
+              "q": 3,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Briar",
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT_Item_GiantsBelt",
+              "TFT_Item_JeweledGauntlet",
+              null
+            ]
+          }
+        ],
+        "augments": [
+          "TFT11_Augment_Slammin",
+          null,
+          null,
+          null
+        ],
+        "level": 3,
+        "hp": 100,
+        "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 2,
+              "r": 0
+            },
+            "championId": "TFT17_Jinx",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 0
+            },
+            "championId": "TFT17_Aurora",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "championId": "TFT17_Briar",
+            "alive": false,
+            "hpPercent": 0
+          }
+        ]
+      },
+      "opponent": {
+        "units": [
+          {
+            "championId": "TFT17_Leona",
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT_Item_GiantsBelt",
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Diana",
+            "hex": {
+              "q": 4,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT_Item_TitansResolve",
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Zoe",
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          }
+        ],
+        "augments": [
+          "TFT11_Augment_Slammin",
+          null,
+          null,
+          null
+        ],
+        "level": 3,
+        "hp": 100,
+        "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "championId": "TFT17_Zoe",
+            "alive": true,
+            "hpPercent": 100
+          },
+          {
+            "hex": {
+              "q": 4,
+              "r": 3
+            },
+            "championId": "TFT17_Diana",
+            "alive": true,
+            "hpPercent": 100
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "championId": "TFT17_Leona",
+            "alive": true,
+            "hpPercent": 10
+          }
+        ],
+        "riotId": "아무것도몰루요#KR1"
+      },
+      "winner": "opponent",
+      "playerDamageChart": [
+        {
+          "unitHex": {
+            "q": 2,
+            "r": 0
+          },
+          "championId": "TFT17_Jinx",
+          "damage": 716
+        },
+        {
+          "unitHex": {
+            "q": -1,
+            "r": 3
+          },
+          "championId": "TFT17_Briar",
+          "damage": 399
+        },
+        {
+          "unitHex": {
+            "q": 3,
+            "r": 0
+          },
+          "championId": "TFT17_Aurora",
+          "damage": 132
+        }
+      ]
+    },
+    {
+      "type": "pvp",
+      "roundName": "2-2",
+      "videoStartTime": 257.3,
+      "videoEndTime": 304.6,
+      "playerTeam": {
+        "units": [
+          {
+            "championId": "TFT17_Jinx",
+            "hex": {
+              "q": 4,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Aurora",
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Briar",
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT_Item_GiantsBelt",
+              "TFT_Item_JeweledGauntlet",
+              null
+            ]
+          }
+        ],
+        "augments": [
+          "TFT11_Augment_Slammin",
+          null,
+          null,
+          null
+        ],
+        "level": 4,
+        "hp": 95,
+        "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 4,
+              "r": 0
+            },
+            "championId": "TFT17_Jinx",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "championId": "TFT17_Aurora",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "championId": "TFT17_Briar",
+            "alive": false,
+            "hpPercent": 0
+          }
+        ]
+      },
+      "opponent": {
+        "units": [
+          {
+            "championId": "TFT17_Aatrox",
+            "hex": {
+              "q": 1,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Pantheon",
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Gragas",
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT_Item_ChainVest",
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Belveth",
+            "hex": {
+              "q": -1,
+              "r": 2
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_SparringGloves",
+              null,
+              null
+            ]
+          }
+        ],
+        "augments": [
+          null,
+          "TFT7_Augment_PandorasBench",
+          null,
+          null
+        ],
+        "level": 4,
+        "hp": 100,
+        "hexModifiers": [],
+        "riotId": "지치기지치기야야야#kr2"
+      },
+      "winner": "opponent",
+      "playerDamageChart": [
+        {
+          "unitHex": {
+            "q": 5,
+            "r": 0
+          },
+          "championId": "TFT17_Aurora",
+          "damage": 691
+        },
+        {
+          "unitHex": {
+            "q": 4,
+            "r": 0
+          },
+          "championId": "TFT17_Jinx",
+          "damage": 584
+        },
+        {
+          "unitHex": {
+            "q": -1,
+            "r": 3
+          },
+          "championId": "TFT17_Briar",
+          "damage": 570
+        }
+      ]
+    },
+    {
+      "type": "pvp",
+      "roundName": "2-3",
+      "videoStartTime": 340,
+      "videoEndTime": 378,
+      "playerTeam": {
+        "units": [
+          {
+            "championId": "TFT17_Jinx",
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Aurora",
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Briar",
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT_Item_GiantsBelt",
+              "TFT_Item_JeweledGauntlet",
+              null
+            ]
+          }
+        ],
+        "augments": [
+          "TFT11_Augment_Slammin",
+          null,
+          null,
+          null
+        ],
+        "level": 4,
+        "hp": 90,
+        "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "championId": "TFT17_Jinx",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "championId": "TFT17_Aurora",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "championId": "TFT17_Briar",
+            "alive": false,
+            "hpPercent": 0
+          }
+        ]
+      },
+      "opponent": {
+        "units": [
+          {
+            "championId": "TFT17_Aatrox",
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_TwistedFate",
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Caitlyn",
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Jax",
+            "hex": {
+              "q": 3,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          }
+        ],
+        "augments": [
+          "TFT17_Augment_JaxCarry",
+          null,
+          null,
+          null
+        ],
+        "level": 4,
+        "hp": 95,
+        "hexModifiers": [],
+        "riotId": "fhina#KR1"
+      },
+      "winner": "opponent",
+      "playerDamageChart": [
+        {
+          "unitHex": {
+            "q": -1,
+            "r": 3
+          },
+          "championId": "TFT17_Briar",
+          "damage": 351
+        },
+        {
+          "unitHex": {
+            "q": 6,
+            "r": 0
+          },
+          "championId": "TFT17_Aurora",
+          "damage": 128
+        },
+        {
+          "unitHex": {
+            "q": 5,
+            "r": 0
+          },
+          "championId": "TFT17_Jinx",
+          "damage": 126
+        }
+      ]
+    },
+    {
+      "type": "shrine",
+      "roundName": "2-4",
+      "videoStartTime": 385.5,
+      "playerChosenShrine": "ahri"
+    },
+    {
+      "type": "pvp",
+      "roundName": "2-5",
+      "videoStartTime": 451.8,
+      "videoEndTime": 478.5,
+      "playerTeam": {
+        "units": [
+          {
+            "championId": "TFT17_Jinx",
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Aurora",
+            "hex": {
+              "q": 5,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Caitlyn",
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Lissandra",
+            "hex": {
+              "q": 4,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Briar",
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT_Item_Redemption",
+              "TFT_Item_JeweledGauntlet",
+              null
+            ]
+          }
+        ],
+        "augments": [
+          "TFT11_Augment_Slammin",
+          null,
+          null,
+          null
+        ],
+        "level": 5,
+        "hp": 84,
+        "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "championId": "TFT17_Jinx",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 5,
+              "r": 3
+            },
+            "championId": "TFT17_Aurora",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "championId": "TFT17_Caitlyn",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 4,
+              "r": 3
+            },
+            "championId": "TFT17_Lissandra",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "championId": "TFT17_Briar",
+            "alive": false,
+            "hpPercent": 0
+          }
+        ]
+      },
+      "opponent": {
+        "units": [
+          {
+            "championId": "TFT17_Ezreal",
+            "hex": {
+              "q": 4,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT_Item_SpearOfShojin",
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Chogath",
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_GiantsBelt",
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Gnar",
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Pantheon",
+            "hex": {
+              "q": 3,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_MissFortune",
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          }
+        ],
+        "augments": [
+          "TFT_Augment_AuraFarming",
+          null,
+          null,
+          null
+        ],
+        "level": 5,
+        "hp": 85,
+        "hexModifiers": [],
+        "riotId": "어쩌다쥬금#KR1"
+      },
+      "winner": "opponent",
+      "playerDamageChart": [
+        {
+          "unitHex": {
+            "q": 5,
+            "r": 3
+          },
+          "championId": "TFT17_Aurora",
+          "damage": 657
+        },
+        {
+          "unitHex": {
+            "q": 4,
+            "r": 3
+          },
+          "championId": "TFT17_Lissandra",
+          "damage": 438
+        },
+        {
+          "unitHex": {
+            "q": -1,
+            "r": 3
+          },
+          "championId": "TFT17_Briar",
+          "damage": 401
+        },
+        {
+          "unitHex": {
+            "q": 5,
+            "r": 0
+          },
+          "championId": "TFT17_Jinx",
+          "damage": 91
+        },
+        {
+          "unitHex": {
+            "q": 6,
+            "r": 0
+          },
+          "championId": "TFT17_Caitlyn",
+          "damage": 152
+        }
+      ]
+    },
+    {
+      "type": "pvp",
+      "roundName": "2-6",
+      "videoStartTime": 513.8,
+      "videoEndTime": 545,
+      "playerTeam": {
+        "units": [
+          {
+            "championId": "TFT17_Jinx",
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Aurora",
+            "hex": {
+              "q": 5,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Briar",
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT_Item_Redemption",
+              "TFT_Item_JeweledGauntlet",
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_IvernMinion",
+            "hex": {
+              "q": 4,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Ezreal",
+            "hex": {
+              "q": 4,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          }
+        ],
+        "augments": [
+          "TFT11_Augment_Slammin",
+          null,
+          null,
+          null
+        ],
+        "level": 5,
+        "hp": 77,
+        "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "championId": "TFT17_Jinx",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 5,
+              "r": 3
+            },
+            "championId": "TFT17_Aurora",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "championId": "TFT17_Briar",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 4,
+              "r": 0
+            },
+            "championId": "TFT17_IvernMinion",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 4,
+              "r": 3
+            },
+            "championId": "TFT17_Ezreal",
+            "alive": false,
+            "hpPercent": 0
+          }
+        ]
+      },
+      "opponent": {
+        "units": [
+          {
+            "championId": "TFT17_IvernMinion",
+            "hex": {
+              "q": 3,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Poppy",
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT17_Item_ShieldTankEmblemItem",
+              "TFT_Item_GiantsBelt",
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Veigar",
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT_Item_JeweledGauntlet",
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Lissandra",
+            "hex": {
+              "q": 4,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Nasus",
+            "hex": {
+              "q": 1,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT17_Item_AstronautEmblemItem",
+              null,
+              null
+            ]
+          }
+        ],
+        "augments": [
+          "TFT_Augment_SpreadingRoots",
+          null,
+          null,
+          null
+        ],
+        "level": 5,
+        "hp": 97,
+        "hexModifiers": [],
+        "riotId": "달콤나라서현공주#0303"
+      },
+      "winner": "opponent",
+      "playerDamageChart": [
+        {
+          "unitHex": {
+            "q": 5,
+            "r": 3
+          },
+          "championId": "TFT17_Aurora",
+          "damage": 1109
+        },
+        {
+          "unitHex": {
+            "q": -1,
+            "r": 3
+          },
+          "championId": "TFT17_Briar",
+          "damage": 943
+        },
+        {
+          "unitHex": {
+            "q": 5,
+            "r": 0
+          },
+          "championId": "TFT17_Jinx",
+          "damage": 646
+        },
+        {
+          "unitHex": {
+            "q": 4,
+            "r": 3
+          },
+          "championId": "TFT17_Ezreal",
+          "damage": 645
+        },
+        {
+          "unitHex": {
+            "q": 4,
+            "r": 0
+          },
+          "championId": "TFT17_IvernMinion",
+          "damage": 354
+        }
+      ]
+    },
+    {
+      "type": "pvp",
+      "roundName": "3-1",
+      "videoStartTime": 625.9,
+      "videoEndTime": 658,
+      "playerTeam": {
+        "units": [
+          {
+            "championId": "TFT17_Jinx",
+            "hex": {
+              "q": 4,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Aurora",
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Briar",
+            "hex": {
+              "q": 0,
+              "r": 1
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT_Item_Redemption",
+              "TFT_Item_JeweledGauntlet",
+              "TFT_Item_BFSword"
+            ]
+          },
+          {
+            "championId": "TFT17_Ezreal",
+            "hex": {
+              "q": 3,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Briar",
+            "hex": {
+              "q": 1,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Milio",
+            "hex": {
+              "q": 0,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          }
+        ],
+        "augments": [
+          "TFT11_Augment_Slammin",
+          null,
+          null,
+          null
+        ],
+        "level": 6,
+        "hp": 72,
+        "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 4,
+              "r": 3
+            },
+            "championId": "TFT17_Jinx",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "championId": "TFT17_Aurora",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 0,
+              "r": 1
+            },
+            "championId": "TFT17_Briar",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 3
+            },
+            "championId": "TFT17_Ezreal",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 1,
+              "r": 0
+            },
+            "championId": "TFT17_Briar",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 0,
+              "r": 0
+            },
+            "championId": "TFT17_Milio",
+            "alive": false,
+            "hpPercent": 0
+          }
+        ]
+      },
+      "opponent": {
+        "units": [
+          {
+            "championId": "TFT17_Nasus",
+            "hex": {
+              "q": 1,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Leona",
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Zoe",
+            "hex": {
+              "q": 1,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Pantheon",
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Teemo",
+            "hex": {
+              "q": 0,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          }
+        ],
+        "augments": [
+          "TFT_Augment_TreasureHunt",
+          null,
+          null,
+          null
+        ],
+        "level": 5,
+        "hp": 72,
+        "hexModifiers": [],
+        "riotId": "qaqqaa#KR1"
+      },
+      "winner": "opponent",
+      "playerDamageChart": [
+        {
+          "unitHex": {
+            "q": 4,
+            "r": 3
+          },
+          "championId": "TFT17_Jinx",
+          "damage": 1232
+        },
+        {
+          "unitHex": {
+            "q": 5,
+            "r": 0
+          },
+          "championId": "TFT17_Aurora",
+          "damage": 804
+        },
+        {
+          "unitHex": {
+            "q": 1,
+            "r": 0
+          },
+          "championId": "TFT17_Briar",
+          "damage": 698
+        },
+        {
+          "unitHex": {
+            "q": 0,
+            "r": 1
+          },
+          "championId": "TFT17_Briar",
+          "damage": 467
+        },
+        {
+          "unitHex": {
+            "q": 3,
+            "r": 3
+          },
+          "championId": "TFT17_Ezreal",
+          "damage": 666
+        },
+        {
+          "unitHex": {
+            "q": 0,
+            "r": 0
+          },
+          "championId": "TFT17_Milio",
+          "damage": 311
+        }
+      ]
+    },
+    {
+      "type": "pvp",
+      "roundName": "3-2",
+      "videoStartTime": 713.8,
+      "videoEndTime": 754,
+      "playerTeam": {
+        "units": [
+          {
+            "championId": "TFT17_Jinx",
+            "hex": {
+              "q": 4,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Aurora",
+            "hex": {
+              "q": 5,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Briar",
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT_Item_Redemption",
+              "TFT_Item_JeweledGauntlet",
+              "TFT_Item_BFSword"
+            ]
+          },
+          {
+            "championId": "TFT17_Ezreal",
+            "hex": {
+              "q": 4,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Briar",
+            "hex": {
+              "q": 3,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Milio",
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          }
+        ],
+        "augments": [
+          "TFT11_Augment_Slammin",
+          "TFT_Augment_ExclusiveCustomization",
+          null,
+          null
+        ],
+        "level": 6,
+        "hp": 63,
+        "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 4,
+              "r": 3
+            },
+            "championId": "TFT17_Jinx",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 5,
+              "r": 3
+            },
+            "championId": "TFT17_Aurora",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "championId": "TFT17_Briar",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 4,
+              "r": 0
+            },
+            "championId": "TFT17_Ezreal",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 0
+            },
+            "championId": "TFT17_Briar",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "championId": "TFT17_Milio",
+            "alive": false,
+            "hpPercent": 0
+          }
+        ]
+      },
+      "opponent": {
+        "units": [
+          {
+            "championId": "TFT17_Aatrox",
+            "hex": {
+              "q": 1,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Belveth",
+            "hex": {
+              "q": -1,
+              "r": 2
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_SparringGloves",
+              "TFT_Item_GuinsoosRageblade",
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_RekSai",
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_RedBuff",
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Pantheon",
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Ornn",
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT_Item_TearOfTheGoddess",
+              "TFT_Item_SpectralGauntlet",
+              null
+            ]
+          }
+        ],
+        "augments": [
+          "TFT7_Augment_PandorasBench",
+          "TFT_Augment_Waverider",
+          null,
+          null
+        ],
+        "level": 5,
+        "hp": 86,
+        "hexModifiers": [],
+        "riotId": "지치기지치기야야야#kr2"
+      },
+      "winner": "opponent",
+      "playerDamageChart": [
+        {
+          "unitHex": {
+            "q": 5,
+            "r": 3
+          },
+          "championId": "TFT17_Aurora",
+          "damage": 784
+        },
+        {
+          "unitHex": {
+            "q": 4,
+            "r": 3
+          },
+          "championId": "TFT17_Jinx",
+          "damage": 574
+        },
+        {
+          "unitHex": {
+            "q": 5,
+            "r": 0
+          },
+          "championId": "TFT17_Milio",
+          "damage": 505
+        },
+        {
+          "unitHex": {
+            "q": 6,
+            "r": 0
+          },
+          "championId": "TFT17_Briar",
+          "damage": 465
+        },
+        {
+          "unitHex": {
+            "q": 4,
+            "r": 0
+          },
+          "championId": "TFT17_Ezreal",
+          "damage": 225
+        },
+        {
+          "unitHex": {
+            "q": 3,
+            "r": 0
+          },
+          "championId": "TFT17_Briar",
+          "damage": 83
+        }
+      ]
+    },
+    {
+      "type": "pvp",
+      "roundName": "3-3",
+      "videoStartTime": 789,
+      "videoEndTime": 826.6,
+      "playerTeam": {
+        "units": [
+          {
+            "championId": "TFT17_Jinx",
+            "hex": {
+              "q": 4,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Aurora",
+            "hex": {
+              "q": 5,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Briar",
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT_Item_Redemption",
+              "TFT_Item_JeweledGauntlet",
+              "TFT_Item_BFSword"
+            ]
+          },
+          {
+            "championId": "TFT17_Ezreal",
+            "hex": {
+              "q": 4,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Briar",
+            "hex": {
+              "q": 3,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Pantheon",
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Veigar",
+            "hex": {
+              "q": 3,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          }
+        ],
+        "augments": [
+          "TFT11_Augment_Slammin",
+          "TFT_Augment_ExclusiveCustomization",
+          null,
+          null
+        ],
+        "level": 7,
+        "hp": 53,
+        "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 4,
+              "r": 3
+            },
+            "championId": "TFT17_Jinx",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 5,
+              "r": 3
+            },
+            "championId": "TFT17_Aurora",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "championId": "TFT17_Briar",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 4,
+              "r": 0
+            },
+            "championId": "TFT17_Ezreal",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 0
+            },
+            "championId": "TFT17_Briar",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "championId": "TFT17_Pantheon",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 3
+            },
+            "championId": "TFT17_Veigar",
+            "alive": false,
+            "hpPercent": 0
+          }
+        ]
+      },
+      "opponent": {
+        "units": [
+          {
+            "championId": "TFT17_Leona",
+            "hex": {
+              "q": 1,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT_Item_GiantsBelt",
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Diana",
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT_Item_TitansResolve",
+              "TFT_Item_GuinsoosRageblade",
+              "TFT_Item_NegatronCloak"
+            ]
+          },
+          {
+            "championId": "TFT17_Galio",
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Leblanc",
+            "hex": {
+              "q": 2,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Jinx",
+            "hex": {
+              "q": 0,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Aurora",
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_TearOfTheGoddess",
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_IvernMinion",
+            "hex": {
+              "q": 3,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          }
+        ],
+        "augments": [
+          "TFT11_Augment_Slammin",
+          "TFT_Augment_BoosterPack",
+          null,
+          null
+        ],
+        "level": 7,
+        "hp": 84,
+        "hexModifiers": [],
+        "riotId": "아무것도몰루요#KR1"
+      },
+      "winner": "opponent",
+      "playerDamageChart": [
+        {
+          "unitHex": {
+            "q": 5,
+            "r": 3
+          },
+          "championId": "TFT17_Aurora",
+          "damage": 639
+        },
+        {
+          "unitHex": {
+            "q": 4,
+            "r": 3
+          },
+          "championId": "TFT17_Jinx",
+          "damage": 610
+        },
+        {
+          "unitHex": {
+            "q": 6,
+            "r": 0
+          },
+          "championId": "TFT17_Briar",
+          "damage": 438
+        },
+        {
+          "unitHex": {
+            "q": 3,
+            "r": 3
+          },
+          "championId": "TFT17_Veigar",
+          "damage": 403
+        },
+        {
+          "unitHex": {
+            "q": 3,
+            "r": 0
+          },
+          "championId": "TFT17_Briar",
+          "damage": 242
+        },
+        {
+          "unitHex": {
+            "q": 4,
+            "r": 0
+          },
+          "championId": "TFT17_Ezreal",
+          "damage": 208
+        }
+      ]
+    },
+    {
+      "type": "shrine",
+      "roundName": "3-4",
+      "videoStartTime": 826.6,
+      "playerChosenShrine": "ahri"
+    },
+    {
+      "type": "pvp",
+      "roundName": "3-5",
+      "videoStartTime": 889.4,
+      "videoEndTime": 926.2,
+      "playerTeam": {
+        "units": [
+          {
+            "championId": "TFT17_Jinx",
+            "hex": {
+              "q": 4,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Aurora",
+            "hex": {
+              "q": 5,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Briar",
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT_Item_Redemption",
+              "TFT_Item_JeweledGauntlet",
+              "TFT_Item_BFSword"
+            ]
+          },
+          {
+            "championId": "TFT17_Ezreal",
+            "hex": {
+              "q": 4,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Pantheon",
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_TahmKench",
+            "hex": {
+              "q": 3,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT_Item_NegatronCloak",
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Jax",
+            "hex": {
+              "q": 2,
+              "r": 1
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          }
+        ],
+        "augments": [
+          "TFT11_Augment_Slammin",
+          "TFT_Augment_ExclusiveCustomization",
+          null,
+          null
+        ],
+        "level": 7,
+        "hp": 40,
+        "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 4,
+              "r": 3
+            },
+            "championId": "TFT17_Jinx",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 5,
+              "r": 3
+            },
+            "championId": "TFT17_Aurora",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "championId": "TFT17_Briar",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 4,
+              "r": 0
+            },
+            "championId": "TFT17_Ezreal",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "championId": "TFT17_Pantheon",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 0
+            },
+            "championId": "TFT17_TahmKench",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 1
+            },
+            "championId": "TFT17_Jax",
+            "alive": false,
+            "hpPercent": 0
+          }
+        ]
+      },
+      "opponent": {
+        "units": [
+          {
+            "championId": "TFT17_Aatrox",
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_RedBuff",
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_TwistedFate",
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_SparringGloves",
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Caitlyn",
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Jax",
+            "hex": {
+              "q": 4,
+              "r": 2
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_TitansResolve",
+              "TFT_Item_Bloodthirster",
+              "TFT17_Item_Artifact_EvelynnArtifact"
+            ]
+          },
+          {
+            "championId": "TFT17_Talon",
+            "hex": {
+              "q": 4,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          }
+        ],
+        "augments": [
+          "TFT17_Augment_JaxCarry",
+          "TFT17_Augment_ApotheoticForge",
+          null,
+          null
+        ],
+        "level": 5,
+        "hp": 72,
+        "hexModifiers": [],
+        "riotId": "fhina#KR1"
+      },
+      "winner": "opponent"
+    },
+    {
+      "type": "pvp",
+      "roundName": "3-6",
+      "videoStartTime": 961.2,
+      "videoEndTime": 994.3,
+      "playerTeam": {
+        "units": [
+          {
+            "championId": "TFT17_Ezreal",
+            "hex": {
+              "q": 4,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Pantheon",
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_TahmKench",
+            "hex": {
+              "q": 3,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT_Item_NegatronCloak",
+              "TFT_Item_Redemption",
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Jax",
+            "hex": {
+              "q": 2,
+              "r": 1
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Gnar",
+            "hex": {
+              "q": 1,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Xayah",
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT17_AnimaSquadItem_Tier3_Annihilator",
+              "TFT_Item_JeweledGauntlet",
+              "TFT_Item_InfinityEdge"
+            ]
+          },
+          {
+            "championId": "TFT17_Rammus",
+            "hex": {
+              "q": 4,
+              "r": 2
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Briar",
+            "hex": {
+              "q": 2,
+              "r": 2
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          }
+        ],
+        "augments": [
+          "TFT11_Augment_Slammin",
+          "TFT_Augment_ExclusiveCustomization",
+          null,
+          null
+        ],
+        "level": 8,
+        "hp": 33,
+        "hexModifiers": []
+      },
+      "opponent": {
+        "units": [
+          {
+            "championId": "TFT17_IvernMinion",
+            "hex": {
+              "q": 3,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Poppy",
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT17_Item_ShieldTankEmblemItem",
+              "TFT_Item_RedBuff",
+              "TFT_Item_Redemption"
+            ]
+          },
+          {
+            "championId": "TFT17_Veigar",
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT_Item_JeweledGauntlet",
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Lissandra",
+            "hex": {
+              "q": 3,
+              "r": 0
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Nunu",
+            "hex": {
+              "q": 1,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT17_Item_AstronautEmblemItem",
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Gnar",
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT_Item_BFSword",
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Karma",
+            "hex": {
+              "q": 0,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          }
+        ],
+        "augments": [
+          "TFT_Augment_SpreadingRoots",
+          "TFT_Augment_ClimbTheLadder2",
+          null,
+          null
+        ],
+        "level": 7,
+        "hp": 90,
+        "hexModifiers": [],
+        "riotId": "달콤나라서현공주#0303"
+      },
+      "winner": "draw"
+    },
+    {
+      "type": "pvp",
+      "roundName": "4-1",
+      "videoStartTime": 1074.2,
+      "videoEndTime": 1115.7,
+      "playerTeam": {
+        "units": [
+          {
+            "championId": "TFT17_TahmKench",
+            "hex": {
+              "q": 1,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT_Item_SpectralGauntlet",
+              "TFT_Item_Redemption",
+              "TFT_Item_Crownguard"
+            ]
+          },
+          {
+            "championId": "TFT17_Jax",
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Gnar",
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_GuinsoosRageblade",
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Xayah",
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT17_AnimaSquadItem_Tier2_UwuBlaster",
+              "TFT_Item_GuinsoosRageblade",
+              "TFT_Item_InfinityEdge"
+            ]
+          },
+          {
+            "championId": "TFT17_Rammus",
+            "hex": {
+              "q": 2,
+              "r": 0
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Rhaast",
+            "hex": {
+              "q": 2,
+              "r": 1
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Shen",
+            "hex": {
+              "q": 0,
+              "r": 1
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Nunu",
+            "hex": {
+              "q": 4,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          }
+        ],
+        "augments": [
+          "TFT11_Augment_Slammin",
+          "TFT_Augment_ExclusiveCustomization",
+          null,
+          null
+        ],
+        "level": 8,
+        "hp": 17,
+        "hexModifiers": []
+      },
+      "opponent": {
+        "units": [
+          {
+            "championId": "TFT17_Viktor",
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_ArchangelsStaff",
+              "TFT_Item_JeweledGauntlet",
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Rhaast",
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_IvernMinion",
+            "hex": {
+              "q": 4,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Lissandra",
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Nami",
+            "hex": {
+              "q": 0,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Illaoi",
+            "hex": {
+              "q": 1,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Summon",
+            "hex": {
+              "q": 3,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Pyke",
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          }
+        ],
+        "augments": [
+          "TFT_Augment_LegionOfThrees",
+          "TFT9_Augment_PandorasItems2",
+          null,
+          null
+        ],
+        "level": 7,
+        "hp": 45,
+        "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "championId": "TFT17_Viktor",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "championId": "TFT17_Rhaast",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 4,
+              "r": 3
+            },
+            "championId": "TFT17_IvernMinion",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "championId": "TFT17_Lissandra",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 0,
+              "r": 0
+            },
+            "championId": "TFT17_Nami",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 1,
+              "r": 3
+            },
+            "championId": "TFT17_Illaoi",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 3
+            },
+            "championId": "TFT17_Summon",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "championId": "TFT17_Pyke",
+            "alive": false,
+            "hpPercent": 0
+          }
+        ],
+        "riotId": "궤도에오른윤지상#KR1"
+      },
+      "winner": "player",
+      "playerDamageChart": [
+        {
+          "unitHex": {
+            "q": -1,
+            "r": 3
+          },
+          "championId": "TFT17_Xayah",
+          "damage": 6549
+        },
+        {
+          "unitHex": {
+            "q": 0,
+            "r": 3
+          },
+          "championId": "TFT17_Gnar",
+          "damage": 2012
+        },
+        {
+          "unitHex": {
+            "q": 0,
+            "r": 1
+          },
+          "championId": "TFT17_Shen",
+          "damage": 949
+        },
+        {
+          "unitHex": {
+            "q": 2,
+            "r": 0
+          },
+          "championId": "TFT17_Rammus",
+          "damage": 851
+        },
+        {
+          "unitHex": {
+            "q": 4,
+            "r": 0
+          },
+          "championId": "TFT17_Nunu",
+          "damage": 758
+        },
+        {
+          "unitHex": {
+            "q": 2,
+            "r": 1
+          },
+          "championId": "TFT17_Rhaast",
+          "damage": 654
+        }
+      ]
+    },
+    {
+      "type": "pvp",
+      "roundName": "4-2",
+      "videoStartTime": 1171.9,
+      "videoEndTime": 1206,
+      "playerTeam": {
+        "units": [
+          {
+            "championId": "TFT17_Jax",
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Gnar",
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_GuinsoosRageblade",
+              "TFT_Item_InfinityEdge",
+              "TFT_Item_RecurveBow"
+            ]
+          },
+          {
+            "championId": "TFT17_Xayah",
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT17_AnimaSquadItem_Tier2_UwuBlaster",
+              "TFT_Item_GuinsoosRageblade",
+              "TFT_Item_RunaansHurricane"
+            ]
+          },
+          {
+            "championId": "TFT17_Rammus",
+            "hex": {
+              "q": 2,
+              "r": 0
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_Crownguard",
+              "TFT_Item_SpectralGauntlet",
+              "TFT_Item_Redemption"
+            ]
+          },
+          {
+            "championId": "TFT17_Rhaast",
+            "hex": {
+              "q": 2,
+              "r": 1
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Shen",
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Nunu",
+            "hex": {
+              "q": 1,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Bard",
+            "hex": {
+              "q": 1,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          }
+        ],
+        "augments": [
+          "TFT11_Augment_Slammin",
+          "TFT_Augment_ExclusiveCustomization",
+          null,
+          null
+        ],
+        "level": 8,
+        "hp": 17,
+        "hexModifiers": []
+      },
+      "opponent": {
+        "units": [
+          {
+            "championId": "TFT17_Aatrox",
+            "hex": {
+              "q": 3,
+              "r": 3
+            },
+            "starLevel": 3,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Belveth",
+            "hex": {
+              "q": -1,
+              "r": 2
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_Quicksilver",
+              "TFT_Item_GuinsoosRageblade",
+              "TFT_Item_MadredsBloodrazor"
+            ]
+          },
+          {
+            "championId": "TFT17_RekSai",
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_RedBuff",
+              "TFT_Item_Redemption",
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Briar",
+            "hex": {
+              "q": 1,
+              "r": 3
+            },
+            "starLevel": 3,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Maokai",
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Akali",
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          }
+        ],
+        "augments": [
+          "TFT7_Augment_PandorasBench",
+          "TFT_Augment_Waverider",
+          "TFT11_Augment_Reinfourcement",
+          null
+        ],
+        "level": 6,
+        "hp": 75,
+        "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 3,
+              "r": 3
+            },
+            "championId": "TFT17_Aatrox",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": -1,
+              "r": 2
+            },
+            "championId": "TFT17_Belveth",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "championId": "TFT17_RekSai",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 1,
+              "r": 3
+            },
+            "championId": "TFT17_Briar",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "championId": "TFT17_Maokai",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "championId": "TFT17_Akali",
+            "alive": false,
+            "hpPercent": 0
+          }
+        ],
+        "riotId": "지치기지치기야야야#kr2"
+      },
+      "winner": "player",
+      "playerDamageChart": [
+        {
+          "unitHex": {
+            "q": -1,
+            "r": 3
+          },
+          "championId": "TFT17_Xayah",
+          "damage": 6204
+        },
+        {
+          "unitHex": {
+            "q": 0,
+            "r": 3
+          },
+          "championId": "TFT17_Gnar",
+          "damage": 2795
+        },
+        {
+          "unitHex": {
+            "q": 1,
+            "r": 3
+          },
+          "championId": "TFT17_Bard",
+          "damage": 1046
+        },
+        {
+          "unitHex": {
+            "q": 2,
+            "r": 0
+          },
+          "championId": "TFT17_Rammus",
+          "damage": 972
+        },
+        {
+          "unitHex": {
+            "q": 6,
+            "r": 0
+          },
+          "championId": "TFT17_Shen",
+          "damage": 676
+        }
+      ]
+    },
+    {
+      "type": "pvp",
+      "roundName": "4-3",
+      "videoStartTime": 1240,
+      "videoEndTime": 1272.1,
+      "playerTeam": {
+        "units": [
+          {
+            "championId": "TFT17_Jax",
+            "hex": {
+              "q": 4,
+              "r": 0
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Gnar",
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_GuinsoosRageblade",
+              "TFT_Item_InfinityEdge",
+              "TFT_Item_RecurveBow"
+            ]
+          },
+          {
+            "championId": "TFT17_Xayah",
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT17_AnimaSquadItem_Tier2_UwuBlaster",
+              "TFT_Item_GuinsoosRageblade",
+              "TFT_Item_RunaansHurricane"
+            ]
+          },
+          {
+            "championId": "TFT17_Rammus",
+            "hex": {
+              "q": 2,
+              "r": 0
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_Crownguard",
+              "TFT_Item_SpectralGauntlet",
+              "TFT_Item_Redemption"
+            ]
+          },
+          {
+            "championId": "TFT17_Rhaast",
+            "hex": {
+              "q": 2,
+              "r": 1
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Nunu",
+            "hex": {
+              "q": 1,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT_Item_WarmogsArmor",
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Bard",
+            "hex": {
+              "q": 1,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Mordekaiser",
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          }
+        ],
+        "augments": [
+          "TFT11_Augment_Slammin",
+          "TFT_Augment_ExclusiveCustomization",
+          "TFT9_Augment_YouHaveMyBow",
+          null
+        ],
+        "level": 8,
+        "hp": 17,
+        "hexModifiers": []
+      },
+      "opponent": {
+        "units": [
+          {
+            "championId": "TFT17_Leona",
+            "hex": {
+              "q": 1,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_GiantsBelt",
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Diana",
+            "hex": {
+              "q": 0,
+              "r": 2
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT_Item_TitansResolve",
+              "TFT_Item_GuinsoosRageblade",
+              "TFT_Item_Bloodthirster"
+            ]
+          },
+          {
+            "championId": "TFT17_Galio",
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT_Item_IonicSpark",
+              "TFT_Item_RedBuff",
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Leblanc",
+            "hex": {
+              "q": 2,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Jinx",
+            "hex": {
+              "q": 0,
+              "r": 0
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Aurora",
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_TearOfTheGoddess",
+              "TFT_Item_Leviathan",
+              "TFT_Item_JeweledGauntlet"
+            ]
+          },
+          {
+            "championId": "TFT17_IvernMinion",
+            "hex": {
+              "q": 4,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Illaoi",
+            "hex": {
+              "q": 3,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Summon",
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          }
+        ],
+        "augments": [
+          "TFT11_Augment_Slammin",
+          "TFT_Augment_BoosterPack",
+          "TFT9_Augment_Commander_Ascension",
+          null
+        ],
+        "level": 8,
+        "hp": 65,
+        "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 1,
+              "r": 3
+            },
+            "championId": "TFT17_Leona",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 0,
+              "r": 2
+            },
+            "championId": "TFT17_Diana",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "championId": "TFT17_Galio",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 0
+            },
+            "championId": "TFT17_Leblanc",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 0,
+              "r": 0
+            },
+            "championId": "TFT17_Jinx",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "championId": "TFT17_Aurora",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 4,
+              "r": 3
+            },
+            "championId": "TFT17_IvernMinion",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 3
+            },
+            "championId": "TFT17_Illaoi",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "championId": "TFT17_Summon",
+            "alive": false,
+            "hpPercent": 0
+          }
+        ],
+        "riotId": "아무것도몰루요#KR1"
+      },
+      "winner": "player",
+      "playerDamageChart": [
+        {
+          "unitHex": {
+            "q": -1,
+            "r": 3
+          },
+          "championId": "TFT17_Xayah",
+          "damage": 10368
+        },
+        {
+          "unitHex": {
+            "q": 0,
+            "r": 3
+          },
+          "championId": "TFT17_Gnar",
+          "damage": 4461
+        },
+        {
+          "unitHex": {
+            "q": 1,
+            "r": 3
+          },
+          "championId": "TFT17_Bard",
+          "damage": 1717
+        },
+        {
+          "unitHex": {
+            "q": 2,
+            "r": 0
+          },
+          "championId": "TFT17_Rammus",
+          "damage": 16010
+        },
+        {
+          "unitHex": {
+            "q": 2,
+            "r": 1
+          },
+          "championId": "TFT17_Rhaast",
+          "damage": 1043
+        },
+        {
+          "unitHex": {
+            "q": 4,
+            "r": 0
+          },
+          "championId": "TFT17_Jax",
+          "damage": 659
+        }
+      ]
+    },
+    {
+      "type": "shrine",
+      "roundName": "4-4",
+      "videoStartTime": 1275.3,
+      "playerChosenShrine": "ahri"
+    },
+    {
+      "type": "pvp",
+      "roundName": "4-5",
+      "videoStartTime": 1342,
+      "videoEndTime": 1380,
+      "playerTeam": {
+        "units": [
+          {
+            "championId": "TFT17_Jax",
+            "hex": {
+              "q": 4,
+              "r": 0
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Gnar",
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_GuinsoosRageblade",
+              "TFT_Item_InfinityEdge",
+              "TFT_Item_RecurveBow"
+            ]
+          },
+          {
+            "championId": "TFT17_Xayah",
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT17_AnimaSquadItem_Tier2_UwuBlaster",
+              "TFT_Item_GuinsoosRageblade",
+              "TFT_Item_RunaansHurricane"
+            ]
+          },
+          {
+            "championId": "TFT17_Rammus",
+            "hex": {
+              "q": 2,
+              "r": 0
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_Crownguard",
+              "TFT_Item_SpectralGauntlet",
+              "TFT_Item_Redemption"
+            ]
+          },
+          {
+            "championId": "TFT17_Rhaast",
+            "hex": {
+              "q": 2,
+              "r": 1
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Nunu",
+            "hex": {
+              "q": 1,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT_Item_WarmogsArmor",
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Bard",
+            "hex": {
+              "q": 1,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Mordekaiser",
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT_Item_Spatula",
+              null,
+              null
+            ]
+          }
+        ],
+        "augments": [
+          "TFT11_Augment_Slammin",
+          "TFT_Augment_ExclusiveCustomization",
+          "TFT9_Augment_YouHaveMyBow",
+          null
+        ],
+        "level": 8,
+        "hp": 17,
+        "hexModifiers": []
+      },
+      "opponent": {
+        "units": [
+          {
+            "championId": "TFT17_Nasus",
+            "hex": {
+              "q": 1,
+              "r": 1
+            },
+            "starLevel": 3,
+            "items": [
+              "TFT_Item_SteraksGage",
+              null,
+              "TFT17_Item_PulsefireEmblemItem"
+            ]
+          },
+          {
+            "championId": "TFT17_Leona",
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "starLevel": 3,
+            "items": [
+              "TFT_Item_WarmogsArmor",
+              "TFT_Item_GargoyleStoneplate",
+              "TFT_Item_GargoyleStoneplate"
+            ]
+          },
+          {
+            "championId": "TFT17_Zoe",
+            "hex": {
+              "q": 1,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT_Item_GuinsoosRageblade",
+              "TFT_Item_RapidFireCannon",
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Teemo",
+            "hex": {
+              "q": 0,
+              "r": 0
+            },
+            "starLevel": 3,
+            "items": [
+              "TFT_Item_GuinsoosRageblade",
+              "TFT_Item_HextechGunblade",
+              "TFT_Item_MadredsBloodrazor"
+            ]
+          },
+          {
+            "championId": "TFT17_Nunu",
+            "hex": {
+              "q": 4,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Ornn",
+            "hex": {
+              "q": 3,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT_Item_SpectralGauntlet",
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Mordekaiser",
+            "hex": {
+              "q": 0,
+              "r": 1
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          }
+        ],
+        "augments": [
+          "TFT_Augment_TreasureHunt",
+          "TFT_Augment_ExclusiveCustomization",
+          "TFT6_Augment_SecondWind2",
+          null
+        ],
+        "level": 7,
+        "hp": 21,
+        "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 1,
+              "r": 1
+            },
+            "championId": "TFT17_Nasus",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "championId": "TFT17_Leona",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 1,
+              "r": 0
+            },
+            "championId": "TFT17_Zoe",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 0,
+              "r": 0
+            },
+            "championId": "TFT17_Teemo",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 4,
+              "r": 0
+            },
+            "championId": "TFT17_Nunu",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 0
+            },
+            "championId": "TFT17_Ornn",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 0,
+              "r": 1
+            },
+            "championId": "TFT17_Mordekaiser",
+            "alive": false,
+            "hpPercent": 0
+          }
+        ],
+        "riotId": "qaqqaa#KR1"
+      },
+      "winner": "player",
+      "playerDamageChart": [
+        {
+          "unitHex": {
+            "q": -1,
+            "r": 3
+          },
+          "championId": "TFT17_Xayah",
+          "damage": 16797
+        },
+        {
+          "unitHex": {
+            "q": 0,
+            "r": 3
+          },
+          "championId": "TFT17_Gnar",
+          "damage": 7430
+        },
+        {
+          "unitHex": {
+            "q": 1,
+            "r": 3
+          },
+          "championId": "TFT17_Bard",
+          "damage": 2059
+        },
+        {
+          "unitHex": {
+            "q": 2,
+            "r": 0
+          },
+          "championId": "TFT17_Rammus",
+          "damage": 1719
+        },
+        {
+          "unitHex": {
+            "q": 2,
+            "r": 1
+          },
+          "championId": "TFT17_Rhaast",
+          "damage": 1067
+        },
+        {
+          "unitHex": {
+            "q": 4,
+            "r": 0
+          },
+          "championId": "TFT17_Jax",
+          "damage": 894
+        }
+      ]
+    },
+    {
+      "type": "pvp",
+      "roundName": "4-6",
+      "videoStartTime": 1414.4,
+      "videoEndTime": 1449.1,
+      "playerTeam": {
+        "units": [
+          {
+            "championId": "TFT17_Jax",
+            "hex": {
+              "q": 4,
+              "r": 0
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Gnar",
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_GuinsoosRageblade",
+              "TFT_Item_InfinityEdge",
+              "TFT_Item_RecurveBow"
+            ]
+          },
+          {
+            "championId": "TFT17_Xayah",
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT17_AnimaSquadItem_Tier2_UwuBlaster",
+              "TFT_Item_GuinsoosRageblade",
+              "TFT_Item_RunaansHurricane"
+            ]
+          },
+          {
+            "championId": "TFT17_Rammus",
+            "hex": {
+              "q": 2,
+              "r": 0
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_Crownguard",
+              "TFT_Item_SpectralGauntlet",
+              "TFT_Item_Redemption"
+            ]
+          },
+          {
+            "championId": "TFT17_Rhaast",
+            "hex": {
+              "q": 2,
+              "r": 1
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Nunu",
+            "hex": {
+              "q": 1,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT_Item_WarmogsArmor",
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Bard",
+            "hex": {
+              "q": 1,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Mordekaiser",
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT_Item_Spatula",
+              null,
+              null
+            ]
+          }
+        ],
+        "augments": [
+          "TFT11_Augment_Slammin",
+          "TFT_Augment_ExclusiveCustomization",
+          "TFT9_Augment_YouHaveMyBow",
+          null
+        ],
+        "level": 8,
+        "hp": 17,
+        "hexModifiers": []
+      },
+      "opponent": {
+        "units": [
+          {
+            "championId": "TFT17_TwistedFate",
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "starLevel": 3,
+            "items": [
+              "TFT_Item_GiantsBelt",
+              "TFT_Item_JeweledGauntlet",
+              "TFT_Item_Leviathan"
+            ]
+          },
+          {
+            "championId": "TFT17_Caitlyn",
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Jax",
+            "hex": {
+              "q": 3,
+              "r": 2
+            },
+            "starLevel": 3,
+            "items": [
+              "TFT_Item_TitansResolve",
+              "TFT_Item_Bloodthirster",
+              "TFT17_Item_Artifact_EvelynnArtifact"
+            ]
+          },
+          {
+            "championId": "TFT17_Talon",
+            "hex": {
+              "q": 2,
+              "r": 2
+            },
+            "starLevel": 3,
+            "items": [
+              "TFT_Item_HextechGunblade",
+              "TFT_Item_BFSword",
+              "TFT17_Item_ResistTankEmblemItem"
+            ]
+          },
+          {
+            "championId": "TFT17_Ornn",
+            "hex": {
+              "q": 3,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Aatrox",
+            "hex": {
+              "q": 1,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_RedBuff",
+              null,
+              null
+            ]
+          }
+        ],
+        "augments": [
+          "TFT17_Augment_JaxCarry",
+          "TFT17_Augment_ApotheoticForge",
+          "TFT9_Augment_PandorasItems2",
+          null
+        ],
+        "level": 6,
+        "hp": 64,
+        "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "championId": "TFT17_TwistedFate",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "championId": "TFT17_Caitlyn",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 2
+            },
+            "championId": "TFT17_Jax",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 2
+            },
+            "championId": "TFT17_Talon",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 3
+            },
+            "championId": "TFT17_Ornn",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 1,
+              "r": 3
+            },
+            "championId": "TFT17_Aatrox",
+            "alive": false,
+            "hpPercent": 0
+          }
+        ],
+        "riotId": "fhina#KR1"
+      },
+      "winner": "player",
+      "playerDamageChart": [
+        {
+          "unitHex": {
+            "q": -1,
+            "r": 3
+          },
+          "championId": "TFT17_Xayah",
+          "damage": 7979
+        },
+        {
+          "unitHex": {
+            "q": 0,
+            "r": 3
+          },
+          "championId": "TFT17_Gnar",
+          "damage": 4967
+        },
+        {
+          "unitHex": {
+            "q": 1,
+            "r": 3
+          },
+          "championId": "TFT17_Bard",
+          "damage": 1620
+        },
+        {
+          "unitHex": {
+            "q": 2,
+            "r": 0
+          },
+          "championId": "TFT17_Rammus",
+          "damage": 700
+        },
+        {
+          "unitHex": {
+            "q": 1,
+            "r": 0
+          },
+          "championId": "TFT17_Nunu",
+          "damage": 418
+        }
+      ]
+    },
+    {
+      "type": "pvp",
+      "roundName": "5-1",
+      "videoStartTime": 1519.8,
+      "videoEndTime": 1561,
+      "playerTeam": {
+        "units": [
+          {
+            "championId": "TFT17_Jax",
+            "hex": {
+              "q": 4,
+              "r": 0
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Gnar",
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_GuinsoosRageblade",
+              "TFT_Item_InfinityEdge",
+              "TFT_Item_RapidFireCannon"
+            ]
+          },
+          {
+            "championId": "TFT17_Xayah",
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT17_AnimaSquadItem_Tier2_UwuBlaster",
+              "TFT_Item_GuinsoosRageblade",
+              "TFT_Item_RunaansHurricane"
+            ]
+          },
+          {
+            "championId": "TFT17_Rammus",
+            "hex": {
+              "q": 2,
+              "r": 0
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_Crownguard",
+              "TFT_Item_SpectralGauntlet",
+              "TFT_Item_Redemption"
+            ]
+          },
+          {
+            "championId": "TFT17_Rhaast",
+            "hex": {
+              "q": 2,
+              "r": 1
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Nunu",
+            "hex": {
+              "q": 1,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT_Item_WarmogsArmor",
+              "TFT_Item_FrozenHeart",
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Bard",
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Mordekaiser",
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              "TFT_Item_Spatula",
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Nunu",
+            "hex": {
+              "q": 3,
+              "r": 1
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          }
+        ],
+        "augments": [
+          "TFT11_Augment_Slammin",
+          "TFT_Augment_ExclusiveCustomization",
+          "TFT9_Augment_YouHaveMyBow",
+          "TFT17_Augment_AhriGodAugment"
+        ],
+        "level": 9,
+        "hp": 17,
+        "hexModifiers": []
+      },
+      "opponent": {
+        "units": [
+          {
+            "championId": "TFT17_Aatrox",
+            "hex": {
+              "q": 3,
+              "r": 3
+            },
+            "starLevel": 3,
+            "items": [
+              "TFT_Item_Quicksilver",
+              "TFT_Item_LastWhisper",
+              "TFT_Item_ThiefsGloves"
+            ]
+          },
+          {
+            "championId": "TFT17_Belveth",
+            "hex": {
+              "q": 0,
+              "r": 2
+            },
+            "starLevel": 3,
+            "items": [
+              "TFT_Item_Quicksilver",
+              "TFT_Item_GuinsoosRageblade",
+              "TFT_Item_MadredsBloodrazor"
+            ]
+          },
+          {
+            "championId": "TFT17_RekSai",
+            "hex": {
+              "q": 1,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_RedBuff",
+              "TFT_Item_Redemption",
+              "TFT_Item_NegatronCloak"
+            ]
+          },
+          {
+            "championId": "TFT17_Briar",
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "starLevel": 3,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Maokai",
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Akali",
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "starLevel": 3,
+            "items": [
+              "TFT_Item_Bloodthirster",
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Caitlyn",
+            "hex": {
+              "q": 0,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          }
+        ],
+        "augments": [
+          "TFT7_Augment_PandorasBench",
+          "TFT_Augment_Waverider",
+          "TFT11_Augment_Reinfourcement",
+          "TFT17_Augment_ThreshGodAugment"
+        ],
+        "level": 7,
+        "hp": 22,
+        "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 3,
+              "r": 3
+            },
+            "championId": "TFT17_Aatrox",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 0,
+              "r": 2
+            },
+            "championId": "TFT17_Belveth",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 1,
+              "r": 3
+            },
+            "championId": "TFT17_RekSai",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "championId": "TFT17_Briar",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "championId": "TFT17_Maokai",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "championId": "TFT17_Akali",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 0,
+              "r": 0
+            },
+            "championId": "TFT17_Caitlyn",
+            "alive": false,
+            "hpPercent": 0
+          }
+        ],
+        "riotId": "지치기지치기야야야#kr2"
+      },
+      "winner": "player",
+      "playerDamageChart": [
+        {
+          "unitHex": {
+            "q": -1,
+            "r": 3
+          },
+          "championId": "TFT17_Xayah",
+          "damage": 8618
+        },
+        {
+          "unitHex": {
+            "q": 0,
+            "r": 3
+          },
+          "championId": "TFT17_Gnar",
+          "damage": 4851
+        },
+        {
+          "unitHex": {
+            "q": 1,
+            "r": 3
+          },
+          "championId": "TFT17_Bard",
+          "damage": 1437
+        },
+        {
+          "unitHex": {
+            "q": 5,
+            "r": 0
+          },
+          "championId": "TFT17_Mordekaiser",
+          "damage": 742
+        }
+      ]
+    },
+    {
+      "type": "pvp",
+      "roundName": "5-2",
+      "videoStartTime": 1597,
+      "videoEndTime": 1634.1,
+      "playerTeam": {
+        "units": [
+          {
+            "championId": "TFT17_Jax",
+            "hex": {
+              "q": 4,
+              "r": 0
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Gnar",
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_GuinsoosRageblade",
+              "TFT_Item_InfinityEdge",
+              "TFT_Item_RapidFireCannon"
+            ]
+          },
+          {
+            "championId": "TFT17_Xayah",
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT17_AnimaSquadItem_Tier2_UwuBlaster",
+              "TFT_Item_GuinsoosRageblade",
+              "TFT_Item_RunaansHurricane"
+            ]
+          },
+          {
+            "championId": "TFT17_Rammus",
+            "hex": {
+              "q": 1,
+              "r": 0
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_Crownguard",
+              "TFT_Item_SpectralGauntlet",
+              "TFT_Item_Redemption"
+            ]
+          },
+          {
+            "championId": "TFT17_Rhaast",
+            "hex": {
+              "q": 2,
+              "r": 1
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Nunu",
+            "hex": {
+              "q": 2,
+              "r": 0
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_WarmogsArmor",
+              "TFT_Item_FrozenHeart",
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Bard",
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Mordekaiser",
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT17_Item_ASTraitEmblemItem",
+              null,
+              null
+            ]
+          }
+        ],
+        "augments": [
+          "TFT11_Augment_Slammin",
+          "TFT_Augment_ExclusiveCustomization",
+          "TFT9_Augment_YouHaveMyBow",
+          "TFT17_Augment_AhriGodAugment"
+        ],
+        "level": 9,
+        "hp": 17,
+        "hexModifiers": []
+      },
+      "opponent": {
+        "units": [
+          {
+            "championId": "TFT17_IvernMinion",
+            "hex": {
+              "q": 3,
+              "r": 2
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Poppy",
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_SpectralGauntlet",
+              "TFT_Item_RedBuff",
+              "TFT_Item_Redemption"
+            ]
+          },
+          {
+            "championId": "TFT17_Veigar",
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Lissandra",
+            "hex": {
+              "q": 2,
+              "r": 0
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_StatikkShiv",
+              "TFT17_Item_AstronautEmblemItem",
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Karma",
+            "hex": {
+              "q": 0,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT_Item_GuinsoosRageblade",
+              "TFT_Item_JeweledGauntlet",
+              "TFT_Item_HextechGunblade"
+            ]
+          },
+          {
+            "championId": "TFT17_Shen",
+            "hex": {
+              "q": 1,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT17_Item_AstronautEmblemItem",
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Corki",
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT_Item_MadredsBloodrazor",
+              "TFT_Item_HextechGunblade",
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Sona",
+            "hex": {
+              "q": 3,
+              "r": 1
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Summon",
+            "hex": {
+              "q": 3,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Fizz",
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          }
+        ],
+        "augments": [
+          "TFT_Augment_SpreadingRoots",
+          "TFT_Augment_ClimbTheLadder2",
+          "TFT_Augment_DuoQueue",
+          "TFT17_Augment_AhriGodAugment"
+        ],
+        "level": 9,
+        "hp": 52,
+        "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 3,
+              "r": 2
+            },
+            "championId": "TFT17_IvernMinion",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "championId": "TFT17_Poppy",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "championId": "TFT17_Veigar",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 0
+            },
+            "championId": "TFT17_Lissandra",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 0,
+              "r": 0
+            },
+            "championId": "TFT17_Karma",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 1,
+              "r": 3
+            },
+            "championId": "TFT17_Shen",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "championId": "TFT17_Corki",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 1
+            },
+            "championId": "TFT17_Sona",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 3
+            },
+            "championId": "TFT17_Summon",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "championId": "TFT17_Fizz",
+            "alive": false,
+            "hpPercent": 0
+          }
+        ],
+        "riotId": "달콤나라서현공주#0303"
+      },
+      "winner": "player"
+    },
+    {
+      "type": "pvp",
+      "roundName": "5-3",
+      "videoStartTime": 1669.1,
+      "videoEndTime": 1705,
+      "playerTeam": {
+        "units": [
+          {
+            "championId": "TFT17_Jax",
+            "hex": {
+              "q": 4,
+              "r": 0
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Gnar",
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_InfinityEdge",
+              "TFT_Item_GuinsoosRageblade",
+              "TFT_Item_RapidFireCannon"
+            ]
+          },
+          {
+            "championId": "TFT17_Xayah",
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT17_AnimaSquadItem_Tier2_UwuBlaster",
+              "TFT_Item_GuinsoosRageblade",
+              "TFT_Item_RunaansHurricane"
+            ]
+          },
+          {
+            "championId": "TFT17_Rammus",
+            "hex": {
+              "q": 1,
+              "r": 0
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_Crownguard",
+              "TFT_Item_SpectralGauntlet",
+              "TFT_Item_Redemption"
+            ]
+          },
+          {
+            "championId": "TFT17_Rhaast",
+            "hex": {
+              "q": 2,
+              "r": 1
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Nunu",
+            "hex": {
+              "q": 2,
+              "r": 0
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_WarmogsArmor",
+              "TFT_Item_FrozenHeart",
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Bard",
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Mordekaiser",
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT17_Item_ASTraitEmblemItem",
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Samira",
+            "hex": {
+              "q": 4,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          }
+        ],
+        "augments": [
+          "TFT11_Augment_Slammin",
+          "TFT_Augment_ExclusiveCustomization",
+          "TFT9_Augment_YouHaveMyBow",
+          "TFT17_Augment_AhriGodAugment"
+        ],
+        "level": 9,
+        "hp": 17,
+        "hexModifiers": []
+      },
+      "opponent": {
+        "units": [
+          {
+            "championId": "TFT17_Leona",
+            "hex": {
+              "q": 1,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_GiantsBelt",
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Diana",
+            "hex": {
+              "q": 5,
+              "r": 2
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_TitansResolve",
+              "TFT_Item_GuinsoosRageblade",
+              "TFT_Item_Bloodthirster"
+            ]
+          },
+          {
+            "championId": "TFT17_Galio",
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT17_Item_FavoredEmblemItem",
+              "TFT_Item_RedBuff",
+              "TFT_Item_Redemption"
+            ]
+          },
+          {
+            "championId": "TFT17_Jinx",
+            "hex": {
+              "q": 0,
+              "r": 0
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Aurora",
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_BlueBuff",
+              "TFT_Item_Leviathan",
+              "TFT_Item_JeweledGauntlet"
+            ]
+          },
+          {
+            "championId": "TFT17_IvernMinion",
+            "hex": {
+              "q": 4,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Illaoi",
+            "hex": {
+              "q": 3,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_IonicSpark",
+              "TFT17_AnimaSquadItem_Tier1_TentacleSlam",
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Sona",
+            "hex": {
+              "q": 2,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Summon",
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          }
+        ],
+        "augments": [
+          "TFT11_Augment_Slammin",
+          "TFT_Augment_BoosterPack",
+          "TFT9_Augment_Commander_Ascension",
+          "TFT17_Augment_ThreshGodAugment"
+        ],
+        "level": 8,
+        "hp": 16,
+        "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 1,
+              "r": 3
+            },
+            "championId": "TFT17_Leona",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 5,
+              "r": 2
+            },
+            "championId": "TFT17_Diana",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "championId": "TFT17_Galio",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 0,
+              "r": 0
+            },
+            "championId": "TFT17_Jinx",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "championId": "TFT17_Aurora",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 4,
+              "r": 3
+            },
+            "championId": "TFT17_IvernMinion",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 3
+            },
+            "championId": "TFT17_Illaoi",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 0
+            },
+            "championId": "TFT17_Sona",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "championId": "TFT17_Summon",
+            "alive": false,
+            "hpPercent": 0
+          }
+        ],
+        "riotId": "아무것도몰루요#KR1"
+      },
+      "winner": "player",
+      "playerDamageChart": [
+        {
+          "unitHex": {
+            "q": -1,
+            "r": 3
+          },
+          "championId": "TFT17_Xayah",
+          "damage": 12360
+        },
+        {
+          "unitHex": {
+            "q": 0,
+            "r": 3
+          },
+          "championId": "TFT17_Gnar",
+          "damage": 7824
+        },
+        {
+          "unitHex": {
+            "q": 2,
+            "r": 3
+          },
+          "championId": "TFT17_Bard",
+          "damage": 2111
+        },
+        {
+          "unitHex": {
+            "q": 4,
+            "r": 3
+          },
+          "championId": "TFT17_Samira",
+          "damage": 1946
+        },
+        {
+          "unitHex": {
+            "q": 2,
+            "r": 0
+          },
+          "championId": "TFT17_Rammus",
+          "damage": 1500
+        },
+        {
+          "unitHex": {
+            "q": 1,
+            "r": 0
+          },
+          "championId": "TFT17_Nunu",
+          "damage": 1312
+        }
+      ]
+    },
+    {
+      "type": "pvp",
+      "roundName": "5-5",
+      "videoStartTime": 1752.5,
+      "videoEndTime": 1779.2,
+      "playerTeam": {
+        "units": [
+          {
+            "championId": "TFT17_Jax",
+            "hex": {
+              "q": 4,
+              "r": 0
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Gnar",
+            "hex": {
+              "q": 4,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Xayah",
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT17_AnimaSquadItem_Tier2_UwuBlaster",
+              "TFT_Item_GuinsoosRageblade",
+              "TFT_Item_RunaansHurricane"
+            ]
+          },
+          {
+            "championId": "TFT17_Rammus",
+            "hex": {
+              "q": 1,
+              "r": 0
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_Crownguard",
+              "TFT_Item_SpectralGauntlet",
+              "TFT_Item_Redemption"
+            ]
+          },
+          {
+            "championId": "TFT17_Rhaast",
+            "hex": {
+              "q": 2,
+              "r": 1
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Nunu",
+            "hex": {
+              "q": 2,
+              "r": 0
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_WarmogsArmor",
+              "TFT_Item_FrozenHeart",
+              "TFT_Item_GargoyleStoneplate"
+            ]
+          },
+          {
+            "championId": "TFT17_Bard",
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Mordekaiser",
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT17_Item_ASTraitEmblemItem",
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Jhin",
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT_Item_InfinityEdge",
+              "TFT_Item_GuinsoosRageblade",
+              "TFT_Item_RapidFireCannon"
+            ]
+          }
+        ],
+        "augments": [
+          "TFT11_Augment_Slammin",
+          "TFT_Augment_ExclusiveCustomization",
+          "TFT9_Augment_YouHaveMyBow",
+          "TFT17_Augment_AhriGodAugment"
+        ],
+        "level": 9,
+        "hp": 17,
+        "hexModifiers": []
+      },
+      "opponent": {
+        "units": [
+          {
+            "championId": "TFT17_TwistedFate",
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "starLevel": 3,
+            "items": [
+              "TFT_Item_Leviathan",
+              "TFT_Item_JeweledGauntlet",
+              "TFT_Item_Leviathan"
+            ]
+          },
+          {
+            "championId": "TFT17_Caitlyn",
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Jax",
+            "hex": {
+              "q": 5,
+              "r": 2
+            },
+            "starLevel": 3,
+            "items": [
+              "TFT_Item_TitansResolve",
+              "TFT_Item_Bloodthirster",
+              "TFT17_Item_Artifact_EvelynnArtifact"
+            ]
+          },
+          {
+            "championId": "TFT17_Talon",
+            "hex": {
+              "q": 4,
+              "r": 2
+            },
+            "starLevel": 3,
+            "items": [
+              "TFT_Item_HextechGunblade",
+              "TFT_Item_BFSword",
+              "TFT17_Item_ResistTankEmblemItem"
+            ]
+          },
+          {
+            "championId": "TFT17_Ornn",
+            "hex": {
+              "q": 3,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_CorruptedWarmogsArmor",
+              "TFT_Item_IonicSpark",
+              "TFT_Item_RedBuff"
+            ]
+          },
+          {
+            "championId": "TFT17_Aatrox",
+            "hex": {
+              "q": 2,
+              "r": 2
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Rammus",
+            "hex": {
+              "q": 1,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Gwen",
+            "hex": {
+              "q": 3,
+              "r": 2
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          }
+        ],
+        "augments": [
+          "TFT17_Augment_JaxCarry",
+          "TFT17_Augment_ApotheoticForge",
+          "TFT9_Augment_PandorasItems2",
+          "TFT17_Augment_AhriGodAugment"
+        ],
+        "level": 8,
+        "hp": 48,
+        "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "championId": "TFT17_TwistedFate",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "championId": "TFT17_Caitlyn",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 5,
+              "r": 2
+            },
+            "championId": "TFT17_Jax",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 4,
+              "r": 2
+            },
+            "championId": "TFT17_Talon",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 3
+            },
+            "championId": "TFT17_Ornn",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 2
+            },
+            "championId": "TFT17_Aatrox",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 1,
+              "r": 3
+            },
+            "championId": "TFT17_Rammus",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 2
+            },
+            "championId": "TFT17_Gwen",
+            "alive": false,
+            "hpPercent": 0
+          }
+        ],
+        "riotId": "fhina#KR1"
+      },
+      "winner": "player",
+      "playerDamageChart": [
+        {
+          "unitHex": {
+            "q": -1,
+            "r": 3
+          },
+          "championId": "TFT17_Xayah",
+          "damage": 8933
+        },
+        {
+          "unitHex": {
+            "q": 4,
+            "r": 3
+          },
+          "championId": "TFT17_Jhin",
+          "damage": 6270
+        },
+        {
+          "unitHex": {
+            "q": 0,
+            "r": 3
+          },
+          "championId": "TFT17_Gnar",
+          "damage": 1981
+        },
+        {
+          "unitHex": {
+            "q": 2,
+            "r": 3
+          },
+          "championId": "TFT17_Bard",
+          "damage": 1439
+        },
+        {
+          "unitHex": {
+            "q": 1,
+            "r": 0
+          },
+          "championId": "TFT17_Rammus",
+          "damage": 1235
+        }
+      ]
+    },
+    {
+      "type": "pvp",
+      "roundName": "5-6",
+      "videoStartTime": 1814.2,
+      "videoEndTime": 1844,
+      "playerTeam": {
+        "units": [
+          {
+            "championId": "TFT17_Jax",
+            "hex": {
+              "q": 4,
+              "r": 0
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Gnar",
+            "hex": {
+              "q": 4,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Xayah",
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT17_AnimaSquadItem_Tier2_UwuBlaster",
+              "TFT_Item_GuinsoosRageblade",
+              "TFT_Item_RunaansHurricane"
+            ]
+          },
+          {
+            "championId": "TFT17_Rammus",
+            "hex": {
+              "q": 1,
+              "r": 0
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_Crownguard",
+              "TFT_Item_SpectralGauntlet",
+              "TFT_Item_Redemption"
+            ]
+          },
+          {
+            "championId": "TFT17_Rhaast",
+            "hex": {
+              "q": 2,
+              "r": 1
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Nunu",
+            "hex": {
+              "q": 2,
+              "r": 0
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_WarmogsArmor",
+              "TFT_Item_FrozenHeart",
+              "TFT_Item_GargoyleStoneplate"
+            ]
+          },
+          {
+            "championId": "TFT17_Bard",
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Mordekaiser",
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT17_Item_ASTraitEmblemItem",
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Jhin",
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT_Item_InfinityEdge",
+              "TFT_Item_GuinsoosRageblade",
+              "TFT_Item_RapidFireCannon"
+            ]
+          }
+        ],
+        "augments": [
+          "TFT11_Augment_Slammin",
+          "TFT_Augment_ExclusiveCustomization",
+          "TFT9_Augment_YouHaveMyBow",
+          "TFT17_Augment_AhriGodAugment"
+        ],
+        "level": 9,
+        "hp": 17,
+        "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 4,
+              "r": 0
+            },
+            "championId": "TFT17_Jax",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 4,
+              "r": 3
+            },
+            "championId": "TFT17_Gnar",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "championId": "TFT17_Xayah",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 1,
+              "r": 0
+            },
+            "championId": "TFT17_Rammus",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 1
+            },
+            "championId": "TFT17_Rhaast",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 0
+            },
+            "championId": "TFT17_Nunu",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "championId": "TFT17_Bard",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "championId": "TFT17_Mordekaiser",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "championId": "TFT17_Jhin",
+            "alive": false,
+            "hpPercent": 0
+          }
+        ]
+      },
+      "opponent": {
+        "units": [
+          {
+            "championId": "TFT17_Bard",
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_BlueBuff",
+              "TFT_Item_HextechGunblade",
+              "TFT_Item_RabadonsDeathcap"
+            ]
+          },
+          {
+            "championId": "TFT17_Blitzcrank",
+            "hex": {
+              "q": 5,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Riven",
+            "hex": {
+              "q": 4,
+              "r": 2
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_GuardianAngel",
+              "TFT_Item_MadredsBloodrazor",
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Corki",
+            "hex": {
+              "q": 0,
+              "r": 0
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_InfinityEdge",
+              "TFT_Item_SpearOfShojin",
+              "TFT_Item_Deathblade"
+            ]
+          },
+          {
+            "championId": "TFT17_Nunu",
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Rammus",
+            "hex": {
+              "q": 3,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_GargoyleStoneplate",
+              "TFT_Item_Redemption",
+              "TFT_Item_RedBuff"
+            ]
+          },
+          {
+            "championId": "TFT17_Milio",
+            "hex": {
+              "q": 4,
+              "r": 0
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Rhaast",
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_NegatronCloak",
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Mordekaiser",
+            "hex": {
+              "q": 1,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          }
+        ],
+        "augments": [
+          "TFT_Augment_AuraFarming",
+          "TFT_Augment_ExclusiveCustomization",
+          "TFT9_Augment_JeweledLotus",
+          "TFT17_Augment_AhriGodAugment"
+        ],
+        "level": 9,
+        "hp": 34,
+        "hexModifiers": [],
+        "riotId": "어쩌다쥬금#KR1"
+      },
+      "winner": "opponent",
+      "playerDamageChart": [
+        {
+          "unitHex": {
+            "q": -1,
+            "r": 3
+          },
+          "championId": "TFT17_Xayah",
+          "damage": 10628
+        },
+        {
+          "unitHex": {
+            "q": 0,
+            "r": 3
+          },
+          "championId": "TFT17_Jhin",
+          "damage": 5725
+        },
+        {
+          "unitHex": {
+            "q": 4,
+            "r": 3
+          },
+          "championId": "TFT17_Gnar",
+          "damage": 2263
+        },
+        {
+          "unitHex": {
+            "q": 2,
+            "r": 0
+          },
+          "championId": "TFT17_Nunu",
+          "damage": 1626
+        },
+        {
+          "unitHex": {
+            "q": 2,
+            "r": 3
+          },
+          "championId": "TFT17_Bard",
+          "damage": 1353
+        }
+      ]
+    },
+    {
+      "type": "pvp",
+      "roundName": "6-1",
+      "videoStartTime": 1912.9,
+      "videoEndTime": 1934,
+      "playerTeam": {
+        "units": [
+          {
+            "championId": "TFT17_Jax",
+            "hex": {
+              "q": 1,
+              "r": 0
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Gnar",
+            "hex": {
+              "q": 4,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Xayah",
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT17_AnimaSquadItem_Tier2_UwuBlaster",
+              "TFT_Item_GuinsoosRageblade",
+              "TFT_Item_RunaansHurricane"
+            ]
+          },
+          {
+            "championId": "TFT17_Rammus",
+            "hex": {
+              "q": 4,
+              "r": 0
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Rhaast",
+            "hex": {
+              "q": 2,
+              "r": 1
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Nunu",
+            "hex": {
+              "q": 2,
+              "r": 0
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Bard",
+            "hex": {
+              "q": 1,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Mordekaiser",
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT17_Item_ASTraitEmblemItem",
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Jhin",
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT_Item_InfinityEdge",
+              "TFT_Item_GuinsoosRageblade",
+              "TFT_Item_RapidFireCannon"
+            ]
+          }
+        ],
+        "augments": [
+          "TFT11_Augment_Slammin",
+          "TFT_Augment_ExclusiveCustomization",
+          "TFT9_Augment_YouHaveMyBow",
+          "TFT17_Augment_AhriGodAugment"
+        ],
+        "level": 9,
+        "hp": 4,
+        "hexModifiers": []
+      },
+      "opponent": {
+        "units": [
+          {
+            "championId": "TFT17_IvernMinion",
+            "hex": {
+              "q": 3,
+              "r": 2
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Poppy",
+            "hex": {
+              "q": 1,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT_Item_SpectralGauntlet",
+              "TFT_Item_RedBuff",
+              "TFT_Item_Redemption"
+            ]
+          },
+          {
+            "championId": "TFT17_Veigar",
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Shen",
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              "TFT17_Item_AstronautEmblemItem",
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Corki",
+            "hex": {
+              "q": 5,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT_Item_MadredsBloodrazor",
+              "TFT_Item_HextechGunblade",
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Fizz",
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Rammus",
+            "hex": {
+              "q": 4,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Gnar",
+            "hex": {
+              "q": 4,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Bard",
+            "hex": {
+              "q": 0,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT_Item_HextechGunblade",
+              "TFT_Item_StatikkShiv",
+              "TFT_Item_Leviathan"
+            ]
+          },
+          {
+            "championId": "TFT17_Vex",
+            "hex": {
+              "q": 2,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT_Item_GuinsoosRageblade",
+              "TFT_Item_JeweledGauntlet",
+              "TFT17_Item_AstronautEmblemItem"
+            ]
+          }
+        ],
+        "augments": [
+          "TFT_Augment_SpreadingRoots",
+          "TFT_Augment_ClimbTheLadder2",
+          "TFT_Augment_DuoQueue",
+          "TFT17_Augment_AhriGodAugment"
+        ],
+        "level": 10,
+        "hp": 20,
+        "hexModifiers": [],
+        "riotId": "달콤나라서현공주#0303"
+      },
+      "winner": "draw"
+    }
+  ],
+  "stargazerConstellation": "well"
+}

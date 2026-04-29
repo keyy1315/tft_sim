@@ -3,6 +3,7 @@ import { registerItemImages } from '@/data/imageMap';
 import { DEFAULT_SET, type SetId } from '@/data/setConfig';
 import { setScalingData } from '@/lib/simulator/systems/ability';
 import type { ScalingData } from '@/lib/simulator/systems/ability';
+import { isDisabledAugment, isDisabledItem } from '@/data/disabledContent';
 
 const championsCache = new Map<string, RawChampion[]>();
 const itemsCache = new Map<string, RawItem[]>();
@@ -61,7 +62,8 @@ export async function loadItems(setId: SetId = DEFAULT_SET): Promise<RawItem[]> 
     ? (await setRes.json() as RawItemsData).items
     : [];
 
-  const DISABLED_ITEMS = new Set([
+  // 거울 persona 는 set 17 미구현 + 신상 판도라 좌석 등은 disabledContent.ts 에서 관리.
+  const LEGACY_DISABLED_ITEMS = new Set([
     'TFT_Item_Artifact_MirroredPersona',
     'TFT_Item_Artifact_LesserMirroredPersona',
   ]);
@@ -70,7 +72,9 @@ export async function loadItems(setId: SetId = DEFAULT_SET): Promise<RawItem[]> 
   const seen = new Set<string>();
   const merged: RawItem[] = [];
   for (const item of [...commonItems, ...setItems]) {
-    if (seen.has(item.apiName) || DISABLED_ITEMS.has(item.apiName)) continue;
+    if (seen.has(item.apiName)) continue;
+    if (LEGACY_DISABLED_ITEMS.has(item.apiName)) continue;
+    if (isDisabledItem(item.apiName)) continue;
     seen.add(item.apiName);
     merged.push(item);
   }
@@ -94,8 +98,13 @@ export async function loadAugments(setId: SetId = DEFAULT_SET): Promise<RawAugme
   const res = await fetch(dataPath(setId, `tft_${setId}_augments.json`));
   if (!res.ok) { augmentsCache.set(setId, []); return []; }
   const data: RawAugmentsData = await res.json();
-  augmentsCache.set(setId, data.augments);
-  return data.augments;
+  // DISABLED_AUGMENT_API_NAMES — apiName 강제 차단 (data 갱신 후에도 보호).
+  // disable 필드는 selector UI 의 "미사용 포함" 체크박스가 직접 관리 →
+  // loader 단계 사전 필터 X (showInactive=true 시 모두 보여야 함).
+  // 서버 검증 (loadServerCatalogs) 는 별도로 disable=true 도 차단.
+  const filtered = data.augments.filter(a => !isDisabledAugment(a.apiName));
+  augmentsCache.set(setId, filtered);
+  return filtered;
 }
 
 export async function loadTeamPlannerMapping(setId: SetId = DEFAULT_SET): Promise<TeamPlannerEntry[]> {

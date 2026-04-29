@@ -1,67 +1,22 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { getChampionImage } from '@/data/imageMap';
 import Tooltip from '@/components/ui/Tooltip';
-
-/* ─── Types ─── */
-
-interface Champion {
-  id: string;
-  tier: number;
-  items: string[];
-}
-
-interface TraitData {
-  name: string;
-  numUnits: number;
-  style: number;
-  tierCurrent: number;
-}
-
-interface TraitMetaEntry {
-  name: string;
-  icon: string;
-  isUnique: boolean;
-  desc: string;
-}
-
-interface ChampionMetaEntry {
-  name: string;
-  cost: number;
-  traits: string[];
-}
-
-interface ItemMetaEntry {
-  name: string;
-  desc: string;
-  icon: string;
-}
-
-interface MatchData {
-  match_id: string;
-  placement: number;
-  champions: Champion[];
-  game_datetime: string;
-  game_length: number;
-  queue_id: number | null;
-  set_id: string | null;
-  traits: TraitData[] | null;
-}
-
-interface SummonerData {
-  gameName: string;
-  tagLine: string;
-  puuid: string;
-}
-
-interface LookupResult {
-  summoner: SummonerData;
-  matches: MatchData[];
-  traitMeta: Record<string, TraitMetaEntry>;
-  championMeta: Record<string, ChampionMetaEntry>;
-  itemMeta: Record<string, ItemMetaEntry>;
-}
+import { useMatchAnalysis } from '@/hooks/useMatchAnalysis';
+import ItemDiagnosis from '@/components/analysis/ItemDiagnosis';
+import { useLookupStore } from '@/store/lookupSlice';
+import type { ItemAnalysisResult } from '@/types/analysis';
+import type {
+  LookupChampion as Champion,
+  LookupTraitData as TraitData,
+  TraitMetaEntry,
+  ChampionMetaEntry,
+  ItemMetaEntry,
+  MatchData,
+  LookupResult,
+} from '@/types/lookup';
 
 /* ─── Helpers ─── */
 
@@ -151,6 +106,35 @@ function ItemTooltip({ meta }: { meta: ItemMetaEntry }) {
   );
 }
 
+function UnknownItemTooltip({ apiName }: { apiName: string }) {
+  return (
+    <div>
+      <div className="font-bold text-orange-300">미지원 아이템</div>
+      <div className="text-gray-400 text-xs mt-0.5 font-mono">{apiName}</div>
+      <div className="text-gray-500 text-[10px] mt-1">로컬 DB에 없는 아이템입니다 (Anomaly, Graves 특수 아이템 등). 가상 대전 시뮬에 반영되지 않습니다.</div>
+    </div>
+  );
+}
+
+function UnknownChampionTooltip({ apiName }: { apiName: string }) {
+  return (
+    <div>
+      <div className="font-bold text-orange-300">미지원 챔피언</div>
+      <div className="text-gray-400 text-xs mt-0.5 font-mono">{apiName}</div>
+      <div className="text-gray-500 text-[10px] mt-1">로컬 DB에 없는 챔피언입니다. 가상 대전 분석이 불가능할 수 있습니다.</div>
+    </div>
+  );
+}
+
+function UnknownTraitTooltip({ apiName }: { apiName: string }) {
+  return (
+    <div>
+      <div className="font-bold text-orange-300">미지원 시너지</div>
+      <div className="text-gray-400 text-xs mt-0.5 font-mono">{apiName}</div>
+    </div>
+  );
+}
+
 function TraitTooltipContent({ meta, numUnits }: { meta: TraitMetaEntry; numUnits: number }) {
   return (
     <div>
@@ -208,25 +192,37 @@ function ChampionUnit({
         <Tooltip content={<ChampionTooltip meta={meta} />}>
           {champImg}
         </Tooltip>
-      ) : champImg}
+      ) : (
+        <Tooltip content={<UnknownChampionTooltip apiName={id} />}>
+          <div className="relative">
+            {champImg}
+            <span className="absolute -top-1 -right-1 text-[8px] bg-orange-500/80 text-white rounded-full w-3 h-3 md:w-3.5 md:h-3.5 flex items-center justify-center leading-none">?</span>
+          </div>
+        </Tooltip>
+      )}
       {items.length > 0 && (
         <div className="flex gap-0.5 mt-0.5">
           {items.slice(0, 3).map((item, i) => {
             const iMeta = itemMeta?.[item];
-            if (!iMeta?.icon) return null;
-            const img = (
-              <img
-                src={iMeta.icon}
-                alt=""
-                className="w-3.5 h-3.5 md:w-4 md:h-4 rounded-sm"
-                onError={(e) => { e.currentTarget.style.display = 'none'; }}
-              />
-            );
-            return iMeta ? (
+            if (!iMeta?.icon) {
+              return (
+                <Tooltip key={i} content={<UnknownItemTooltip apiName={item} />}>
+                  <div className="w-3.5 h-3.5 md:w-4 md:h-4 rounded-sm bg-gray-700/60 border border-gray-500/50 flex items-center justify-center">
+                    <span className="text-[8px] md:text-[9px] text-gray-400 leading-none">?</span>
+                  </div>
+                </Tooltip>
+              );
+            }
+            return (
               <Tooltip key={i} content={<ItemTooltip meta={iMeta} />}>
-                {img}
+                <img
+                  src={iMeta.icon}
+                  alt=""
+                  className="w-3.5 h-3.5 md:w-4 md:h-4 rounded-sm"
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                />
               </Tooltip>
-            ) : <span key={i}>{img}</span>;
+            );
           })}
         </div>
       )}
@@ -262,7 +258,15 @@ function TraitBadge({ trait, meta }: { trait: TraitData; meta?: TraitMetaEntry }
     <Tooltip content={<TraitTooltipContent meta={meta} numUnits={trait.numUnits} />}>
       {badge}
     </Tooltip>
-  ) : badge;
+  ) : (
+    <Tooltip content={<UnknownTraitTooltip apiName={trait.name} />}>
+      <div className="flex items-center gap-1 px-1.5 py-0.5 rounded border border-orange-500/40 bg-orange-500/10">
+        <span className="text-[10px] text-orange-300">?</span>
+        <span className="text-[10px] text-orange-300">{trait.name.replace(/^TFT\d+_/, '')}</span>
+        <span className="text-[10px] md:text-xs font-medium text-orange-300">{trait.numUnits}</span>
+      </div>
+    </Tooltip>
+  );
 }
 
 /* ─── Season tabs ─── */
@@ -345,11 +349,15 @@ function MatchCard({
   result,
   searchedPuuid,
   onSearchPlayer,
+  itemResult,
+  isFirstPlace,
 }: {
   match: MatchData;
   result: LookupResult;
   searchedPuuid: string;
   onSearchPlayer: (name: string) => void;
+  itemResult?: ItemAnalysisResult | null;
+  isFirstPlace?: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [participants, setParticipants] = useState<ParticipantData[] | null>(null);
@@ -419,6 +427,24 @@ function MatchCard({
               />
             ))}
           </div>
+
+          {/* Analysis (Phase 1) */}
+          {isFirstPlace && (
+            <div className="mt-2 p-2 rounded bg-yellow-500/10 border border-yellow-500/30 text-xs text-yellow-300">
+              1등 축하합니다! 완벽한 플레이였어요.
+            </div>
+          )}
+          {!isFirstPlace && itemResult && <ItemDiagnosis result={itemResult} />}
+
+          {/* 가상 대전 분석 버튼 (Set 17만) */}
+          {(match.set_id ?? 'set17') === 'set17' && !isFirstPlace && (
+            <Link
+              href={`/lookup/${encodeURIComponent(match.match_id)}/analysis?puuid=${encodeURIComponent(searchedPuuid)}`}
+              className="mt-2 inline-block px-3 py-1.5 rounded text-xs font-medium bg-blue-600/20 border border-blue-500/30 text-blue-300 hover:bg-blue-600/30 transition-colors"
+            >
+              가상 대전 분석
+            </Link>
+          )}
         </div>
 
         {/* Expand toggle (right edge) */}
@@ -458,11 +484,13 @@ function MatchCard({
 /* ─── Main ─── */
 
 export default function LookupPage() {
-  const [input, setInput] = useState('');
-  const [result, setResult] = useState<LookupResult | null>(null);
+  const { input, activeSet, result, setInput, setActiveSet, setResult } = useLookupStore();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [activeSet, setActiveSet] = useState('set17');
+  const { results: analysisResults, analyze, reset: resetAnalysis } = useMatchAnalysis();
+
+  const PAGE_SIZE = 20;
+  const [page, setPage] = useState(1);
 
   const handleSearch = async (searchInput?: string) => {
     const trimmed = (searchInput ?? input).trim();
@@ -484,6 +512,8 @@ export default function LookupPage() {
     setError('');
     setResult(null);
     setActiveSet('set17');
+    // 유저가 바뀌면 이전 분석 캐시를 비운다 — 같은 match_id 라도 덱/플레이어가 달라 분석 결과가 다름.
+    resetAnalysis();
 
     try {
       const res = await fetch('/api/lookup', {
@@ -499,6 +529,7 @@ export default function LookupPage() {
       }
 
       setResult(data as LookupResult);
+      setPage(1);
     } catch {
       setError('서버 연결 실패');
     } finally {
@@ -509,6 +540,26 @@ export default function LookupPage() {
   const allMatches = result?.matches ?? [];
   const availableSets = [...new Set(allMatches.map((m) => m.set_id ?? 'set17'))].sort().reverse();
   const filteredMatches = allMatches.filter((m) => (m.set_id ?? 'set17') === activeSet);
+
+  // 페이지네이션 파생 값: currentPage 는 데이터 감소 케이스 대비 clamp.
+  const totalPages = Math.max(1, Math.ceil(filteredMatches.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pageStart = (currentPage - 1) * PAGE_SIZE;
+  const visibleMatches = filteredMatches.slice(pageStart, pageStart + PAGE_SIZE);
+
+  // Set 17 매치에 대해 자동 분석 실행 (현재 페이지 한정)
+  useEffect(() => {
+    for (const m of visibleMatches) {
+      if ((m.set_id ?? 'set17') === 'set17' && !analysisResults.has(m.match_id)) {
+        analyze(m.match_id, {
+          setId: m.set_id,
+          placement: m.placement,
+          champions: m.champions,
+          traits: m.traits,
+        });
+      }
+    }
+  }, [visibleMatches, analysisResults, analyze]);
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8">
@@ -551,7 +602,7 @@ export default function LookupPage() {
                 return (
                   <button
                     key={setId}
-                    onClick={() => setActiveSet(setId)}
+                    onClick={() => { setActiveSet(setId); setPage(1); }}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                       activeSet === setId
                         ? 'bg-yellow-500 text-black'
@@ -565,20 +616,34 @@ export default function LookupPage() {
             </div>
           )}
 
-          {/* Match count */}
-          <div className="text-sm text-gray-500 mb-3">
-            {SET_LABELS[activeSet] ?? activeSet} — {filteredMatches.length}게임
+          {/* Match count + 새로고침 */}
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-sm text-gray-500">
+              {SET_LABELS[activeSet] ?? activeSet} — 전체 {filteredMatches.length}게임
+              {totalPages > 1 && (
+                <span className="ml-2 text-gray-600">· 페이지 {currentPage} / {totalPages}</span>
+              )}
+            </div>
+            <button
+              onClick={() => handleSearch()}
+              disabled={loading}
+              className="px-3 py-1 rounded bg-gray-800 hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed text-xs text-gray-300 transition-colors"
+            >
+              {loading ? '새로고침 중...' : '↻ 새로고침'}
+            </button>
           </div>
 
           {/* Match list */}
           <div className="space-y-3">
-            {filteredMatches.map((m) => (
+            {visibleMatches.map((m) => (
               <MatchCard
                 key={m.match_id}
                 match={m}
                 result={result}
                 searchedPuuid={result.summoner.puuid}
                 onSearchPlayer={(name) => handleSearch(name)}
+                itemResult={analysisResults.get(m.match_id)?.items}
+                isFirstPlace={analysisResults.get(m.match_id)?.isFirstPlace}
               />
             ))}
 
@@ -588,8 +653,49 @@ export default function LookupPage() {
               </div>
             )}
           </div>
+
+          <PaginationBar page={currentPage} totalPages={totalPages} onChange={setPage} />
         </>
       )}
+    </div>
+  );
+}
+
+interface PaginationBarProps {
+  page: number;
+  totalPages: number;
+  onChange: (page: number) => void;
+}
+
+function PaginationBar({ page, totalPages, onChange }: PaginationBarProps) {
+  if (totalPages <= 1) return null;
+  const go = (p: number) => {
+    onChange(p);
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+  return (
+    <div className="flex items-center justify-center gap-3 mt-6 text-sm">
+      <button
+        onClick={() => go(Math.max(1, page - 1))}
+        disabled={page <= 1}
+        aria-label="이전 페이지"
+        className="px-3 py-1.5 rounded bg-gray-800 text-gray-300 hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+      >
+        ←
+      </button>
+      <span className="text-gray-400 tabular-nums">
+        {page} <span className="text-gray-600">/</span> {totalPages}
+      </span>
+      <button
+        onClick={() => go(Math.min(totalPages, page + 1))}
+        disabled={page >= totalPages}
+        aria-label="다음 페이지"
+        className="px-3 py-1.5 rounded bg-gray-800 text-gray-300 hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+      >
+        →
+      </button>
     </div>
   );
 }

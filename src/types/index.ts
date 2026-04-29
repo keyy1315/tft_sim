@@ -147,6 +147,15 @@ export interface RawAugment {
   icon: string;
   associatedTraits: string[];
   tags: string[];
+  /**
+   * 시즌 미사용 / 비활성 증강 여부.
+   * true 면 builder UI / 시뮬 풀에서 제외.
+   * 누락된 경우 기본 false (활성) 취급.
+   *
+   * 분류 출처: lolchess.gg/augments/set17 + 수동 검수.
+   * fetch-set17.mjs 가 기존 분류를 보존 (회귀 방지).
+   */
+  disable?: boolean;
 }
 
 export interface RawAugmentsData {
@@ -213,6 +222,16 @@ export interface ItemEffect {
   mana?: number;
   armorPen?: number;
   magicPen?: number;
+  /** 아이템 기반 흡혈 (Bloodthirster StatOmnivamp 등) — 최종적으로 CombatUnit.omnivamp 에 합산 */
+  omnivamp?: number;
+  /** 아이템 기반 마나 재생 (초당, Shojin/Archangels/Empathic Implant ManaRegen) */
+  manaRegen?: number;
+  /**
+   * 회복량 증폭 (multiplicative bonus). 예: 0.22 = +22% 회복량.
+   * GrenadeMod_Radiant IncreasedHealing 등 heal 증폭 효과용.
+   * CombatUnit.healAmp 에 누적되어 execHeal 시 (1 + healAmp) 곱셈.
+   */
+  healAmp?: number;
 }
 
 export interface ActiveTrait {
@@ -317,6 +336,12 @@ export interface PlacedChampion {
   position: HexCoord;
   starLevel: number; // 1, 2, 3
   items: RawItem[];
+  /**
+   * actual-data 경로에서 슬롯 좌표를 보존하기 위한 선택적 3-tuple.
+   * 길이 3(빈 슬롯은 null). 존재하면 SetupBoardCore 의 고정 3-슬롯 레이아웃 렌더링에 사용된다.
+   * /simulator 등 legacy 경로에서는 undefined → 기존 compacted items 기반 렌더링 유지.
+   */
+  itemSlots?: Array<RawItem | null>;
   voidItem?: RawItem | null;
   mfMode?: MfMode | null;
   permanentStacks?: PermanentStack | null;
@@ -379,7 +404,7 @@ export type AbilityPattern =
   | 'global'      // 전체 적
   | 'self_buff';  // 자기 버프
 
-export type StatusEffectType = 'stun' | 'slow' | 'burn' | 'shield' | 'invulnerable' | 'disarm' | 'taunt';
+export type StatusEffectType = 'stun' | 'slow' | 'burn' | 'shield' | 'invulnerable' | 'disarm' | 'taunt' | 'mark' | 'poison';
 
 export interface StatusEffect {
   type: StatusEffectType;
@@ -449,6 +474,10 @@ export interface CombatUnit {
   moveCooldown: number;
   totalDamageDealt: number;
   totalDamageTaken: number;
+  /** ItemEffectRuntime 의 dealDamage primitive 로만 누적되는 피해량.
+   *  totalDamageDealt 의 부분집합. Phase 6-B Part 4 calibration 측정용 — basic attack/ability
+   *  damage 와 분리해서 trigger/timer 발동 기여를 측정. */
+  itemDamageDealt: number;
   statusEffects: StatusEffect[];
   omnivamp: number;
   // 전투 내 카운터
@@ -464,8 +493,122 @@ export interface CombatUnit {
   augmentBurnPercent: number;
   /** 발명품 탱커 대상 추가 피해증폭 (ArmorNullifier) */
   inventionTankDamageAmp: number;
+  /**
+   * 회복량 증폭 (additive bonus). 0 = base 1.0, 0.22 = 회복량 +22%.
+   * primitive execHeal / heal site 에서 (1 + healAmp) 곱셈으로 적용.
+   * GrenadeMod_Radiant IncreasedHealing 등 누적.
+   */
+  healAmp: number;
+  /**
+   * 암흑의 별 (TFT17_DarkStar) (2)+ tier 활성 시 darkStar unit 본인만 양수.
+   * 이 unit 이 공격하여 target 의 currentHp/maxHp 가 임계값 이하면 즉사 처리 (블랙홀).
+   * 0 = 미활성. ExecuteHPPercent 0.08 (8%) 가 17.2 spec.
+   */
+  darkStarExecuteThreshold: number;
+  /**
+   * 암흑의 별 (6)+ tier 활성 + "가장 강한" darkStar unit 1명만 true.
+   * Supermassive 효과: ADAP 가산을 (1 + SupermassivePercentBonus) 만큼 추가 강화.
+   * (PercentHealth 변수는 desc 미사용 → maxHp 효과 미적용)
+   */
+  darkStarSupermassive: boolean;
+  /**
+   * 최신상 (TFT17_GravesTrait) Frame 변환 — 가장 강한 그레이브즈 1명만 양수.
+   * 'CloseQuarters' = 맹공 프레임 (공격력 전사: 사거리-2, +HP/AD/흡혈)
+   * 'SharpshooterModule' = 위력 프레임 (정밀 + 스킬 피해 +5%)
+   * 'DoubleTap' = 사수 프레임 (25% 확률 2회 공격)
+   * null = Frame 미적용 (Graves 가 일반 챔프로 작동).
+   */
+  gravesFrame: 'CloseQuarters' | 'SharpshooterModule' | 'DoubleTap' | null;
+  /**
+   * Frame DoubleTap 활성 시 추가 공격 발동 확률 (0~1). 0 = 미활성.
+   * eventBus 'on_attack' hook 에서 rng.next() < chance 시 추가 hit.
+   */
+  gravesDoubleAttackChance: number;
+  /**
+   * Frame SharpshooterModule 활성 시 ability damage 추가 % (0~1, 0.05 = +5%).
+   * cast 처리 시 abilityDamage *= (1 + bonus). 0 = 미활성.
+   */
+  gravesAbilityDamageBonus: number;
+  /**
+   * 최신상 (TFT17_GravesTrait) 무기고 stat upgrade 활성 ID 목록.
+   * 가장 강한 그레이브즈 1명에게만 채워지며 빈 배열 = 미적용.
+   * 예: ['LeechingImplants', 'HeavyPlating', 'PrecisionScope2'].
+   * upgrade 적용 후 stat (damage / range / armor / etc.) 는 직접 누적.
+   */
+  gravesUpgrades: string[];
+  /**
+   * Tankbuster (탱커 파괴자) 업그레이드 활성 시 target.role==='Tank' 한정 추가 damage amp.
+   * 0 = 미활성 (기본). inventionTankDamageAmp 와 별도로 합산.
+   */
+  gravesTankDamageAmp: number;
+  /**
+   * 자폭(TFT17_Augment_GragasCarry) 활성 + 가장 강한 그라가스로 선정된 unit 만 true.
+   * 그라가스 ability 가 거대한 폭발 (자기 자신 데미지, 다른 아군 X) 로 변환되며,
+   * 자폭 데미지로 hp 가 1 미만으로 떨어지지 않음 (HP floor=1).
+   */
+  gragasCarryActive: boolean;
+  /**
+   * 방패 여전사(TFT17_Augment_LeonaCarry) 활성 + 가장 강한 레오나로 선정된 unit 만 true.
+   * 레오나 ability 가 적 가로질러 dash (line 패턴) + 첫 적중 대상 기절 (CC) 로 변환.
+   */
+  leonaCarryActive: boolean;
   /** MF 특성 선택 등으로 치환된 실제 트레이트 목록 */
   resolvedTraits?: string[];
+  /** 스킬 치명타 가능 여부. 전투 시작 시 보건/무대 착용 또는 정밀 계열 시너지로 결정. */
+  spellCanCrit: boolean;
+  /**
+   * @deprecated 17.2 이전 (legacy) — Fountain_HealPercent 기반 스킬 힐 트리거.
+   * 17.2+ 에서는 {Fountain_StackingADAP / HealthRegen} 메커니즘으로 변경됨.
+   * combatLoop applyStargazerEffects 의 legacy 경로에서만 사용.
+   */
+  stargazerFountainHealPercent: number;
+  /**
+   * 별돌보미 우물(Fountain) 변종 17.2 — 강화 칸 unit 의 max HP 회복 % per tick.
+   * teamwide (강화 칸 아군) = 0.02, 별돌보미 추가 = 0.04 → 별돌보미 합산 0.06.
+   * 0 = 비활성. main loop tick 마다 fountainTickInterval 만료 시 heal 발동.
+   */
+  fountainHealPctPerTick: number;
+  /**
+   * 별돌보미 우물(Fountain) 변종 17.2 — 강화 칸 별돌보미 stacking AD/AP % per tick.
+   * (3) tier = 0.02, (5) tier = 0.04 — desc StackingADAP. 매 tick 누적 AD/AP 가산.
+   * 0 = 비활성 (강화 칸 별돌보미 아닌 unit).
+   */
+  fountainStackingAdapPerTick: number;
+  /**
+   * 별돌보미 여사냥꾼(Huntress) 변종 — 표식된 적 사망 시 maxHp 비율 회복.
+   * 강화 칸 안 별돌보미 unit 만 양수 (예: 0.10 → maxHp × 10% heal).
+   */
+  stargazerHuntressHealPercent: number;
+  /**
+   * 별돌보미 뱀(Serpent) 변종 — 적에게 입힌 피해의 일부를 N초간 magic DOT 으로 추가.
+   * 강화 칸 안 별돌보미 unit 만 양수 (예: 0.40 → 입힌 피해의 40% 가 3초간 분산 적용).
+   */
+  stargazerSerpentPoisonPercent: number;
+  /** Serpent 의 중독 지속시간 (초). poison statusEffect 의 remainingTicks 계산용. */
+  stargazerSerpentDurationSec: number;
+  /**
+   * 요새 (Bastion/ResistTank) — 첫 N초 doubled BonusArmor.
+   * 0 = 비활성. 양수면 그 tick 에 도달 시 doubled 부분 (bastionDoubleArmorBonus)
+   * 을 stats.armor 에서 차감. tick 마다 main loop 가 체크.
+   */
+  bastionDoubleEndTick: number;
+  bastionDoubleArmorBonus: number;
+  bastionDoubleMrBonus: number;
+  /**
+   * 별돌보미 제단(Shield) 변종 — cashout 발동 시 추가 HP buff.
+   * 강화 칸 안 별돌보미 unit 만 양수 (예: 0.20 → cashout 시 maxHp × 1.20).
+   * cashout 미발동 시 0.
+   */
+  stargazerShieldCashoutHpFrac: number;
+  /** Shield cashout 발동 시 추가 AS buff (예: 0.18 → AS × 1.18). */
+  stargazerShieldCashoutAsFrac: number;
+  /**
+   * 저격수 (Sniper/RangedTrait) — base damage amp + per-hex 추가.
+   * fraction 기준 (예: 0.18 = 18%). 0 = 비-저격수.
+   * damage hit 시: sniperBaseDA + sniperPerHexDA × hexDistance(caster, target).
+   */
+  sniperBaseDA: number;
+  sniperPerHexDA: number;
 }
 
 export interface CombatLog {
@@ -520,12 +663,13 @@ export interface TickSnapshot {
 }
 
 // === Augment Tier Types ===
-export type AugmentTier = 'silver' | 'gold' | 'prismatic';
+export type AugmentTier = 'silver' | 'gold' | 'prismatic' | 'boon';
 
 export const AUGMENT_TIER_TAGS: Record<string, AugmentTier> = {
   '{d11fd6d5}': 'silver',
   '{ce1fd21c}': 'gold',
   '{cf1fd3af}': 'prismatic',
+  '{719abef1}': 'boon', // Set 17 신 은총 (GodAugment) 고유 티어
 };
 
 export const COST_COLORS: Record<number, string> = {
@@ -540,7 +684,8 @@ export const COST_COLORS: Record<number, string> = {
 export type DragData =
   | { type: 'champion'; champion: RawChampion }
   | { type: 'placed-unit'; team: 'player' | 'enemy'; position: HexCoord }
-  | { type: 'item'; item: RawItem };
+  | { type: 'item'; item: RawItem }
+  | { type: 'tool'; toolKind: 'remove-all' };
 
 export const STAR_SCALING: Record<number, number> = {
   1: 1,

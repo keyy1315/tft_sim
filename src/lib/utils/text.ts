@@ -40,6 +40,11 @@ export function resolveDescription(
 
   let result = template;
 
+  // {{TFT_Keyword_*}} 등 mustache 스타일 placeholder 제거.
+  // 원본 데이터에서 키워드 강조용 마커 (예: '{{TFT_Keyword_Precision}}' = '정밀')
+  // 가 변환 없이 노출되는 케이스 방지. 매핑 정보가 없으므로 일단 제거.
+  result = result.replace(/\{\{[^}]+\}\}/g, '');
+
   // expandRow / row 태그 제거
   result = result.replace(/<expandRow>[\s\S]*?<\/expandRow>/g, '');
   result = result.replace(/<row>[\s\S]*?<\/row>/g, '');
