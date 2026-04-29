@@ -41,6 +41,13 @@ export const DISABLED_AUGMENT_API_NAMES: ReadonlySet<string> = new Set([
  *     17.2 게임 시스템: 사용자는 일반 5종 (`*Mod`) 만 장착. (4) 초능력 시너지 활성 +
  *     초능력 unit 이 장착 시 시뮬이 자동 Radiant apiName 으로 swap (combatLoop
  *     applyPsyOpsRadiantSwap). 빌더에서 사용자가 직접 Radiant 선택 불가.
+ *
+ * - TFT17_Item_PsyOps_SemiconductorMod (반도체) — 17.2 raw 데이터에 있지만
+ *     실제 게임 풀에 없음. 데이터 보존, 차단만 (이후 패치 reactivate 가능).
+ *
+ * - TFT17_Item_Artifact_KayleArtifact (케일의 승천) +
+ *   TFT17_Item_Artifact_KayleArtifact_Radiant (케일의 찬란한 승천) —
+ *     17.2 패치에서 삭제. 데이터 보존, 차단만 (다음 패치 부활 가능).
  */
 export const DISABLED_ITEM_API_NAMES: ReadonlySet<string> = new Set([
   'TFT17_MarketOffering_PandorasSeat',
@@ -50,6 +57,9 @@ export const DISABLED_ITEM_API_NAMES: ReadonlySet<string> = new Set([
   'TFT17_Item_PsyOps_ChemicalCapacitorMod_Radiant',
   'TFT17_Item_PsyOps_GrenadeMod_Radiant',
   'TFT17_Item_PsyOps_SemiconductorMod_Radiant',
+  'TFT17_Item_PsyOps_SemiconductorMod',
+  'TFT17_Item_Artifact_KayleArtifact',
+  'TFT17_Item_Artifact_KayleArtifact_Radiant',
 ]);
 
 export function isDisabledAugment(apiName: string): boolean {
