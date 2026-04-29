@@ -80,21 +80,49 @@ describe('healAmp 곱셈 동작 — combatLoop heal 사이트 8곳 일관 적용
 
 describe('healAmp 적용 사이트 코드 grep — 회귀 안전성', () => {
   /**
-   * 8 사이트 모두 `(1 + (X.healAmp ?? 0))` 패턴을 코드에 포함하는지 grep 가드.
-   * source 코드 자체를 문자열로 읽어 패턴 매칭 — 미적용 회귀 시 즉시 실패.
+   * 9 사이트 모두 `(1 + (X.healAmp ?? 0))` 패턴 + 사이트별 fingerprint 검증.
+   * 1 곳이라도 빠지면 실패 (codex P2 — `>=8` 으로는 1개 누락 검출 불가능).
+   *
+   * 카운트 변경 시 (heal site 추가 / 제거) 본 expectedCount + sites 배열 갱신 필수 —
+   * 의도된 gate.
    */
-  it('combatLoop.ts 가 8 heal 사이트 모두에 healAmp 곱셈 포함', async () => {
+  it('combatLoop.ts 가 9 heal 사이트 모두에 healAmp 곱셈 포함 (정확 카운트)', async () => {
     const fs = await import('node:fs');
     const path = await import('node:path');
     const file = fs.readFileSync(
       path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
       'utf8',
     );
-    // 모든 heal 사이트의 healAmp 곱셈 패턴
     const patternA = /\* \(1 \+ \(\w+\.healAmp \?\? 0\)\)/g;
     const matches = file.match(patternA);
     expect(matches, 'healAmp 곱셈 패턴이 코드에 포함되어야 함').toBeDefined();
-    // 8 heal 사이트 + 기존 1곳 (Fountain stacking) = 최소 8 매치
-    expect(matches!.length).toBeGreaterThanOrEqual(8);
+    // PR #52: 8 신규 사이트 + 기존 1 (Fountain stacking, line 3122) = 정확 9 매치.
+    // 새 heal 사이트 추가 시 본 카운트도 갱신 필수.
+    expect(matches!.length).toBe(9);
+  });
+
+  it('각 heal 사이트별 fingerprint — 의미 단위 회귀 가드', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const file = fs.readFileSync(
+      path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+      'utf8',
+    );
+    // 각 heal 사이트의 핵심 expression 직접 매치 — 1곳이라도 빠지면 실패.
+    const sites: Array<{ name: string; pattern: RegExp }> = [
+      { name: 'Maokai N.O.V.A teamwide heal', pattern: /u\.maxHp \* state\.maokaiHealPct \* \(1 \+ \(u\.healAmp \?\? 0\)\)/ },
+      { name: 'Fountain heal (legacy)', pattern: /totalAbilityDmg \* caster\.stargazerFountainHealPercent \* \(1 \+ \(lowest\.healAmp \?\? 0\)\)/ },
+      { name: 'Stargazer 사냥꾼 표식 사망 heal', pattern: /h\.maxHp \* h\.stargazerHuntressHealPercent \* \(1 \+ \(h\.healAmp \?\? 0\)\)/ },
+      { name: 'basic attack omnivamp', pattern: /finalDamage \* unit\.omnivamp \* grievousReduction \* \(1 \+ \(unit\.healAmp \?\? 0\)\)/ },
+      { name: 'extra hit (DoubleTap) omnivamp', pattern: /extraFinal \* unit\.omnivamp \* grievousReduction \* \(1 \+ \(unit\.healAmp \?\? 0\)\)/ },
+      { name: 'Fiora 급소 회복 (atkSc.healPercent)', pattern: /sDmg \* healPct \* \(1 \+ \(unit\.healAmp \?\? 0\)\)/ },
+      { name: 'ability omnivamp', pattern: /totalAbilityDmg \* unit\.omnivamp \* grievousReduction \* \(1 \+ \(unit\.healAmp \?\? 0\)\)/ },
+      { name: 'ability self-heal (Heal/APHeal/PercentMaximumHealthHealing)', pattern: /healAmount \* \(1 \+ \(unit\.healAmp \?\? 0\)\)/ },
+      // 기존 1곳 (Fountain stacking, line 3122) — `healBase * (1 + (u.healAmp ?? 0))`
+      { name: 'Fountain stacking heal (PR #41 기존)', pattern: /healBase \* \(1 \+ \(u\.healAmp \?\? 0\)\)/ },
+    ];
+    for (const { name, pattern } of sites) {
+      expect(file, `heal 사이트 missing: ${name}`).toMatch(pattern);
+    }
   });
 });
