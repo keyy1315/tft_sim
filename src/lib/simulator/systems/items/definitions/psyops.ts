@@ -9,6 +9,7 @@
  * 설계 문서: docs/02-design/features/item-effect-engine.design.md §6.3
  */
 
+import type { ItemEffect } from '@/types';
 import type { Action, ItemEffectDescriptor, Cond } from '../primitives/types';
 
 /**
@@ -20,13 +21,7 @@ import type { Action, ItemEffectDescriptor, Cond } from '../primitives/types';
  */
 const isPsyOpsUnit: Cond = (ctx) => ctx.unit.champion.traits.includes('초능력');
 
-const statPatch = (stats: {
-  ad?: number; ap?: number; as?: number; hp?: number;
-  armor?: number; magicResist?: number;
-  critChance?: number; critDamage?: number; mana?: number;
-  armorPen?: number; magicPen?: number;
-  omnivamp?: number; manaRegen?: number;
-}): ItemEffectDescriptor => ({ kind: 'stat', stats });
+const statPatch = (stats: Partial<ItemEffect>): ItemEffectDescriptor => ({ kind: 'stat', stats });
 
 /**
  * 드론 업링크 공통 descriptor 빌더.
@@ -351,11 +346,21 @@ function buildTargetlockOptic(
  *  - Timer intervalTicks 240 (8초 × 30) → heal pctMissingHp 0.18 on 'self'
  *  - Grenade entity spawn (NumGrenades 3) 은 엔진 확장 필요 → Phase 6+ 이월
  */
-function buildGrenadeMod(apiName: string, hp: number, healPct: number): [string, ItemEffectDescriptor[]] {
+function buildGrenadeMod(
+  apiName: string,
+  hp: number,
+  healPct: number,
+  increasedHealing: number = 0,
+): [string, ItemEffectDescriptor[]] {
+  // 17.2 Radiant: IncreasedHealing 0.22 — 회복량 +22% 증폭. healAmp statPatch 로 적용.
+  // PsyOps Radiant swap 메커니즘 이 (4) tier + 초능력 unit 게이트 역할 → 본 entry 가
+  // 사용되는 시점 = 이미 조건 충족 → 무조건 적용 OK.
+  const stats: Partial<ItemEffect> = { hp };
+  if (increasedHealing > 0) stats.healAmp = increasedHealing;
   return [
     apiName,
     [
-      statPatch({ hp }),
+      statPatch(stats),
       {
         kind: 'timer',
         intervalTicks: 240, // 8초 × 30
@@ -414,5 +419,6 @@ export const PSYOPS_ITEMS: Record<string, ItemEffectDescriptor[]> = Object.fromE
   buildTargetlockOptic('TFT17_Item_PsyOps_TargetlockMod_Radiant', 0.20, 0.25),
   // 유기물 보존기 — 17.2 일반 (Health 250) / Radiant (Health 550, IncreasedHealing 미구현)
   buildGrenadeMod('TFT17_Item_PsyOps_GrenadeMod', 250, 0.18),
-  buildGrenadeMod('TFT17_Item_PsyOps_GrenadeMod_Radiant', 550, 0.18),
+  // 17.2 Radiant: Health 550 + IncreasedHealing 0.22 (회복량 +22%)
+  buildGrenadeMod('TFT17_Item_PsyOps_GrenadeMod_Radiant', 550, 0.18, 0.22),
 ]);
