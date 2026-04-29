@@ -150,10 +150,24 @@ describe('GravesTrait stat upgrades — 단순 stat 18종 적용', () => {
 
   it('복수 upgrade 동시 적용 → 효과 누적 (Heartseeker + APRounds + Tankbuster)', () => {
     const { grav, base } = runWith(['Heartseeker', 'APRounds', 'Tankbuster']);
-    expect(grav.gravesUpgrades).toEqual(['Heartseeker', 'APRounds', 'Tankbuster']);
+    // canonical order: APRounds → Heartseeker → Tankbuster (deterministic, input 순서 무관)
+    expect(grav.gravesUpgrades).toEqual(['APRounds', 'Heartseeker', 'Tankbuster']);
     expect(grav.stats.critChance - base.stats.critChance).toBeCloseTo(0.10, 3);
     expect(grav.stats.armorPen - base.stats.armorPen).toBeCloseTo(0.30, 3);
     expect(grav.gravesTankDamageAmp).toBeCloseTo(0.15, 3);
+  });
+
+  it('canonical apply order — 입력 배열 순서가 달라도 동일 결과 (deterministic)', () => {
+    // SheerMass × maxHp / HeavyPlating + maxHp 는 적용 순서에 따라 결과 다름.
+    // canonical: HeavyPlating(flat HP +300) → SheerMass(× 1.25) 가 정답.
+    const set1 = runWith(['HeavyPlating', 'SheerMass']);
+    const set2 = runWith(['SheerMass', 'HeavyPlating']); // 입력 순서 뒤집어도 동일해야 함
+    expect(set1.grav.maxHp).toBe(set2.grav.maxHp);
+    expect(set1.grav.gravesUpgrades).toEqual(set2.grav.gravesUpgrades);
+    // canonical order: HeavyPlating(flat) 먼저 → SheerMass(×) 나중
+    expect(set1.grav.gravesUpgrades).toEqual(['HeavyPlating', 'SheerMass']);
+    // 결과: (base + 300) × 1.25
+    expect(set1.grav.maxHp).toBeCloseTo(Math.round((set1.base.maxHp + 300) * 1.25), 0);
   });
 
   it('Frame + upgrade 동시 → 양쪽 동일 unit 에 누적', () => {

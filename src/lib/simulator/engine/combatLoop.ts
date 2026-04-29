@@ -1286,16 +1286,64 @@ const GRAVES_STAT_UPGRADE_HANDLERS: Record<string, (u: CombatUnit, baseAd: numbe
   },
 };
 
+/**
+ * Stable canonical 적용 순서 — deterministic 보장 (codex P2).
+ * 일부 upgrade 가 order-sensitive (SheerMass × maxHp vs HeavyPlating + maxHp 등) →
+ * 입력 array 순서가 달라도 동일 set 이면 항상 같은 결과를 내야 replay/serialize 가능.
+ *
+ * 적용 순서 원칙:
+ *   1. flat HP / armor / MR / range / mana 등 가산 먼저
+ *   2. AD% / armorPen / crit 등 stat 가산
+ *   3. maxHp 비례 multiplier (SheerMass) — 가장 마지막
+ *   4. 동일 카테고리 내에선 알파벳 순 (deterministic)
+ */
+const GRAVES_UPGRADE_APPLY_ORDER: ReadonlyArray<string> = [
+  // 1. flat additions (HP/armor/MR/range/mana)
+  'APRounds',
+  'APRounds2',
+  'Coolant',
+  'Coolant2',
+  'Fission',
+  'Fission2',
+  'Fission3',
+  'HeavyPlating',
+  'LeechingImplants',
+  'LeechingImplants2',
+  'PrecisionScope',
+  'PrecisionScope2',
+  'PrecisionScope3',
+  // 2. crit / damage amp
+  'Heartseeker',
+  'Heartseeker2',
+  'Heartseeker3',
+  'Tankbuster',
+  // 3. % multiplier (가장 마지막 — 1·2 단계의 flat HP/AD 가산 후 적용)
+  'SheerMass',
+];
+
 function applyGravesStatUpgrades(units: CombatUnit[], upgrades: string[] | undefined): void {
   if (!upgrades || upgrades.length === 0) return;
   const target = findStrongestUnitByApi(units, 'TFT17_Graves');
   if (!target) return;
   const baseAd = target.champion.stats.damage * (STAR_SCALING[target.starLevel] || 1);
+
+  // canonical order 로 정렬 — 입력 array 순서가 달라도 동일 set 이면 동일 결과.
+  // 미지원 upgrade (Phase 3 메커닉) 는 GRAVES_STAT_UPGRADE_HANDLERS 에 없으므로 skip.
+  // canonical order 에 없는 신규 upgrade 는 알파벳 순 fallback (정의 누락 가드).
+  const requested = new Set(upgrades);
+  const ordered: string[] = [];
+  for (const id of GRAVES_UPGRADE_APPLY_ORDER) {
+    if (requested.has(id) && GRAVES_STAT_UPGRADE_HANDLERS[id]) ordered.push(id);
+  }
+  const known = new Set(GRAVES_UPGRADE_APPLY_ORDER);
+  const fallback = upgrades
+    .filter(id => !known.has(id) && GRAVES_STAT_UPGRADE_HANDLERS[id])
+    .sort();
+  ordered.push(...fallback);
+
   const applied: string[] = [];
-  for (const id of upgrades) {
-    const handler = GRAVES_STAT_UPGRADE_HANDLERS[id];
-    if (!handler) continue; // 미지원 upgrade (Phase 3 메커닉) 는 silently skip
-    handler(target, baseAd);
+  for (const id of ordered) {
+    GRAVES_STAT_UPGRADE_HANDLERS[id](target, baseAd);
     applied.push(id);
   }
   if (applied.length > 0) {
