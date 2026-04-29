@@ -97,6 +97,38 @@ export const PRIMORDIAN_BOSS_CHAMPION: RawChampion = {
   },
 };
 
+/**
+ * 암흑의 별 (6) tier Supermassive 시너지로 자동 소환되는 소형 블랙홀.
+ * 17.2 raw: TFT17_DarkStar_FakeUnit, hp=1, range=0, role='APTank'.
+ * 사용자 위치 변경 가능, 아이템 장착 불가, 이동/공격 안 함 (range=0 + attackSpeed=0 강제).
+ * (6) DarkStar 시너지 활성 시 2개 자동 보드 추가, 비활성 시 제거.
+ */
+export const DARKSTAR_BLACKHOLE_CHAMPION: RawChampion = {
+  name: '소형 블랙홀',
+  apiName: 'TFT17_DarkStar_FakeUnit',
+  cost: 11,
+  traits: [],
+  role: 'APTank' as RawChampion['role'],
+  stats: {
+    armor: 40,
+    attackSpeed: 0, // 시뮬에서 공격 비활성 (raw 4.95 무시)
+    critChance: 0,
+    critMultiplier: 0,
+    damage: 0, // 시뮬에서 damage 비활성 (raw 421 무시)
+    hp: 1,
+    initialMana: 0,
+    magicResist: 40,
+    mana: 0,
+    range: 0, // 공격 대상 못 잡음 — 이동/공격 자연 비활성
+  },
+  ability: {
+    name: '중력 붕괴',
+    desc: '초신성에 의해 생성된 소형 블랙홀입니다.',
+    icon: 'ASSETS/Characters/TFT17_DarkStar_FakeUnit/HUD/TFT17_DarkStar_FakeUnit_SmallSplash.TFT_Set17.tex',
+    variables: [],
+  },
+};
+
 export const AUTO_UNIT_API_NAMES = [
   'TFT16_AnnieTibbers',
   'TFT16_FreljordTurret',
@@ -104,6 +136,7 @@ export const AUTO_UNIT_API_NAMES = [
   'TFT17_Summon',
   'TFT17_ShenProp',
   'TFT17_Enemy_Aatrox',
+  'TFT17_DarkStar_FakeUnit',
 ] as const;
 
 /**
@@ -120,6 +153,7 @@ export const NO_ITEM_AUTO_UNIT_API_NAMES: ReadonlySet<string> = new Set([
   'TFT16_AzirSoldier',
   'TFT17_ShenProp',
   'TFT17_Enemy_Aatrox',
+  'TFT17_DarkStar_FakeUnit',
 ]);
 
 export function isAutoUnit(apiName: string): boolean {

@@ -4,7 +4,7 @@ import { BOARD_COLS, DEFAULT_STAR_LEVEL } from '@/lib/simulator/models/constants
 import { resolveTraits } from '@/lib/simulator/systems/trait';
 import { canEquipItem, canAddPiltoverModule, isVoidMutation } from '@/lib/simulator/systems/item';
 import { getDefaultStacks } from '@/lib/simulator/systems/augment';
-import { FRELJORD_TURRET, TIBBERS_CHAMPION, AZIR_SOLDIER_CHAMPION, AZIR_MAX_SOLDIERS, VOYAGER_SUMMON_CHAMPION, SHEN_ARTIFACT_CHAMPION, PRIMORDIAN_BOSS_CHAMPION, isAutoUnit } from '@/data/specialUnits';
+import { FRELJORD_TURRET, TIBBERS_CHAMPION, AZIR_SOLDIER_CHAMPION, AZIR_MAX_SOLDIERS, VOYAGER_SUMMON_CHAMPION, SHEN_ARTIFACT_CHAMPION, PRIMORDIAN_BOSS_CHAMPION, DARKSTAR_BLACKHOLE_CHAMPION, isAutoUnit } from '@/data/specialUnits';
 import type { IoniaPathType } from '@/data/traitModules';
 import type { StargazerConstellationId } from '@/lib/actualData/types';
 import { RawTrait } from '@/types';
@@ -260,6 +260,58 @@ function syncPrimordianBossInTeam(
   }];
 }
 
+/**
+ * 암흑의 별 (6) tier Supermassive 시너지 → 소형 블랙홀 2개 자동 보드 추가.
+ *
+ * 발동 조건:
+ *   - playerActiveTraits 의 TFT17_DarkStar trait active style >= 5 (= (6) tier+)
+ *
+ * 사용자 위치 변경 가능, 아이템 장착 불가 (NO_ITEM_AUTO_UNIT_API_NAMES), 이동/공격 X.
+ * 시너지 비활성 시 자동 제거. 이미 2개 존재하면 그대로 유지 (idempotent).
+ */
+export function syncDarkStarBlackholesInTeam(
+  team: PlacedChampion[],
+  darkStarStyle: number,
+): PlacedChampion[] {
+  const targetCount = darkStarStyle >= 5 ? 2 : 0;
+  const existing = team.filter(p => p.champion.apiName === DARKSTAR_BLACKHOLE_CHAMPION.apiName);
+
+  // 비활성 → 모두 제거
+  if (targetCount === 0) {
+    return existing.length > 0
+      ? team.filter(p => p.champion.apiName !== DARKSTAR_BLACKHOLE_CHAMPION.apiName)
+      : team;
+  }
+
+  // 이미 충족 → 그대로
+  if (existing.length >= targetCount) return team;
+
+  // 부족분 추가 — 빈 hex 찾아 spawn
+  const occupied = new Set(team.map(p => `${p.position.q},${p.position.r}`));
+  const result = [...team];
+  const seedAxials: HexCoord[] = [
+    { q: 0, r: 0 }, { q: 6, r: 0 }, { q: 0, r: 3 }, { q: 6, r: 3 },
+    { q: 1, r: 1 }, { q: 5, r: 1 }, { q: 1, r: 2 }, { q: 5, r: 2 },
+  ];
+  for (let i = existing.length; i < targetCount; i++) {
+    let pos: HexCoord | null = null;
+    for (const seed of seedAxials) {
+      pos = findEmptyAdjacentHex(seed, occupied, 3);
+      if (pos) break;
+    }
+    if (!pos) break;
+    occupied.add(`${pos.q},${pos.r}`);
+    result.push({
+      champion: DARKSTAR_BLACKHOLE_CHAMPION,
+      position: pos,
+      starLevel: 1,
+      items: [],
+      isSummon: true,
+    });
+  }
+  return result;
+}
+
 function syncTeam(team: PlacedChampion[], traits: RawTrait[]): PlacedChampion[] {
   // 1단계: 일반 소환체 보정 (아지르/애니/프렐요드)
   const intermediate = syncFreljordTurretsInTeam(syncAzirSoldiersInTeam(syncTibbersInTeam(team)));
@@ -273,15 +325,23 @@ function syncTeam(team: PlacedChampion[], traits: RawTrait[]): PlacedChampion[] 
   // 무관하게 0 으로 계산되어 기존 TFT17_Summon 이 잘못 제거될 수 있다. 이 경우 길잡이
   // 동기화 단계를 건너뛰고 기존 상태를 보존 — traits 도착 후 useTeamManagement 훅의
   // 1회성 resync 및 다음 사용자 편집에서 자연 정합화된다.
-  const withVoyager = traits.length === 0
+  const resolvedTraits = traits.length === 0 ? null : resolveTraits(intermediate, traits);
+  const withVoyager = resolvedTraits === null
     ? intermediate
     : syncVoyagerSummonInTeam(
         intermediate,
-        resolveTraits(intermediate, traits).find(t => t.trait.name === '길잡이')?.count ?? 0,
+        resolvedTraits.find(t => t.trait.name === '길잡이')?.count ?? 0,
       );
 
   // 3단계: 쉔 아티팩트
-  return syncShenArtifactInTeam(withVoyager);
+  const withShen = syncShenArtifactInTeam(withVoyager);
+
+  // 4단계: 암흑의 별 (6) tier 활성 시 소형 블랙홀 2개 자동 spawn.
+  // resolveTraits 결과에서 TFT17_DarkStar 의 active style 사용 (5 = (6) tier+).
+  const darkStarStyle = resolvedTraits === null
+    ? 0
+    : (resolvedTraits.find(t => t.trait.apiName === 'TFT17_DarkStar')?.style ?? 0);
+  return syncDarkStarBlackholesInTeam(withShen, darkStarStyle);
 }
 
 // === Exported helpers used by DnD ===

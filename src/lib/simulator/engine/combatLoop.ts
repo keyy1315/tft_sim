@@ -948,9 +948,9 @@ function applyDarkStarEffects(activeTraits: ActiveTrait[], units: CombatUnit[]):
   const adap = (v.ADAP ?? 0) as number;
   const executePct = (v.ExecuteHPPercent ?? 0) as number;
   const supermassiveBonus = (v.SupermassivePercentBonus ?? 0) as number;
-  const percentHealth = (v.PercentHealth ?? 0) as number;
+  // PercentHealth=0.30 raw 변수는 desc 에 미사용 → 적용 안 함 (codex 후속 검토).
 
-  // darkStar unit 식별 (한 번에)
+  // darkStar unit 식별 (FakeUnit 소형 블랙홀 은 traits=[] 라서 자연 제외됨)
   const darkStarUnits = units.filter(u => unitHasTrait(u, '암흑의 별'));
   if (darkStarUnits.length === 0) return;
 
@@ -969,25 +969,18 @@ function applyDarkStarEffects(activeTraits: ActiveTrait[], units: CombatUnit[]):
     }
   }
 
-  // (6)+ tier (style 5): 가장 강한 darkStar unit Supermassive (ADAP × 1.85, maxHp × 1.30).
-  // ADAP 추가분만 적용 — 이미 ADAP 45 적용된 stats 위에 추가 (1.85배 - 기본 1배 = 0.85배 추가).
+  // (6)+ tier (style 5): 가장 강한 darkStar unit Supermassive — desc 명시:
+  //   "암흑의 별 효과 SupermassivePercentBonus(0.85) 만큼 증가 + 소형 블랙홀 2개 생성".
+  //   ADAP 추가분만 적용 (이미 ADAP 45 적용 stats 위에 0.85배 추가).
+  //   소형 블랙홀 spawn 은 useTeamManagement.syncDarkStarBlackholesInTeam (UI 단계).
   if (trait.style >= 5 && supermassiveBonus > 0) {
     const strongest = findStrongestDarkStarUnit(darkStarUnits);
     if (strongest) {
       strongest.darkStarSupermassive = true;
-      // ADAP 추가 강화: 이미 45 적용된 위에 SupermassivePercentBonus(0.85) 만큼 추가.
-      // damage: base × (1 + 0.45) → × (1 + 0.45 × 1.85) = + 0.45 × 0.85 추가
-      // ap: base + 45 → + 45 × 0.85 추가
       const baseDamageBeforeAdap = strongest.stats.damage / (1 + adap / 100);
       const extraDamage = baseDamageBeforeAdap * (adap / 100) * supermassiveBonus;
       strongest.stats.damage = Math.round(strongest.stats.damage + extraDamage);
       strongest.stats.ap = (strongest.stats.ap ?? 0) + adap * supermassiveBonus;
-      // maxHp +30%
-      if (percentHealth > 0) {
-        const hpDelta = Math.round(strongest.maxHp * percentHealth);
-        strongest.maxHp += hpDelta;
-        strongest.currentHp += hpDelta;
-      }
     }
   }
 }

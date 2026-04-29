@@ -131,33 +131,6 @@ describe('G3 — DarkStar (6) tier Supermassive', () => {
     expect(mord.stats.ap - karma.stats.ap).toBeCloseTo(45 * 0.85, 0);
   });
 
-  it('Supermassive unit maxHp +30% (PercentHealth=0.30)', () => {
-    // (6) tier 활성 + Mordekaiser strongest → maxHp +30%
-    const team6: PlacedChampion[] = [
-      placed(apKaisa, 0, 0),
-      placed(apKarma, 1, 0),
-      placed(apJhin, 2, 0),
-      placed(apChogath, 3, 0),
-      placed(apLissandra, 4, 0),
-      placed(apMordekaiser, 5, 0),
-    ];
-    // (4) tier baseline (Mordekaiser 4명 팀)
-    const team4: PlacedChampion[] = [
-      placed(apKaisa, 0, 0),
-      placed(apKarma, 1, 0),
-      placed(apJhin, 2, 0),
-      placed(apMordekaiser, 5, 0),
-    ];
-    const enemy = [placed(dummyEnemy, 6, 3)];
-    const result6 = simulateCombat(team6, enemy, {
-      seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
-    });
-    const result4 = simulateCombat(team4, enemy, {
-      seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
-    });
-    const mord6 = result6.playerUnits.find(u => u.champion.apiName === 'TFT17_Mordekaiser')!;
-    const mord4 = result4.playerUnits.find(u => u.champion.apiName === 'TFT17_Mordekaiser')!;
-    // (6) tier maxHp 가 (4) tier maxHp 보다 ~30% 높음
-    expect(mord6.maxHp / mord4.maxHp).toBeCloseTo(1.30, 2);
-  });
+  // PercentHealth=0.30 raw 변수는 trait desc 에 미사용 → maxHp 효과 미적용
+  // (codex P2 후속 검토 결과). desc 명시 효과만 시뮬에 반영.
 });
