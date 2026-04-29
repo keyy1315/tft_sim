@@ -9,6 +9,7 @@ import type { DragData, RawChampion, RawItem, HexCoord } from '@/types';
 import { offsetToAxial } from '@/types';
 import ChampionCard from '@/components/builder/ChampionCard';
 import ItemIcon from '@/components/builder/ItemIcon';
+import GravesWeaponModal from '@/components/builder/GravesWeaponModal';
 import TeamEditor from './TeamEditor';
 import OpponentPanel from './OpponentPanel';
 import DamageChartInput from './DamageChartInput';
@@ -85,6 +86,34 @@ export default function PvPRoundEditor({ index, round }: { index: number; round:
   }, [round.playerTeam.units, index, updatePlayerTeam]);
 
   const championCatalog = useMemo(() => new Map(champions.map(c => [c.apiName, c])), [champions]);
+
+  // 그레이브즈 무기고 — 모달 state + onPicksChange 핸들러
+  const [gravesModalTeam, setGravesModalTeam] = useState<'player' | 'opponent' | null>(null);
+  const hasPlayerGraves = round.playerTeam.units.some(u => u.championId === 'TFT17_Graves');
+  const hasOpponentGraves = round.opponent.units.some(u => u.championId === 'TFT17_Graves');
+  const playerPicks = round.playerTeam.factoryNew?.upgradePath ?? [];
+  const opponentPicks = round.opponent.factoryNew?.upgradePath ?? [];
+  const currentPicks = gravesModalTeam === 'player'
+    ? playerPicks
+    : gravesModalTeam === 'opponent' ? opponentPicks : [];
+
+  const handleGravesPicksChange = useCallback((picks: string[]) => {
+    if (gravesModalTeam === 'player') {
+      updatePlayerTeam(index, {
+        factoryNew: {
+          ...round.playerTeam.factoryNew,
+          upgradePath: picks,
+        },
+      });
+    } else if (gravesModalTeam === 'opponent') {
+      updateOpponent(index, {
+        factoryNew: {
+          ...round.opponent.factoryNew,
+          upgradePath: picks,
+        },
+      });
+    }
+  }, [gravesModalTeam, index, round.playerTeam.factoryNew, round.opponent.factoryNew, updatePlayerTeam, updateOpponent]);
 
   return (
     <DndContext
@@ -240,6 +269,60 @@ export default function PvPRoundEditor({ index, round }: { index: number; round:
           </div>
         )}
       </DragOverlay>
+
+      {/* 그레이브즈 무기고 — graves placed 시 floating button. round 별로 picks 저장.
+          modal open 일 때 button 숨김 → modal isolation 보장 (codex P2: picks 가
+          의도하지 않은 팀에 적용되는 mid-flow 전환 방지). z-index 도 modal (z-50) 보다
+          낮은 z-40 으로 — modal 안에서도 background button 가시성 차단. */}
+      {(hasPlayerGraves || hasOpponentGraves) && gravesModalTeam === null && (
+        <div
+          className="fixed right-4 flex flex-col gap-2"
+          style={{ bottom: '16px', zIndex: 40 }}
+        >
+          {hasPlayerGraves && (
+            <button
+              type="button"
+              onClick={() => setGravesModalTeam('player')}
+              className="px-3 py-2 bg-blue-700 hover:bg-blue-600 text-white text-sm rounded-full shadow-lg flex items-center gap-2"
+              title="내 팀 그레이브즈 무기고 편집"
+            >
+              🔧 내 무기고
+              {playerPicks.length > 0 && (
+                <span className="px-1.5 py-0.5 bg-blue-900 text-blue-100 text-xs rounded-full">
+                  {playerPicks.length}
+                </span>
+              )}
+            </button>
+          )}
+          {hasOpponentGraves && (
+            <button
+              type="button"
+              onClick={() => setGravesModalTeam('opponent')}
+              className="px-3 py-2 bg-red-700 hover:bg-red-600 text-white text-sm rounded-full shadow-lg flex items-center gap-2"
+              title="상대 그레이브즈 무기고 편집"
+            >
+              🔧 상대 무기고
+              {opponentPicks.length > 0 && (
+                <span className="px-1.5 py-0.5 bg-red-900 text-red-100 text-xs rounded-full">
+                  {opponentPicks.length}
+                </span>
+              )}
+            </button>
+          )}
+        </div>
+      )}
+
+      <GravesWeaponModal
+        isOpen={gravesModalTeam !== null}
+        picks={currentPicks}
+        onPicksChange={handleGravesPicksChange}
+        onClose={() => setGravesModalTeam(null)}
+        unitLabel={
+          gravesModalTeam === 'player' ? `내 팀 — 라운드 ${round.roundName}`
+          : gravesModalTeam === 'opponent' ? `상대 — 라운드 ${round.roundName}`
+          : undefined
+        }
+      />
     </DndContext>
   );
 }
