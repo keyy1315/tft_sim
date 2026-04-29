@@ -42,8 +42,11 @@ export function loadServerCatalogs(): ServerCatalogs {
   const itemsRaw = readJson<RawItemsData>('tft_set17_items.json').items;
   const augmentsRaw = readJson<RawAugmentsData>('tft_set17_augments.json').augments;
   // disabledContent.ts 등록 항목 제외 (loader.ts 와 동일 동작 보장).
+  // augment 는 disable!==true 만 통과 — disable=true 는 시즌 미사용으로 분류된 상태.
   const items = itemsRaw.filter(it => !isDisabledItem(it.apiName));
-  const augments = augmentsRaw.filter(a => !isDisabledAugment(a.apiName));
+  const augments = augmentsRaw.filter(a =>
+    a.disable !== true && !isDisabledAugment(a.apiName),
+  );
   cached = { champions, traits, items, augments };
   return cached;
 }

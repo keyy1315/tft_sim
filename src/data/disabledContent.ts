@@ -11,16 +11,20 @@
 /**
  * Disabled augments (apiName → 제외).
  *
+ * NOTE: 본 Set 은 augments JSON 의 disable:true 분류와 함께 동작.
+ * loader.ts / serverCatalogs.ts 가 둘 다 체크하여 augment 풀에서 제외.
+ *
  * - TFT17_Augment_Concentration (집중) — 17.2 raw 추가, 게임 풀 미반영
  * - TFT17_Augment_Timebreaker_Timestream (시간의 흐름) — 17.2 raw 추가, 게임 풀 미반영
- * - TFT17_Augment_Psionic_EmergencySupplies — 17.2 raw 추가, name 미정의 (placeholder)
+ * - TFT17_Augment_EmergencySupplies — 17.2 raw 추가, name 미정의 (placeholder)
+ *   (회귀 노트: 이전 'Psionic_' 접두사는 raw apiName 과 불일치하여 필터 미적용 — 17.2 fetch 후 발견)
  * - TFT17_Augment_DarkStar_NeutronStar (중성자별) — 17.2 raw 추가, 게임 풀 미반영
  * - TFT17_Augment_ShieldTank_DivinePaladins (신성한 성기사단) — 17.2 raw 추가, 게임 풀 미반영
  */
 export const DISABLED_AUGMENT_API_NAMES: ReadonlySet<string> = new Set([
   'TFT17_Augment_Concentration',
   'TFT17_Augment_Timebreaker_Timestream',
-  'TFT17_Augment_Psionic_EmergencySupplies',
+  'TFT17_Augment_EmergencySupplies',
   'TFT17_Augment_DarkStar_NeutronStar',
   'TFT17_Augment_ShieldTank_DivinePaladins',
 ]);

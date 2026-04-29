@@ -3,7 +3,7 @@
     "set": 17,
     "source": "CommunityDragon TFT ko_kr.json",
     "extractedAt": "2026-04-29T00:27:54.652Z",
-    "totalAugments": 434
+    "totalAugments": 435
   },
   "augments": [
     {
@@ -17,7 +17,8 @@
       "associatedTraits": [],
       "tags": [
         "{719abef1}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "소라카의 은총",
@@ -31,7 +32,8 @@
       "associatedTraits": [],
       "tags": [
         "{719abef1}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "동물특공대 지휘관",
@@ -53,7 +55,8 @@
         "{4529fead}",
         "{84a6d904}",
         "{77b330ea}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "방패 여전사",
@@ -69,7 +72,8 @@
         "{d22ae649}",
         "{ec068228}",
         "{84a6d904}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "집중",
@@ -91,7 +95,8 @@
         "{3754d0ae}",
         "{84a6d904}",
         "{38baf02e}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "아우렐리온 솔의 은총",
@@ -108,7 +113,8 @@
       "associatedTraits": [],
       "tags": [
         "{719abef1}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "아군이 공격력 및 주문력을 @SmallQuestADAP@ 얻습니다.",
@@ -121,7 +127,8 @@
       "associatedTraits": [],
       "tags": [
         "{ea82f47d}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "플레이어 대상 전투 @MedQuestRounds@회 후, 완성 아이템 모루와 @MedQuestGold@골드를 획득합니다.",
@@ -136,7 +143,8 @@
       "associatedTraits": [],
       "tags": [
         "{ea82f47d}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "플레이어 대상 전투 @LargeQuestRounds@회 후, 고유 특성이 아닌 모든 특성에 +1을 추가합니다.",
@@ -149,7 +157,8 @@
       "associatedTraits": [],
       "tags": [
         "{ea82f47d}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "뜨거운 죽음",
@@ -165,7 +174,8 @@
         "{d22ae649}",
         "{ec068228}",
         "{84a6d904}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "침략자 제드",
@@ -184,7 +194,8 @@
         "{d22ae649}",
         "{ec068228}",
         "{84a6d904}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "아리의 은총",
@@ -198,7 +209,8 @@
       "associatedTraits": [],
       "tags": [
         "{719abef1}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "시간의 흐름",
@@ -219,7 +231,8 @@
         "{d12ae4b6}",
         "{84a6d904}",
         "{38baf02e}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "부활의 은총",
@@ -228,7 +241,8 @@
       "effects": {},
       "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Missing-T2.tex",
       "associatedTraits": [],
-      "tags": []
+      "tags": [],
+      "disable": false
     },
     {
       "name": "신성한 개정",
@@ -247,7 +261,8 @@
         "{84a6d904}",
         "{38baf02e}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "별빛 연계",
@@ -263,7 +278,8 @@
         "{d22ae649}",
         "{ec068228}",
         "{84a6d904}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "야스오의 스포트라이트 공유",
@@ -274,7 +290,8 @@
       },
       "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/ShareSpotlight2.tex",
       "associatedTraits": [],
-      "tags": []
+      "tags": [],
+      "disable": false
     },
     {
       "name": "정령단 속도",
@@ -290,7 +307,8 @@
         "{d22ae649}",
         "{ec068228}",
         "{84a6d904}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "빅뱅",
@@ -306,7 +324,8 @@
         "{d22ae649}",
         "{ec068228}",
         "{84a6d904}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "청부 살인마",
@@ -322,7 +341,8 @@
         "{d22ae649}",
         "{ec068228}",
         "{84a6d904}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "야스오의 황금 칸",
@@ -335,7 +355,8 @@
       },
       "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/FindYourCenter_I.TFT_Set12.tex",
       "associatedTraits": [],
-      "tags": []
+      "tags": [],
+      "disable": false
     },
     {
       "name": "쓰레쉬의 은총",
@@ -354,7 +375,8 @@
       "associatedTraits": [],
       "tags": [
         "{719abef1}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "저 별을 향해",
@@ -370,7 +392,8 @@
         "{d22ae649}",
         "{ec068228}",
         "{84a6d904}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "저격수의 은신처",
@@ -391,7 +414,8 @@
         "{3754d0ae}",
         "{84a6d904}",
         "{38baf02e}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "신성한 대장간",
@@ -404,7 +428,8 @@
         "{ce1fd21c}",
         "{8fba48a3}",
         "{b72bd3bf}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "길잡이의 노래",
@@ -425,7 +450,8 @@
         "{d12ae4b6}",
         "{84a6d904}",
         "{39baf1c1}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "TFT17_Augment_Psionic_EmergencySupplies_Name",
@@ -445,7 +471,8 @@
         "{d22ae649}",
         "{3754d0ae}",
         "{38baf02e}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "이블린의 은총",
@@ -459,7 +486,8 @@
       "associatedTraits": [],
       "tags": [
         "{719abef1}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "은하계 여행",
@@ -482,7 +510,8 @@
         "{3754d0ae}",
         "{84a6d904}",
         "{38baf02e}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "꽁!",
@@ -498,7 +527,8 @@
         "{d22ae649}",
         "{ec068228}",
         "{84a6d904}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "케일의 은총",
@@ -515,7 +545,8 @@
       "associatedTraits": [],
       "tags": [
         "{719abef1}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "야스오의 은총",
@@ -529,7 +560,8 @@
       "associatedTraits": [],
       "tags": [
         "{719abef1}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "고철 수집가의 은총",
@@ -541,7 +573,8 @@
       },
       "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Missing-T2.tex",
       "associatedTraits": [],
-      "tags": []
+      "tags": [],
+      "disable": false
     },
     {
       "name": "자폭",
@@ -557,7 +590,8 @@
         "{d22ae649}",
         "{ec068228}",
         "{84a6d904}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "중성자별",
@@ -577,7 +611,8 @@
         "{d12ae4b6}",
         "{d22ae649}",
         "{84a6d904}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "신성한 성기사단",
@@ -598,7 +633,8 @@
         "{3754d0ae}",
         "{d22ae649}",
         "{84a6d904}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "바루스의 은총",
@@ -612,7 +648,8 @@
       "associatedTraits": [],
       "tags": [
         "{719abef1}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "피의 대가",
@@ -623,7 +660,8 @@
       },
       "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Missing-T2.tex",
       "associatedTraits": [],
-      "tags": []
+      "tags": [],
+      "disable": false
     },
     {
       "name": "이륙",
@@ -647,7 +685,8 @@
         "{d12ae4b6}",
         "{d22ae649}",
         "{84a6d904}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "군체의 심장",
@@ -666,7 +705,8 @@
         "{d12ae4b6}",
         "{d22ae649}",
         "{84a6d904}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "변형의 마법",
@@ -677,7 +717,8 @@
       "associatedTraits": [],
       "tags": [
         "Consumable"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "변형의 마법",
@@ -688,7 +729,8 @@
       "associatedTraits": [],
       "tags": [
         "Consumable"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "변형의 마법",
@@ -699,7 +741,8 @@
       "associatedTraits": [],
       "tags": [
         "Consumable"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "변형의 마법",
@@ -710,7 +753,8 @@
       "associatedTraits": [],
       "tags": [
         "Consumable"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "변형의 마법",
@@ -721,7 +765,8 @@
       "associatedTraits": [],
       "tags": [
         "Consumable"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "성장 끝<br><tftitemrules>변신을 중단하고 별 레벨 상승이 가능한 상태가 됩니다.</tftitemrules>",
@@ -733,7 +778,8 @@
       "tags": [
         "{ea82f47d}",
         "{86ebf6e7}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "반짝이는 것들+",
@@ -753,7 +799,8 @@
         "{d02ae323}",
         "{7aaa3b47}",
         "{8fba48a3}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "아이템 수집가 II",
@@ -773,7 +820,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{807eed8a}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "아이템 수집가 I",
@@ -792,7 +840,8 @@
         "{d11fd6d5}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "슈퍼스타 I",
@@ -811,7 +860,8 @@
         "{d22ae649}",
         "{92e7310e}",
         "{d12ae4b6}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "응징",
@@ -828,7 +878,8 @@
         "{8fba48a3}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "최적화",
@@ -844,7 +895,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{d22ae649}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "우유부단 II",
@@ -864,7 +916,8 @@
         "{cf1fd3af}",
         "{53220453}",
         "{24d36c27}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "아케인 빅토르이!",
@@ -882,7 +935,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{807eed8a}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "수련 I",
@@ -900,7 +954,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{0d98debd}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "서사적 새로고침",
@@ -917,7 +972,8 @@
         "{d02ae323}",
         "{d22ae649}",
         "{24d36c27}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "극대화 빌드",
@@ -935,7 +991,8 @@
         "{d12ae4b6}",
         "{d02ae323}",
         "{ef273b4c}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "급매",
@@ -955,7 +1012,8 @@
         "{d02ae323}",
         "{7aaa3b47}",
         "{d12ae4b6}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "뻗어가는 뿌리",
@@ -975,7 +1033,8 @@
         "{d12ae4b6}",
         "{92e7310e}",
         "{38bcced7}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "우유부단 I",
@@ -995,7 +1054,8 @@
         "{d22ae649}",
         "{53220453}",
         "{24d36c27}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "생존자",
@@ -1018,7 +1078,8 @@
         "{b72bd3bf}",
         "{77b330ea}",
         "{94b91e70}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "지원 골렘 II",
@@ -1034,7 +1095,8 @@
         "{cf1fd3af}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "원거리 딜러의 공구함",
@@ -1051,7 +1113,8 @@
         "{d02ae323}",
         "{7b2d141a}",
         "{86d6da1b}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "작은 꾸러미",
@@ -1067,7 +1130,8 @@
         "{b72bd3bf}",
         "{8fba48a3}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "몸 키우기 I",
@@ -1086,7 +1150,8 @@
         "{d12ae4b6}",
         "{7aaa3b47}",
         "{4529fead}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "대장군의 명예",
@@ -1104,7 +1169,8 @@
         "{b72bd3bf}",
         "{d22ae649}",
         "{807eed8a}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "몸 키우기 II",
@@ -1123,7 +1189,8 @@
         "{d12ae4b6}",
         "{7aaa3b47}",
         "{4529fead}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "벼락",
@@ -1139,7 +1206,8 @@
       "tags": [
         "{ce1fd21c}",
         "{b72bd3bf}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "아이템 새로고침",
@@ -1153,7 +1221,8 @@
       "tags": [
         "{ce1fd21c}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "전략가의 주방",
@@ -1175,7 +1244,8 @@
         "{d22ae649}",
         "{382a7131}",
         "{38bcced7}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "지원 채굴+",
@@ -1193,7 +1263,8 @@
         "{d22ae649}",
         "{7aaa3b47}",
         "{8fba48a3}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "훈련 봇 가방",
@@ -1206,7 +1277,8 @@
         "{d11fd6d5}",
         "{b72bd3bf}",
         "{0d98debd}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "큰 1단계",
@@ -1224,7 +1296,8 @@
         "{b72bd3bf}",
         "{d22ae649}",
         "{66fe0140}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "앞날 예측",
@@ -1241,7 +1314,8 @@
         "{d22ae649}",
         "{0d98debd}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "거대하고 강력한",
@@ -1259,7 +1333,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{807eed8a}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "백병전",
@@ -1276,7 +1351,8 @@
         "{cf1fd3af}",
         "{b72bd3bf}",
         "{92e7310e}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "복제",
@@ -1293,7 +1369,8 @@
         "{b72bd3bf}",
         "{d22ae649}",
         "{8fba48a3}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "즉각적인 만족",
@@ -1310,7 +1387,8 @@
         "{d22ae649}",
         "{d12ae4b6}",
         "{ce1fd21c}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "고통으로부터 얻는 힘",
@@ -1325,7 +1403,8 @@
       "tags": [
         "{ce1fd21c}",
         "{0d98debd}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "삼인방 I",
@@ -1349,7 +1428,8 @@
         "{ee609993}",
         "{807eed8a}",
         "{66fe0140}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "분노 조절 문제",
@@ -1368,7 +1448,8 @@
         "{d02ae323}",
         "{92e7310e}",
         "{a7b22c38}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "훈련 봇 변환",
@@ -1389,7 +1470,8 @@
         "{d22ae649}",
         "{c5c463aa}",
         "{807eed8a}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "자랑할 권한",
@@ -1403,7 +1485,8 @@
         "{b72bd3bf}",
         "{77b330ea}",
         "{1b38016d}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "속임수 잔치",
@@ -1423,7 +1506,8 @@
         "{b72bd3bf}",
         "{0d98debd}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "참는 자에게 복을",
@@ -1443,7 +1527,8 @@
         "{d22ae649}",
         "{d12ae4b6}",
         "{7aaa3b47}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "더욱 치명적인 모자",
@@ -1463,7 +1548,8 @@
         "{0d98debd}",
         "{d12ae4b6}",
         "{cf1fd3af}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "야수를 풀어라",
@@ -1481,7 +1567,8 @@
         "{d22ae649}",
         "{7b2d141a}",
         "{8fba48a3}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "증강된 힘",
@@ -1494,7 +1581,8 @@
         "{d11fd6d5}",
         "{b72bd3bf}",
         "{d22ae649}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "훈련 교범",
@@ -1514,7 +1602,8 @@
         "{d22ae649}",
         "{86d6da1b}",
         "{92e7310e}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "끝없는 발화",
@@ -1530,7 +1619,8 @@
         "{ce1fd21c}",
         "{8fba48a3}",
         "{ee04db7b}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "급식소",
@@ -1553,7 +1643,8 @@
         "{0d98debd}",
         "{d02ae323}",
         "{807eed8a}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "남작의 소굴",
@@ -1570,7 +1661,8 @@
         "{cf1fd3af}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "성취",
@@ -1591,7 +1683,8 @@
         "{d22ae649}",
         "{d02ae323}",
         "{7aaa3b47}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "치명적 성공",
@@ -1610,7 +1703,8 @@
         "{d22ae649}",
         "{d12ae4b6}",
         "{8fba48a3}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "새로고침 이월",
@@ -1631,7 +1725,8 @@
         "{d22ae649}",
         "{b72bd3bf}",
         "{4529fead}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "영원한 브론즈 II",
@@ -1648,7 +1743,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{807eed8a}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "주문 검",
@@ -1663,7 +1759,8 @@
       "tags": [
         "{ce1fd21c}",
         "{b72bd3bf}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "전방의 토대",
@@ -1678,7 +1775,8 @@
         "{d12ae4b6}",
         "{d22ae649}",
         "{ef273b4c}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "주문 칼날",
@@ -1694,7 +1792,8 @@
         "{ce1fd21c}",
         "{b72bd3bf}",
         "{b2be200a}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "왕관의 의지",
@@ -1712,7 +1811,8 @@
         "{8fba48a3}",
         "{807eed8a}",
         "{b2be200a}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "삼인방 I",
@@ -1737,7 +1837,8 @@
         "{807eed8a}",
         "{66fe0140}",
         "{faddeb83}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "체력이 곧 재산 III",
@@ -1754,7 +1855,8 @@
         "{cf1fd3af}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "조기 교육",
@@ -1773,7 +1875,8 @@
         "{d22ae649}",
         "{4529fead}",
         "{807eed8a}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "지원 채굴",
@@ -1792,7 +1895,8 @@
         "{7aaa3b47}",
         "{94b91e70}",
         "{8fba48a3}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "도굴꾼 II",
@@ -1813,7 +1917,8 @@
         "{86d6da1b}",
         "{77b330ea}",
         "{ef273b4c}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "성장형 사고방식",
@@ -1830,7 +1935,8 @@
         "{d02ae323}",
         "{d12ae4b6}",
         "{24d36c27}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "체력이 곧 재산 II",
@@ -1848,7 +1954,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{807eed8a}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "연속 타격",
@@ -1864,7 +1971,8 @@
         "{cf1fd3af}",
         "{8fba48a3}",
         "{ee609993}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "후방 설계도",
@@ -1879,7 +1987,8 @@
         "{d12ae4b6}",
         "{d22ae649}",
         "{ef273b4c}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "체력이 곧 재산 I",
@@ -1896,7 +2005,8 @@
         "{d11fd6d5}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "희생양",
@@ -1913,7 +2023,8 @@
         "{b72bd3bf}",
         "{d22ae649}",
         "{d12ae4b6}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "프리즘 운명+",
@@ -1930,7 +2041,8 @@
         "{d02ae323}",
         "{d22ae649}",
         "{92e7310e}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "프리즘 공급",
@@ -1947,7 +2059,8 @@
         "{d22ae649}",
         "{382a7131}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "삼인방 II",
@@ -1971,7 +2084,8 @@
         "{807eed8a}",
         "{66fe0140}",
         "{faddeb83}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "혼돈의 진화",
@@ -1993,7 +2107,8 @@
         "{d12ae4b6}",
         "{d22ae649}",
         "{4529fead}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "인지세",
@@ -2011,7 +2126,8 @@
         "{d22ae649}",
         "{d12ae4b6}",
         "{24d36c27}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "도굴꾼 I",
@@ -2032,7 +2148,8 @@
         "{86d6da1b}",
         "{77b330ea}",
         "{ef273b4c}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "붉고 푸른 효과",
@@ -2047,7 +2164,8 @@
         "{d02ae323}",
         "{8fba48a3}",
         "{ee04db7b}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "유리 대포 I",
@@ -2067,7 +2185,8 @@
         "{8e758f9d}",
         "{92e7310e}",
         "{807eed8a}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "십자 포화",
@@ -2083,7 +2202,8 @@
       "tags": [
         "{d11fd6d5}",
         "{0d98debd}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "꿰뚫는 연꽃 II",
@@ -2101,7 +2221,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{807eed8a}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "배부른 주문술사",
@@ -2120,7 +2241,8 @@
         "{b2be200a}",
         "{d02ae323}",
         "{807eed8a}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "웅장한 장송곡",
@@ -2136,7 +2258,8 @@
         "{ce1fd21c}",
         "{b72bd3bf}",
         "{0d98debd}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "꿰뚫는 연꽃 I",
@@ -2154,7 +2277,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{807eed8a}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "관통하는 시각",
@@ -2172,7 +2296,8 @@
         "{0d98debd}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "인지세+",
@@ -2190,7 +2315,8 @@
         "{d22ae649}",
         "{d02ae323}",
         "{24d36c27}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "마나순환 I",
@@ -2206,7 +2332,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{ee609993}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "마나순환 II",
@@ -2223,7 +2350,8 @@
         "{d02ae323}",
         "{ee609993}",
         "{807eed8a}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "최대치",
@@ -2243,7 +2371,8 @@
         "{faddeb83}",
         "{92e7310e}",
         "{7aaa3b47}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "이세계",
@@ -2261,7 +2390,8 @@
         "{d02ae323}",
         "{37baee9b}",
         "{84a6d904}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "출세가도",
@@ -2280,7 +2410,8 @@
         "{7aaa3b47}",
         "{77b330ea}",
         "{24d36c27}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "이세계",
@@ -2296,7 +2427,8 @@
         "{d02ae323}",
         "{37baee9b}",
         "{84a6d904}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "만개한 연꽃 II",
@@ -2312,7 +2444,8 @@
         "{cf1fd3af}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "하나 더!",
@@ -2332,7 +2465,8 @@
         "{8fba48a3}",
         "{0d98debd}",
         "{d22ae649}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "거울의 전당",
@@ -2349,7 +2483,8 @@
         "{92e7310e}",
         "{d02ae323}",
         "{a7b22c38}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "만개한 연꽃 I",
@@ -2365,7 +2500,8 @@
         "{ce1fd21c}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "폭발적인 성장+",
@@ -2384,7 +2520,8 @@
         "{d12ae4b6}",
         "{24d36c27}",
         "{7aaa3b47}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "정상을 노려라!",
@@ -2403,7 +2540,8 @@
         "{d22ae649}",
         "{92e7310e}",
         "{84a6d904}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "조작된 상점+",
@@ -2420,7 +2558,8 @@
         "{b72bd3bf}",
         "{d22ae649}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "수익 구간",
@@ -2439,7 +2578,8 @@
         "{d02ae323}",
         "{92e7310e}",
         "{d22ae649}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "은빛 운명",
@@ -2457,7 +2597,8 @@
         "{d22ae649}",
         "{92e7310e}",
         "{53220453}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "폭발적인 성장",
@@ -2476,7 +2617,8 @@
         "{d22ae649}",
         "{24d36c27}",
         "{7aaa3b47}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "포탑 방어",
@@ -2496,7 +2638,8 @@
         "{d22ae649}",
         "{ee609993}",
         "{92e7310e}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "정확하고 우아하게",
@@ -2514,7 +2657,8 @@
         "{7b2d141a}",
         "{d02ae323}",
         "{807eed8a}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "초능력 대장간",
@@ -2529,7 +2673,8 @@
         "{0d98debd}",
         "{8fba48a3}",
         "{d22ae649}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "별이 빛나는 밤+",
@@ -2556,7 +2701,8 @@
         "{d22ae649}",
         "{24d36c27}",
         "{ee609993}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "은빛 운명+",
@@ -2574,7 +2720,8 @@
         "{d22ae649}",
         "{92e7310e}",
         "{53220453}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "왕관의 무게",
@@ -2590,7 +2737,8 @@
         "{8fba48a3}",
         "{92e7310e}",
         "{77b330ea}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "극진한 헌신",
@@ -2609,7 +2757,8 @@
         "{d12ae4b6}",
         "{382a7131}",
         "{38bcced7}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "고위천사의 지팡이",
@@ -2627,7 +2776,8 @@
         "{b72bd3bf}",
         "{d22ae649}",
         "{8fba48a3}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "단체 포옹 II",
@@ -2643,7 +2793,8 @@
         "{b72bd3bf}",
         "{1062df02}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "마지막 세이브",
@@ -2660,7 +2811,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{807eed8a}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "7의 전설",
@@ -2678,7 +2830,8 @@
         "{d12ae4b6}",
         "{92e7310e}",
         "{4529fead}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "울부짖는 돌풍",
@@ -2696,7 +2849,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{d12ae4b6}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "단체 포옹 I",
@@ -2712,7 +2866,8 @@
         "{b72bd3bf}",
         "{1062df02}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "얽힌 마법",
@@ -2729,7 +2884,8 @@
         "{b72bd3bf}",
         "{d22ae649}",
         "{d12ae4b6}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "탐사",
@@ -2750,7 +2906,8 @@
         "{77b330ea}",
         "{4529fead}",
         "{92e7310e}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "특성 나무+",
@@ -2770,7 +2927,8 @@
         "{d02ae323}",
         "{92e7310e}",
         "{38bcced7}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "해적",
@@ -2786,7 +2944,8 @@
         "{24d36c27}",
         "{d22ae649}",
         "{d12ae4b6}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "이세계",
@@ -2804,7 +2963,8 @@
         "{d02ae323}",
         "{84a6d904}",
         "{37baee9b}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "부스러기",
@@ -2824,7 +2984,8 @@
         "{d12ae4b6}",
         "{d22ae649}",
         "{4529fead}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "서열 상승 II",
@@ -2844,7 +3005,8 @@
         "{d02ae323}",
         "{ee609993}",
         "{807eed8a}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "황금빛 퀘스트",
@@ -2861,7 +3023,8 @@
         "{d22ae649}",
         "{d02ae323}",
         "{86d6da1b}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "서열 상승 I",
@@ -2879,7 +3042,8 @@
         "{d11fd6d5}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "금빛 운명",
@@ -2897,7 +3061,8 @@
         "{d22ae649}",
         "{92e7310e}",
         "{53220453}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "마지막 저항",
@@ -2915,7 +3080,8 @@
         "{d11fd6d5}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "종목 분산 투자+",
@@ -2935,7 +3101,8 @@
         "{d22ae649}",
         "{7aaa3b47}",
         "{24d36c27}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "조작된 상점",
@@ -2952,7 +3119,8 @@
         "{b72bd3bf}",
         "{d22ae649}",
         "{d12ae4b6}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "대관식",
@@ -2969,7 +3137,8 @@
         "{cf1fd3af}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "종목 분산 투자",
@@ -2989,7 +3158,8 @@
         "{d22ae649}",
         "{7aaa3b47}",
         "{24d36c27}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "수송 경로",
@@ -3005,7 +3175,8 @@
         "{cf1fd3af}",
         "{d22ae649}",
         "{92e7310e}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "도금 강철",
@@ -3022,7 +3193,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{d12ae4b6}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "주문 마검",
@@ -3037,7 +3209,8 @@
         "{ce1fd21c}",
         "{b72bd3bf}",
         "{b2be200a}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "9개의 목숨",
@@ -3058,7 +3231,8 @@
         "{0d98debd}",
         "{92e7310e}",
         "{4529fead}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "기다림의 미학",
@@ -3078,7 +3252,8 @@
         "{d22ae649}",
         "{d12ae4b6}",
         "{92e7310e}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "가지 뻗기+",
@@ -3096,7 +3271,8 @@
         "{d22ae649}",
         "{d02ae323}",
         "{38bcced7}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "두드리는 자",
@@ -3111,7 +3287,8 @@
         "{cf1fd3af}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "화학공학 폭주",
@@ -3131,7 +3308,8 @@
         "{92e7310e}",
         "{a7b22c38}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "지팡이 제작자",
@@ -3149,7 +3327,8 @@
         "{d02ae323}",
         "{d12ae4b6}",
         "{b2be200a}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "예상된 예상 밖의 결과",
@@ -3173,7 +3352,8 @@
         "{92e7310e}",
         "{7aaa3b47}",
         "{382a7131}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "지배",
@@ -3195,7 +3375,8 @@
         "{7aaa3b47}",
         "{d12ae4b6}",
         "{d22ae649}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "페트리사이트 방어구 I",
@@ -3210,7 +3391,8 @@
         "{d11fd6d5}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "위약 효과+",
@@ -3228,7 +3410,8 @@
         "{d22ae649}",
         "{d02ae323}",
         "{24d36c27}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "정신 결속 II",
@@ -3246,7 +3429,8 @@
         "{92e7310e}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "급매",
@@ -3264,7 +3448,8 @@
         "{d22ae649}",
         "{d12ae4b6}",
         "{7aaa3b47}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "조용한 사직",
@@ -3283,7 +3468,8 @@
         "{d02ae323}",
         "{d22ae649}",
         "{b72bd3bf}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "공허의 무리",
@@ -3303,7 +3489,8 @@
         "{d22ae649}",
         "{c762cf50}",
         "{77b330ea}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "진형 유지",
@@ -3321,7 +3508,8 @@
         "{d02ae323}",
         "{0d98debd}",
         "{807eed8a}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "전략가의 주방",
@@ -3342,7 +3530,8 @@
         "{d12ae4b6}",
         "{d22ae649}",
         "{382a7131}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "정신 결속",
@@ -3361,7 +3550,8 @@
         "{7aaa3b47}",
         "{807eed8a}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "두둑한 새로고침",
@@ -3384,7 +3574,8 @@
         "{d22ae649}",
         "{92e7310e}",
         "{66fe0140}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "땔감 제공",
@@ -3400,7 +3591,8 @@
         "{b72bd3bf}",
         "{8fba48a3}",
         "{d22ae649}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "편식",
@@ -3418,7 +3610,8 @@
         "{d12ae4b6}",
         "{d11fd6d5}",
         "{4529fead}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "투자",
@@ -3439,7 +3632,8 @@
         "{d12ae4b6}",
         "{d22ae649}",
         "{7aaa3b47}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "지원 골렘 I",
@@ -3455,7 +3649,8 @@
         "{ce1fd21c}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "즉각적인 만족",
@@ -3471,7 +3666,8 @@
         "{d22ae649}",
         "{d12ae4b6}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "경쟁",
@@ -3491,7 +3687,8 @@
         "{24d36c27}",
         "{92e7310e}",
         "{7aaa3b47}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "불타는 영혼 II",
@@ -3509,7 +3706,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{807eed8a}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "금빛 운명+",
@@ -3527,7 +3725,8 @@
         "{d22ae649}",
         "{92e7310e}",
         "{53220453}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "돈독+",
@@ -3547,7 +3746,8 @@
         "{d02ae323}",
         "{7aaa3b47}",
         "{ef273b4c}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "복제 시설",
@@ -3567,7 +3767,8 @@
         "{92e7310e}",
         "{8e758f9d}",
         "{807eed8a}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "유리한 조건",
@@ -3588,7 +3789,8 @@
         "{d22ae649}",
         "{4529fead}",
         "{77b330ea}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "경품 추첨",
@@ -3606,7 +3808,8 @@
         "{8fba48a3}",
         "{d12ae4b6}",
         "{d22ae649}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "훈련 교범",
@@ -3617,7 +3820,8 @@
       "associatedTraits": [],
       "tags": [
         "Consumable"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "백댄서",
@@ -3638,7 +3842,8 @@
         "{92e7310e}",
         "{77b330ea}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "2만한 가치",
@@ -3668,7 +3873,8 @@
         "{66fe0140}",
         "{92e7310e}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "영웅 꾸러미+",
@@ -3686,7 +3892,8 @@
         "{d22ae649}",
         "{d02ae323}",
         "{66fe0140}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "기다려",
@@ -3701,7 +3908,8 @@
       "tags": [
         "{ce1fd21c}",
         "{0d98debd}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "변덕쟁이",
@@ -3721,7 +3929,8 @@
         "{b72bd3bf}",
         "{d22ae649}",
         "{0d98debd}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "예비 활",
@@ -3740,7 +3949,8 @@
         "{d22ae649}",
         "{d12ae4b6}",
         "{8fba48a3}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "스포트라이트 공유",
@@ -3758,7 +3968,8 @@
         "{b72bd3bf}",
         "{92e7310e}",
         "{a7b22c38}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "모험을 떠나는 영웅",
@@ -3774,7 +3985,8 @@
         "{92e7310e}",
         "{d12ae4b6}",
         "{d22ae649}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "주인공 버프",
@@ -3792,7 +4004,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{807eed8a}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "별이 수놓인 모험",
@@ -3811,7 +4024,8 @@
         "{d12ae4b6}",
         "{84a6d904}",
         "{7aaa3b47}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "휴대용 대격변 생성기",
@@ -3828,7 +4042,8 @@
         "{d22ae649}",
         "{d12ae4b6}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "검의 시종",
@@ -3841,7 +4056,8 @@
         "{d11fd6d5}",
         "{d02ae323}",
         "{8fba48a3}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "강철의 심장",
@@ -3859,7 +4075,8 @@
         "{8fba48a3}",
         "{d12ae4b6}",
         "{b72bd3bf}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "전하 이동 I",
@@ -3875,7 +4092,8 @@
         "{d11fd6d5}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "영웅 꾸러미++",
@@ -3893,7 +4111,8 @@
         "{d02ae323}",
         "{d12ae4b6}",
         "{66fe0140}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "주식 시장",
@@ -3908,7 +4127,8 @@
         "{92e7310e}",
         "{d12ae4b6}",
         "{d22ae649}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "수련 II",
@@ -3926,7 +4146,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{0d98debd}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "전하 이동 II",
@@ -3942,7 +4163,8 @@
         "{ce1fd21c}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "큰손",
@@ -3959,7 +4181,8 @@
         "{d02ae323}",
         "{7aaa3b47}",
         "{d12ae4b6}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "금방 올게",
@@ -3981,7 +4204,8 @@
         "{c5c463aa}",
         "{77b330ea}",
         "{8fba48a3}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "우르프의 갬빗",
@@ -3997,7 +4221,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{d22ae649}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "불운 방지",
@@ -4016,7 +4241,8 @@
         "{7b2d141a}",
         "{c5c463aa}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "투자 전략 II",
@@ -4037,7 +4263,8 @@
         "{7aaa3b47}",
         "{66fe0140}",
         "{4529fead}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "영원한 브론즈 I",
@@ -4055,7 +4282,8 @@
         "{d02ae323}",
         "{ee609993}",
         "{807eed8a}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "투자 전략 I",
@@ -4074,7 +4302,8 @@
         "{7aaa3b47}",
         "{66fe0140}",
         "{4529fead}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "공허의 무리",
@@ -4093,7 +4322,8 @@
         "{d12ae4b6}",
         "{d22ae649}",
         "{7aaa3b47}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "우주적 재시작",
@@ -4112,7 +4342,8 @@
         "{d02ae323}",
         "{d22ae649}",
         "{92e7310e}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "두 가지 목적",
@@ -4130,7 +4361,8 @@
         "{7aaa3b47}",
         "{d22ae649}",
         "{24d36c27}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "고전압",
@@ -4148,7 +4380,8 @@
         "{b72bd3bf}",
         "{d22ae649}",
         "{8fba48a3}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "나 혼자 레벨업",
@@ -4175,7 +4408,8 @@
         "{d12ae4b6}",
         "{d22ae649}",
         "{4529fead}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "마법사의 공구함",
@@ -4192,7 +4426,8 @@
         "{d02ae323}",
         "{b2be200a}",
         "{8fba48a3}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "효율적인 소비자 II",
@@ -4213,7 +4448,8 @@
         "{0d98debd}",
         "{4529fead}",
         "{ce1fd21c}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "보물 사냥",
@@ -4233,7 +4469,8 @@
         "{8fba48a3}",
         "{b72bd3bf}",
         "{66fe0140}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "슈퍼스타 II",
@@ -4254,7 +4491,8 @@
         "{d12ae4b6}",
         "{ee609993}",
         "{807eed8a}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "조합 아이템 전문가",
@@ -4271,7 +4509,8 @@
         "{b72bd3bf}",
         "{d22ae649}",
         "{92e7310e}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "약간 신비한 주사위",
@@ -4291,7 +4530,8 @@
         "{b72bd3bf}",
         "{d12ae4b6}",
         "{d22ae649}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "이중 기술",
@@ -4306,7 +4546,8 @@
         "{d12ae4b6}",
         "{d22ae649}",
         "{b72bd3bf}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "스승 I",
@@ -4324,7 +4565,8 @@
         "{92e7310e}",
         "{8e758f9d}",
         "{1062df02}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "스승 II",
@@ -4343,7 +4585,8 @@
         "{ee609993}",
         "{807eed8a}",
         "{1062df02}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "불타는 영혼 I",
@@ -4361,7 +4604,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{807eed8a}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "굶주린 친구",
@@ -4388,7 +4632,8 @@
         "{d02ae323}",
         "{d22ae649}",
         "{0d98debd}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "중심 잡기",
@@ -4406,7 +4651,8 @@
         "{d02ae323}",
         "{8e758f9d}",
         "{807eed8a}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "파쇄 확산",
@@ -4425,7 +4671,8 @@
         "{ce1fd21c}",
         "{8fba48a3}",
         "{b2be200a}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "구원의 영혼",
@@ -4443,7 +4690,8 @@
         "{b72bd3bf}",
         "{d22ae649}",
         "{8fba48a3}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "재빠른 더블 킬",
@@ -4461,7 +4709,8 @@
         "{d22ae649}",
         "{77b330ea}",
         "{4529fead}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "미래 지향적 사고",
@@ -4486,7 +4735,8 @@
         "{c5c463aa}",
         "{24d36c27}",
         "{ee609993}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "흡혈의 활력 I",
@@ -4505,7 +4755,8 @@
         "{d02ae323}",
         "{807eed8a}",
         "{d11fd6d5}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "흡혈의 활력 II",
@@ -4524,7 +4775,8 @@
         "{7aaa3b47}",
         "{d02ae323}",
         "{807eed8a}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "유연함",
@@ -4546,7 +4798,8 @@
         "{382a7131}",
         "{cf1fd3af}",
         "{38bcced7}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "임무 재시작",
@@ -4569,7 +4822,8 @@
         "{7aaa3b47}",
         "{b72bd3bf}",
         "{c5c463aa}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "2인조",
@@ -4588,7 +4842,8 @@
         "{d12ae4b6}",
         "{8fba48a3}",
         "{ef273b4c}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "신의 버드나무 숲",
@@ -4601,7 +4856,8 @@
         "{ce1fd21c}",
         "{b72bd3bf}",
         "{92e7310e}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "피의 격노",
@@ -4619,7 +4875,8 @@
         "{b72bd3bf}",
         "{0d98debd}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "흐르는 눈물",
@@ -4638,7 +4895,8 @@
         "{d22ae649}",
         "{d12ae4b6}",
         "{8fba48a3}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "유물 제작소",
@@ -4656,7 +4914,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{92e7310e}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "수익 구간+",
@@ -4675,7 +4934,8 @@
         "{d02ae323}",
         "{92e7310e}",
         "{d12ae4b6}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "함정꾼의 선물",
@@ -4698,7 +4958,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{0d98debd}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "쌍둥이 수호자",
@@ -4718,7 +4979,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{807eed8a}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "경품 추첨+",
@@ -4736,7 +4998,8 @@
         "{8fba48a3}",
         "{d02ae323}",
         "{d22ae649}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "고귀한 모험",
@@ -4757,7 +5020,8 @@
         "{7aaa3b47}",
         "{382a7131}",
         "{92e7310e}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "오각별",
@@ -4774,7 +5038,8 @@
         "{d12ae4b6}",
         "{d22ae649}",
         "{24d36c27}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "행운의 기운",
@@ -4791,7 +5056,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{d22ae649}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "대출 선지급",
@@ -4808,7 +5074,8 @@
         "{d22ae649}",
         "{d12ae4b6}",
         "{24d36c27}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "황금 드래곤",
@@ -4828,7 +5095,8 @@
         "{8fba48a3}",
         "{807eed8a}",
         "{d12ae4b6}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "연속 주문 사용",
@@ -4847,7 +5115,8 @@
         "{d22ae649}",
         "{d12ae4b6}",
         "{8fba48a3}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "특성 추적자",
@@ -4866,7 +5135,8 @@
         "{d02ae323}",
         "{7aaa3b47}",
         "{ee609993}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "삼인방 II",
@@ -4889,7 +5159,8 @@
         "{92e7310e}",
         "{807eed8a}",
         "{66fe0140}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "무한한 보호",
@@ -4907,7 +5178,8 @@
         "{d22ae649}",
         "{b72bd3bf}",
         "{8fba48a3}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "행운은 용감한 자의 편",
@@ -4924,7 +5196,8 @@
         "{77b330ea}",
         "{84a6d904}",
         "{7aaa3b47}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "친구 만들기",
@@ -4940,7 +5213,8 @@
         "{d02ae323}",
         "{d12ae4b6}",
         "{d11fd6d5}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "판도라의 주머니 보풀",
@@ -4957,7 +5231,8 @@
         "{8fba48a3}",
         "{0d98debd}",
         "{d22ae649}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "선물 꾸러미",
@@ -4977,7 +5252,8 @@
         "{7aaa3b47}",
         "{d22ae649}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "검 제작자",
@@ -4995,7 +5271,8 @@
         "{d02ae323}",
         "{d12ae4b6}",
         "{7b2d141a}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "계산된 강화",
@@ -5014,7 +5291,8 @@
         "{d02ae323}",
         "{ee609993}",
         "{807eed8a}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "마지막 손질",
@@ -5030,7 +5308,8 @@
         "{d02ae323}",
         "{d12ae4b6}",
         "{8fba48a3}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "에너지 파동",
@@ -5047,7 +5326,8 @@
         "{7b2d141a}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "원칙의 원형낫 III",
@@ -5063,7 +5343,8 @@
         "{cf1fd3af}",
         "{b72bd3bf}",
         "{a7b22c38}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "예견 II",
@@ -5080,7 +5361,8 @@
         "{92e7310e}",
         "{a7b22c38}",
         "{77b330ea}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "조합 아이템 강탈",
@@ -5098,7 +5380,8 @@
         "{d12ae4b6}",
         "{7aaa3b47}",
         "{8fba48a3}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "활 제작자",
@@ -5115,7 +5398,8 @@
         "{8fba48a3}",
         "{d02ae323}",
         "{d12ae4b6}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "요지부동",
@@ -5133,7 +5417,8 @@
         "{8e758f9d}",
         "{807eed8a}",
         "{8fba48a3}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "오라 축적",
@@ -5153,7 +5438,8 @@
         "{d22ae649}",
         "{d12ae4b6}",
         "{92e7310e}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "넘치는 허리띠",
@@ -5170,7 +5456,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{8fba48a3}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "힘을 실은 제련",
@@ -5189,7 +5476,8 @@
         "{d12ae4b6}",
         "{d22ae649}",
         "{4529fead}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "눈에는 눈",
@@ -5211,7 +5499,8 @@
         "{94b91e70}",
         "{8fba48a3}",
         "{4529fead}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "테슬라 코일",
@@ -5231,7 +5520,8 @@
         "{b72bd3bf}",
         "{0d98debd}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "특성 나무",
@@ -5251,7 +5541,8 @@
         "{d12ae4b6}",
         "{92e7310e}",
         "{38bcced7}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "예금 계좌",
@@ -5272,7 +5563,8 @@
         "{d12ae4b6}",
         "{d22ae649}",
         "{4529fead}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "대장장이 훈련",
@@ -5288,7 +5580,8 @@
         "{d11fd6d5}",
         "{b72bd3bf}",
         "{d22ae649}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "정교한 공예",
@@ -5305,7 +5598,8 @@
         "{d22ae649}",
         "{b72bd3bf}",
         "{24d36c27}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "도화선 점화",
@@ -5322,7 +5616,8 @@
         "{0d98debd}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "생일 모임",
@@ -5340,7 +5635,8 @@
         "{d12ae4b6}",
         "{d22ae649}",
         "{4529fead}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "특별 맞춤 설정 II",
@@ -5360,7 +5656,8 @@
         "{d02ae323}",
         "{d12ae4b6}",
         "{cf1fd3af}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "특별 맞춤 설정",
@@ -5378,7 +5675,8 @@
         "{8fba48a3}",
         "{0d98debd}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "투자++",
@@ -5399,7 +5697,8 @@
         "{d12ae4b6}",
         "{d02ae323}",
         "{7aaa3b47}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "전투 붕대 I",
@@ -5417,7 +5716,8 @@
       "tags": [
         "{d11fd6d5}",
         "{b72bd3bf}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "넘치는 지팡이",
@@ -5435,7 +5735,8 @@
         "{d02ae323}",
         "{b2be200a}",
         "{8fba48a3}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "환한 달빛",
@@ -5457,7 +5758,8 @@
         "{d12ae4b6}",
         "{848ab891}",
         "{807eed8a}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "전투 붕대 II",
@@ -5475,7 +5777,8 @@
       "tags": [
         "{ce1fd21c}",
         "{b72bd3bf}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "추가 버클",
@@ -5494,7 +5797,8 @@
         "{d22ae649}",
         "{d12ae4b6}",
         "{8fba48a3}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "뻗어가는 뿌리+",
@@ -5514,7 +5818,8 @@
         "{d02ae323}",
         "{92e7310e}",
         "{38bcced7}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "모두를 위한 하나 II",
@@ -5541,7 +5846,8 @@
         "{ee609993}",
         "{807eed8a}",
         "{66fe0140}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "정렬",
@@ -5558,7 +5864,8 @@
         "{d02ae323}",
         "{8e758f9d}",
         "{807eed8a}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "호화로운 정기 구독",
@@ -5576,7 +5883,8 @@
         "{d02ae323}",
         "{d22ae649}",
         "{7aaa3b47}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "부스터 팩",
@@ -5593,7 +5901,8 @@
         "{b72bd3bf}",
         "{d12ae4b6}",
         "{d22ae649}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "경품 추첨++",
@@ -5611,7 +5920,8 @@
         "{8fba48a3}",
         "{d02ae323}",
         "{d12ae4b6}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "유리 대포 II",
@@ -5631,7 +5941,8 @@
         "{8e758f9d}",
         "{807eed8a}",
         "{92e7310e}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "뒷골목 거래",
@@ -5648,7 +5959,8 @@
         "{d22ae649}",
         "{d02ae323}",
         "{8fba48a3}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "효율적인 소비자",
@@ -5669,7 +5981,8 @@
         "{d22ae649}",
         "{0d98debd}",
         "{4529fead}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "과다치유",
@@ -5689,7 +6002,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{807eed8a}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "가시 박힌 갑옷",
@@ -5709,7 +6023,8 @@
         "{ce1fd21c}",
         "{d22ae649}",
         "{8fba48a3}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "시간 건너뛰기",
@@ -5727,7 +6042,8 @@
         "{d12ae4b6}",
         "{d22ae649}",
         "{4529fead}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "대출 선지급+",
@@ -5744,7 +6060,8 @@
         "{d22ae649}",
         "{d02ae323}",
         "{24d36c27}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "예비 활",
@@ -5763,7 +6080,8 @@
         "{d22ae649}",
         "{d12ae4b6}",
         "{8fba48a3}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "편협한 정신",
@@ -5785,7 +6103,8 @@
         "{d22ae649}",
         "{77b330ea}",
         "{7aaa3b47}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "한 우물 파기",
@@ -5801,7 +6120,8 @@
         "{ce1fd21c}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "두 번째 대관식",
@@ -5818,7 +6138,8 @@
         "{b72bd3bf}",
         "{d22ae649}",
         "{8fba48a3}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "결과 예측",
@@ -5837,7 +6158,8 @@
         "{d11fd6d5}",
         "{7aaa3b47}",
         "{24d36c27}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "눈에는 눈+",
@@ -5857,7 +6179,8 @@
         "{d22ae649}",
         "{8fba48a3}",
         "{7aaa3b47}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "별이 수놓인 모험",
@@ -5876,7 +6199,8 @@
         "{d12ae4b6}",
         "{84a6d904}",
         "{7aaa3b47}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "화력 집중",
@@ -5895,7 +6219,8 @@
         "{d02ae323}",
         "{7b2d141a}",
         "{807eed8a}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "부작용",
@@ -5912,7 +6237,8 @@
         "{ce1fd21c}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "투자+",
@@ -5933,7 +6259,8 @@
         "{d02ae323}",
         "{d22ae649}",
         "{7aaa3b47}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "우정과 유령",
@@ -5953,7 +6280,8 @@
         "{d12ae4b6}",
         "{d22ae649}",
         "{7aaa3b47}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "준비된 골렘",
@@ -5966,7 +6294,8 @@
         "{ce1fd21c}",
         "{b72bd3bf}",
         "{0d98debd}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "경호대 훈련",
@@ -5984,7 +6313,8 @@
         "{d12ae4b6}",
         "{d22ae649}",
         "{4529fead}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "실컷 울어봐라",
@@ -6004,7 +6334,8 @@
         "{d22ae649}",
         "{8fba48a3}",
         "{b2be200a}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "배송 지연",
@@ -6022,7 +6353,8 @@
         "{d12ae4b6}",
         "{0d98debd}",
         "{7aaa3b47}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "마법 주사위",
@@ -6044,7 +6376,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{d22ae649}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "넘치는 대검",
@@ -6062,7 +6395,8 @@
         "{d02ae323}",
         "{7b2d141a}",
         "{8fba48a3}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "탑",
@@ -6078,7 +6412,8 @@
       "tags": [
         "{d11fd6d5}",
         "{b72bd3bf}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "하나로 뭉치는 거지",
@@ -6097,7 +6432,8 @@
         "{4529fead}",
         "{92e7310e}",
         "{38bcced7}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "은빛 운명++",
@@ -6115,7 +6451,8 @@
         "{d12ae4b6}",
         "{92e7310e}",
         "{53220453}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "길을 내라",
@@ -6134,7 +6471,8 @@
         "{d22ae649}",
         "{d12ae4b6}",
         "{8fba48a3}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "치밀한 계획",
@@ -6151,7 +6489,8 @@
         "{d11fd6d5}",
         "{4529fead}",
         "{7aaa3b47}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "기다림의 미학 II",
@@ -6172,7 +6511,8 @@
         "{d12ae4b6}",
         "{84a6d904}",
         "{382a7131}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "거대한 거인",
@@ -6190,7 +6530,8 @@
         "{d22ae649}",
         "{77b330ea}",
         "{7aaa3b47}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "성장형 아이템",
@@ -6207,7 +6548,8 @@
         "{7aaa3b47}",
         "{b72bd3bf}",
         "{d22ae649}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "반항아",
@@ -6223,7 +6565,8 @@
         "{b72bd3bf}",
         "{92e7310e}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "후발 주자",
@@ -6246,7 +6589,8 @@
         "{b72bd3bf}",
         "{c5c463aa}",
         "{4529fead}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "시계태엽 윤활유",
@@ -6263,7 +6607,8 @@
         "{b72bd3bf}",
         "{807eed8a}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "주인공",
@@ -6283,7 +6628,8 @@
         "{4529fead}",
         "{84a6d904}",
         "{53220453}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "쌍두마차",
@@ -6302,7 +6648,8 @@
         "{92e7310e}",
         "{d22ae649}",
         "{66fe0140}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "국왕시해자",
@@ -6322,7 +6669,8 @@
         "{d22ae649}",
         "{7aaa3b47}",
         "{24d36c27}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "용암 바닥",
@@ -6339,7 +6687,8 @@
         "{b72bd3bf}",
         "{ce1fd21c}",
         "{ee04db7b}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "숭고한 희생",
@@ -6356,7 +6705,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{807eed8a}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "별이 빛나는 밤",
@@ -6383,7 +6733,8 @@
         "{d22ae649}",
         "{24d36c27}",
         "{ee609993}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "부식",
@@ -6400,7 +6751,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{807eed8a}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "무료 서비스",
@@ -6419,7 +6771,8 @@
         "{24d36c27}",
         "{d22ae649}",
         "{d12ae4b6}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "권투 교습",
@@ -6435,7 +6788,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{807eed8a}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "골렘화",
@@ -6458,7 +6812,8 @@
         "{c5c463aa}",
         "{ee609993}",
         "{807eed8a}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "성장",
@@ -6475,7 +6830,8 @@
         "{ce1fd21c}",
         "{d12ae4b6}",
         "{d22ae649}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "불장난",
@@ -6492,7 +6848,8 @@
         "{d22ae649}",
         "{8fba48a3}",
         "{ee04db7b}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "무차별적 살인자",
@@ -6506,7 +6863,8 @@
         "{8fba48a3}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "빛비늘 정수",
@@ -6525,7 +6883,8 @@
         "{7aaa3b47}",
         "{8fba48a3}",
         "{24d36c27}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "흐르는 눈물",
@@ -6544,7 +6903,8 @@
         "{d22ae649}",
         "{d12ae4b6}",
         "{8fba48a3}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "요리용 냄비",
@@ -6563,7 +6923,8 @@
         "{d22ae649}",
         "{92e7310e}",
         "{8e758f9d}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "가지 뻗기",
@@ -6581,7 +6942,8 @@
         "{d22ae649}",
         "{d12ae4b6}",
         "{38bcced7}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "연속 주문 사용",
@@ -6600,7 +6962,8 @@
         "{d22ae649}",
         "{d12ae4b6}",
         "{8fba48a3}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "고독한 방패",
@@ -6616,7 +6979,8 @@
         "{b72bd3bf}",
         "{d22ae649}",
         "{8fba48a3}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "달콤한 간식",
@@ -6632,7 +6996,8 @@
         "{cf1fd3af}",
         "{d02ae323}",
         "{8fba48a3}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "정밀한 세공",
@@ -6651,7 +7016,8 @@
         "{8fba48a3}",
         "{d22ae649}",
         "{d12ae4b6}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "구독 서비스",
@@ -6669,7 +7035,8 @@
         "{d12ae4b6}",
         "{7aaa3b47}",
         "{b72bd3bf}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "프리즘 운명",
@@ -6687,7 +7054,8 @@
         "{d22ae649}",
         "{92e7310e}",
         "{53220453}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "창의 의지",
@@ -6705,7 +7073,8 @@
         "{8fba48a3}",
         "{807eed8a}",
         "{7b2d141a}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "집중 공격",
@@ -6720,7 +7089,8 @@
         "{ce1fd21c}",
         "{b72bd3bf}",
         "{8fba48a3}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "단일 조합 사수",
@@ -6745,7 +7115,8 @@
         "{ee609993}",
         "{77b330ea}",
         "{4529fead}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "후방 지원",
@@ -6762,7 +7133,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{ee609993}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "황금 더미",
@@ -6780,7 +7152,8 @@
         "{d22ae649}",
         "{d12ae4b6}",
         "{7aaa3b47}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "후반 성장",
@@ -6800,7 +7173,8 @@
         "{d22ae649}",
         "{4529fead}",
         "{24d36c27}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "양보다 질",
@@ -6817,7 +7191,8 @@
         "{cf1fd3af}",
         "{b72bd3bf}",
         "{d22ae649}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "강력한 보호막",
@@ -6838,7 +7213,8 @@
         "{ce1fd21c}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "돈독",
@@ -6858,7 +7234,8 @@
         "{d12ae4b6}",
         "{7aaa3b47}",
         "{ef273b4c}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "승승장구",
@@ -6876,7 +7253,8 @@
         "{24d36c27}",
         "{d22ae649}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "위약 효과",
@@ -6894,7 +7272,8 @@
         "{d22ae649}",
         "{d12ae4b6}",
         "{24d36c27}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "묻고 두 배로 가",
@@ -6910,7 +7289,8 @@
         "{b72bd3bf}",
         "{d12ae4b6}",
         "{d22ae649}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "악의적 수익 창출",
@@ -6929,7 +7309,8 @@
         "{d02ae323}",
         "{d12ae4b6}",
         "{24d36c27}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "무한한 힘",
@@ -6945,7 +7326,8 @@
         "{8fba48a3}",
         "{b2be200a}",
         "{0d98debd}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "요리용 냄비",
@@ -6964,7 +7346,8 @@
         "{d22ae649}",
         "{92e7310e}",
         "{8e758f9d}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "쓰레기 청소부",
@@ -6979,7 +7362,8 @@
         "{ce1fd21c}",
         "{b72bd3bf}",
         "{807eed8a}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "4가 함께하길",
@@ -6997,7 +7381,8 @@
         "{d02ae323}",
         "{d12ae4b6}",
         "{db57774d}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "슬쩍하기",
@@ -7016,7 +7401,8 @@
         "{7aaa3b47}",
         "{24d36c27}",
         "{d22ae649}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "3단계 셋",
@@ -7034,7 +7420,8 @@
         "{24d36c27}",
         "{d02ae323}",
         "{d12ae4b6}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "치명적 성공",
@@ -7053,7 +7440,8 @@
         "{d22ae649}",
         "{d12ae4b6}",
         "{8fba48a3}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "길을 내라",
@@ -7072,7 +7460,8 @@
         "{d22ae649}",
         "{d12ae4b6}",
         "{8fba48a3}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "동료 제작",
@@ -7089,7 +7478,8 @@
         "{d22ae649}",
         "{ce1fd21c}",
         "{ef273b4c}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "협동 원기회복 II",
@@ -7105,7 +7495,8 @@
         "{ce1fd21c}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "빌붙기",
@@ -7122,7 +7513,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{8e758f9d}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "협동 원기회복 I",
@@ -7138,7 +7530,8 @@
         "{d11fd6d5}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "페트리사이트 방어구 II",
@@ -7153,7 +7546,8 @@
         "{ce1fd21c}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "달빛",
@@ -7176,7 +7570,8 @@
         "{818ab3d8}",
         "{ee609993}",
         "{807eed8a}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "가늠할 수 없는 악",
@@ -7192,7 +7587,8 @@
         "{b72bd3bf}",
         "{0d98debd}",
         "{66fe0140}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "이세계",
@@ -7210,7 +7606,8 @@
         "{d02ae323}",
         "{38baf02e}",
         "{84a6d904}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "홀수 기피",
@@ -7225,7 +7622,8 @@
         "{cf1fd3af}",
         "{d22ae649}",
         "{d12ae4b6}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "영혼 각성",
@@ -7243,7 +7641,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{807eed8a}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "떠난 이를 위한 앙갚음",
@@ -7262,7 +7661,8 @@
         "{ce1fd21c}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "일상물",
@@ -7288,7 +7688,8 @@
         "{d22ae649}",
         "{4529fead}",
         "{24d36c27}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "돈 폭풍",
@@ -7307,7 +7708,8 @@
         "{d12ae4b6}",
         "{7aaa3b47}",
         "{ef273b4c}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "상점 오류",
@@ -7328,7 +7730,8 @@
         "{24d36c27}",
         "{d12ae4b6}",
         "{c5c463aa}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "임무 재시작+",
@@ -7349,7 +7752,8 @@
         "{7aaa3b47}",
         "{b72bd3bf}",
         "{c5c463aa}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "출정",
@@ -7373,7 +7777,8 @@
         "{7aaa3b47}",
         "{77b330ea}",
         "{4529fead}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "덩치 큰 친구들 II",
@@ -7393,7 +7798,8 @@
         "{ee609993}",
         "{807eed8a}",
         "{1062df02}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "덩치 큰 친구들 III",
@@ -7413,7 +7819,8 @@
         "{ee609993}",
         "{807eed8a}",
         "{1062df02}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "영웅 등장!",
@@ -7431,7 +7838,8 @@
         "{cf1fd3af}",
         "{b72bd3bf}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "피의 공물",
@@ -7450,7 +7858,8 @@
         "{b72bd3bf}",
         "{d22ae649}",
         "{8fba48a3}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "덩치 큰 친구들 I",
@@ -7468,7 +7877,8 @@
         "{b72bd3bf}",
         "{8e758f9d}",
         "{1062df02}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "하나 더!+",
@@ -7486,7 +7896,8 @@
         "{d02ae323}",
         "{8fba48a3}",
         "{0d98debd}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "추가 버클",
@@ -7505,7 +7916,8 @@
         "{d22ae649}",
         "{d12ae4b6}",
         "{8fba48a3}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "철퇴의 의지",
@@ -7522,7 +7934,8 @@
         "{b72bd3bf}",
         "{8fba48a3}",
         "{807eed8a}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "3단계 군단",
@@ -7541,7 +7954,8 @@
         "{d22ae649}",
         "{4529fead}",
         "{38bcced7}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "@Gold@골드 획득",
@@ -7558,7 +7972,8 @@
         "{24d36c27}",
         "{d22ae649}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "이제 내가 주인공이야",
@@ -7575,7 +7990,8 @@
         "{b72bd3bf}",
         "{cf1fd3af}",
         "{807eed8a}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "크기의 중요성",
@@ -7593,7 +8009,8 @@
         "{d22ae649}",
         "{ef273b4c}",
         "{8fba48a3}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "부스터 팩++",
@@ -7611,7 +8028,8 @@
         "{d02ae323}",
         "{d12ae4b6}",
         "{7aaa3b47}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "고독한 영웅",
@@ -7626,7 +8044,8 @@
       "tags": [
         "{d11fd6d5}",
         "{b72bd3bf}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "부스터 팩+",
@@ -7643,7 +8062,8 @@
         "{b72bd3bf}",
         "{d02ae323}",
         "{d22ae649}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "암살자의 공구함",
@@ -7661,7 +8081,8 @@
         "{7b2d141a}",
         "{d22ae649}",
         "{8fba48a3}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "4단계 한 쌍",
@@ -7687,7 +8108,8 @@
         "{ee609993}",
         "{807eed8a}",
         "{db57774d}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "4단계 한 쌍",
@@ -7712,7 +8134,8 @@
         "{d12ae4b6}",
         "{ee609993}",
         "{807eed8a}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "훈련 교범",
@@ -7734,7 +8157,8 @@
         "{92e7310e}",
         "{0d98debd}",
         "{7aaa3b47}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "5등급",
@@ -7756,7 +8180,8 @@
         "{ee609993}",
         "{d02ae323}",
         "{d12ae4b6}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "모두를 위한 하나 I",
@@ -7781,7 +8206,8 @@
         "{d12ae4b6}",
         "{d22ae649}",
         "{66fe0140}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "맞춤 제작",
@@ -7797,7 +8223,8 @@
         "{b72bd3bf}",
         "{d12ae4b6}",
         "{d02ae323}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "인지 과부하",
@@ -7819,7 +8246,8 @@
         "{d02ae323}",
         "{d22ae649}",
         "{24d36c27}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "시동 걸기",
@@ -7837,7 +8265,8 @@
         "{d22ae649}",
         "{4529fead}",
         "{ef273b4c}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "역전의 서막",
@@ -7856,7 +8285,8 @@
         "{d22ae649}",
         "{4529fead}",
         "{807eed8a}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "약속된 보호",
@@ -7872,7 +8302,8 @@
         "{b72bd3bf}",
         "{8fba48a3}",
         "{d22ae649}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "치명적인 칼날",
@@ -7891,7 +8322,8 @@
         "{0d98debd}",
         "{d12ae4b6}",
         "{cf1fd3af}"
-      ]
+      ],
+      "disable": false
     },
     {
       "name": "그냥 눌러",
@@ -7910,7 +8342,8 @@
         "{d12ae4b6}",
         "{24d36c27}",
         "{d22ae649}"
-      ]
+      ],
+      "disable": true
     },
     {
       "name": "약자",
@@ -7925,7 +8358,20 @@
       "tags": [
         "{d11fd6d5}",
         "{b72bd3bf}"
-      ]
+      ],
+      "disable": true
+    },
+    {
+      "name": "친구 만들기",
+      "apiName": "TFT11_Augment_Buildabud",
+      "desc": "무작위 3성 1단계 챔피언 1명을 획득합니다. @Gold@골드를 획득합니다.",
+      "effects": {
+        "Gold": 8
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/ConstructaCompanion_III.TFT_Set16.tex",
+      "associatedTraits": [],
+      "tags": [],
+      "disable": false
     }
   ]
 }
