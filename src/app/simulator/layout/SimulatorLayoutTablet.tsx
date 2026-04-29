@@ -463,6 +463,7 @@ function TabletUnitContent(props: SimulatorLayoutProps) {
         onMfModeChange={(m) => tm.handleMfModeChange(tm.selectedUnit!.team, tm.selectedUnit!.index, m)}
         onPermanentStackChange={(v) => tm.handlePermanentStackChange(tm.selectedUnit!.team, tm.selectedUnit!.index, v)}
         onEditGravesWeapons={onEditGravesWeapons ? () => onEditGravesWeapons(tm.selectedUnit!.team) : undefined}
+        teamGravesPicks={tm.selectedUnit!.team === 'player' ? tm.playerGravesPicks : tm.enemyGravesPicks}
       />
     );
   }

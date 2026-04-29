@@ -94,6 +94,7 @@ export default function SimulatorLayoutMobile(props: SimulatorLayoutProps) {
           onMfModeChange={(m) => tm.handleMfModeChange(tm.selectedUnit!.team, tm.selectedUnit!.index, m)}
           onPermanentStackChange={(v) => tm.handlePermanentStackChange(tm.selectedUnit!.team, tm.selectedUnit!.index, v)}
           onEditGravesWeapons={props.onEditGravesWeapons ? () => props.onEditGravesWeapons!(tm.selectedUnit!.team) : undefined}
+          teamGravesPicks={tm.selectedUnit!.team === 'player' ? tm.playerGravesPicks : tm.enemyGravesPicks}
         />
       ) : (
         <div className="text-center text-xs text-gray-500 py-6">보드의 유닛을 선택하세요</div>

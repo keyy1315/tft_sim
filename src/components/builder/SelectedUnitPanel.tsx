@@ -26,6 +26,12 @@ interface SelectedUnitPanelProps {
   onPermanentStackChange?: (value: number) => void;
   /** 그레이브즈일 때만 활성화 — 무기고 편집 모달 open 콜백. */
   onEditGravesWeapons?: () => void;
+  /**
+   * 팀 단위로 보유한 무기고 picks (codex PR #50 P1 fix).
+   * 같은 팀의 모든 그레이브즈 unit 선택 시 동일 picks 표시 — 시뮬은 가장 강한 1명에게만 적용하지만,
+   * 사용자 mental model 은 "팀의 무기고". 그레이브즈가 아니면 무시.
+   */
+  teamGravesPicks?: string[];
 }
 
 export default function SelectedUnitPanel({
@@ -41,6 +47,7 @@ export default function SelectedUnitPanel({
   onMfModeChange,
   onPermanentStackChange,
   onEditGravesWeapons,
+  teamGravesPicks,
 }: SelectedUnitPanelProps) {
   const [showItemPicker, setShowItemPicker] = useState(false);
   const teamColor = team === 'player' ? 'border-blue-600/30' : 'border-red-600/30';
@@ -48,9 +55,9 @@ export default function SelectedUnitPanel({
 
   const artifactCount = placed.items.filter(i => getItemCategory(i) === 'artifact').length;
 
-  // 그레이브즈 무기고 — picks 의 각 suffix 를 RawItem 으로 변환 (allItems lookup).
+  // 그레이브즈 무기고 — team scope picks (P1 fix). suffix → RawItem lookup.
   const isGraves = placed.champion.apiName === 'TFT17_Graves';
-  const gravesPicks = placed.gravesPicks ?? [];
+  const gravesPicks = teamGravesPicks ?? [];
   const gravesPickItems = useMemo(() => {
     if (!isGraves || gravesPicks.length === 0) return [];
     const itemMap = new Map(allItems.map(i => [i.apiName, i]));

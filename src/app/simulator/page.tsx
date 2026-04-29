@@ -158,56 +158,28 @@ function SimulatorContent() {
     [tm.playerTeam, toEightRowCoords],
   );
 
-  // 그레이브즈 최신상 무기고 — 가장 강한 1명 (Frame selector 와 동일 룰: 성급 → 아이템 수 → idx)
-  const findStrongestGravesIdx = useCallback((team: PlacedChampion[]): number => {
-    let bestIdx = -1;
-    let bestStar = -1;
-    let bestItems = -1;
-    for (let i = 0; i < team.length; i++) {
-      const p = team[i];
-      if (p.champion.apiName !== 'TFT17_Graves') continue;
-      const star = p.starLevel ?? 0;
-      const items = p.items?.length ?? 0;
-      if (star > bestStar || (star === bestStar && items > bestItems)) {
-        bestIdx = i;
-        bestStar = star;
-        bestItems = items;
-      }
-    }
-    return bestIdx;
-  }, []);
-
-  const playerGravesPicks = useMemo<string[]>(() => {
-    const idx = findStrongestGravesIdx(tm.playerTeam);
-    return idx >= 0 ? (tm.playerTeam[idx].gravesPicks ?? []) : [];
-  }, [tm.playerTeam, findStrongestGravesIdx]);
-  const enemyGravesPicks = useMemo<string[]>(() => {
-    const idx = findStrongestGravesIdx(tm.enemyTeam);
-    return idx >= 0 ? (tm.enemyTeam[idx].gravesPicks ?? []) : [];
-  }, [tm.enemyTeam, findStrongestGravesIdx]);
-
-  const hasPlayerGraves = playerGravesPicks !== null && tm.playerTeam.some(p => p.champion.apiName === 'TFT17_Graves');
+  // 그레이브즈 최신상 무기고 — team scope picks (codex PR #50 P1 fix).
+  // unit-scope 저장 시 가장 강한 unit 변경 (성급/아이템 변동) 마다 picks 손실 회귀 발생 →
+  // tm 의 team-level state 사용. simulator engine (applyGravesFrameEffects /
+  // applyGravesStatUpgrades) 가 simulateCombat 호출 시 자체 selector 로
+  // "가장 강한 1명" 에 적용 — 시뮬은 동일 효과, picks 자체는 team 보유.
+  const hasPlayerGraves = tm.playerTeam.some(p => p.champion.apiName === 'TFT17_Graves');
   const hasEnemyGraves = tm.enemyTeam.some(p => p.champion.apiName === 'TFT17_Graves');
 
   const handleGravesPicksChange = useCallback((picks: string[]) => {
-    if (!gravesModalTeam) return;
-    const updater = gravesModalTeam === 'player' ? tm.updatePlayerTeam : tm.updateEnemyTeam;
-    updater(prev => {
-      const idx = findStrongestGravesIdx(prev);
-      if (idx < 0) return prev;
-      return prev.map((p, i) => (i === idx ? { ...p, gravesPicks: picks } : p));
-    });
-  }, [gravesModalTeam, tm, findStrongestGravesIdx]);
+    if (gravesModalTeam === 'player') tm.setPlayerGravesPicks(picks);
+    else if (gravesModalTeam === 'enemy') tm.setEnemyGravesPicks(picks);
+  }, [gravesModalTeam, tm]);
 
   const currentGravesPicks = gravesModalTeam === 'player'
-    ? playerGravesPicks
-    : gravesModalTeam === 'enemy' ? enemyGravesPicks : [];
+    ? tm.playerGravesPicks
+    : gravesModalTeam === 'enemy' ? tm.enemyGravesPicks : [];
 
   // simulateCombat 옵션 매핑 — 첫 pick = frame, 나머지 = upgrade IDs
-  const playerGravesFrame = picksToFrame(playerGravesPicks);
-  const enemyGravesFrame = picksToFrame(enemyGravesPicks);
-  const playerGravesUpgrades = playerGravesPicks.length > 1 ? playerGravesPicks.slice(1) : undefined;
-  const enemyGravesUpgrades = enemyGravesPicks.length > 1 ? enemyGravesPicks.slice(1) : undefined;
+  const playerGravesFrame = picksToFrame(tm.playerGravesPicks);
+  const enemyGravesFrame = picksToFrame(tm.enemyGravesPicks);
+  const playerGravesUpgrades = tm.playerGravesPicks.length > 1 ? tm.playerGravesPicks.slice(1) : undefined;
+  const enemyGravesUpgrades = tm.enemyGravesPicks.length > 1 ? tm.enemyGravesPicks.slice(1) : undefined;
 
   // 칸 버프 계산 (증강 + 팀 구성 변경 시 재계산)
   const playerHexBuffs = useMemo(() =>
@@ -486,9 +458,9 @@ function SimulatorContent() {
                 title="그레이브즈 무기고 편집"
               >
                 🔧 P 무기고
-                {playerGravesPicks.length > 0 && (
+                {tm.playerGravesPicks.length > 0 && (
                   <span className="px-1.5 py-0.5 bg-blue-900 text-blue-100 text-xs rounded-full">
-                    {playerGravesPicks.length}
+                    {tm.playerGravesPicks.length}
                   </span>
                 )}
               </button>
@@ -501,9 +473,9 @@ function SimulatorContent() {
                 title="적 그레이브즈 무기고 편집"
               >
                 🔧 E 무기고
-                {enemyGravesPicks.length > 0 && (
+                {tm.enemyGravesPicks.length > 0 && (
                   <span className="px-1.5 py-0.5 bg-red-900 text-red-100 text-xs rounded-full">
-                    {enemyGravesPicks.length}
+                    {tm.enemyGravesPicks.length}
                   </span>
                 )}
               </button>
