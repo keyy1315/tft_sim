@@ -270,11 +270,14 @@ export default function PvPRoundEditor({ index, round }: { index: number; round:
         )}
       </DragOverlay>
 
-      {/* 그레이브즈 무기고 — graves placed 시 floating button. round 별로 picks 저장. */}
-      {(hasPlayerGraves || hasOpponentGraves) && (
+      {/* 그레이브즈 무기고 — graves placed 시 floating button. round 별로 picks 저장.
+          modal open 일 때 button 숨김 → modal isolation 보장 (codex P2: picks 가
+          의도하지 않은 팀에 적용되는 mid-flow 전환 방지). z-index 도 modal (z-50) 보다
+          낮은 z-40 으로 — modal 안에서도 background button 가시성 차단. */}
+      {(hasPlayerGraves || hasOpponentGraves) && gravesModalTeam === null && (
         <div
           className="fixed right-4 flex flex-col gap-2"
-          style={{ bottom: '16px', zIndex: 2147483645 }}
+          style={{ bottom: '16px', zIndex: 40 }}
         >
           {hasPlayerGraves && (
             <button
