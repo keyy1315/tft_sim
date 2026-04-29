@@ -52,15 +52,17 @@ export async function POST(req: Request, { params }: Ctx) {
   }
 
   await ensureVideoDir();
-  // Remove any prior upload (different extension, stale bytes)
-  await deleteExistingVideos(gameId);
 
+  // Atomic swap (codex P1) — write to tmp file first, swap on success.
+  // 기존 파일 미리 삭제 시 업로드 실패하면 video 가 영구 손실되어 게임이 비디오 없는 상태로 남음.
+  // tmp → 검증 통과 → 기존 삭제 → atomic rename 순서로 처리해 실패 시 기존 보존.
   const destPath = videoFilePath(gameId, ext);
+  const tmpPath = `${destPath}.tmp-${process.pid}-${Date.now()}`;
   let bytesWritten = 0;
   let rejected = false;
 
   const reader = req.body.getReader();
-  const fileStream = createWriteStream(destPath);
+  const fileStream = createWriteStream(tmpPath);
 
   try {
     for (;;) {
@@ -86,14 +88,14 @@ export async function POST(req: Request, { params }: Ctx) {
     }
   } catch (err) {
     try { fileStream.destroy(); } catch { /* ignore */ }
-    await cleanupPartial(destPath);
+    await cleanupPartial(tmpPath);
     return NextResponse.json(
       { error: 'internal', message: err instanceof Error ? err.message : 'upload failed' },
       { status: 500 },
     );
   }
   if (rejected) {
-    await cleanupPartial(destPath);
+    await cleanupPartial(tmpPath);
     return NextResponse.json(
       { error: 'too_large', message: `file exceeds ${MAX_VIDEO_BYTES} bytes` },
       { status: 413 },
@@ -101,11 +103,34 @@ export async function POST(req: Request, { params }: Ctx) {
   }
 
   if (bytesWritten === 0) {
-    await cleanupPartial(destPath);
+    await cleanupPartial(tmpPath);
     return NextResponse.json({ error: 'validation', message: 'empty body' }, { status: 400 });
   }
 
-  const durationSeconds = await probeDurationSeconds(destPath);
+  // tmp file 에서 duration probe (검증 단계). 실패 시 기존 video 보존 + tmp cleanup.
+  let durationSeconds: number | null;
+  try {
+    durationSeconds = await probeDurationSeconds(tmpPath);
+  } catch (err) {
+    await cleanupPartial(tmpPath);
+    return NextResponse.json(
+      { error: 'internal', message: err instanceof Error ? err.message : 'probe failed' },
+      { status: 500 },
+    );
+  }
+
+  // 모든 검증 통과 → 기존 비디오 삭제 + atomic rename.
+  try {
+    await deleteExistingVideos(gameId);
+    await fs.rename(tmpPath, destPath);
+  } catch (err) {
+    await cleanupPartial(tmpPath);
+    return NextResponse.json(
+      { error: 'internal', message: err instanceof Error ? err.message : 'swap failed' },
+      { status: 500 },
+    );
+  }
+
   const uploadedAt = new Date().toISOString();
   const filename = `${gameId}.${ext}`;
 
