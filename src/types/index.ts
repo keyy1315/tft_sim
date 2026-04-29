@@ -347,6 +347,17 @@ export interface PlacedChampion {
   permanentStacks?: PermanentStack | null;
   isDummy?: boolean;
   isSummon?: boolean;
+  /**
+   * 그레이브즈 최신상 무기고 선택 history (suffix 배열).
+   * 첫 번째는 root frame (CloseQuarters / SharpshooterModule / DoubleTap),
+   * 이후는 해당 root 의 children → grandchildren 순으로 누적.
+   *
+   * factoryNewTree.ts 의 FACTORY_NEW_TREE 기준. simulateCombat 호출 시
+   * picksToFrame(picks) → playerGravesFrame, picks.slice(1) → playerGravesUpgrades.
+   *
+   * Graves 가 아닌 unit 은 사용 안 함 (undefined).
+   */
+  gravesPicks?: string[];
 }
 
 // === Arbiter Law (중재자 법률) ===
