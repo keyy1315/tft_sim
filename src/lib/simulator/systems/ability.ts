@@ -50,6 +50,21 @@ export interface AbilityConfig {
   damageVar?: string;
   /** 2차 피해 변수명 (폭발, 추가 투사체 등) — 주 피해와 합산 */
   secondaryDamageVar?: string;
+  /**
+   * 자기 자신에게 데미지 적용 (적군 데미지 없음). 자폭(GragasCarry) 전용.
+   * 데미지 값은 일반 ability "damage" 변수에서 그대로 가져옴.
+   */
+  selfDamage?: boolean;
+  /**
+   * selfDamage 적용 시 currentHp 최소값 (default 0). 그라가스 자폭의 경우 1 — 자기
+   * 스킬로 죽지 않음.
+   */
+  selfDamageHpFloor?: number;
+  /**
+   * line / multi 패턴에서 첫 적중 대상에만 stun 적용 (방패 여전사 LeonaCarry 전용).
+   * 미지정 / false 시 기존 동작 (stunTargets 만큼 stun).
+   */
+  firstHitOnlyStun?: boolean;
 }
 
 /** 챔피언별 스킬 타게팅 패턴 매핑 */
