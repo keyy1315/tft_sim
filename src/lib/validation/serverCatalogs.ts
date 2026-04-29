@@ -9,6 +9,7 @@ import type {
   RawAugment,
   RawAugmentsData,
 } from '@/types';
+import { isDisabledAugment, isDisabledItem } from '@/data/disabledContent';
 
 const PUBLIC_DATA = path.join(process.cwd(), 'public', 'data');
 
@@ -38,8 +39,11 @@ export function loadServerCatalogs(): ServerCatalogs {
   );
   const champions = Array.isArray(champRaw) ? champRaw : champRaw.champions ?? [];
   const traits = readJson<RawTraitsData>('tft_set17_traits.json').traits;
-  const items = readJson<RawItemsData>('tft_set17_items.json').items;
-  const augments = readJson<RawAugmentsData>('tft_set17_augments.json').augments;
+  const itemsRaw = readJson<RawItemsData>('tft_set17_items.json').items;
+  const augmentsRaw = readJson<RawAugmentsData>('tft_set17_augments.json').augments;
+  // disabledContent.ts 등록 항목 제외 (loader.ts 와 동일 동작 보장).
+  const items = itemsRaw.filter(it => !isDisabledItem(it.apiName));
+  const augments = augmentsRaw.filter(a => !isDisabledAugment(a.apiName));
   cached = { champions, traits, items, augments };
   return cached;
 }
