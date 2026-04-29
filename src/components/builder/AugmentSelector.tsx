@@ -59,7 +59,7 @@ export default function AugmentSelector({ augments, onSelect, selectedApiNames, 
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
 
   const filtered = augments.filter((aug) => {
-    if (!showInactive && aug.inSet17 === false) return false;
+    if (!showInactive && aug.disable === true) return false;
     if (search) {
       const s = search.toLowerCase();
       if (!aug.name.toLowerCase().includes(s) && !aug.apiName.toLowerCase().includes(s)) return false;

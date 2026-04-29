@@ -113,7 +113,7 @@ const APINAME_TIER_OVERRIDES: Readonly<Record<string, AugmentTier>> = {
   'TFT6_Augment_GachaAddict': 'prismatic',                   // 프리즘 티켓
   'TFT9_Augment_PandorasRadiantBox': 'prismatic',            // 판도라의 아이템 III
   'TFT9_Augment_BuildingACollectionPlusPlus': 'prismatic',   // 파묻힌 보물
-  'TFT11_Augment_Buildabud': 'prismatic',                    // 친구 만들기
+  'TFT11_Augment_Buildabud': 'prismatic',                    // 친구 만들기 (사용자 검수: prismatic 변종만 set17 풀에 노출 — TFT_Augment_ForgeAFriend silver 변종은 disable=true)
   'TFT9_Augment_RollTheDice': 'prismatic',                   // 찬란한 장난꾸러기
   'TFT7_Augment_CursedCrown': 'prismatic',                   // 저주받은 왕관
   'TFT10_Augment_GoingLong': 'prismatic',                    // 장기 투자

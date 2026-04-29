@@ -148,11 +148,14 @@ export interface RawAugment {
   associatedTraits: string[];
   tags: string[];
   /**
-   * Set 17에서 실제 사용되는 증강 여부 (CommunityDragon 기준).
-   * false면 이전 시즌 잔재이거나 비활성 증강.
-   * 누락된 경우 기본 false 취급.
+   * 시즌 미사용 / 비활성 증강 여부.
+   * true 면 builder UI / 시뮬 풀에서 제외.
+   * 누락된 경우 기본 false (활성) 취급.
+   *
+   * 분류 출처: lolchess.gg/augments/set17 + 수동 검수.
+   * fetch-set17.mjs 가 기존 분류를 보존 (회귀 방지).
    */
-  inSet17?: boolean;
+  disable?: boolean;
 }
 
 export interface RawAugmentsData {
