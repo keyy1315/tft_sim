@@ -2722,7 +2722,8 @@ export function simulateCombat(
     if (hasMaokai && state.maokaiHealPct > 0) {
       for (const u of state.teamUnits) {
         if (u.state === 'dead') continue;
-        const heal = u.maxHp * state.maokaiHealPct;
+        // healAmp 곱셈 적용 — GrenadeMod_Radiant 등 회복량 증폭 효과 반영.
+        const heal = u.maxHp * state.maokaiHealPct * (1 + (u.healAmp ?? 0));
         u.currentHp = Math.min(u.maxHp, u.currentHp + heal);
       }
     }
@@ -2815,7 +2816,8 @@ export function simulateCombat(
       }
     }
     if (!lowest) return;
-    const healAmount = totalAbilityDmg * caster.stargazerFountainHealPercent;
+    // healAmp 곱셈 적용 — Fountain heal 은 17.2 비활성 (legacy) 이지만 reactivate 시 일관성 보장.
+    const healAmount = totalAbilityDmg * caster.stargazerFountainHealPercent * (1 + (lowest.healAmp ?? 0));
     lowest.currentHp = Math.min(lowest.maxHp, lowest.currentHp + healAmount);
     const healLog: CombatLog = {
       tick: castTick, time: castTime, type: 'ability',
@@ -2864,7 +2866,8 @@ export function simulateCombat(
       for (const h of huntressTeam) {
         if (h.state === 'dead') continue;
         if (h.stargazerHuntressHealPercent <= 0) continue;
-        const healAmount = h.maxHp * h.stargazerHuntressHealPercent;
+        // healAmp 곱셈 적용 — GrenadeMod_Radiant 등 회복량 증폭 효과 반영.
+        const healAmount = h.maxHp * h.stargazerHuntressHealPercent * (1 + (h.healAmp ?? 0));
         h.currentHp = Math.min(h.maxHp, h.currentHp + healAmount);
       }
     });
@@ -3290,7 +3293,8 @@ export function simulateCombat(
 
           if (unit.omnivamp > 0 && finalDamage > 0) {
             const grievousReduction = target.augmentGrievousWounds > 0 ? (1 - target.augmentGrievousWounds) : 1;
-            const heal = finalDamage * unit.omnivamp * grievousReduction;
+            // healAmp 곱셈 적용 — 모든 피해 흡혈 (omnivamp) 도 회복량 증폭 효과 대상.
+            const heal = finalDamage * unit.omnivamp * grievousReduction * (1 + (unit.healAmp ?? 0));
             unit.currentHp = Math.min(unit.maxHp, unit.currentHp + heal);
             eventBus.emit('on_heal', { sourceId: unit.id, value: heal, tick });
           }
@@ -3338,10 +3342,10 @@ export function simulateCombat(
             // 별돌보미 뱀(Serpent) — DoubleTap 추가 hit 도 중독 적용.
             triggerSerpentPoison(unit, target, extraFinal);
 
-            // omnivamp 도 추가 hit 에 적용 (attack 1회 와 동일).
+            // omnivamp 도 추가 hit 에 적용 (attack 1회 와 동일). healAmp 곱셈 적용.
             if (unit.omnivamp > 0 && extraFinal > 0) {
               const grievousReduction = target.augmentGrievousWounds > 0 ? (1 - target.augmentGrievousWounds) : 1;
-              const heal = extraFinal * unit.omnivamp * grievousReduction;
+              const heal = extraFinal * unit.omnivamp * grievousReduction * (1 + (unit.healAmp ?? 0));
               unit.currentHp = Math.min(unit.maxHp, unit.currentHp + heal);
               eventBus.emit('on_heal', { sourceId: unit.id, value: heal, tick });
             }
@@ -3427,10 +3431,11 @@ export function simulateCombat(
                 sDmg = applyShield(target, sDmg, eventBus, tick);
                 target.currentHp -= sDmg;
                 unit.totalDamageDealt += sDmg;
-                // 피오라 급소 회복
+                // 피오라 급소 회복 — healAmp 곱셈 적용.
                 const healPct = atkSc.healPercent as number | undefined;
                 if (healPct && sDmg > 0) {
-                  unit.currentHp = Math.min(unit.maxHp, unit.currentHp + sDmg * healPct);
+                  const healAmount = sDmg * healPct * (1 + (unit.healAmp ?? 0));
+                  unit.currentHp = Math.min(unit.maxHp, unit.currentHp + healAmount);
                 }
               }
             }
@@ -3681,10 +3686,10 @@ export function simulateCombat(
               }
             }
 
-            // 전체 피해량 기반 흡혈
+            // 전체 피해량 기반 흡혈 — healAmp 곱셈 적용.
             if (unit.omnivamp > 0 && totalAbilityDmg > 0) {
               const grievousReduction = target.augmentGrievousWounds > 0 ? (1 - target.augmentGrievousWounds) : 1;
-              const heal = totalAbilityDmg * unit.omnivamp * grievousReduction;
+              const heal = totalAbilityDmg * unit.omnivamp * grievousReduction * (1 + (unit.healAmp ?? 0));
               unit.currentHp = Math.min(unit.maxHp, unit.currentHp + heal);
             }
 
@@ -3726,7 +3731,9 @@ export function simulateCombat(
                   ? (healVal < 1 ? Math.round(unit.maxHp * healVal) : Math.round(healVal * (1 + unit.stats.ap / 100)))
                   : 0;
                 if (healAmount > 0) {
-                  unit.currentHp = Math.min(unit.maxHp, unit.currentHp + healAmount);
+                  // healAmp 곱셈 적용 — ability self-heal 도 회복량 증폭 효과 대상.
+                  const finalHeal = healAmount * (1 + (unit.healAmp ?? 0));
+                  unit.currentHp = Math.min(unit.maxHp, unit.currentHp + finalHeal);
                 }
               }
             }
