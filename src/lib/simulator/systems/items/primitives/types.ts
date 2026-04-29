@@ -23,8 +23,13 @@ export type DamageAmount =
   | { mode: 'pctMaxHp'; pct: number }
   | { mode: 'pctAttackDamage'; pct: number }
   | { mode: 'pctAbilityPower'; pct: number }
-  /** payload.value 의 N% (trigger-chained action 에서 현재 이벤트 피해 기준) */
+  /** payload.value 의 N% (trigger-chained action 에서 현재 이벤트 피해 기준 — mitigated). */
   | { mode: 'pctDealt'; pct: number }
+  /**
+   * payload.rawValue 의 N% — resistance 적용 전 raw damage 기준.
+   * SympatheticImplant TrueDamageConversion 등 raw 기반 산식 ("스킬 피해의 N%").
+   */
+  | { mode: 'pctDealtRaw'; pct: number }
   /** state.stacks[stack] 의 N% — 누적된 값 기반 (e.g. 드론 업링크 3초 window) */
   | { mode: 'pctOfStack'; stack: string; pct: number };
 

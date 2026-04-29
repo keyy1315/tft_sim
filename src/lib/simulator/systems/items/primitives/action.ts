@@ -130,6 +130,8 @@ function resolveDamageAmount(amount: DamageAmount, ctx: ActionContext, target: C
       return ctx.unit.stats.ap * amount.pct;
     case 'pctDealt':
       return (ctx.payload?.value ?? 0) * amount.pct;
+    case 'pctDealtRaw':
+      return (ctx.payload?.rawValue ?? ctx.payload?.value ?? 0) * amount.pct;
     case 'pctOfStack':
       return (ctx.state.stacks.get(amount.stack) ?? 0) * amount.pct;
   }
@@ -156,8 +158,12 @@ function execHeal(
   const targets = resolveTargets(action.target, ctx);
   for (const target of targets) {
     if (target.state === 'dead') continue;
-    const amount = resolveHealAmount(action.amount, target);
-    if (amount <= 0) continue;
+    const baseAmount = resolveHealAmount(action.amount, target);
+    if (baseAmount <= 0) continue;
+    // healAmp (회복량 증폭, 예: GrenadeMod_Radiant IncreasedHealing 0.22) 적용.
+    // 시전자 (ctx.unit) 기준이 아닌 대상 (target) 의 healAmp 사용 — heal 받는 unit
+    // 효과로 정의 (예: 표적 고정 광학 Radiant healPct 등도 self-heal 이므로 동일).
+    const amount = baseAmount * (1 + (target.healAmp ?? 0));
     target.currentHp = Math.min(target.maxHp, target.currentHp + amount);
   }
 }

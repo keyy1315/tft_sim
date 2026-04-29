@@ -223,6 +223,12 @@ export interface ItemEffect {
   omnivamp?: number;
   /** 아이템 기반 마나 재생 (초당, Shojin/Archangels/Empathic Implant ManaRegen) */
   manaRegen?: number;
+  /**
+   * 회복량 증폭 (multiplicative bonus). 예: 0.22 = +22% 회복량.
+   * GrenadeMod_Radiant IncreasedHealing 등 heal 증폭 효과용.
+   * CombatUnit.healAmp 에 누적되어 execHeal 시 (1 + healAmp) 곱셈.
+   */
+  healAmp?: number;
 }
 
 export interface ActiveTrait {
@@ -485,6 +491,12 @@ export interface CombatUnit {
   /** 발명품 탱커 대상 추가 피해증폭 (ArmorNullifier) */
   inventionTankDamageAmp: number;
   /**
+   * 회복량 증폭 (additive bonus). 0 = base 1.0, 0.22 = 회복량 +22%.
+   * primitive execHeal / heal site 에서 (1 + healAmp) 곱셈으로 적용.
+   * GrenadeMod_Radiant IncreasedHealing 등 누적.
+   */
+  healAmp: number;
+  /**
    * 암흑의 별 (TFT17_DarkStar) (2)+ tier 활성 시 darkStar unit 본인만 양수.
    * 이 unit 이 공격하여 target 의 currentHp/maxHp 가 임계값 이하면 즉사 처리 (블랙홀).
    * 0 = 미활성. ExecuteHPPercent 0.08 (8%) 가 17.2 spec.
@@ -492,8 +504,8 @@ export interface CombatUnit {
   darkStarExecuteThreshold: number;
   /**
    * 암흑의 별 (6)+ tier 활성 + "가장 강한" darkStar unit 1명만 true.
-   * Supermassive 효과: ADAP 가산을 (1 + SupermassivePercentBonus) 만큼 추가 강화 +
-   * maxHp 를 PercentHealth (0.30 = +30%) 만큼 증가.
+   * Supermassive 효과: ADAP 가산을 (1 + SupermassivePercentBonus) 만큼 추가 강화.
+   * (PercentHealth 변수는 desc 미사용 → maxHp 효과 미적용)
    */
   darkStarSupermassive: boolean;
   /**
