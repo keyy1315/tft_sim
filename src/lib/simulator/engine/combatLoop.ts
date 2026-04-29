@@ -1008,6 +1008,46 @@ function applyMechaEffects(activeTraits: ActiveTrait[], units: CombatUnit[]): vo
 }
 
 /**
+ * PsyOps (4) tier 시너지 활성 여부.
+ *
+ * 17.2 PsyOps trait raw 데이터:
+ *   - (2) tier: minUnits=2, style=1 — 일반 효과 풀
+ *   - (4) tier: minUnits=4, style=5 — Radiant 강화 (초능력 unit 한정)
+ */
+function isPsyOpsTier4Active(activeTraits: ActiveTrait[]): boolean {
+  return activeTraits.some(t =>
+    t.trait.apiName === 'TFT17_PsyOps'
+    && t.activeEffect != null
+    && (t.activeEffect.minUnits ?? 0) >= 4
+  );
+}
+
+/**
+ * PsyOps (4) tier 활성 + 초능력 unit → 일반 PsyOps 아이템 → Radiant 변종 자동 swap.
+ *
+ * 게임 시스템 (17.2):
+ *   - 사용자는 빌더에서 일반 5종 PsyOps 아이템 (`TFT17_Item_PsyOps_*Mod`) 만 장착.
+ *   - (4) tier 활성 + 본인 초능력 trait 보유 시 자동으로 Radiant 강화 효과 발동.
+ *   - 비-초능력 unit 또는 (2) tier 활성 시 일반 효과만 적용 (swap 안 함).
+ *
+ * apiName 만 swap — ITEM_EFFECTS registry 가 apiName 기반 lookup 이라
+ * effects 객체 자체는 변경 불필요 (stat.ts getItemEffects 가 ITEM_EFFECTS 우선).
+ */
+function applyPsyOpsRadiantSwap(placed: PlacedChampion, tier4Active: boolean): PlacedChampion {
+  if (!tier4Active) return placed;
+  if (!placed.champion.traits.includes('초능력')) return placed;
+  let changed = false;
+  const newItems = placed.items.map(it => {
+    if (it.apiName.startsWith('TFT17_Item_PsyOps_') && !it.apiName.endsWith('_Radiant')) {
+      changed = true;
+      return { ...it, apiName: it.apiName + '_Radiant' };
+    }
+    return it;
+  });
+  return changed ? { ...placed, items: newItems } : placed;
+}
+
+/**
  * "가장 강한" unit 선정 — hero carry augment 의 단일 대상 선정 룰.
  *
  * 우선순위:
@@ -2180,25 +2220,32 @@ export function simulateCombat(
     ? { champion: enemyGalioPlaced.champion, starLevel: enemyGalioPlaced.starLevel }
     : options.enemyGalio ?? null;
 
+  // PsyOps (4) 시너지 활성 시 초능력 unit 의 일반 PsyOps 아이템 → Radiant 변종 자동 swap.
+  // 게임 시스템: (2) tier 는 일반 효과만, (4) tier + 초능력 unit 만 Radiant 강화 효과.
+  const playerPsyOpsT4 = isPsyOpsTier4Active(playerActiveTraits);
+  const enemyPsyOpsT4 = isPsyOpsTier4Active(enemyActiveTraits);
+
   const playerUnits = playerTeamFiltered.map((p, i) => {
-    const isBW = placedHasTrait(p, '빌지워터');
+    const swapped = applyPsyOpsRadiantSwap(p, playerPsyOpsT4);
+    const isBW = placedHasTrait(swapped, '빌지워터');
     const effects = isBW ? mergeEffects(playerAugmentEffects, playerBWEffects) : playerAugmentEffects;
-    const unit = createCombatUnit(p, 'player', i, playerActiveTraits, effects);
-    const mod = resolvePerUnitMods(playerAugsWithStacks, p.champion);
+    const unit = createCombatUnit(swapped, 'player', i, playerActiveTraits, effects);
+    const mod = resolvePerUnitMods(playerAugsWithStacks, swapped.champion);
     applyPerUnitMods(unit, mod);
-    applyPermanentStacks(unit, p);
+    applyPermanentStacks(unit, swapped);
     applyCarryAugmentRange(unit, playerAugApiNames);
     applyStartPassives(unit);
     return unit;
   });
   const enemies = enemyTeamFiltered.map((p, i) => {
     const positioned = options.skipMirror ? p : { ...p, position: mirrorPosition(p.position) };
-    const isBW = placedHasTrait(p, '빌지워터');
+    const swapped = applyPsyOpsRadiantSwap(positioned, enemyPsyOpsT4);
+    const isBW = placedHasTrait(swapped, '빌지워터');
     const effects = isBW ? mergeEffects(enemyAugmentEffects, enemyBWEffects) : enemyAugmentEffects;
-    const unit = createCombatUnit(positioned, 'enemy', i, enemyActiveTraits, effects);
-    const mod = resolvePerUnitMods(enemyAugsWithStacks, p.champion);
+    const unit = createCombatUnit(swapped, 'enemy', i, enemyActiveTraits, effects);
+    const mod = resolvePerUnitMods(enemyAugsWithStacks, swapped.champion);
     applyPerUnitMods(unit, mod);
-    applyPermanentStacks(unit, positioned);
+    applyPermanentStacks(unit, swapped);
     applyCarryAugmentRange(unit, enemyAugApiNames);
     applyStartPassives(unit);
     return unit;
