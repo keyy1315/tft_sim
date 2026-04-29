@@ -178,7 +178,7 @@ export const CHAMPION_ABILITY_PATTERNS: Record<string, AbilityConfig> = {
   TFT17_Leona:       { pattern: 'single', stun: 1.5, selfBuff: { durability: 0.3, duration: 4 } },  // 보호막 + 기절
   TFT17_Chogath:     { pattern: 'single', heal: true, damageVar: 'BonusDamage' },  // %최대체력 + 고정 추가 피해 (combatLoop 특수 처리)
   TFT17_Lissandra:   { pattern: 'aoe_circle', radius: 1, secondaryDamageVar: 'SecondaryDamage' },  // 단검 Damage + 폭발 SecondaryDamage
-  TFT17_RekSai:      { pattern: 'aoe_circle', radius: 1, stun: 1.0, heal: true },  // 회복 + 인접 공중띄움
+  TFT17_Reksai:      { pattern: 'aoe_circle', radius: 1, stun: 1.0, heal: true },  // 회복 + 인접 공중띄움 (17.2: RekSai → Reksai)
 
   // === 2코스트 ===
   TFT17_Belveth:     { pattern: 'single', hitCount: 12 },  // 연속 12회 베기
