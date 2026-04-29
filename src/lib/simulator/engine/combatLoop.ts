@@ -3075,6 +3075,9 @@ export function simulateCombat(
               };
               logs.push(selfLog);
               tickLogs.push(selfLog);
+              // on_cast 이벤트 emit — PsyOps 등 cast event subscriber 호환 (codex P2 회귀 가드).
+              // targetId 는 self (적군 X). value 는 실제 입은 self damage.
+              eventBus.emit('on_cast', { sourceId: unit.id, targetId: unit.id, value: dmgApplied, tick });
               continue; // 일반 ability 흐름 skip — 적군/아군 데미지 없음
             }
 
@@ -3421,6 +3424,8 @@ export function simulateCombat(
               });
             }
           } else {
+            // firstHitOnlyStun (방패 여전사 LeonaCarry): OOR dash cast 에서도 첫 적중만 stun.
+            let oorStunApplied = false;
             for (const t of abilityTargets) {
               if (t.state === 'dead') continue;
               const resistance = dmgType === 'magic' ? t.stats.magicResist : t.stats.armor;
@@ -3455,10 +3460,13 @@ export function simulateCombat(
               }
 
               if (outOfRangeConfig.stun && outOfRangeConfig.stun > 0 && t.currentHp > 0) {
+                // firstHitOnlyStun → 이미 한 번 적용했으면 skip (LeonaCarry 첫 적중 only).
+                if (outOfRangeConfig.firstHitOnlyStun && oorStunApplied) continue;
                 const stunTicks = Math.round(outOfRangeConfig.stun * TICKS_PER_SECOND);
                 t.statusEffects.push({ type: 'stun', sourceId: unit.id, remainingTicks: stunTicks });
                 t.state = 'idle';
                 t.attackCooldown = 0;
+                oorStunApplied = true;
               }
             }
           }
