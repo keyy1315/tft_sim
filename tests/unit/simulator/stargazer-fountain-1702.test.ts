@@ -1,16 +1,18 @@
 /**
  * 별돌보미 우물(Fountain) 변종 17.2 회귀 가드.
  *
- * 17.2 trait desc:
- *   "강화된 칸 아군이 Fountain_Interval(2)초마다 max HP × HealthRegen_Teamwide(2%) 회복.
- *    강화된 칸 별돌보미는 추가로 HealthRegen(4%) 더 회복 + StackingADAP% AD/AP 누적."
+ * 17.2 LIVE 패치노트 명시:
+ *   "별돌보미 룰루와 자야 효과 찾는 중 — 우물 비활성화"
  *
- * raw effects hash 키 매핑:
- *   {8d19f5db}=2 (Interval 초), {d7e6d620}=0.02 (Teamwide regen),
- *   {f2840aed}=0.04 (별돌보미 추가 regen), {13a2a786}=2/4 (StackingADAP %)
+ * raw data 에 hash 변수 + 값 정의되어 있지만 인게임 효과 미발동.
+ * 시뮬도 동일하게 no-op (codex P1 가드) — 사용자가 well 별자리 선택해도
+ * fountainHealPctPerTick / fountainStackingAdapPerTick = 0 (효과 없음).
  *
- * 시뮬: applyStargazerEffects 가 unit 에 fountainHealPctPerTick + fountainStackingAdapPerTick
- *       설정. main loop tick 마다 (2초 = 60 tick) heal + ADAP stack 적용.
+ * 다음 patch 에서 reenable 시 applyStargazerEffects 의 commented 매핑 코드
+ * 활성화 + 본 테스트의 expected 값 갱신.
+ *
+ * raw hash ↔ desc 매핑 (reenable 시 사용):
+ *   {8d19f5db}=2초 / {d7e6d620}=2% teamwide / {f2840aed}=4% 별돌보미 / {13a2a786}=2/4% StackingADAP
  */
 import { describe, it, expect } from 'vitest';
 import { simulateCombat } from '@/lib/simulator/engine/combatLoop';
@@ -44,8 +46,8 @@ function buildFountainTeam(): PlacedChampion[] {
   ];
 }
 
-describe('Fountain 17.2 — 강화 칸 unit fountain field 설정', () => {
-  it('(3) 별돌보미 4명 → 강화 칸 별돌보미 fountainHealPctPerTick = 0.06 (2%+4%), StackingADAP 0.02', () => {
+describe('Fountain 17.2 — Riot 우물 비활성화 (시뮬 no-op)', () => {
+  it('(3) 별돌보미 4명 + well 별자리 → fountain 효과 0 (17.2 비활성 spec)', () => {
     const tiles = CONSTELLATION_TILE_PATTERN.well;
     const team = [
       placed(apTwistedFate, tiles[0].q, tiles[0].r),
@@ -59,67 +61,26 @@ describe('Fountain 17.2 — 강화 칸 unit fountain field 설정', () => {
       playerStargazerConstellation: 'well',
     });
     const tf = result.playerUnits.find(u => u.champion.apiName === 'TFT17_TwistedFate')!;
-    // 별돌보미 + 강화 칸: teamwide 0.02 + self 0.04 = 0.06
-    expect(tf.fountainHealPctPerTick).toBeCloseTo(0.06, 3);
-    // (3) tier StackingADAP = 2% → 0.02
-    expect(tf.fountainStackingAdapPerTick).toBeCloseTo(0.02, 3);
+    // 17.2 LIVE: 우물 비활성 → 모든 fountain 필드 0
+    expect(tf.fountainHealPctPerTick).toBe(0);
+    expect(tf.fountainStackingAdapPerTick).toBe(0);
+    expect(tf.stargazerFountainHealPercent).toBe(0);
   });
 
-  it('(5) 별돌보미 6명 → fountainStackingAdapPerTick = 0.04 (4%)', () => {
+  it('(5) 별돌보미 6명 + well 별자리 → fountain 효과 0', () => {
     const team = buildFountainTeam();
     const enemy = [placed(dummyEnemy, 6, 3)];
     const result = simulateCombat(team, enemy, {
       seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
       playerStargazerConstellation: 'well',
     });
-    const tf = result.playerUnits.find(u => u.champion.apiName === 'TFT17_TwistedFate')!;
-    expect(tf.fountainHealPctPerTick).toBeCloseTo(0.06, 3);
-    // (5) tier StackingADAP = 4%
-    expect(tf.fountainStackingAdapPerTick).toBeCloseTo(0.04, 3);
+    for (const u of result.playerUnits) {
+      expect(u.fountainHealPctPerTick).toBe(0);
+      expect(u.fountainStackingAdapPerTick).toBe(0);
+    }
   });
 
-  it('비-별돌보미 unit (강화 칸 안) → teamwide heal 만 (StackingADAP 없음)', () => {
-    // emblem 으로 별돌보미가 된 unit 도 별돌보미 trait → emblem 미장착 unit 만 비-별돌보미.
-    // buildFountainTeam 의 별돌보미 외에 추가 unit 배치.
-    const tiles = CONSTELLATION_TILE_PATTERN.well;
-    const team = [
-      placed(apTwistedFate, tiles[0].q, tiles[0].r),
-      placed(apTalon, tiles[1].q, tiles[1].r),
-      placed(apJax, tiles[2].q, tiles[2].r),
-      placed(apAatrox, tiles[3].q, tiles[3].r), // emblem 미장착 → 비-별돌보미 (Aatrox base 트레이트만)
-    ];
-    const enemy = [placed(dummyEnemy, 6, 3)];
-    const result = simulateCombat(team, enemy, {
-      seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
-      playerStargazerConstellation: 'well',
-    });
-    const aatrox = result.playerUnits.find(u => u.champion.apiName === 'TFT17_Aatrox')!;
-    // 별돌보미 4명 활성 (TF/Talon/Jax + 자기 자신은 emblem 없어 비-별돌보미)
-    // 잠깐 — Aatrox emblem 없으면 별돌보미 카운트 3명 → trait 비활성 가능. 보수적 조건 검증.
-    // 핵심: emblem 없는 unit 은 강화 칸 안이어도 stacking ADAP 받지 않음.
-    expect(aatrox.fountainStackingAdapPerTick).toBe(0);
-  });
-
-  it('강화 칸 외 unit → fountain 효과 0', () => {
-    // 별돌보미 4명, 한 명만 강화 칸 안 → 강화 칸 외 unit 은 효과 받지 않음.
-    const tiles = CONSTELLATION_TILE_PATTERN.well;
-    const team = [
-      placed(apTwistedFate, tiles[0].q, tiles[0].r), // on tile
-      placed(apTalon, 6, 0), // off tile
-      placed(apJax, 6, 1),
-      placed(apAatrox, 6, 2, [STARGAZER_EMBLEM]),
-    ];
-    const enemy = [placed(dummyEnemy, 0, 3)];
-    const result = simulateCombat(team, enemy, {
-      seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
-      playerStargazerConstellation: 'well',
-    });
-    const talon = result.playerUnits.find(u => u.champion.apiName === 'TFT17_Talon')!;
-    expect(talon.fountainHealPctPerTick).toBe(0);
-    expect(talon.fountainStackingAdapPerTick).toBe(0);
-  });
-
-  it('우물 외 별자리 (mountain) 시 fountain 효과 0', () => {
+  it('우물 외 별자리 (mountain) 시 fountain 필드 0 (선택 무관)', () => {
     const team = buildFountainTeam();
     const enemy = [placed(dummyEnemy, 6, 3)];
     const result = simulateCombat(team, enemy, {
@@ -129,5 +90,30 @@ describe('Fountain 17.2 — 강화 칸 unit fountain field 설정', () => {
     const tf = result.playerUnits.find(u => u.champion.apiName === 'TFT17_TwistedFate')!;
     expect(tf.fountainHealPctPerTick).toBe(0);
     expect(tf.fountainStackingAdapPerTick).toBe(0);
+  });
+
+  it('CombatUnit fountain 필드 default 값 0', () => {
+    const team = [placed(apTwistedFate, 0, 0)];
+    const enemy = [placed(dummyEnemy, 6, 3)];
+    const result = simulateCombat(team, enemy, {
+      seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
+    });
+    const tf = result.playerUnits[0];
+    expect(tf.fountainHealPctPerTick).toBe(0);
+    expect(tf.fountainStackingAdapPerTick).toBe(0);
+  });
+
+  it('비-별돌보미 unit (다른 트레이트만) → fountain 필드 0', () => {
+    const team = [
+      placed(apTwistedFate, 0, 0),
+      placed(apAatrox, 1, 0),
+    ];
+    const enemy = [placed(dummyEnemy, 6, 3)];
+    const result = simulateCombat(team, enemy, {
+      seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
+    });
+    const aatrox = result.playerUnits.find(u => u.champion.apiName === 'TFT17_Aatrox')!;
+    expect(aatrox.fountainHealPctPerTick).toBe(0);
+    expect(aatrox.fountainStackingAdapPerTick).toBe(0);
   });
 });
