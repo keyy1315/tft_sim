@@ -3128,8 +3128,8 @@ export function simulateCombat(
               logs.push(selfLog);
               tickLogs.push(selfLog);
               // on_cast 이벤트 emit — PsyOps 등 cast event subscriber 호환 (codex P2 회귀 가드).
-              // targetId 는 self (적군 X). value 는 실제 입은 self damage.
-              eventBus.emit('on_cast', { sourceId: unit.id, targetId: unit.id, value: dmgApplied, tick });
+              // targetId 는 self (적군 X). value 는 실제 입은 self damage. rawValue 는 동일 (no resistance for self).
+              eventBus.emit('on_cast', { sourceId: unit.id, targetId: unit.id, value: dmgApplied, rawValue: rawAbilityDmg, tick });
               continue; // 일반 ability 흐름 skip — 적군/아군 데미지 없음
             }
 
@@ -3166,6 +3166,10 @@ export function simulateCombat(
 
             // 다중 타겟 피해 루프
             let totalAbilityDmg = 0;
+            // raw total — per-target modifier (damageAmp/sniper/crit/secondary/Chogath %hp 등) 적용 후,
+            // resistance/shield/DR/invulnerable 적용 전. on_cast.rawValue 로 emit 되어
+            // SympatheticImplant TrueDamageConversion 등 raw 기반 follow-up effect 가 사용.
+            let totalRawAbilityDmg = 0;
             const aliveTargets = abilityTargets.filter(t => t.state !== 'dead');
             const abilityDmg = isSplitDamage && aliveTargets.length > 0
               ? hitCountTotal / aliveTargets.length
@@ -3240,6 +3244,8 @@ export function simulateCombat(
                 if (unit.spellCanCrit && rng.next() < unit.stats.critChance) {
                   dmg *= unit.stats.critMultiplier;
                 }
+                // raw (mitigation 전) 누적 — on_cast.rawValue 용.
+                totalRawAbilityDmg += dmg;
 
                 const resistance = dmgType === 'magic' ? t.stats.magicResist
                   : dmgType === 'physical' ? t.stats.armor : 0;
@@ -3377,7 +3383,11 @@ export function simulateCombat(
               totalAbilityDmg += droneDmg;
             }
 
-            eventBus.emit('on_cast', { sourceId: unit.id, targetId: target.id, value: totalAbilityDmg, tick });
+            // rawValue = totalRawAbilityDmg (per-target modifier 적용 후, resistance 미적용 누적).
+            // value = totalAbilityDmg (실제 적용 mitigated total).
+            // dot path 면 totalRawAbilityDmg 누적 안 됨 → hitCountTotal 폴백 (DOT total raw).
+            const rawForCast = totalRawAbilityDmg > 0 ? totalRawAbilityDmg : hitCountTotal;
+            eventBus.emit('on_cast', { sourceId: unit.id, targetId: target.id, value: totalAbilityDmg, rawValue: rawForCast, tick });
           }
 
           // Execute threshold: kill if below HP %
@@ -3456,6 +3466,9 @@ export function simulateCombat(
 
           // 피해 적용
           let totalAbilityDmg = 0;
+          // raw total — per-target modifier (damageAmp/sniper/crit) 적용 후, mitigation 전.
+          // on_cast.rawValue 로 emit 되어 SympatheticImplant 등 raw 기반 effect 가 사용.
+          let totalRawAbilityDmg = 0;
           const oorAlive = abilityTargets.filter(t => t.state !== 'dead');
           const abilityDmg = oorIsSplit && oorAlive.length > 0
             ? oorHitTotal / oorAlive.length
@@ -3488,6 +3501,8 @@ export function simulateCombat(
               if (unit.spellCanCrit && rng.next() < unit.stats.critChance) {
                 rawDmg *= unit.stats.critMultiplier;
               }
+              // raw 누적 — mitigation 전 per-target modifier 적용 후.
+              totalRawAbilityDmg += rawDmg;
               let dmg = dmgType === 'true' ? rawDmg : applyResistance(rawDmg, resistance, pen);
               if (t.damageReduction > 0) dmg *= (1 - t.damageReduction);
               dmg = applyShield(t, dmg, eventBus, tick);
@@ -3548,7 +3563,10 @@ export function simulateCombat(
           // (codex P1 회귀 가드: Talon/Corki 같은 dash user 가 사거리 밖 시전 시 누락 방지).
           triggerFountainHeal(unit, totalAbilityDmg, tick, time, tickLogs);
 
-          eventBus.emit('on_cast', { sourceId: unit.id, targetId: target.id, value: totalAbilityDmg, tick });
+          // rawValue = totalRawAbilityDmg (per-target modifier 적용 후, resistance 미적용 누적).
+          // dot path 면 raw 누적 안 됨 → oorHitTotal 폴백.
+          const oorRawForCast = totalRawAbilityDmg > 0 ? totalRawAbilityDmg : oorHitTotal;
+          eventBus.emit('on_cast', { sourceId: unit.id, targetId: target.id, value: totalAbilityDmg, rawValue: oorRawForCast, tick });
         } else {
           // 일반 이동
           const newPos = findBestMoveToward(unit.position, target.position, occupiedPositions);

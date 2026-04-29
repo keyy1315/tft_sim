@@ -130,6 +130,8 @@ function resolveDamageAmount(amount: DamageAmount, ctx: ActionContext, target: C
       return ctx.unit.stats.ap * amount.pct;
     case 'pctDealt':
       return (ctx.payload?.value ?? 0) * amount.pct;
+    case 'pctDealtRaw':
+      return (ctx.payload?.rawValue ?? ctx.payload?.value ?? 0) * amount.pct;
     case 'pctOfStack':
       return (ctx.state.stacks.get(amount.stack) ?? 0) * amount.pct;
   }

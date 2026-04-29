@@ -186,7 +186,8 @@ function buildSympatheticImplant(
     },
   ];
   // 17.2 Radiant: 초능력 유닛 ability 시전 시 스킬 피해의 N% 를 고정 피해로 추가.
-  // on_cast 시 payload.value (raw ability damage) 의 trueDamageConversion% 만큼 true damage.
+  // on_cast payload.rawValue (resistance 적용 전 raw ability damage) 의 trueDamageConversion%
+  // 만큼 true damage 를 attackTarget 에 적용. raw 기반이라 mitigated 편차 없음.
   if (trueDamageConversion > 0) {
     descriptors.push({
       kind: 'trigger',
@@ -194,7 +195,7 @@ function buildSympatheticImplant(
       condition: isPsyOpsUnit,
       action: {
         kind: 'dealDamage',
-        amount: { mode: 'pctDealt', pct: trueDamageConversion },
+        amount: { mode: 'pctDealtRaw', pct: trueDamageConversion },
         type: 'true',
         target: 'attackTarget',
       },
