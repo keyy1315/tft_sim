@@ -464,9 +464,19 @@ function SimulatorContent() {
           )}
         </DragOverlay>
 
-        {/* 그레이브즈 무기고 — graves placed 시 floating button. 가장 강한 1명만 편집. */}
-        {(hasPlayerGraves || hasEnemyGraves) && (
-          <div className="fixed bottom-4 right-4 flex flex-col gap-2 z-40">
+        {/* 그레이브즈 무기고 — graves placed 시 floating button. 가장 강한 1명만 편집.
+            모바일: BottomSheet (peek 56px) 위로 띄우기 + sheet 확장 시 숨김 (자연스러운 UX).
+            desktop/tablet: 우하단 고정. */}
+        {(hasPlayerGraves || hasEnemyGraves) && (viewport !== 'mobile' || sheetState === 'peek') && (
+          <div
+            className="fixed right-4 flex flex-col gap-2"
+            style={{
+              bottom: viewport === 'mobile' ? '72px' : '16px',
+              // BottomSheet z-index (2147483646) 보다 살짝 낮게 → sheet 확장 시 자연스럽게 가려짐.
+              // peek 일 땐 sheet 가 56px 만 차지 → button (bottom 72px) 이 위로 떠서 정상 노출.
+              zIndex: 2147483645,
+            }}
+          >
             {hasPlayerGraves && (
               <button
                 type="button"
