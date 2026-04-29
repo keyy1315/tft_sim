@@ -69,4 +69,6 @@ export interface SimulatorLayoutProps {
   /** 모바일 BottomSheet 상태 — 뷰포트 간 lift up 으로 DnD 핸들러에서 접근 */
   sheetState: BottomSheetState;
   setSheetState: Dispatch<SetStateAction<BottomSheetState>>;
+  /** 그레이브즈 무기고 모달 open — SelectedUnitPanel 의 "편집" 버튼에서 호출. */
+  onEditGravesWeapons?: (team: 'player' | 'enemy') => void;
 }

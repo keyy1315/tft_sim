@@ -34,7 +34,7 @@ export default function SimulatorLayoutDesktop(props: SimulatorLayoutProps) {
     runSimulation, runMultiple, teamNames, poolFilters, logFilter, setLogFilter,
     showTeamCode, setShowTeamCode, hoverUnit, setHoverUnit,
     mappedPlayerForReplay, playerStargazerTiles, enemyStargazerTiles,
-    playerStargazerInfo, enemyStargazerInfo,
+    playerStargazerInfo, enemyStargazerInfo, onEditGravesWeapons,
   } = props;
   const { champions, items, traits, teamPlannerMapping } = data;
   const {
@@ -313,6 +313,7 @@ export default function SimulatorLayoutDesktop(props: SimulatorLayoutProps) {
                   onRemoveUnit={() => tm.handleRemoveUnit(tm.selectedUnit!.team, tm.selectedUnit!.index)}
                   onMfModeChange={(mode) => tm.handleMfModeChange(tm.selectedUnit!.team, tm.selectedUnit!.index, mode)}
                   onPermanentStackChange={(value) => tm.handlePermanentStackChange(tm.selectedUnit!.team, tm.selectedUnit!.index, value)}
+                  onEditGravesWeapons={onEditGravesWeapons ? () => onEditGravesWeapons(tm.selectedUnit!.team) : undefined}
                 />
               </div>
             )}
@@ -349,6 +350,7 @@ export default function SimulatorLayoutDesktop(props: SimulatorLayoutProps) {
                     onRemoveUnit={() => tm.handleRemoveUnit(tm.selectedUnit!.team, tm.selectedUnit!.index)}
                     onMfModeChange={(mode) => tm.handleMfModeChange(tm.selectedUnit!.team, tm.selectedUnit!.index, mode)}
                     onPermanentStackChange={(value) => tm.handlePermanentStackChange(tm.selectedUnit!.team, tm.selectedUnit!.index, value)}
+                  onEditGravesWeapons={onEditGravesWeapons ? () => onEditGravesWeapons(tm.selectedUnit!.team) : undefined}
                   />
                 </div>
               )}

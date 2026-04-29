@@ -443,7 +443,7 @@ function TabletSynergyContent({ tm, data }: SimulatorLayoutProps) {
 }
 
 function TabletUnitContent(props: SimulatorLayoutProps) {
-  const { tm, replay, data, hexBuffs, stageNumber, mappedPlayerForReplay } = props;
+  const { tm, replay, data, hexBuffs, stageNumber, mappedPlayerForReplay, onEditGravesWeapons } = props;
 
   if (replay.viewMode === 'setup') {
     if (!tm.selectedUnit || !tm.selectedPlaced) {
@@ -462,6 +462,7 @@ function TabletUnitContent(props: SimulatorLayoutProps) {
         onRemoveUnit={() => tm.handleRemoveUnit(tm.selectedUnit!.team, tm.selectedUnit!.index)}
         onMfModeChange={(m) => tm.handleMfModeChange(tm.selectedUnit!.team, tm.selectedUnit!.index, m)}
         onPermanentStackChange={(v) => tm.handlePermanentStackChange(tm.selectedUnit!.team, tm.selectedUnit!.index, v)}
+        onEditGravesWeapons={onEditGravesWeapons ? () => onEditGravesWeapons(tm.selectedUnit!.team) : undefined}
       />
     );
   }

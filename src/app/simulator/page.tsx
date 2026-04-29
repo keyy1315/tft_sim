@@ -373,6 +373,7 @@ function SimulatorContent() {
     mappedPlayerForReplay,
     sheetState,
     setSheetState,
+    onEditGravesWeapons: setGravesModalTeam,
   };
 
   return (
