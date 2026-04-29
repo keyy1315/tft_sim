@@ -160,6 +160,8 @@ function createCombatUnit(
     augmentExecuteThreshold: 0,
     augmentBurnPercent: 0,
     inventionTankDamageAmp: 0,
+    gragasCarryActive: false,
+    leonaCarryActive: false,
     attackCount: 0,
     castCount: 0,
     killCount: 0,
@@ -369,8 +371,35 @@ function applyHexBuffs(units: CombatUnit[], hexBuffs: HexBuff[]): void {
   }
 }
 
+/**
+ * 자폭 (TFT17_Augment_GragasCarry) ability 변환 config.
+ * 거대한 폭발: 적군 데미지 없음, 자기 자신만 데미지 + HP floor=1 (자기 스킬로 죽지 않음).
+ * damage 값은 그라가스 ability "Damage" 변수 그대로 (heal 제거).
+ */
+const GRAGAS_CARRY_ABILITY: AbilityConfig = {
+  pattern: 'aoe_circle',
+  radius: 0,
+  selfDamage: true,
+  selfDamageHpFloor: 1,
+};
+
+/**
+ * 방패 여전사 (TFT17_Augment_LeonaCarry) ability 변환 config.
+ * 적 가로질러 dash + line 관통 물리 피해 + 첫 적중 대상에만 기절 (CC).
+ */
+const LEONA_CARRY_ABILITY: AbilityConfig = {
+  pattern: 'line',
+  maxTargets: 4,
+  dash: 'to_target',
+  stun: 1.5,
+  firstHitOnlyStun: true,
+};
+
 /** 캐리 증강 포함 AbilityConfig 결정 */
 function getAbilityConfigForUnit(unit: CombatUnit, augmentApiNames: string[]): AbilityConfig {
+  // hero augment carry 변환 — applyHeroCarryTransforms 가 활성 unit 에 flag 설정.
+  if (unit.gragasCarryActive) return GRAGAS_CARRY_ABILITY;
+  if (unit.leonaCarryActive) return LEONA_CARRY_ABILITY;
   const carry = findCarryAugment(unit.champion.apiName, augmentApiNames);
   if (carry) return carry.abilityOverride;
   return CHAMPION_ABILITY_PATTERNS[unit.champion.apiName] ?? { pattern: 'single' };
@@ -978,6 +1007,66 @@ function applyMechaEffects(activeTraits: ActiveTrait[], units: CombatUnit[]): vo
   }
 }
 
+/**
+ * "가장 강한" unit 선정 — hero carry augment 의 단일 대상 선정 룰.
+ *
+ * 우선순위:
+ *   1. 성급 (starLevel) 최고
+ *   2. 동급 시 아이템 보유 unit 우선 (아이템 수가 많은 쪽)
+ *   3. 둘 다 아이템 없음 → 첫 번째 (시뮬 결정론)
+ */
+function findStrongestUnitByApi(units: CombatUnit[], apiName: string): CombatUnit | null {
+  const candidates = units.filter(u => u.champion.apiName === apiName);
+  if (candidates.length === 0) return null;
+  // 1. 성급 최고
+  const maxStar = Math.max(...candidates.map(u => u.starLevel));
+  const top = candidates.filter(u => u.starLevel === maxStar);
+  if (top.length === 1) return top[0];
+  // 2. 아이템 보유 우선 → 아이템 수 많은 순
+  const withItems = top.filter(u => u.items.length > 0);
+  if (withItems.length > 0) {
+    return withItems.sort((a, b) => b.items.length - a.items.length)[0];
+  }
+  // 3. tie-break: 첫 번째 (deterministic)
+  return top[0];
+}
+
+/**
+ * Hero carry augment 변환 — 자폭(GragasCarry) / 방패 여전사(LeonaCarry).
+ *
+ * 자폭 (TFT17_Augment_GragasCarry):
+ *   - 가장 강한 그라가스 → "주문력 전사" 변환 (role='APFighter').
+ *   - ability 가 거대한 폭발 (자기 자신 데미지, 다른 아군 X) 로 변환.
+ *   - 자폭 self-damage 로 hp 가 1 미만으로 떨어지지 않음 (HP floor=1).
+ *
+ * 방패 여전사 (TFT17_Augment_LeonaCarry):
+ *   - 가장 강한 레오나 → "공격력 전사" 변환 (role='ADFighter').
+ *   - ability 가 적 가로질러 dash + 첫 적중 대상 기절 (CC) 로 변환.
+ *
+ * 변환 결과 unit 만 gragasCarryActive / leonaCarryActive 가 true. 일반 그라가스/레오나
+ * (carry 미선정) 는 기존 ability 그대로.
+ */
+function applyHeroCarryTransforms(augmentApiNames: string[], units: CombatUnit[]): void {
+  const augSet = new Set(augmentApiNames);
+  // 사용자 명세 "주문력 전사" / "공격력 전사" 는 raw GameRole 표기.
+  // 시뮬 내부 UnitRole 은 단순화 ('Fighter' 단일) — 마나 획득/타게팅 룰 동일하게 처리됨.
+  // 차별화 (AP vs AD) 는 ability config (selfDamage/firstHitOnlyStun) 로 표현.
+  if (augSet.has('TFT17_Augment_GragasCarry')) {
+    const target = findStrongestUnitByApi(units, 'TFT17_Gragas');
+    if (target) {
+      target.gragasCarryActive = true;
+      target.role = 'Fighter';
+    }
+  }
+  if (augSet.has('TFT17_Augment_LeonaCarry')) {
+    const target = findStrongestUnitByApi(units, 'TFT17_Leona');
+    if (target) {
+      target.leonaCarryActive = true;
+      target.role = 'Fighter';
+    }
+  }
+}
+
 /** 전쟁기계 — BaseDR을 damageReduction에 적용 */
 function applyJuggernautDR(activeTraits: ActiveTrait[], units: CombatUnit[]): void {
   const jugg = activeTraits.find(t => t.trait.apiName === 'TFT16_Juggernaut' && t.activeEffect);
@@ -1379,6 +1468,8 @@ function spawnFreljordTurrets(
             augmentExecuteThreshold: 0,
             augmentBurnPercent: 0,
             inventionTankDamageAmp: 0,
+            gragasCarryActive: false,
+            leonaCarryActive: false,
             attackCount: 0,
             castCount: 0,
             killCount: 0,
@@ -1515,6 +1606,8 @@ function trySpawnGalio(
     augmentExecuteThreshold: 0,
     augmentBurnPercent: 0,
     inventionTankDamageAmp: 0,
+    gragasCarryActive: false,
+    leonaCarryActive: false,
     attackCount: 0,
     castCount: 0,
     killCount: 0,
@@ -2222,6 +2315,9 @@ export function simulateCombat(
   // stat.ts generic processing 에서 제외 (모든 아군 적용 회귀 방지).
   applyMechaEffects(playerActiveTraits, playerUnits);
   applyMechaEffects(enemyActiveTraits, enemies);
+  // hero augment carry 변환 — 자폭(그라가스) / 방패 여전사(레오나).
+  applyHeroCarryTransforms(playerAugApiNames, playerUnits);
+  applyHeroCarryTransforms(enemyAugApiNames, enemies);
   // 선봉대 보호막은 전투 시작 시점 (tick=0, time=0).
   applyVanguardEffects(playerActiveTraits, playerUnits, 0, 0, logs);
   applyVanguardEffects(enemyActiveTraits, enemies, 0, 0, logs);
@@ -2962,6 +3058,29 @@ export function simulateCombat(
             const { damage: rawAbilityDmg, type: dmgType } = getAbilityDamage(
               unit.champion, unit.starLevel, unit.stats.ap, 0, config.damageVar
             );
+
+            // 자폭 (GragasCarry) — 일반 ability target 흐름 skip + self 에 데미지 + HP floor.
+            // 사용자 명세: 그라가스 본인 데미지, 다른 아군 X, 자기 스킬로 죽지 않음 (HP >= 1).
+            if (config.selfDamage) {
+              const hpFloor = config.selfDamageHpFloor ?? 0;
+              const beforeHp = unit.currentHp;
+              const dmgApplied = Math.max(0, Math.min(rawAbilityDmg, beforeHp - hpFloor));
+              unit.currentHp = Math.max(hpFloor, beforeHp - rawAbilityDmg);
+              unit.totalDamageTaken += dmgApplied;
+              const selfLog: CombatLog = {
+                tick, time, type: 'ability',
+                sourceId: unit.id, targetId: unit.id,
+                value: Math.round(dmgApplied),
+                message: `${unit.champion.name}이(가) 자폭! 자기 자신에게 ${Math.round(dmgApplied)} 피해 (HP floor=${hpFloor})`,
+              };
+              logs.push(selfLog);
+              tickLogs.push(selfLog);
+              // on_cast 이벤트 emit — PsyOps 등 cast event subscriber 호환 (codex P2 회귀 가드).
+              // targetId 는 self (적군 X). value 는 실제 입은 self damage.
+              eventBus.emit('on_cast', { sourceId: unit.id, targetId: unit.id, value: dmgApplied, tick });
+              continue; // 일반 ability 흐름 skip — 적군/아군 데미지 없음
+            }
+
             // hitCount: single은 곱연산, AOE/multi는 총 피해를 타겟 수로 분배 (후술)
             const hitCountTotal = config.hitCount ? rawAbilityDmg * config.hitCount : rawAbilityDmg;
             const isSplitDamage = config.hitCount && config.pattern !== 'single';
@@ -3141,7 +3260,8 @@ export function simulateCombat(
             // === CC 기절 적용 ===
             if (config.stun && config.stun > 0) {
               const stunTicks = Math.round(config.stun * TICKS_PER_SECOND);
-              const stunLimit = config.stunTargets ?? abilityTargets.length;
+              // firstHitOnlyStun (방패 여전사 LeonaCarry) — line 첫 적중만 stun.
+              const stunLimit = config.firstHitOnlyStun ? 1 : (config.stunTargets ?? abilityTargets.length);
               let stunCount = 0;
               for (const t of abilityTargets) {
                 if (t.state === 'dead' || stunCount >= stunLimit) break;
@@ -3304,6 +3424,8 @@ export function simulateCombat(
               });
             }
           } else {
+            // firstHitOnlyStun (방패 여전사 LeonaCarry): OOR dash cast 에서도 첫 적중만 stun.
+            let oorStunApplied = false;
             for (const t of abilityTargets) {
               if (t.state === 'dead') continue;
               const resistance = dmgType === 'magic' ? t.stats.magicResist : t.stats.armor;
@@ -3338,10 +3460,13 @@ export function simulateCombat(
               }
 
               if (outOfRangeConfig.stun && outOfRangeConfig.stun > 0 && t.currentHp > 0) {
+                // firstHitOnlyStun → 이미 한 번 적용했으면 skip (LeonaCarry 첫 적중 only).
+                if (outOfRangeConfig.firstHitOnlyStun && oorStunApplied) continue;
                 const stunTicks = Math.round(outOfRangeConfig.stun * TICKS_PER_SECOND);
                 t.statusEffects.push({ type: 'stun', sourceId: unit.id, remainingTicks: stunTicks });
                 t.state = 'idle';
                 t.attackCooldown = 0;
+                oorStunApplied = true;
               }
             }
           }
