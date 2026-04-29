@@ -2673,7 +2673,12 @@ export function simulateCombat(
    * 별돌보미들에게 cashout buff (HP × 1+CashoutHP, AS × 1+CashoutAS) 일회 적용.
    * 게임-level 누적 (전 게임의 player 사망) 은 priorShieldDeaths 로 외부 입력.
    */
-  const SHIELD_NUM_DEATHS = 60; // Shield_NumDeaths spec value
+  // Shield_NumDeaths — raw trait variable 에서 동적 읽기 (drift 방지). 미정의 시 60 fallback.
+  // player / enemy 가 다른 별자리 활성 가능성 → 각 팀별 trait active 여부 체크 후 변수 추출.
+  const playerShieldTrait = playerActiveTraits.find(t => t.trait.apiName === 'TFT17_Stargazer_Shield' && t.activeEffect);
+  const enemyShieldTrait = enemyActiveTraits.find(t => t.trait.apiName === 'TFT17_Stargazer_Shield' && t.activeEffect);
+  const playerShieldNumDeaths = (playerShieldTrait?.activeEffect?.variables?.Shield_NumDeaths as number | undefined) ?? 60;
+  const enemyShieldNumDeaths = (enemyShieldTrait?.activeEffect?.variables?.Shield_NumDeaths as number | undefined) ?? 60;
   let playerShieldDeaths = options.priorPlayerShieldDeaths ?? 0;
   let enemyShieldDeaths = options.priorEnemyShieldDeaths ?? 0;
   let playerShieldCashoutDone = false;
@@ -2693,11 +2698,11 @@ export function simulateCombat(
     }
   };
   // priorShieldDeaths 만 으로 이미 threshold 도달했으면 전투 시작 시 즉시 적용.
-  if (playerShieldDeaths >= SHIELD_NUM_DEATHS) {
+  if (playerShieldDeaths >= playerShieldNumDeaths) {
     applyShieldCashout(playerUnits);
     playerShieldCashoutDone = true;
   }
-  if (enemyShieldDeaths >= SHIELD_NUM_DEATHS) {
+  if (enemyShieldDeaths >= enemyShieldNumDeaths) {
     applyShieldCashout(enemies);
     enemyShieldCashoutDone = true;
   }
@@ -2708,14 +2713,14 @@ export function simulateCombat(
     const deadEnemyUnit = enemies.find((u) => u.id === sourceId);
     if (deadPlayerUnit && !isAutoUnit(deadPlayerUnit.champion.apiName)) {
       playerShieldDeaths++;
-      if (!playerShieldCashoutDone && playerShieldDeaths >= SHIELD_NUM_DEATHS) {
+      if (!playerShieldCashoutDone && playerShieldDeaths >= playerShieldNumDeaths) {
         applyShieldCashout(playerUnits);
         playerShieldCashoutDone = true;
       }
     }
     if (deadEnemyUnit && !isAutoUnit(deadEnemyUnit.champion.apiName)) {
       enemyShieldDeaths++;
-      if (!enemyShieldCashoutDone && enemyShieldDeaths >= SHIELD_NUM_DEATHS) {
+      if (!enemyShieldCashoutDone && enemyShieldDeaths >= enemyShieldNumDeaths) {
         applyShieldCashout(enemies);
         enemyShieldCashoutDone = true;
       }
