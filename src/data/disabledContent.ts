@@ -32,9 +32,20 @@ export const DISABLED_AUGMENT_API_NAMES: ReadonlySet<string> = new Set([
  *     17.2 신상 신의 축복(MarketOffering). 사용자 disable 요청.
  *     "대기석 우측 N명이 라운드 시작마다 동일 단계 무작위 챔프로 변신" 메커니즘
  *     은 시뮬과 무관 (배치/메타 시스템).
+ *
+ * - PsyOps `_Radiant` 변종 6종 — 빌더 UI 에서 노출 차단.
+ *     17.2 게임 시스템: 사용자는 일반 5종 (`*Mod`) 만 장착. (4) 초능력 시너지 활성 +
+ *     초능력 unit 이 장착 시 시뮬이 자동 Radiant apiName 으로 swap (combatLoop
+ *     applyPsyOpsRadiantSwap). 빌더에서 사용자가 직접 Radiant 선택 불가.
  */
 export const DISABLED_ITEM_API_NAMES: ReadonlySet<string> = new Set([
   'TFT17_MarketOffering_PandorasSeat',
+  'TFT17_Item_PsyOps_DroneMod_Radiant',
+  'TFT17_Item_PsyOps_TargetlockMod_Radiant',
+  'TFT17_Item_PsyOps_SympatheticImplantMod_Radiant',
+  'TFT17_Item_PsyOps_ChemicalCapacitorMod_Radiant',
+  'TFT17_Item_PsyOps_GrenadeMod_Radiant',
+  'TFT17_Item_PsyOps_SemiconductorMod_Radiant',
 ]);
 
 export function isDisabledAugment(apiName: string): boolean {

@@ -49,6 +49,7 @@ function buildDroneUplink(
   ap: number,
   damageRepeatPct: number,
   radiantBonusPct = 0,
+  // 17.2: Radiant 변종은 base stats 도 강화 — AP 25→30, DR 0.20→0.25 (Radiant 만).
 ): [string, ItemEffectDescriptor[]] {
   const stackKey = `drone_window::${apiName}`;
   // Radiant: 초능력 유닛일 경우 추가 미니 드론 (SecondDroneDamageRepeat)
@@ -174,20 +175,37 @@ function buildSemiconductor(
  *  - radiant TrueDamageConversion=0.2 (스킬 피해의 20% 를 고정 피해로) 는
  *    ability 공식 수정이 필요해 Phase 5+ 에서 처리
  */
-function buildSympatheticImplant(apiName: string): [string, ItemEffectDescriptor[]] {
-  return [
-    apiName,
-    [
-      // base ManaRegen 2: 전투 내내 초당 +2 마나 재생
-      statPatch({ ap: 20, manaRegen: 2 }),
-      // ManaRegenOverTime 1: 5초마다 +1 추가 (이건 주기적 스파이크라 Timer 로 유지)
-      {
-        kind: 'timer',
-        intervalTicks: 150, // 5초 × 30 tick/s
-        action: { kind: 'modifyStat', stat: 'mana', delta: 1 },
-      },
-    ],
+function buildSympatheticImplant(
+  apiName: string,
+  manaRegen: number = 2,
+  trueDamageConversion: number = 0,
+): [string, ItemEffectDescriptor[]] {
+  const descriptors: ItemEffectDescriptor[] = [
+    // base ManaRegen: 전투 내내 초당 +N 마나 재생 (17.2: 일반 2, Radiant 4)
+    statPatch({ ap: 20, manaRegen }),
+    // ManaRegenOverTime 1: 5초마다 +1 추가 (이건 주기적 스파이크라 Timer 로 유지)
+    {
+      kind: 'timer',
+      intervalTicks: 150, // 5초 × 30 tick/s
+      action: { kind: 'modifyStat', stat: 'mana', delta: 1 },
+    },
   ];
+  // 17.2 Radiant: 초능력 유닛 ability 시전 시 스킬 피해의 N% 를 고정 피해로 추가.
+  // on_cast 시 payload.value (raw ability damage) 의 trueDamageConversion% 만큼 true damage.
+  if (trueDamageConversion > 0) {
+    descriptors.push({
+      kind: 'trigger',
+      event: 'on_cast',
+      condition: isPsyOpsUnit,
+      action: {
+        kind: 'dealDamage',
+        amount: { mode: 'pctDealt', pct: trueDamageConversion },
+        type: 'true',
+        target: 'attackTarget',
+      },
+    });
+  }
+  return [apiName, descriptors];
 }
 
 /**
@@ -275,9 +293,14 @@ function buildChemicalCapacitor(
  * Radiant HealPct 0.15 (초능력 사망 시 15% maxHP 회복) 은 별도 on_kill trigger
  * 필요 + 초능력 조건 처리 복잡 → Phase 5+ 로 이월.
  */
-function buildTargetlockOptic(apiName: string, radiantHealPct = 0): [string, ItemEffectDescriptor[]] {
+function buildTargetlockOptic(
+  apiName: string,
+  radiantHealPct = 0,
+  baseAd: number = 0.15,
+): [string, ItemEffectDescriptor[]] {
+  // 17.2: Radiant 는 base AD 0.15 → 0.25 강화.
   const descriptors: ItemEffectDescriptor[] = [
-    statPatch({ ad: 0.15, as: 35 }),
+    statPatch({ ad: baseAd, as: 35 }),
     {
       kind: 'trigger',
       event: 'on_hit',
@@ -346,26 +369,50 @@ function buildGrenadeMod(apiName: string, hp: number, healPct: number): [string,
   ];
 }
 
+/**
+ * PsyOps 아이템 정의 — 일반(4-tier) + Radiant 변종.
+ *
+ * 게임 시스템 (17.2):
+ *   - (2) 초능력 시너지: 5종 PsyOps 아이템 중 1개 자동 획득. 비-초능력 unit 도 장착 가능.
+ *     이 단계는 일반 4-tier 효과만 적용.
+ *   - (4) 초능력 시너지: 추가 1개 PsyOps 아이템 획득 (총 2개).
+ *     초능력 unit 이 장착 시 Radiant 변종 효과 (강화 base + 추가 효과) 자동 발동.
+ *     비-초능력 unit 이 장착 시 일반 4-tier 효과만 적용.
+ *
+ * 시뮬 구현:
+ *   - 사용자는 빌더에서 일반 5종 (`*Mod`) 만 노출 — Radiant entry 는 disabledContent 로 숨김.
+ *   - 시뮬 시작 시 자동 swap: PsyOps (4) tier 활성 + 초능력 unit 이 일반 PsyOps 아이템
+ *     장착 → 일반 apiName 을 `_Radiant` 로 swap (createCombatUnit 직전).
+ *
+ * 17.2 raw 데이터 매핑:
+ *   - DroneMod (일반): AP 25, DamageRepeat 0.20
+ *   - DroneMod_Radiant: AP 30, DamageRepeat 0.25, SecondDroneDamageRepeat 0.20
+ *   - GrenadeMod (일반): Health 250
+ *   - GrenadeMod_Radiant: Health 550 (+ IncreasedHealing 0.22 추가, primitive 미지원)
+ *   - TargetlockMod (일반): AD 0.15
+ *   - TargetlockMod_Radiant: AD 0.25, HealPct 0.20 (kill 시 maxHp 회복)
+ *   - SympatheticImplantMod (일반): ManaRegen 2
+ *   - SympatheticImplantMod_Radiant: ManaRegen 4, TrueDamageConversion 0.25
+ *   - ChemicalCapacitorMod (일반): base 동일
+ *   - ChemicalCapacitorMod_Radiant: + CleaveDamage 75 / NumAttacks 3
+ */
 export const PSYOPS_ITEMS: Record<string, ItemEffectDescriptor[]> = Object.fromEntries([
-  // 드론 업링크 (Phase 3) / Radiant 초능력 보너스 (Phase 4 Part 2-D)
+  // 드론 업링크 — 17.2 일반 (AP 25, DR 0.20) / Radiant (AP 30, DR 0.25, SecondDrone 0.20)
   buildDroneUplink('TFT17_Item_PsyOps_DroneMod', 25, 0.20),
-  buildDroneUplink('TFT17_Item_PsyOps_DroneMod_Radiant', 25, 0.20, 0.20),
-  // 반도체 (Phase 4 Part 1) — base: HP 200, receive 8, dmg 7%
+  buildDroneUplink('TFT17_Item_PsyOps_DroneMod_Radiant', 30, 0.25, 0.20),
+  // 반도체 — Phase 4 Part 1 (set 17 PsyOps 4-tier 5종에 미포함, legacy 호환 유지)
   buildSemiconductor('TFT17_Item_PsyOps_SemiconductorMod', 200, 4, 8, 0.07),
-  // 반도체 찬란 — HP 300, receive 12, dmg 7.5%
   buildSemiconductor('TFT17_Item_PsyOps_SemiconductorMod_Radiant', 300, 4, 12, 0.075),
-  // 공감 임플란트 (Phase 4 Part 1) — base + radiant (TrueDamageConversion 제외)
-  buildSympatheticImplant('TFT17_Item_PsyOps_SympatheticImplantMod'),
-  buildSympatheticImplant('TFT17_Item_PsyOps_SympatheticImplantMod_Radiant'),
-  // 악성코드 매트릭스 (Phase 4 Part 2-A) — ResistReduce 2/초당 ICD 0.75s
+  // 공감 임플란트 — 17.2 일반 (ManaRegen 2) / Radiant (ManaRegen 4 + TrueDamage 0.25)
+  buildSympatheticImplant('TFT17_Item_PsyOps_SympatheticImplantMod', 2),
+  buildSympatheticImplant('TFT17_Item_PsyOps_SympatheticImplantMod_Radiant', 4, 0.25),
+  // 악성코드 매트릭스 — 17.2 일반 (base) / Radiant (+ CleaveDamage 75, NumAttacks 3)
   buildChemicalCapacitor('TFT17_Item_PsyOps_ChemicalCapacitorMod', 2),
-  // Radiant: 초능력 유닛일 때 공격 3회마다 주변 적 cleave 75 damage
   buildChemicalCapacitor('TFT17_Item_PsyOps_ChemicalCapacitorMod_Radiant', 2, 75, 3),
-  // 표적 고정 광학 장치 (Phase 4 Part 2-B) — per-target first-hit +150% AD
+  // 표적 고정 광학 — 17.2 일반 (AD 0.15) / Radiant (AD 0.25 + HealPct 0.20)
   buildTargetlockOptic('TFT17_Item_PsyOps_TargetlockMod'),
-  // Radiant: 초능력 유닛의 on_kill 시 최대체력 15% 회복
-  buildTargetlockOptic('TFT17_Item_PsyOps_TargetlockMod_Radiant', 0.15),
-  // 유기물 보존기 (Phase 4 Part 2-C) — 8초마다 잃은체력 18% 회복 (grenade entity 는 미구현)
+  buildTargetlockOptic('TFT17_Item_PsyOps_TargetlockMod_Radiant', 0.20, 0.25),
+  // 유기물 보존기 — 17.2 일반 (Health 250) / Radiant (Health 550, IncreasedHealing 미구현)
   buildGrenadeMod('TFT17_Item_PsyOps_GrenadeMod', 250, 0.18),
-  buildGrenadeMod('TFT17_Item_PsyOps_GrenadeMod_Radiant', 400, 0.18),
+  buildGrenadeMod('TFT17_Item_PsyOps_GrenadeMod_Radiant', 550, 0.18),
 ]);
