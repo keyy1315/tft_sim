@@ -133,4 +133,27 @@ describe('G3 — DarkStar (6) tier Supermassive', () => {
 
   // PercentHealth=0.30 raw 변수는 trait desc 에 미사용 → maxHp 효과 미적용
   // (codex P2 후속 검토 결과). desc 명시 효과만 시뮬에 반영.
+
+  it('Supermassive unit 의 ExecuteHPPercent 도 +85% 강화 (codex P1 회귀 가드)', () => {
+    // desc: "암흑의 별 효과 +85% 증가" → ADAP + ExecuteHPPercent 둘 다 +85%.
+    // base 0.08 × 1.85 ≈ 0.148. 일반 darkStar unit 은 그대로 0.08.
+    const team: PlacedChampion[] = [
+      placed(apKaisa, 0, 0),
+      placed(apKarma, 1, 0),
+      placed(apJhin, 2, 0),
+      placed(apChogath, 3, 0),
+      placed(apLissandra, 4, 0),
+      placed(apMordekaiser, 5, 0), // strongest (hp 950)
+    ];
+    const enemy = [placed(dummyEnemy, 6, 3)];
+    const result = simulateCombat(team, enemy, {
+      seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
+    });
+    const mord = result.playerUnits.find(u => u.champion.apiName === 'TFT17_Mordekaiser')!;
+    const karma = result.playerUnits.find(u => u.champion.apiName === 'TFT17_Karma')!;
+    // Supermassive (Mord): 0.08 × 1.85 ≈ 0.148
+    expect(mord.darkStarExecuteThreshold).toBeCloseTo(0.08 * 1.85, 3);
+    // 일반 (Karma): 0.08
+    expect(karma.darkStarExecuteThreshold).toBeCloseTo(0.08, 3);
+  });
 });

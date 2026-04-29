@@ -972,16 +972,21 @@ function applyDarkStarEffects(activeTraits: ActiveTrait[], units: CombatUnit[]):
 
   // (6)+ tier (style 5): 가장 강한 darkStar unit Supermassive — desc 명시:
   //   "암흑의 별 효과 SupermassivePercentBonus(0.85) 만큼 증가 + 소형 블랙홀 2개 생성".
-  //   ADAP 추가분만 적용 (이미 ADAP 45 적용 stats 위에 0.85배 추가).
+  //   "암흑의 별 효과" = ADAP + ExecuteHPPercent 둘 다 포함 → 두 효과 모두 +85% 강화.
   //   소형 블랙홀 spawn 은 useTeamManagement.syncDarkStarBlackholesInTeam (UI 단계).
   if (trait.style >= 5 && supermassiveBonus > 0) {
     const strongest = findStrongestDarkStarUnit(darkStarUnits);
     if (strongest) {
       strongest.darkStarSupermassive = true;
+      // ADAP 추가 강화: damage += baseAd × (adap/100) × bonus, ap += adap × bonus
       const baseDamageBeforeAdap = strongest.stats.damage / (1 + adap / 100);
       const extraDamage = baseDamageBeforeAdap * (adap / 100) * supermassiveBonus;
       strongest.stats.damage = Math.round(strongest.stats.damage + extraDamage);
       strongest.stats.ap = (strongest.stats.ap ?? 0) + adap * supermassiveBonus;
+      // ExecuteHPPercent 도 +85% 강화 — base 0.08 × 1.85 ≈ 0.148 (codex P1 회귀 가드).
+      if (executePct > 0) {
+        strongest.darkStarExecuteThreshold = executePct * (1 + supermassiveBonus);
+      }
     }
   }
 }

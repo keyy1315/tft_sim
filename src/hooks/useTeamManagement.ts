@@ -337,10 +337,12 @@ function syncTeam(team: PlacedChampion[], traits: RawTrait[]): PlacedChampion[] 
   const withShen = syncShenArtifactInTeam(withVoyager);
 
   // 4단계: 암흑의 별 (6) tier 활성 시 소형 블랙홀 2개 자동 spawn.
-  // resolveTraits 결과에서 TFT17_DarkStar 의 active style 사용 (5 = (6) tier+).
-  const darkStarStyle = resolvedTraits === null
-    ? 0
-    : (resolvedTraits.find(t => t.trait.apiName === 'TFT17_DarkStar')?.style ?? 0);
+  // ⚠️ traits 카탈로그 비어있는 동안 (비동기 로드 중) sync 호출 시 darkStarStyle=0
+  // 으로 계산되어 기존 블랙홀이 일시 despawn → 재로드 시 respawn 시 위치 손실.
+  // Voyager 와 동일 패턴 — traits 도착까지 sync skip, 다음 사용자 편집 또는
+  // useMemo 재계산 시 자연 정합화 (codex P2 회귀 가드).
+  if (resolvedTraits === null) return withShen;
+  const darkStarStyle = resolvedTraits.find(t => t.trait.apiName === 'TFT17_DarkStar')?.style ?? 0;
   return syncDarkStarBlackholesInTeam(withShen, darkStarStyle);
 }
 
