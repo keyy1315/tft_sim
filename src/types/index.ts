@@ -509,6 +509,24 @@ export interface CombatUnit {
    */
   darkStarSupermassive: boolean;
   /**
+   * 최신상 (TFT17_GravesTrait) Frame 변환 — 가장 강한 그레이브즈 1명만 양수.
+   * 'CloseQuarters' = 맹공 프레임 (공격력 전사: 사거리-2, +HP/AD/흡혈)
+   * 'SharpshooterModule' = 위력 프레임 (정밀 + 스킬 피해 +5%)
+   * 'DoubleTap' = 사수 프레임 (25% 확률 2회 공격)
+   * null = Frame 미적용 (Graves 가 일반 챔프로 작동).
+   */
+  gravesFrame: 'CloseQuarters' | 'SharpshooterModule' | 'DoubleTap' | null;
+  /**
+   * Frame DoubleTap 활성 시 추가 공격 발동 확률 (0~1). 0 = 미활성.
+   * eventBus 'on_attack' hook 에서 rng.next() < chance 시 추가 hit.
+   */
+  gravesDoubleAttackChance: number;
+  /**
+   * Frame SharpshooterModule 활성 시 ability damage 추가 % (0~1, 0.05 = +5%).
+   * cast 처리 시 abilityDamage *= (1 + bonus). 0 = 미활성.
+   */
+  gravesAbilityDamageBonus: number;
+  /**
    * 자폭(TFT17_Augment_GragasCarry) 활성 + 가장 강한 그라가스로 선정된 unit 만 true.
    * 그라가스 ability 가 거대한 폭발 (자기 자신 데미지, 다른 아군 X) 로 변환되며,
    * 자폭 데미지로 hp 가 1 미만으로 떨어지지 않음 (HP floor=1).

@@ -116,6 +116,16 @@ export interface SimulateOptions {
   priorPlayerShieldDeaths?: number;
   /** B 팀(enemy) 누적 사망 카운트. 의미는 player 와 동일. */
   priorEnemyShieldDeaths?: number;
+  /**
+   * 최신상 (TFT17_GravesTrait) Frame 선택 — A 팀(player) 의 가장 강한 그레이브즈 1명에 적용.
+   * 'CloseQuarters' (맹공): 사거리 -2, 공격력 전사 변환, +HP 250, +AD 25%, +흡혈 10%
+   * 'SharpshooterModule' (위력): 정밀 (spellCanCrit) + 스킬 피해 5% 증가
+   * 'DoubleTap' (사수): 25% 확률 2회 공격
+   * 미지정 시 Frame 미적용. 하위 업그레이드 (Buckshot 등) 는 후속 PR.
+   */
+  playerGravesFrame?: 'CloseQuarters' | 'SharpshooterModule' | 'DoubleTap';
+  /** B 팀(enemy) 그레이브즈 Frame. 의미는 player 와 동일. */
+  enemyGravesFrame?: 'CloseQuarters' | 'SharpshooterModule' | 'DoubleTap';
 }
 
 function createCombatUnit(
@@ -163,6 +173,9 @@ function createCombatUnit(
     healAmp: itemFx.healAmp ?? 0,
     darkStarExecuteThreshold: 0,
     darkStarSupermassive: false,
+    gravesFrame: null,
+    gravesDoubleAttackChance: 0,
+    gravesAbilityDamageBonus: 0,
     gragasCarryActive: false,
     leonaCarryActive: false,
     attackCount: 0,
@@ -1162,6 +1175,52 @@ function applyHeroCarryTransforms(augmentApiNames: string[], units: CombatUnit[]
   }
 }
 
+/**
+ * 최신상 (TFT17_GravesTrait) Frame 변환 — 가장 강한 그레이브즈 1명에 적용.
+ *
+ * raw items (TFT17_GravesTrait_Offense_*):
+ *   CloseQuarters (맹공): { Range: -2, BaseHealth: 250, Omnivamp: 0.10, AttackDamage: 0.25 }
+ *     → 사거리 -2, 공격력 전사 변환, +HP 250, +AD 25%, +흡혈 10%
+ *   SharpshooterModule (위력): { AbilityDamagePercentIncrease: 0.05 }
+ *     → 정밀 (spellCanCrit) + 스킬 피해 +5%
+ *   DoubleTap (사수): { DoubleAttackChance: 0.25 }
+ *     → 25% 확률 2회 공격
+ *
+ * 본 PR (Phase 1) — Frame 3종 stat 적용 + DoubleTap chance flag + Sharp 정밀 / ability damage.
+ * 하위 업그레이드 (Buckshot, Heartseeker, GravBooster 등 30+) 는 후속 PR.
+ */
+function applyGravesFrameEffects(
+  units: CombatUnit[],
+  frame: 'CloseQuarters' | 'SharpshooterModule' | 'DoubleTap' | undefined,
+): void {
+  if (!frame) return;
+  const target = findStrongestUnitByApi(units, 'TFT17_Graves');
+  if (!target) return;
+  target.gravesFrame = frame;
+  if (frame === 'CloseQuarters') {
+    // 맹공: Range -2 (최소 1), +HP 250, +AD 25%, +흡혈 10%, role='Fighter' (공격력 전사 단순화).
+    target.stats.range = Math.max(1, target.stats.range - 2);
+    target.maxHp += 250;
+    target.currentHp += 250;
+    const baseAd = target.champion.stats.damage * (STAR_SCALING[target.starLevel] || 1);
+    target.stats.damage += baseAd * 0.25;
+    target.omnivamp += 0.10;
+    target.role = 'Fighter';
+    return;
+  }
+  if (frame === 'SharpshooterModule') {
+    // 위력: 정밀 (spellCanCrit) + 스킬 피해 +5%.
+    target.spellCanCrit = true;
+    target.gravesAbilityDamageBonus = 0.05;
+    return;
+  }
+  if (frame === 'DoubleTap') {
+    // 사수: 25% 확률 추가 공격 — eventBus on_attack hook 에서 처리.
+    target.gravesDoubleAttackChance = 0.25;
+    return;
+  }
+}
+
 /** 전쟁기계 — BaseDR을 damageReduction에 적용 */
 function applyJuggernautDR(activeTraits: ActiveTrait[], units: CombatUnit[]): void {
   const jugg = activeTraits.find(t => t.trait.apiName === 'TFT16_Juggernaut' && t.activeEffect);
@@ -1579,6 +1638,9 @@ function spawnFreljordTurrets(
             healAmp: 0,
             darkStarExecuteThreshold: 0,
             darkStarSupermassive: false,
+            gravesFrame: null,
+            gravesDoubleAttackChance: 0,
+            gravesAbilityDamageBonus: 0,
             gragasCarryActive: false,
             leonaCarryActive: false,
             attackCount: 0,
@@ -1722,6 +1784,9 @@ function trySpawnGalio(
     healAmp: 0,
     darkStarExecuteThreshold: 0,
     darkStarSupermassive: false,
+    gravesFrame: null,
+    gravesDoubleAttackChance: 0,
+    gravesAbilityDamageBonus: 0,
     gragasCarryActive: false,
     leonaCarryActive: false,
     attackCount: 0,
@@ -2443,6 +2508,9 @@ export function simulateCombat(
   // hero augment carry 변환 — 자폭(그라가스) / 방패 여전사(레오나).
   applyHeroCarryTransforms(playerAugApiNames, playerUnits);
   applyHeroCarryTransforms(enemyAugApiNames, enemies);
+  // 최신상 (GravesTrait) Frame — 가장 강한 그레이브즈 1명에 stat/메커닉 적용.
+  applyGravesFrameEffects(playerUnits, options.playerGravesFrame);
+  applyGravesFrameEffects(enemies, options.enemyGravesFrame);
   // 선봉대 보호막은 전투 시작 시점 (tick=0, time=0).
   applyVanguardEffects(playerActiveTraits, playerUnits, 0, 0, logs);
   applyVanguardEffects(enemyActiveTraits, enemies, 0, 0, logs);
@@ -3086,6 +3154,58 @@ export function simulateCombat(
             eventBus.emit('on_heal', { sourceId: unit.id, value: heal, tick });
           }
 
+          // 최신상 (GravesTrait) DoubleTap Frame — 25% 확률 추가 1회 공격.
+          // codex P1 가드: rawDamage 부터 mitigation pipeline 다시 거쳐야 (shielded target
+          // 에 첫 hit post-shield 값 재사용 시 under-damage 발생).
+          // codex P2 가드: 풀 attack 이벤트 emit (on_attack/on_damage/on_hit/on_hit_taken)
+          // — item runtime counter 등 attack-count 기반 시스템 정확 작동.
+          if (unit.gravesDoubleAttackChance > 0 && target.state !== 'dead'
+              && rng.next() < unit.gravesDoubleAttackChance) {
+            // 새 hit — rawDamage 재사용 (동일 source stats 기반) + mitigation 재계산.
+            // 단, crit 은 첫 hit 와 동일하게 취급 (rawDamage 에 critMult 이미 포함).
+            let extraFinal = applyResistance(rawDamage, target.stats.armor, unit.stats.armorPen);
+            if (target.damageReduction > 0) extraFinal *= (1 - target.damageReduction);
+            if ((target.role === 'Fighter' || target.role === 'Assassin') && target.target !== unit.id) {
+              extraFinal *= (1 - NON_TARGET_DAMAGE_REDUCTION);
+            }
+            extraFinal = applyShield(target, extraFinal, eventBus, tick);
+            if (target.statusEffects.some(e => e.type === 'invulnerable')) extraFinal = 0;
+
+            target.currentHp -= extraFinal;
+            target.totalDamageTaken += extraFinal;
+            unit.totalDamageDealt += extraFinal;
+            unit.attackCount++;
+
+            // 풀 attack 이벤트 emit — 일반 평타와 동일 path.
+            eventBus.emit('on_attack', { sourceId: unit.id, targetId: target.id, value: extraFinal, tick });
+            eventBus.emit('on_hit', { sourceId: unit.id, targetId: target.id, value: extraFinal, damageType: 'physical', tick });
+            eventBus.emit('on_damage', { sourceId: target.id, targetId: unit.id, value: extraFinal, damageType: 'physical', tick });
+            eventBus.emit('on_hit_taken', { sourceId: target.id, targetId: unit.id, value: extraFinal, damageType: 'physical', tick });
+
+            if (target.currentHp <= 0) {
+              target.currentHp = 0;
+              target.state = 'dead';
+              unit.killCount++;
+              if (unit.team === 'player') playerArbiterState.enemyDeathCount++;
+              else enemyArbiterState.enemyDeathCount++;
+              const dlog: CombatLog = { tick, time, type: 'death', sourceId: target.id, message: `${target.champion.name} 사망! (사수 프레임 추가 공격)` };
+              logs.push(dlog); tickLogs.push(dlog);
+              eventBus.emit('on_kill', { sourceId: unit.id, targetId: target.id, tick });
+              eventBus.emit('on_death', { sourceId: target.id, targetId: unit.id, tick });
+            }
+
+            // 별돌보미 뱀(Serpent) — DoubleTap 추가 hit 도 중독 적용.
+            triggerSerpentPoison(unit, target, extraFinal);
+
+            // omnivamp 도 추가 hit 에 적용 (attack 1회 와 동일).
+            if (unit.omnivamp > 0 && extraFinal > 0) {
+              const grievousReduction = target.augmentGrievousWounds > 0 ? (1 - target.augmentGrievousWounds) : 1;
+              const heal = extraFinal * unit.omnivamp * grievousReduction;
+              unit.currentHp = Math.min(unit.maxHp, unit.currentHp + heal);
+              eventBus.emit('on_heal', { sourceId: unit.id, value: heal, tick });
+            }
+          }
+
           // Augment burn: apply burn DoT on auto-attack
           if (unit.augmentBurnPercent > 0) {
             const burnDmg = target.maxHp * unit.augmentBurnPercent;
@@ -3217,9 +3337,11 @@ export function simulateCombat(
             // 스킬 시전 후 cast time — 이 시간 동안 공격 불가
             unit.attackCooldown = config.pattern === 'self_buff' ? SELF_BUFF_CAST_TICKS : CAST_TICKS;
 
-            const { damage: rawAbilityDmg, type: dmgType } = getAbilityDamage(
+            const { damage: rawAbilityDmgBase, type: dmgType } = getAbilityDamage(
               unit.champion, unit.starLevel, unit.stats.ap, 0, config.damageVar
             );
+            // SharpshooterModule (위력 프레임) — 스킬 피해 +5% 가산.
+            const rawAbilityDmg = rawAbilityDmgBase * (1 + (unit.gravesAbilityDamageBonus ?? 0));
 
             // 자폭 (GragasCarry) — 일반 ability target 흐름 skip + self 에 데미지 + HP floor.
             // 사용자 명세: 그라가스 본인 데미지, 다른 아군 X, 자기 스킬로 죽지 않음 (HP >= 1).
