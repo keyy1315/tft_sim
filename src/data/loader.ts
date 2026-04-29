@@ -98,12 +98,11 @@ export async function loadAugments(setId: SetId = DEFAULT_SET): Promise<RawAugme
   const res = await fetch(dataPath(setId, `tft_${setId}_augments.json`));
   if (!res.ok) { augmentsCache.set(setId, []); return []; }
   const data: RawAugmentsData = await res.json();
-  // 두 단계 필터:
-  //   1) augment.disable=true 는 시즌 미사용 → 제외 (raw data 의 1차 분류)
-  //   2) DISABLED_AUGMENT_API_NAMES — apiName 강제 차단 (data 갱신 후에도 보호)
-  const filtered = data.augments.filter(a =>
-    a.disable !== true && !isDisabledAugment(a.apiName)
-  );
+  // DISABLED_AUGMENT_API_NAMES — apiName 강제 차단 (data 갱신 후에도 보호).
+  // disable 필드는 selector UI 의 "미사용 포함" 체크박스가 직접 관리 →
+  // loader 단계 사전 필터 X (showInactive=true 시 모두 보여야 함).
+  // 서버 검증 (loadServerCatalogs) 는 별도로 disable=true 도 차단.
+  const filtered = data.augments.filter(a => !isDisabledAugment(a.apiName));
   augmentsCache.set(setId, filtered);
   return filtered;
 }

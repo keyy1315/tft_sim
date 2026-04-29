@@ -51,12 +51,15 @@ const APINAME_TIER_OVERRIDES: Readonly<Record<string, AugmentTier>> = {
   'TFT17_Augment_AurelionSolGodAugment_LargeQuest': 'boon',
 
   // 챔피언 Carry 증강 중 실제는 실버/골드인 것들 (기본 Carry 휴리스틱 보정)
-  'TFT17_Augment_NasusCarry': 'silver',   // 꽁!
-  'TFT17_Augment_AatroxCarry': 'silver',  // 별빛 연계
-  'TFT17_Augment_PoppyCarry': 'silver',   // 정령단 속도
-  'TFT17_Augment_IvernMinionCarry': 'gold', // 빅뱅
-  'TFT17_Augment_JaxCarry': 'gold',       // 저 별을 향해
-  'TFT17_Augment_PykeCarry': 'gold',      // 청부 살인마
+  'TFT17_Augment_NasusCarry': 'silver',          // 꽁!
+  'TFT17_Augment_AatroxCarry': 'silver',         // 별빛 연계
+  'TFT17_Augment_PoppyCarry': 'silver',          // 정령단 속도
+  'TFT17_Augment_LeonaCarry': 'silver',          // 방패 여전사 (lolchess tier=1)
+  'TFT17_Augment_IvernMinionCarry': 'gold',      // 빅뱅
+  'TFT17_Augment_JaxCarry': 'gold',              // 저 별을 향해
+  'TFT17_Augment_PykeCarry': 'gold',             // 청부 살인마
+  'TFT17_Augment_GragasCarry': 'gold',           // 자폭 (lolchess tier=2)
+  'TFT17_Augment_MordekaiserCarry': 'gold',      // 뜨거운 죽음 (lolchess tier=2)
 
   // GodAugment suffix지만 실제는 일반 티어 (신 변형 중 일반 증강)
   'TFT17_Augment_EvelynnGodAugment_BloodPrice': 'gold',   // 피의 대가

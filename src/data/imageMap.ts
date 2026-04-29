@@ -155,6 +155,11 @@ export function getAugmentImage(icon: string): string {
   // Convert ASSETS/Maps/TFT/Icons/Augments/Hexcore/Xxx.TFT_Set16.tex
   // → https://raw.communitydragon.org/latest/game/assets/maps/tft/icons/augments/hexcore/xxx.tft_set16.png
   const lower = icon.toLowerCase().replace('.tex', '.png');
+  // 17.2 PostLaunchAugments (예: LeonaHero_I) 는 latest 브랜치에 아직 미반영.
+  // PBE branch 에 있으므로 해당 패턴 한정으로 PBE URL 사용.
+  if (lower.includes('postlaunchaugments')) {
+    return `https://raw.communitydragon.org/pbe/game/${lower}`;
+  }
   return `https://raw.communitydragon.org/latest/game/${lower}`;
 }
 
