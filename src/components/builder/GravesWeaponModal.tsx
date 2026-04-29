@@ -70,11 +70,13 @@ export default function GravesWeaponModal({
 
   return (
     <div
-      className="fixed inset-0 bg-black/70 flex items-center justify-center z-50"
+      className="fixed inset-0 bg-black/70 flex items-center justify-center"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-label="그레이브즈 무기고 선택"
+      // 모바일 BottomSheet (z-index 2147483646) 위로 띄우기 위해 명시적으로 더 높게.
+      style={{ zIndex: 2147483647 }}
     >
       <div
         className="bg-gray-900 border border-gray-700 rounded-lg shadow-2xl p-5 max-w-5xl w-[90vw] max-h-[90vh] overflow-auto"

@@ -7,9 +7,10 @@ import StarSelector from './StarSelector';
 import ItemIcon from './ItemIcon';
 import ItemGrid from './ItemGrid';
 import Modal from '@/components/ui/Modal';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { getItemCategory } from '@/lib/simulator/systems/item';
 import { resolveDescription } from '@/lib/utils/text';
+import { FACTORY_NEW_TREE, suffixToApiName } from '@/data/factoryNewTree';
 
 interface SelectedUnitPanelProps {
   placed: PlacedChampion;
@@ -23,6 +24,14 @@ interface SelectedUnitPanelProps {
   onRemoveUnit: () => void;
   onMfModeChange?: (mode: MfMode) => void;
   onPermanentStackChange?: (value: number) => void;
+  /** 그레이브즈일 때만 활성화 — 무기고 편집 모달 open 콜백. */
+  onEditGravesWeapons?: () => void;
+  /**
+   * 팀 단위로 보유한 무기고 picks (codex PR #50 P1 fix).
+   * 같은 팀의 모든 그레이브즈 unit 선택 시 동일 picks 표시 — 시뮬은 가장 강한 1명에게만 적용하지만,
+   * 사용자 mental model 은 "팀의 무기고". 그레이브즈가 아니면 무시.
+   */
+  teamGravesPicks?: string[];
 }
 
 export default function SelectedUnitPanel({
@@ -37,12 +46,31 @@ export default function SelectedUnitPanel({
   onRemoveUnit,
   onMfModeChange,
   onPermanentStackChange,
+  onEditGravesWeapons,
+  teamGravesPicks,
 }: SelectedUnitPanelProps) {
   const [showItemPicker, setShowItemPicker] = useState(false);
   const teamColor = team === 'player' ? 'border-blue-600/30' : 'border-red-600/30';
   const teamLabel = team === 'player' ? 'A' : 'B';
 
   const artifactCount = placed.items.filter(i => getItemCategory(i) === 'artifact').length;
+
+  // 그레이브즈 무기고 — team scope picks (P1 fix). suffix → RawItem lookup.
+  const isGraves = placed.champion.apiName === 'TFT17_Graves';
+  const gravesPicks = teamGravesPicks ?? [];
+  const gravesPickItems = useMemo(() => {
+    if (!isGraves || gravesPicks.length === 0) return [];
+    const itemMap = new Map(allItems.map(i => [i.apiName, i]));
+    return gravesPicks
+      .map(suffix => ({
+        suffix,
+        item: itemMap.get(suffixToApiName(suffix)) ?? null,
+        node: FACTORY_NEW_TREE[suffix] ?? null,
+      }))
+      .filter((entry): entry is { suffix: string; item: RawItem; node: typeof FACTORY_NEW_TREE[string] } =>
+        entry.item !== null && entry.node !== null,
+      );
+  }, [isGraves, gravesPicks, allItems]);
 
   return (
     <div className={`bg-[#111827] rounded-xl border ${teamColor} p-3 space-y-3`}>
@@ -153,6 +181,34 @@ export default function SelectedUnitPanel({
           )}
         </div>
       </div>
+
+      {/* 그레이브즈 최신상 무기고 — placed 가 그레이브즈일 때만 표시. ItemIcon 자동 hover tooltip. */}
+      {isGraves && (
+        <div>
+          <div className="flex items-center justify-between mb-1.5">
+            <div className="text-xs text-gray-400">
+              최신상 무기고 ({gravesPicks.length}개)
+            </div>
+            {onEditGravesWeapons && (
+              <button
+                onClick={onEditGravesWeapons}
+                className="px-2 py-0.5 text-[10px] bg-blue-900/40 hover:bg-blue-900/60 text-blue-200 border border-blue-700/40 rounded"
+              >
+                {gravesPicks.length === 0 ? '+ 무기 선택' : '편집'}
+              </button>
+            )}
+          </div>
+          {gravesPickItems.length > 0 ? (
+            <div className="flex flex-wrap gap-1.5">
+              {gravesPickItems.map(({ suffix, item }, idx) => (
+                <ItemIcon key={`graves-${suffix}-${idx}`} item={item} size={32} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-[10px] text-gray-500 italic">선택된 무기 없음</div>
+          )}
+        </div>
+      )}
 
       {placed.champion.traits.includes('공허') && (
         <div>

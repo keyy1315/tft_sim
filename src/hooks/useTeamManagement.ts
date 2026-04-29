@@ -416,6 +416,14 @@ export function useTeamManagement({ traits }: UseTeamManagementArgs) {
   const [playerStargazerConstellation, setPlayerStargazerConstellation] = useState<StargazerConstellationId | null>(null);
   const [enemyStargazerConstellation, setEnemyStargazerConstellation] = useState<StargazerConstellationId | null>(null);
 
+  // 그레이브즈 최신상 무기고 — team scope persistence (codex P1 fix).
+  // 게임 룰: "가장 강한 그레이브즈 1명" 에 적용되지만 picks 자체는 team 보유.
+  // unit-scope 저장 시 가장 강한 unit 변경 (성급/아이템 변동) 마다 picks 손실 회귀 발생.
+  // simulator engine (applyGravesFrameEffects/applyGravesStatUpgrades) 가
+  // simulateCombat 호출 시 자체적으로 가장 강한 unit selector 처리.
+  const [playerGravesPicks, setPlayerGravesPicks] = useState<string[]>([]);
+  const [enemyGravesPicks, setEnemyGravesPicks] = useState<string[]>([]);
+
   // Galio bench (Hero synergy)
   const [playerGalio, setPlayerGalio] = useState<{ champion: RawChampion; starLevel: number } | null>(null);
   const [enemyGalio, setEnemyGalio] = useState<{ champion: RawChampion; starLevel: number } | null>(null);
@@ -671,6 +679,8 @@ export function useTeamManagement({ traits }: UseTeamManagementArgs) {
     setEnemyAugmentStacks({});
     setPlayerBilgewaterStats({});
     setEnemyBilgewaterStats({});
+    setPlayerGravesPicks([]);
+    setEnemyGravesPicks([]);
   };
 
   return {
@@ -715,6 +725,12 @@ export function useTeamManagement({ traits }: UseTeamManagementArgs) {
     setPlayerStargazerConstellation,
     enemyStargazerConstellation,
     setEnemyStargazerConstellation,
+
+    // 그레이브즈 최신상 무기고 — team scope picks
+    playerGravesPicks,
+    setPlayerGravesPicks,
+    enemyGravesPicks,
+    setEnemyGravesPicks,
 
     // Galio bench
     playerGalio,

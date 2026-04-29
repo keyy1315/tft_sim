@@ -22,6 +22,7 @@ import AugmentDetailPopup from '@/components/builder/AugmentDetailPopup';
 import ChampionCard from '@/components/builder/ChampionCard';
 import ItemIcon from '@/components/builder/ItemIcon';
 import MfModeSelector from '@/components/builder/MfModeSelector';
+import GravesWeaponModal, { picksToFrame } from '@/components/builder/GravesWeaponModal';
 import SimulatorLayoutDesktop from './layout/SimulatorLayoutDesktop';
 import SimulatorLayoutMobile from './layout/SimulatorLayoutMobile';
 import SimulatorLayoutTablet from './layout/SimulatorLayoutTablet';
@@ -139,6 +140,9 @@ function SimulatorContent() {
   // 모바일 BottomSheet 상태 — lift up 으로 DnD 핸들러에서 접근
   const [sheetState, setSheetState] = useState<BottomSheetState>('peek');
 
+  // 그레이브즈 최신상 무기고 모달 — player/enemy 각 가장 강한 1명 picks 편집
+  const [gravesModalTeam, setGravesModalTeam] = useState<'player' | 'enemy' | null>(null);
+
   /** Map player data-row 0-3 → display-row 4-7 for 8-row combat board */
   const toEightRowCoords = useCallback((team: PlacedChampion[], rowOffset: number): PlacedChampion[] => {
     if (rowOffset === 0) return team;
@@ -153,6 +157,29 @@ function SimulatorContent() {
     () => toEightRowCoords(tm.playerTeam, 4),
     [tm.playerTeam, toEightRowCoords],
   );
+
+  // 그레이브즈 최신상 무기고 — team scope picks (codex PR #50 P1 fix).
+  // unit-scope 저장 시 가장 강한 unit 변경 (성급/아이템 변동) 마다 picks 손실 회귀 발생 →
+  // tm 의 team-level state 사용. simulator engine (applyGravesFrameEffects /
+  // applyGravesStatUpgrades) 가 simulateCombat 호출 시 자체 selector 로
+  // "가장 강한 1명" 에 적용 — 시뮬은 동일 효과, picks 자체는 team 보유.
+  const hasPlayerGraves = tm.playerTeam.some(p => p.champion.apiName === 'TFT17_Graves');
+  const hasEnemyGraves = tm.enemyTeam.some(p => p.champion.apiName === 'TFT17_Graves');
+
+  const handleGravesPicksChange = useCallback((picks: string[]) => {
+    if (gravesModalTeam === 'player') tm.setPlayerGravesPicks(picks);
+    else if (gravesModalTeam === 'enemy') tm.setEnemyGravesPicks(picks);
+  }, [gravesModalTeam, tm]);
+
+  const currentGravesPicks = gravesModalTeam === 'player'
+    ? tm.playerGravesPicks
+    : gravesModalTeam === 'enemy' ? tm.enemyGravesPicks : [];
+
+  // simulateCombat 옵션 매핑 — 첫 pick = frame, 나머지 = upgrade IDs
+  const playerGravesFrame = picksToFrame(tm.playerGravesPicks);
+  const enemyGravesFrame = picksToFrame(tm.enemyGravesPicks);
+  const playerGravesUpgrades = tm.playerGravesPicks.length > 1 ? tm.playerGravesPicks.slice(1) : undefined;
+  const enemyGravesUpgrades = tm.enemyGravesPicks.length > 1 ? tm.enemyGravesPicks.slice(1) : undefined;
 
   // 칸 버프 계산 (증강 + 팀 구성 변경 시 재계산)
   const playerHexBuffs = useMemo(() =>
@@ -223,6 +250,10 @@ function SimulatorContent() {
         enemyArbiterLaw: tm.enemyArbiterLaw ?? undefined,
         playerStargazerConstellation: tm.playerStargazerConstellation ?? undefined,
         enemyStargazerConstellation: tm.enemyStargazerConstellation ?? undefined,
+        playerGravesFrame,
+        enemyGravesFrame,
+        playerGravesUpgrades,
+        enemyGravesUpgrades,
       });
       replay.setCombatResult(result);
       setIsRunning(false);
@@ -230,7 +261,7 @@ function SimulatorContent() {
       replay.setReplayTick(0);
       replay.setIsPlaying(true);
     }, 100);
-  }, [tm.playerTeam, tm.enemyTeam, traits, tm.playerAugments, tm.playerAugmentStacks, tm.enemyAugments, tm.enemyAugmentStacks, tm.playerBilgewaterStats, tm.enemyBilgewaterStats, tm.playerPiltoverModules, tm.enemyPiltoverModules, tm.playerIoniaPath, tm.enemyIoniaPath, tm.playerGalio, tm.enemyGalio, playerHexBuffs, enemyHexBuffs, stageNumber, tm.playerArbiterLaw, tm.enemyArbiterLaw, tm.playerStargazerConstellation, tm.enemyStargazerConstellation, items, toEightRowCoords, replay]);
+  }, [tm.playerTeam, tm.enemyTeam, traits, tm.playerAugments, tm.playerAugmentStacks, tm.enemyAugments, tm.enemyAugmentStacks, tm.playerBilgewaterStats, tm.enemyBilgewaterStats, tm.playerPiltoverModules, tm.enemyPiltoverModules, tm.playerIoniaPath, tm.enemyIoniaPath, tm.playerGalio, tm.enemyGalio, playerHexBuffs, enemyHexBuffs, stageNumber, tm.playerArbiterLaw, tm.enemyArbiterLaw, tm.playerStargazerConstellation, tm.enemyStargazerConstellation, playerGravesFrame, enemyGravesFrame, playerGravesUpgrades, enemyGravesUpgrades, items, toEightRowCoords, replay]);
 
   const runMultiple = useCallback(() => {
     if (tm.playerTeam.length === 0 || tm.enemyTeam.length === 0) return;
@@ -260,6 +291,10 @@ function SimulatorContent() {
           stageNumber,
           playerStargazerConstellation: tm.playerStargazerConstellation ?? undefined,
           enemyStargazerConstellation: tm.enemyStargazerConstellation ?? undefined,
+          playerGravesFrame,
+          enemyGravesFrame,
+          playerGravesUpgrades,
+          enemyGravesUpgrades,
         });
         if (r.winner === 'player') playerWins++;
         else if (r.winner === 'enemy') enemyWins++;
@@ -274,7 +309,7 @@ function SimulatorContent() {
       replay.setViewMode('replay');
       replay.setReplayTick(lastResult ? lastResult.snapshots.length - 1 : 0);
     }, 100);
-  }, [tm.playerTeam, tm.enemyTeam, traits, tm.playerAugments, tm.playerAugmentStacks, tm.enemyAugments, tm.enemyAugmentStacks, tm.playerBilgewaterStats, tm.enemyBilgewaterStats, tm.playerPiltoverModules, tm.enemyPiltoverModules, tm.playerIoniaPath, tm.enemyIoniaPath, tm.playerGalio, tm.enemyGalio, playerHexBuffs, enemyHexBuffs, stageNumber, tm.playerStargazerConstellation, tm.enemyStargazerConstellation, items, toEightRowCoords, replay]);
+  }, [tm.playerTeam, tm.enemyTeam, traits, tm.playerAugments, tm.playerAugmentStacks, tm.enemyAugments, tm.enemyAugmentStacks, tm.playerBilgewaterStats, tm.enemyBilgewaterStats, tm.playerPiltoverModules, tm.enemyPiltoverModules, tm.playerIoniaPath, tm.enemyIoniaPath, tm.playerGalio, tm.enemyGalio, playerHexBuffs, enemyHexBuffs, stageNumber, tm.playerStargazerConstellation, tm.enemyStargazerConstellation, playerGravesFrame, enemyGravesFrame, playerGravesUpgrades, enemyGravesUpgrades, items, toEightRowCoords, replay]);
 
   const onBackToAnalysis = useCallback(() => {
     if (returnTo) {
@@ -310,6 +345,7 @@ function SimulatorContent() {
     mappedPlayerForReplay,
     sheetState,
     setSheetState,
+    onEditGravesWeapons: setGravesModalTeam,
   };
 
   return (
@@ -400,6 +436,60 @@ function SimulatorContent() {
             </div>
           )}
         </DragOverlay>
+
+        {/* 그레이브즈 무기고 — graves placed 시 floating button. 가장 강한 1명만 편집.
+            모바일: BottomSheet (peek 56px) 위로 띄우기 + sheet 확장 시 숨김 (자연스러운 UX).
+            desktop/tablet: 우하단 고정. */}
+        {(hasPlayerGraves || hasEnemyGraves) && (viewport !== 'mobile' || sheetState === 'peek') && (
+          <div
+            className="fixed right-4 flex flex-col gap-2"
+            style={{
+              bottom: viewport === 'mobile' ? '72px' : '16px',
+              // BottomSheet z-index (2147483646) 보다 살짝 낮게 → sheet 확장 시 자연스럽게 가려짐.
+              // peek 일 땐 sheet 가 56px 만 차지 → button (bottom 72px) 이 위로 떠서 정상 노출.
+              zIndex: 2147483645,
+            }}
+          >
+            {hasPlayerGraves && (
+              <button
+                type="button"
+                onClick={() => setGravesModalTeam('player')}
+                className="px-3 py-2 bg-blue-700 hover:bg-blue-600 text-white text-sm rounded-full shadow-lg flex items-center gap-2"
+                title="그레이브즈 무기고 편집"
+              >
+                🔧 P 무기고
+                {tm.playerGravesPicks.length > 0 && (
+                  <span className="px-1.5 py-0.5 bg-blue-900 text-blue-100 text-xs rounded-full">
+                    {tm.playerGravesPicks.length}
+                  </span>
+                )}
+              </button>
+            )}
+            {hasEnemyGraves && (
+              <button
+                type="button"
+                onClick={() => setGravesModalTeam('enemy')}
+                className="px-3 py-2 bg-red-700 hover:bg-red-600 text-white text-sm rounded-full shadow-lg flex items-center gap-2"
+                title="적 그레이브즈 무기고 편집"
+              >
+                🔧 E 무기고
+                {tm.enemyGravesPicks.length > 0 && (
+                  <span className="px-1.5 py-0.5 bg-red-900 text-red-100 text-xs rounded-full">
+                    {tm.enemyGravesPicks.length}
+                  </span>
+                )}
+              </button>
+            )}
+          </div>
+        )}
+
+        <GravesWeaponModal
+          isOpen={gravesModalTeam !== null}
+          picks={currentGravesPicks}
+          onPicksChange={handleGravesPicksChange}
+          onClose={() => setGravesModalTeam(null)}
+          unitLabel={gravesModalTeam === 'player' ? '아군 그레이브즈' : gravesModalTeam === 'enemy' ? '적 그레이브즈' : undefined}
+        />
       </div>
 
       {/* Footer */}
