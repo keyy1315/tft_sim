@@ -1199,6 +1199,11 @@ function applyStargazerEffects(
   }
 
   // === Fountain (우물) — Teamwide ManaRegen + 별돌보미 추가 마나 + 스킬 힐 ===
+  // ⚠️ 17.2 LIVE 재설계: Fountain_HealPercent / Fountain_ManaRegen / Fountain_ManaRegen_Teamwide
+  //    모두 raw data 에서 제거됨. 신규 hash 키 (`{13a2a786}`, `{8d19f5db}`, `{d7e6d620}`,
+  //    `{f2840aed}`) 로 메커니즘 변경 (스택 기반으로 추정).
+  //    `?? 0` 폴백으로 효과 0 → 자연 무효화 상태.
+  //    TODO: 신규 hash 변수 의미 매핑 + 메커니즘 마이그레이션. 관련 테스트는 .skip 처리됨.
   if (apiName === 'TFT17_Stargazer_Fountain') {
     const teamwide = (eff.Fountain_ManaRegen_Teamwide ?? 0) as number; // 단순 mana/sec
     const ownerExtra = (eff.Fountain_ManaRegen ?? 0) as number;

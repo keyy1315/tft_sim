@@ -51,17 +51,17 @@ describe('stargazer mountain applied — 23일 game round 6-2', () => {
       const asRatio = u.stats.attackSpeed / ub.stats.attackSpeed;
       const apDelta = u.stats.ap - ub.stats.ap;
       if (isStargazer) {
-        // HP 는 정수 maxHp 라 정확히 1.12. AS 는 다른 trait 효과의 부동소수
-        // multiply chain 으로 ±0.5% 변동 가능 — looser bound.
+        // 17.2: Mountain_Health 0.12 → 0.15. HP 는 정수 maxHp 라 정확히 1.15.
+        // AS 는 다른 trait 효과의 부동소수 multiply chain 으로 ±0.5% 변동 가능 — looser bound.
         // 23일 6-2 round 는 N.O.V.A. (DRX) Caitlyn 도 활성 → 6초 후 +20% AS 추가 적용
-        // → mountain 1.12 × DRX 1.20 = ~1.344 도 허용 (DRX trait PR 추가).
-        expect(hpRatio).toBeCloseTo(1.12, 2);
-        expect(asRatio).toBeGreaterThanOrEqual(1.10);
+        // → mountain 1.15 × DRX 1.20 = ~1.38 도 허용. 17.2: Mountain_AS 0.12 → 0.10.
+        expect(hpRatio).toBeCloseTo(1.15, 2);
+        expect(asRatio).toBeGreaterThanOrEqual(1.08);
         expect(asRatio).toBeLessThanOrEqual(1.40);
-        // AP 는 percentage points 단위 — Mountain_ADAP 0.12 × 100 = +12 AP.
-        // 다른 trait 효과 미존재 시 정확히 +12.
-        expect(apDelta).toBeGreaterThan(11);
-        expect(apDelta).toBeLessThan(13);
+        // AP 는 percentage points 단위 — Mountain_ADAP 0.15 × 100 = +15 AP (17.2: 0.12 → 0.15).
+        // 다른 trait 효과 미존재 시 정확히 +15.
+        expect(apDelta).toBeGreaterThan(14);
+        expect(apDelta).toBeLessThan(16);
       } else {
         expect(hpRatio).toBeCloseTo(1.0, 3);
         expect(asRatio).toBeCloseTo(1.0, 3);

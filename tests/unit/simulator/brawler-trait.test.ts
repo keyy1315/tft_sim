@@ -52,13 +52,13 @@ describe('Brawler — (2) tier teamwide +5% maxHp + 싸움꾼 +20%', () => {
 
     // TwistedFate (비-싸움꾼) maxHp 비율 ≈ 1.05 (teamwide 만)
     expect(tfWith.maxHp / tfWithout.maxHp).toBeCloseTo(1.05, 2);
-    // Maokai (싸움꾼) maxHp 비율 ≈ 1.05 + 0.20 = 1.25
-    expect(maokaiWith.maxHp / maokaiWithout.maxHp).toBeCloseTo(1.25, 2);
+    // Maokai (싸움꾼) maxHp 비율 ≈ 1.05 + 0.25 = 1.30 (17.2: HealthBonus 0.20 → 0.25)
+    expect(maokaiWith.maxHp / maokaiWithout.maxHp).toBeCloseTo(1.30, 2);
   });
 });
 
-describe('Brawler — (4) tier 싸움꾼 +40% HealthBonus', () => {
-  it('싸움꾼 4명 → 본인 maxHp 비율 ≈ 1.45 (1.05 + 0.40)', () => {
+describe('Brawler — (4) tier 싸움꾼 +45% HealthBonus (17.2)', () => {
+  it('싸움꾼 4명 → 본인 maxHp 비율 ≈ 1.50 (1.05 + 0.45)', () => {
     const team4 = [
       placed(apMaokai, 0, 0),
       placed(apGragas, 1, 0),
@@ -75,7 +75,8 @@ describe('Brawler — (4) tier 싸움꾼 +40% HealthBonus', () => {
     });
     const maokaiT4 = result4.playerUnits.find(u => u.champion.apiName === 'TFT17_Maokai')!;
     const maokaiBaseline = without.playerUnits.find(u => u.champion.apiName === 'TFT17_Maokai')!;
-    expect(maokaiT4.maxHp / maokaiBaseline.maxHp).toBeCloseTo(1.45, 2);
+    // 17.2: HealthBonus 0.40 → 0.45 → 1.05 + 0.45 = 1.50
+    expect(maokaiT4.maxHp / maokaiBaseline.maxHp).toBeCloseTo(1.50, 2);
   });
 });
 
