@@ -2,7 +2,7 @@ import {
   CombatUnit, CombatResult, CombatLog, PlacedChampion,
   HexCoord, HexBuff, TickSnapshot, mapGameRole,
   RawTrait, RawAugment, RawItem, RawChampion, ActiveTrait, ItemEffect,
-  MF_MODE_CONFIG, ArbiterLaw,
+  MF_MODE_CONFIG, ArbiterLaw, STAR_SCALING,
 } from '@/types';
 import arbiterLawsData from '../../../../public/data/arbiter_laws.json';
 import { findCarryAugment } from '@/data/carryAugments';
@@ -944,6 +944,37 @@ function applyPrimordianEffects(activeTraits: ActiveTrait[], units: CombatUnit[]
   for (const u of units) {
     if (!unitHasTrait(u, '태고족')) continue;
     u.damageAmp += ampDelta;
+  }
+}
+
+/**
+ * 메카 (TFT17_Mecha) — AD%/AP flat 가산을 메카 unit 한정 적용.
+ *
+ * Spec (TFT17_Mecha):
+ *   (3) AD=0.20, AP=20
+ *   (4) AD=0.35, AP=35
+ *   (6) AD=0.35, AP=35 (4와 동일, +TeamSize sim 외)
+ *
+ * stat.ts 의 generic AD/AP processing 은 trait 멤버 체크 없이 모든 unit 에 적용되므로
+ * 메카 trait 은 generic 경로에서 제외 (stat.ts) 하고 여기서 멤버 한정 후처리.
+ * AD 는 % 가산 — base AD × star × ratio. AP 는 flat.
+ */
+function applyMechaEffects(activeTraits: ActiveTrait[], units: CombatUnit[]): void {
+  const mecha = activeTraits.find(t => t.trait.apiName === 'TFT17_Mecha');
+  if (!mecha?.activeEffect) return;
+  const vars = mecha.activeEffect.variables;
+  const adRatio = typeof vars.AD === 'number' ? vars.AD : 0;
+  const apFlat = typeof vars.AP === 'number' ? vars.AP : 0;
+  if (adRatio === 0 && apFlat === 0) return;
+  for (const u of units) {
+    if (!unitHasTrait(u, '메카')) continue;
+    if (adRatio !== 0) {
+      const baseAd = u.champion.stats.damage * (STAR_SCALING[u.starLevel] || 1);
+      u.stats.damage += baseAd * adRatio;
+    }
+    if (apFlat !== 0) {
+      u.stats.ap += apFlat;
+    }
   }
 }
 
@@ -2168,6 +2199,10 @@ export function simulateCombat(
   applyDarkStarEffects(enemyActiveTraits, enemies);
   applyPrimordianEffects(playerActiveTraits, playerUnits);
   applyPrimordianEffects(enemyActiveTraits, enemies);
+  // 메카 (TFT17_Mecha) — 메카 unit 한정 AD%/AP flat 가산.
+  // stat.ts generic processing 에서 제외 (모든 아군 적용 회귀 방지).
+  applyMechaEffects(playerActiveTraits, playerUnits);
+  applyMechaEffects(enemyActiveTraits, enemies);
   // 선봉대 보호막은 전투 시작 시점 (tick=0, time=0).
   applyVanguardEffects(playerActiveTraits, playerUnits, 0, 0, logs);
   applyVanguardEffects(enemyActiveTraits, enemies, 0, 0, logs);

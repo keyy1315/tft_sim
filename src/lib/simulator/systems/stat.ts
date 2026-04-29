@@ -101,6 +101,9 @@ export function getTraitBonuses(activeTraits: ActiveTrait[]): ExtendedTraitEffec
   const result: ExtendedTraitEffect = {};
   for (const at of activeTraits) {
     if (!at.activeEffect) continue;
+    // 메카 (TFT17_Mecha): 메카 unit 한정 효과. generic AD/AP team-wide 적용 회피.
+    // combatLoop.applyMechaEffects 에서 멤버 한정 후처리.
+    if (at.trait.apiName === 'TFT17_Mecha') continue;
     const vars = at.activeEffect.variables;
 
     // Generic variable mapping
