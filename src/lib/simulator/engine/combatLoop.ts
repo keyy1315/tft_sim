@@ -126,6 +126,15 @@ export interface SimulateOptions {
   playerGravesFrame?: 'CloseQuarters' | 'SharpshooterModule' | 'DoubleTap';
   /** B 팀(enemy) 그레이브즈 Frame. 의미는 player 와 동일. */
   enemyGravesFrame?: 'CloseQuarters' | 'SharpshooterModule' | 'DoubleTap';
+  /**
+   * 최신상 무기고 stat upgrade 활성 ID 목록 (suffix only, prefix 'TFT17_GravesTrait_Offense_' 제외).
+   * A 팀(player) 의 가장 강한 그레이브즈 1명에 적용. 예:
+   *   ['LeechingImplants', 'HeavyPlating', 'PrecisionScope2', 'Heartseeker']
+   * Phase 2 단순 stat upgrade 18종만 처리. 메커닉 필요 항목 (RevUp 등) 은 후속.
+   */
+  playerGravesUpgrades?: string[];
+  /** B 팀(enemy) 그레이브즈 stat upgrade. 의미는 player 와 동일. */
+  enemyGravesUpgrades?: string[];
 }
 
 function createCombatUnit(
@@ -176,6 +185,8 @@ function createCombatUnit(
     gravesFrame: null,
     gravesDoubleAttackChance: 0,
     gravesAbilityDamageBonus: 0,
+    gravesUpgrades: [],
+    gravesTankDamageAmp: 0,
     gragasCarryActive: false,
     leonaCarryActive: false,
     attackCount: 0,
@@ -1221,6 +1232,125 @@ function applyGravesFrameEffects(
   }
 }
 
+/**
+ * 최신상 (TFT17_GravesTrait) 무기고 stat upgrade 적용 — Phase 2.
+ *
+ * raw items 기반 직접 stat 가산. 가장 강한 그레이브즈 1명에게만 적용.
+ * RevUp / RevUp2 (sticky target stacking AS) / Buckshot 류 (투사체) 등
+ * 메커닉 필요 항목은 본 함수 미처리 — 후속 Phase 3.
+ *
+ * 적용 18종 (raw effects 기반):
+ *   LeechingImplants    AD +10%, omnivamp +0.10
+ *   LeechingImplants2   AD +20%, omnivamp +0.15
+ *   HeavyPlating        +HP 300, +Armor 20, +MR 20
+ *   PrecisionScope      AD +12%, range +1
+ *   PrecisionScope2     AD +24%, range +2
+ *   PrecisionScope3     AD +36%, range +3
+ *   Fission             AD +10%, manaRegen +2/s
+ *   Fission2            AD +20%, manaRegen +3/s
+ *   Fission3            AD +30%, manaRegen +5/s
+ *   Heartseeker         critChance +0.10, critDmg +0.05
+ *   Heartseeker2        critChance +0.25, critDmg +0.10
+ *   Heartseeker3        critChance +0.40, critDmg +0.18
+ *   Tankbuster          탱커 상대 damage amp +0.15
+ *   Coolant             maxMana -10
+ *   Coolant2            maxMana -20
+ *   APRounds            armorPen +0.30
+ *   APRounds2           armorPen +0.60
+ *   SheerMass           maxHp × 1.25
+ *
+ * AD% 는 base × star scaling (Frame CloseQuarters 와 동일 기준).
+ */
+const GRAVES_STAT_UPGRADE_HANDLERS: Record<string, (u: CombatUnit, baseAd: number) => void> = {
+  LeechingImplants:  (u, ad) => { u.stats.damage += ad * 0.10; u.omnivamp += 0.10; },
+  LeechingImplants2: (u, ad) => { u.stats.damage += ad * 0.20; u.omnivamp += 0.15; },
+  HeavyPlating:      (u)     => { u.maxHp += 300; u.currentHp += 300; u.stats.armor += 20; u.stats.magicResist += 20; },
+  PrecisionScope:    (u, ad) => { u.stats.damage += ad * 0.12; u.stats.range += 1; },
+  PrecisionScope2:   (u, ad) => { u.stats.damage += ad * 0.24; u.stats.range += 2; },
+  PrecisionScope3:   (u, ad) => { u.stats.damage += ad * 0.36; u.stats.range += 3; },
+  Fission:           (u, ad) => { u.stats.damage += ad * 0.10; u.augmentManaRegen += 2; },
+  Fission2:          (u, ad) => { u.stats.damage += ad * 0.20; u.augmentManaRegen += 3; },
+  Fission3:          (u, ad) => { u.stats.damage += ad * 0.30; u.augmentManaRegen += 5; },
+  Heartseeker:       (u)     => { u.stats.critChance += 0.10; u.stats.critMultiplier += 0.05; },
+  Heartseeker2:      (u)     => { u.stats.critChance += 0.25; u.stats.critMultiplier += 0.10; },
+  Heartseeker3:      (u)     => { u.stats.critChance += 0.40; u.stats.critMultiplier += 0.18; },
+  Tankbuster:        (u)     => { u.gravesTankDamageAmp += 0.15; },
+  Coolant:           (u)     => { u.maxMana = Math.max(0, u.maxMana - 10); },
+  Coolant2:          (u)     => { u.maxMana = Math.max(0, u.maxMana - 20); },
+  APRounds:          (u)     => { u.stats.armorPen += 0.30; },
+  APRounds2:         (u)     => { u.stats.armorPen += 0.60; },
+  SheerMass:         (u)     => {
+    const newMax = Math.round(u.maxHp * 1.25);
+    u.maxHp = newMax;
+    u.currentHp = newMax;
+  },
+};
+
+/**
+ * Stable canonical 적용 순서 — deterministic 보장 (codex P2).
+ * 일부 upgrade 가 order-sensitive (SheerMass × maxHp vs HeavyPlating + maxHp 등) →
+ * 입력 array 순서가 달라도 동일 set 이면 항상 같은 결과를 내야 replay/serialize 가능.
+ *
+ * 적용 순서 원칙:
+ *   1. flat HP / armor / MR / range / mana 등 가산 먼저
+ *   2. AD% / armorPen / crit 등 stat 가산
+ *   3. maxHp 비례 multiplier (SheerMass) — 가장 마지막
+ *   4. 동일 카테고리 내에선 알파벳 순 (deterministic)
+ */
+const GRAVES_UPGRADE_APPLY_ORDER: ReadonlyArray<string> = [
+  // 1. flat additions (HP/armor/MR/range/mana)
+  'APRounds',
+  'APRounds2',
+  'Coolant',
+  'Coolant2',
+  'Fission',
+  'Fission2',
+  'Fission3',
+  'HeavyPlating',
+  'LeechingImplants',
+  'LeechingImplants2',
+  'PrecisionScope',
+  'PrecisionScope2',
+  'PrecisionScope3',
+  // 2. crit / damage amp
+  'Heartseeker',
+  'Heartseeker2',
+  'Heartseeker3',
+  'Tankbuster',
+  // 3. % multiplier (가장 마지막 — 1·2 단계의 flat HP/AD 가산 후 적용)
+  'SheerMass',
+];
+
+function applyGravesStatUpgrades(units: CombatUnit[], upgrades: string[] | undefined): void {
+  if (!upgrades || upgrades.length === 0) return;
+  const target = findStrongestUnitByApi(units, 'TFT17_Graves');
+  if (!target) return;
+  const baseAd = target.champion.stats.damage * (STAR_SCALING[target.starLevel] || 1);
+
+  // canonical order 로 정렬 — 입력 array 순서가 달라도 동일 set 이면 동일 결과.
+  // 미지원 upgrade (Phase 3 메커닉) 는 GRAVES_STAT_UPGRADE_HANDLERS 에 없으므로 skip.
+  // canonical order 에 없는 신규 upgrade 는 알파벳 순 fallback (정의 누락 가드).
+  const requested = new Set(upgrades);
+  const ordered: string[] = [];
+  for (const id of GRAVES_UPGRADE_APPLY_ORDER) {
+    if (requested.has(id) && GRAVES_STAT_UPGRADE_HANDLERS[id]) ordered.push(id);
+  }
+  const known = new Set(GRAVES_UPGRADE_APPLY_ORDER);
+  const fallback = upgrades
+    .filter(id => !known.has(id) && GRAVES_STAT_UPGRADE_HANDLERS[id])
+    .sort();
+  ordered.push(...fallback);
+
+  const applied: string[] = [];
+  for (const id of ordered) {
+    GRAVES_STAT_UPGRADE_HANDLERS[id](target, baseAd);
+    applied.push(id);
+  }
+  if (applied.length > 0) {
+    target.gravesUpgrades = [...target.gravesUpgrades, ...applied];
+  }
+}
+
 /** 전쟁기계 — BaseDR을 damageReduction에 적용 */
 function applyJuggernautDR(activeTraits: ActiveTrait[], units: CombatUnit[]): void {
   const jugg = activeTraits.find(t => t.trait.apiName === 'TFT16_Juggernaut' && t.activeEffect);
@@ -1641,6 +1771,8 @@ function spawnFreljordTurrets(
             gravesFrame: null,
             gravesDoubleAttackChance: 0,
             gravesAbilityDamageBonus: 0,
+            gravesUpgrades: [],
+            gravesTankDamageAmp: 0,
             gragasCarryActive: false,
             leonaCarryActive: false,
             attackCount: 0,
@@ -1787,6 +1919,8 @@ function trySpawnGalio(
     gravesFrame: null,
     gravesDoubleAttackChance: 0,
     gravesAbilityDamageBonus: 0,
+    gravesUpgrades: [],
+    gravesTankDamageAmp: 0,
     gragasCarryActive: false,
     leonaCarryActive: false,
     attackCount: 0,
@@ -2511,6 +2645,9 @@ export function simulateCombat(
   // 최신상 (GravesTrait) Frame — 가장 강한 그레이브즈 1명에 stat/메커닉 적용.
   applyGravesFrameEffects(playerUnits, options.playerGravesFrame);
   applyGravesFrameEffects(enemies, options.enemyGravesFrame);
+  // 최신상 무기고 stat upgrade — Frame 과 동일 unit 에 누적.
+  applyGravesStatUpgrades(playerUnits, options.playerGravesUpgrades);
+  applyGravesStatUpgrades(enemies, options.enemyGravesUpgrades);
   // 선봉대 보호막은 전투 시작 시점 (tick=0, time=0).
   applyVanguardEffects(playerActiveTraits, playerUnits, 0, 0, logs);
   applyVanguardEffects(enemyActiveTraits, enemies, 0, 0, logs);
@@ -3098,6 +3235,10 @@ export function simulateCombat(
           if (unit.inventionTankDamageAmp > 0 && target.role === 'Tank') {
             totalDamageAmp += unit.inventionTankDamageAmp;
           }
+          // 최신상 Tankbuster — 탱커 상대 추가 damage amp
+          if (unit.gravesTankDamageAmp > 0 && target.role === 'Tank') {
+            totalDamageAmp += unit.gravesTankDamageAmp;
+          }
           // 저격수 (Sniper) — 거리 기반 추가 damage amp
           totalDamageAmp += computeSniperDamageAmp(unit, target);
           const rawDamage = unit.stats.damage * critMult * (1 + totalDamageAmp);
@@ -3440,6 +3581,10 @@ export function simulateCombat(
                 let abilityDamageAmp = unit.damageAmp;
                 if (unit.inventionTankDamageAmp > 0 && t.role === 'Tank') {
                   abilityDamageAmp += unit.inventionTankDamageAmp;
+                }
+                // 최신상 Tankbuster — 탱커 상대 추가 damage amp (per target)
+                if (unit.gravesTankDamageAmp > 0 && t.role === 'Tank') {
+                  abilityDamageAmp += unit.gravesTankDamageAmp;
                 }
                 // 저격수 (Sniper) — 거리 기반 추가 damage amp (per target)
                 abilityDamageAmp += computeSniperDamageAmp(unit, t);
