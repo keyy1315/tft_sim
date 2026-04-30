@@ -203,8 +203,8 @@ Set 17 그레이브즈 전용 시너지 **`최신상`(GravesTrait)** 의 핵심 
 | **Phase 3B-1** | 공격 횟수 변종 + sticky stack 4종 | #55 | ✅ 머지 완료 |
 | **Phase 3B-2** | onKill / dash / 누적 폭발 3종 | #56 | ✅ 머지 완료 |
 | **Phase 3C-1** | 평타 base AOE 7종 | #57 | ✅ 머지 완료 |
-| **Phase 3C-2** | ability AOE 4종 | (본 PR) | 🟢 작업 중 |
-| **Phase 3D** | 메커닉 복합 5종 | — | ❌ 미구현 |
+| **Phase 3C-2** | ability AOE 4종 | #58 | ✅ 머지 완료 |
+| **Phase 3D** | 복합 메커닉 3종 (VoidCoefficient/Choke/AimAssistant) | (본 PR) | 🟢 작업 중 |
 | **Phase 4** | tree 시각화 + round-by-round 선택 UI | #49,50,51 | ✅ 머지 완료 |
 
 ### Phase 1 + 2 누적 18종 (raw effects 직접 가산)
@@ -237,8 +237,15 @@ Tankbuster, Coolant/2, APRounds/2, SheerMass
 - BlastRadius/2/3 (IncreasedRadius=1/2/3, DamageReductionPerHex=0.5/0.30/0.30 — primary hit 위치 N hex 안 추가 폭발, 거리 비례 감소)
 - SympatheticDetonation (SympatheticDamageReduction=0.30 — primary hit 적 인접 가까운 1명 -30% 추가 폭발)
 
-### Phase 3D 메커닉 잔여 5종 분류
-- **3D 복합 (~5)**: VoidCoefficient, Choke, AimAssistant, Heartseeker3 확장
+### Phase 3D 3종 (복합 메커닉)
+- VoidCoefficient (PercentManaReductionPerCast=0.15 — 매 cast 직후 maxMana × 0.85, min 10)
+- Choke (SpreadDecrease=0.75 — Buckshot spread 75% 감소, 단일 타겟 집중)
+- AimAssistant (BonusDamagePerHex=0.05 — 평타 distance × 5% damage amp)
+
+> Heartseeker3 는 raw 가 BonusCritChance/BonusCritDamage 만 — Phase 2 에서 이미 처리.
+
+## G2 Phase 3 전체 31종 완료 ✅
+- 3A 8종 + 3B-1 4종 + 3B-2 3종 + 3C-1 7종 + 3C-2 4종 + 3D 3종 + Heartseeker3 (Phase 2 재사용) = 30 + 1 → 31
 
 ---
 

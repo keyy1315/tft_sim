@@ -654,9 +654,25 @@ export interface CombatUnit {
   gravesBlastDmgReductionPerHex: number;
   /**
    * SympatheticDetonation — ability hit 한 적 인접 1 hex 가까운 적 1명에 추가 폭발.
-   * 0 = 미활성 / 0.30 = 활성 (30% reduced). raw SympatheticDamageReduction.
+   * 0 = 미활성 / 0.30 = 활성 (30% damage = -70% reduction; raw 변수명/의미 반전).
+   * raw SympatheticDamageReduction — 실제 의미는 dealt fraction (codex P1 PR #58).
    */
   gravesSympatheticReduction: number;
+  /**
+   * VoidCoefficient — graves 매 cast 직후 maxMana × (1 - N) 적용 (min 10).
+   * 0 = 미활성 / 0.15 = 활성. raw PercentManaReductionPerCast.
+   */
+  gravesVoidCoefficientPct: number;
+  /**
+   * Choke — Buckshot spread 를 N% 감소. triggerBuckshot 에서 spread × (1 - N) 적용.
+   * 0 = 미활성 / 0.75 = 활성. raw SpreadDecrease.
+   */
+  gravesChokeSpreadDecrease: number;
+  /**
+   * AimAssistant — 평타 시 distance × N 만큼 damage amp.
+   * 0 = 미활성 / 0.05 = 활성 (5% per hex). raw BonusDamagePerHex.
+   */
+  gravesAimAssistBonusPerHex: number;
   /**
    * 자폭(TFT17_Augment_GragasCarry) 활성 + 가장 강한 그라가스로 선정된 unit 만 true.
    * 그라가스 ability 가 거대한 폭발 (자기 자신 데미지, 다른 아군 X) 로 변환되며,
