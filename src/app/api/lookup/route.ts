@@ -177,8 +177,17 @@ function getItemMeta(): Record<string, ItemMeta> {
   return cachedItemMeta;
 }
 
-/** Riot + Supabase 매치 조회 최대 개수. 클라이언트 페이지네이션 (페이지당 20) 과 맞물림. */
-const MATCH_FETCH_LIMIT = 60;
+/**
+ * Riot + Supabase 매치 조회 최대 개수. 클라이언트 페이지네이션 (페이지당 20) 과 맞물림.
+ *
+ * Dev API key 한도 (100 req / 2분) 회피용 임시 축소: 60 → 20.
+ * 신규 유저 lookup 1회 = 1(account) + 1(matchIds) + 최대 N(matchDetail) = 22 req.
+ * 60 일 때 신규 2명만 조회해도 즉시 429 발생 (62 + 62 = 124 > 100).
+ *
+ * Production / Personal API key (30k req/10분) 로 전환 시 60 으로 복구할 것.
+ * git blame 으로 본 fix 추적 가능 — 한 줄 변경으로 복원.
+ */
+const MATCH_FETCH_LIMIT = 20;
 
 export async function POST(req: NextRequest) {
   const { gameName, tagLine } = (await req.json()) as {
