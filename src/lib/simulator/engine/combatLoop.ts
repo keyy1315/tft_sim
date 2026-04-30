@@ -219,6 +219,11 @@ function createCombatUnit(
     gravesVoidCoefficientPct: 0,
     gravesChokeSpreadDecrease: 0,
     gravesAimAssistBonusPerHex: 0,
+    partyHealRate: 0,
+    partyHpThreshold: 0,
+    partyUsed: false,
+    partyHealing: false,
+    mfReplicatorEffectiveness: 0,
     gragasCarryActive: false,
     leonaCarryActive: false,
     attackCount: 0,
@@ -721,6 +726,95 @@ function applyJhinAnnihilator(activeTraits: ActiveTrait[], enemies: CombatUnit[]
   for (const e of enemies) {
     e.stats.armor *= (1 - reductionPct);
     e.stats.magicResist *= (1 - reductionPct);
+  }
+}
+
+/**
+ * 파멸자 (벡스) — TFT17_VexUniqueTrait. 전투 시작 시 모든 적 표식 → 첫 hit 시 ADAP1% 강탈.
+ *
+ * raw: ADAP1=12 (12%).
+ * 시뮬 단순화: combat-start 시 즉시 일괄 적용 (적이 모두 hit 받게 됨 가정 — 표식 메커니즘 생략).
+ * 모든 적 (damage + ap) × 0.12 합산 → 가장 강한 Vex 1명에게 가산 + 적 stat 차감.
+ */
+function applyVexDoom(activeTraits: ActiveTrait[], ownTeam: CombatUnit[], enemies: CombatUnit[]): void {
+  const trait = activeTraits.find(t => t.trait.apiName === 'TFT17_VexUniqueTrait' && t.activeEffect);
+  if (!trait?.activeEffect) return;
+  const stealPct = ((trait.activeEffect.variables['ADAP1'] ?? 12) as number) / 100;
+  if (stealPct <= 0) return;
+  const vex = findStrongestUnitByApi(ownTeam, 'TFT17_Vex');
+  if (!vex) return;
+  let stolenAd = 0;
+  let stolenAp = 0;
+  for (const e of enemies) {
+    if (e.state === 'dead') continue;
+    const adSteal = e.stats.damage * stealPct;
+    const apSteal = e.stats.ap * stealPct;
+    e.stats.damage = Math.max(0, e.stats.damage - adSteal);
+    e.stats.ap = Math.max(0, e.stats.ap - apSteal);
+    stolenAd += adSteal;
+    stolenAp += apSteal;
+  }
+  vex.stats.damage += stolenAd;
+  vex.stats.ap += stolenAp;
+}
+
+/**
+ * 은하계 사냥꾼 (제드) — TFT17_ZedUniqueTrait. 분신 살아있는 동안 +BonusAD%.
+ *
+ * raw: BonusAD=0.40 (40%).
+ * 시뮬 단순화: 시뮬에 분신 unit 메커니즘 없음 → combat-start 시 Zed 에 +40% AD 즉시 가산
+ * (분신 항상 alive 가정). Zed 의 self_buff ability 가 분신 소환이지만 시뮬에선 stat-only.
+ */
+function applyZedShadow(activeTraits: ActiveTrait[], ownTeam: CombatUnit[]): void {
+  const trait = activeTraits.find(t => t.trait.apiName === 'TFT17_ZedUniqueTrait' && t.activeEffect);
+  if (!trait?.activeEffect) return;
+  const bonusAd = (trait.activeEffect.variables['BonusAD'] ?? 0.40) as number;
+  if (bonusAd <= 0) return;
+  for (const u of ownTeam) {
+    if (u.champion.apiName === 'TFT17_Zed') {
+      u.stats.damage = Math.round(u.stats.damage * (1 + bonusAd));
+    }
+  }
+}
+
+/**
+ * 파티광 (블리츠크랭크) — TFT17_BlitzcrankUniqueTrait. 전투당 1회 트리거.
+ * raw: HealthThreshold=0.45, PercentHealthHeal=0.15.
+ *
+ * combat-start 시 Blitzcrank 에 partyHealRate / partyHpThreshold 설정.
+ * main loop tick 마다 HP < threshold 도달 시 invulnerable + heal mode 활성.
+ * HP 100% 도달 시 heal mode 종료. 후속 SpaceGroove + 번개 4배 효과는 미구현.
+ */
+function applyPartyTrickster(activeTraits: ActiveTrait[], ownTeam: CombatUnit[]): void {
+  const trait = activeTraits.find(t => t.trait.apiName === 'TFT17_BlitzcrankUniqueTrait' && t.activeEffect);
+  if (!trait?.activeEffect) return;
+  const threshold = (trait.activeEffect.variables['HealthThreshold'] ?? 0.45) as number;
+  const healRate = (trait.activeEffect.variables['PercentHealthHeal'] ?? 0.15) as number;
+  if (threshold <= 0 || healRate <= 0) return;
+  for (const u of ownTeam) {
+    if (u.champion.apiName === 'TFT17_Blitzcrank') {
+      u.partyHpThreshold = threshold;
+      u.partyHealRate = healRate;
+    }
+  }
+}
+
+/**
+ * 복제자 (MF) — TFT17_APTrait. minUnits=2 / 4 두 tier.
+ * raw: Effectiveness=0.22 (2-3) / 0.45 (4+).
+ *
+ * MF replicator mode 한정 — 스킬 cast 시 ability damage × Effectiveness 추가 적용.
+ * combat-start 시 mfMode === 'replicator' 인 MF 에만 effectiveness 설정.
+ */
+function applyReplicatorTrait(activeTraits: ActiveTrait[], ownTeam: CombatUnit[]): void {
+  const trait = activeTraits.find(t => t.trait.apiName === 'TFT17_APTrait' && t.activeEffect);
+  if (!trait?.activeEffect) return;
+  const effectiveness = (trait.activeEffect.variables['Effectiveness'] ?? 0.22) as number;
+  if (effectiveness <= 0) return;
+  for (const u of ownTeam) {
+    if (u.champion.apiName === 'TFT17_MissFortune') {
+      u.mfReplicatorEffectiveness = effectiveness;
+    }
   }
 }
 
@@ -2487,6 +2581,11 @@ function spawnFreljordTurrets(
             gravesVoidCoefficientPct: 0,
             gravesChokeSpreadDecrease: 0,
             gravesAimAssistBonusPerHex: 0,
+            partyHealRate: 0,
+            partyHpThreshold: 0,
+            partyUsed: false,
+            partyHealing: false,
+            mfReplicatorEffectiveness: 0,
             gragasCarryActive: false,
             leonaCarryActive: false,
             attackCount: 0,
@@ -2667,6 +2766,11 @@ function trySpawnGalio(
     gravesVoidCoefficientPct: 0,
     gravesChokeSpreadDecrease: 0,
     gravesAimAssistBonusPerHex: 0,
+    partyHealRate: 0,
+    partyHpThreshold: 0,
+    partyUsed: false,
+    partyHealing: false,
+    mfReplicatorEffectiveness: 0,
     gragasCarryActive: false,
     leonaCarryActive: false,
     attackCount: 0,
@@ -3357,6 +3461,18 @@ export function simulateCombat(
   applyShenBastionAura(enemyActiveTraits, enemies);
   applyJhinAnnihilator(playerActiveTraits, enemies);  // 적 대상
   applyJhinAnnihilator(enemyActiveTraits, playerUnits);
+  // 파멸자 (Vex) — 적 ADAP 12% 강탈 → 가장 강한 Vex 에 가산.
+  applyVexDoom(playerActiveTraits, playerUnits, enemies);
+  applyVexDoom(enemyActiveTraits, enemies, playerUnits);
+  // 은하계 사냥꾼 (Zed) — Zed +40% AD (분신 alive 가정 단순화).
+  applyZedShadow(playerActiveTraits, playerUnits);
+  applyZedShadow(enemyActiveTraits, enemies);
+  // 파티광 (Blitzcrank) — HP threshold/healRate 설정 (main loop tick 에서 trigger).
+  applyPartyTrickster(playerActiveTraits, playerUnits);
+  applyPartyTrickster(enemyActiveTraits, enemies);
+  // 복제자 (MF replicator mode) — Effectiveness 설정 (cast 시 추가 발동).
+  applyReplicatorTrait(playerActiveTraits, playerUnits);
+  applyReplicatorTrait(enemyActiveTraits, enemies);
   // Astronaut/Brawler HP 가산은 Stargazer (Huntress) maxHp 상위 N명 mark 선택 전에
   // 적용해야 정확한 maxHp 기준으로 mark — codex P2 회귀 가드.
   applyAstronautEffects(playerActiveTraits, playerUnits);
@@ -3917,6 +4033,34 @@ export function simulateCombat(
     for (const u of allUnits) {
       if (u.state === 'dead') continue;
       maybeTriggerEmergencyShield(u);
+    }
+
+    // 파티광 (Blitzcrank) — HP < threshold 도달 시 1회 invulnerable + heal mode.
+    // HP 100% 도달 시 종료. 후속 SpaceGroove 효과는 미구현.
+    for (const u of allUnits) {
+      if (u.state === 'dead') continue;
+      if (u.partyHpThreshold <= 0) continue;
+      // Trigger: 미사용 + HP < threshold
+      if (!u.partyUsed && u.maxHp > 0 && u.currentHp / u.maxHp < u.partyHpThreshold) {
+        u.partyUsed = true;
+        u.partyHealing = true;
+        // invulnerable status — 매 tick 평타/스킬 hit 에서 자동 검사 (기존 가드 사용).
+        u.statusEffects.push({
+          type: 'invulnerable', sourceId: u.id,
+          remainingTicks: MAX_TICKS, value: 1,  // heal 종료 시 명시적 제거.
+        });
+      }
+      // Heal mode 진행 중: 매초 maxHp × healRate 회복. healAmp 곱셈 적용.
+      if (u.partyHealing && tick > 0 && tick % TICKS_PER_SECOND === 0) {
+        const partyBase = u.maxHp * u.partyHealRate;
+        const heal = partyBase * (1 + (u.healAmp ?? 0));
+        u.currentHp = Math.min(u.maxHp, u.currentHp + heal);
+      }
+      // Heal 종료 — HP 100% 도달.
+      if (u.partyHealing && u.currentHp >= u.maxHp) {
+        u.partyHealing = false;
+        u.statusEffects = u.statusEffects.filter(e => !(e.type === 'invulnerable' && e.sourceId === u.id));
+      }
     }
 
     // In-combat augment effects (apply every second = every 30 ticks)
@@ -4511,6 +4655,11 @@ export function simulateCombat(
                 }
                 // 저격수 (Sniper) — 거리 기반 추가 damage amp (per target)
                 abilityDamageAmp += computeSniperDamageAmp(unit, t);
+                // 복제자 (MF replicator mode) — 스킬 한 번 더 발동 단순화: damage × (1 + Effectiveness).
+                // raw "한 번 더 발동" 의 damage 결과는 base + base × Eff = base × (1 + Eff) 와 동일.
+                if (unit.mfReplicatorEffectiveness > 0) {
+                  abilityDamageAmp += unit.mfReplicatorEffectiveness;
+                }
                 // 초가스: % 최대체력 피해 추가
                 let baseDmg = abilityDmg;
                 if (unit.champion.apiName === 'TFT17_Chogath') {

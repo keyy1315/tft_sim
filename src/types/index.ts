@@ -674,6 +674,26 @@ export interface CombatUnit {
    */
   gravesAimAssistBonusPerHex: number;
   /**
+   * 파티광 (TFT17_BlitzcrankUniqueTrait) — 전투당 1회 트리거.
+   * HP < threshold 도달 시 invulnerable + 매초 maxHp × healRate heal.
+   * HP 100% 도달 시 heal 종료 (invulnerable 제거).
+   *
+   * 0 = 미활성 / 0.15 = 활성 (per-second heal rate). raw PercentHealthHeal.
+   */
+  partyHealRate: number;
+  /** 파티광 트리거 HP 비율. 0 = 미활성 / 0.45 = 활성. raw HealthThreshold. */
+  partyHpThreshold: number;
+  /** 파티광 트리거 사용 여부 (전투당 1회 가드). */
+  partyUsed: boolean;
+  /** 파티광 heal 진행 중 (true 동안 invulnerable + heal). */
+  partyHealing: boolean;
+  /**
+   * 복제자 (TFT17_APTrait) — MF replicator mode 한정.
+   * 스킬 한 번 더 발동, N% 위력. 0 = 미활성 / 0.22 (2-3) / 0.45 (4+).
+   * raw Effectiveness.
+   */
+  mfReplicatorEffectiveness: number;
+  /**
    * 자폭(TFT17_Augment_GragasCarry) 활성 + 가장 강한 그라가스로 선정된 unit 만 true.
    * 그라가스 ability 가 거대한 폭발 (자기 자신 데미지, 다른 아군 X) 로 변환되며,
    * 자폭 데미지로 hp 가 1 미만으로 떨어지지 않음 (HP floor=1).
