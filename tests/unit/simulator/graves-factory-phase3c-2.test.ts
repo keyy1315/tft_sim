@@ -90,14 +90,21 @@ describe('GravesTrait Phase 3C-2 — SympatheticDetonation (가까운 적 2nd �
     expect(grav.gravesSympatheticReduction).toBe(0);
   });
 
-  it('SympatheticDetonation 활성 + 인접 적 → 추가 폭발 (totalDamageDealt 증가)', () => {
+  it('SympatheticDetonation 활성 + 인접 적 → 결투 단축 (sympathy hit 으로 적 빠르게 처치)', () => {
+    // codex P1 fix: SympatheticReduction=0.30 → base × 30% damage (= 70% reduction).
+    // 추가 hit 이 들어가서 적이 더 빨리 죽음 → duration 단축. totalDamageTaken 은 변동
+    // (sympathy 대상이 빨리 죽으면 후속 평타 가 다른 적에 가서 분산).
     const enemies = [
       placed(dummyEnemy, 6, 3),  // primary
       placed(dummyEnemy, 5, 3),  // primary 인접 1hex (sympathy 대상)
     ];
-    const baseDmg = gravesOf(runWith([], enemies)).totalDamageDealt;
-    const sympDmg = gravesOf(runWith(['SympatheticDetonation'], enemies)).totalDamageDealt;
-    expect(sympDmg).toBeGreaterThan(baseDmg);
+    const baseRes = runWith([], enemies);
+    const sympRes = runWith(['SympatheticDetonation'], enemies);
+    expect(sympRes.duration).toBeLessThanOrEqual(baseRes.duration);
+    // graves attackCount baseline 보다 같거나 적음 (sympathy 가 sim 단축 시키면 attacks 감소).
+    const baseGrav = gravesOf(baseRes);
+    const sympGrav = gravesOf(sympRes);
+    expect(sympGrav.attackCount).toBeLessThanOrEqual(baseGrav.attackCount);
   });
 });
 

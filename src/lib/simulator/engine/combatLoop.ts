@@ -1876,8 +1876,8 @@ function triggerAbilityBlastRadius(
   time: number,
   logs: CombatLog[],
   tickLogs: CombatLog[],
-): void {
-  if (attacker.gravesBlastIncreasedRadius <= 0) return;
+): { dealt: number; rawDealt: number } {
+  if (attacker.gravesBlastIncreasedRadius <= 0) return { dealt: 0, rawDealt: 0 };
   const radius = attacker.gravesBlastIncreasedRadius;
   const decay = attacker.gravesBlastDmgReductionPerHex;
   const primarySet = new Set(primaryHitTargets.map((t) => t.id));
@@ -1885,9 +1885,12 @@ function triggerAbilityBlastRadius(
     .filter((e) => !primarySet.has(e.id) && e.state !== 'dead')
     .map((e) => ({ enemy: e, dist: hexDistance(primaryHitPos, e.position) }))
     .filter((x) => x.dist <= radius && x.dist >= 1);
+  let dealt = 0;
+  let rawDealt = 0;
   for (const { enemy, dist } of candidates) {
     const distFactor = Math.max(0, 1 - decay * dist);
     const reducedDmg = baseDmg * distFactor;
+    rawDealt += reducedDmg;  // codex P2: raw (mitigation 전) 누적 — on_cast.rawValue 정합.
     let dmg = applyResistance(reducedDmg, enemy.stats.magicResist, attacker.stats.magicPen);
     if (enemy.damageReduction > 0) dmg *= (1 - enemy.damageReduction);
     dmg = applyShield(enemy, dmg, eventBus, tick);
@@ -1895,6 +1898,7 @@ function triggerAbilityBlastRadius(
     enemy.currentHp -= dmg;
     enemy.totalDamageTaken += dmg;
     attacker.totalDamageDealt += dmg;
+    dealt += dmg;
     if (attacker.gravesLatentStoredPct > 0 && dmg > 0) {
       enemy.gravesLatentStored += dmg * attacker.gravesLatentStoredPct;
     }
@@ -1907,13 +1911,16 @@ function triggerAbilityBlastRadius(
       applyGravesHelperKill(attacker, enemy, enemyTeam, occupiedPositions, killerArbiterState, eventBus, tick, time, logs, tickLogs);
     }
   }
+  return { dealt, rawDealt };
 }
 
 /**
  * SympatheticDetonation — graves ability primary hit 한 적 인접 1 hex 가까운 다른 적 1명에
- * 추가 magic 폭발 (-30% reduced). 단일 sympatheticTarget 만 처리 (게임 spec).
+ * 추가 magic 폭발. 단일 sympatheticTarget 만 처리 (게임 spec).
  *
  * raw: SympatheticDamageReduction=0.30.
+ * codex P1 (PR #58): raw desc tooltip "@SympatheticDamageReduction*100@%" → 변수명 은
+ * "Reduction" 이지만 실제 의미는 base 의 30% 데미지 (= 70% reduction). var × baseDmg 적용.
  */
 function triggerAbilitySympatheticDetonation(
   attacker: CombatUnit,
@@ -1927,16 +1934,17 @@ function triggerAbilitySympatheticDetonation(
   time: number,
   logs: CombatLog[],
   tickLogs: CombatLog[],
-): void {
-  if (attacker.gravesSympatheticReduction <= 0) return;
+): { dealt: number; rawDealt: number } {
+  if (attacker.gravesSympatheticReduction <= 0) return { dealt: 0, rawDealt: 0 };
   const candidates = enemyTeam
     .filter((e) => e.id !== primaryHitTarget.id && e.state !== 'dead')
     .map((e) => ({ enemy: e, dist: hexDistance(primaryHitTarget.position, e.position) }))
     .filter((x) => x.dist <= 1)
     .sort((a, b) => a.dist - b.dist);
-  if (candidates.length === 0) return;
+  if (candidates.length === 0) return { dealt: 0, rawDealt: 0 };
   const sympathy = candidates[0].enemy;
-  const reducedDmg = baseDmg * (1 - attacker.gravesSympatheticReduction);
+  // codex P1: raw 변수 (0.30) 가 곧 dealt damage fraction. baseDmg × 0.30 = 30% damage.
+  const reducedDmg = baseDmg * attacker.gravesSympatheticReduction;
   let dmg = applyResistance(reducedDmg, sympathy.stats.magicResist, attacker.stats.magicPen);
   if (sympathy.damageReduction > 0) dmg *= (1 - sympathy.damageReduction);
   dmg = applyShield(sympathy, dmg, eventBus, tick);
@@ -1955,6 +1963,7 @@ function triggerAbilitySympatheticDetonation(
     eventBus.emit('on_death', { sourceId: sympathy.id, targetId: attacker.id, tick });
     applyGravesHelperKill(attacker, sympathy, enemyTeam, occupiedPositions, killerArbiterState, eventBus, tick, time, logs, tickLogs);
   }
+  return { dealt: dmg, rawDealt: reducedDmg };
 }
 
 function applyGravesStatUpgrades(units: CombatUnit[], upgrades: string[] | undefined): void {
@@ -4558,22 +4567,28 @@ export function simulateCombat(
               // 최신상 Phase 3C-2 — ability AOE (BlastRadius / SympatheticDetonation).
               // ability primary hit 처리 끝난 직후 호출. abilityTarget 위치 기준.
               // baseDmg = abilityDmg (raw hit count damage 단위, mitigation 전).
+              // codex P2 (PR #58): splash dealt/rawDealt 를 totalAbilityDmg / totalRawAbilityDmg
+              // 에 누적 — omnivamp heal 및 on_cast.value/rawValue 정합.
               if (unit.gravesBlastIncreasedRadius > 0 || unit.gravesSympatheticReduction > 0) {
                 const ownEnemyTeam = unit.team === 'player' ? enemies : playerUnits;
                 const ownArbiterState = unit.team === 'player' ? playerArbiterState : enemyArbiterState;
                 if (unit.gravesBlastIncreasedRadius > 0) {
-                  triggerAbilityBlastRadius(
+                  const r = triggerAbilityBlastRadius(
                     unit, abilityTarget.position, abilityTargets, abilityDmg,
                     ownEnemyTeam, occupiedPositions, ownArbiterState,
                     eventBus, tick, time, logs, tickLogs,
                   );
+                  totalAbilityDmg += r.dealt;
+                  totalRawAbilityDmg += r.rawDealt;
                 }
                 if (unit.gravesSympatheticReduction > 0) {
-                  triggerAbilitySympatheticDetonation(
+                  const r = triggerAbilitySympatheticDetonation(
                     unit, abilityTarget, abilityDmg,
                     ownEnemyTeam, occupiedPositions, ownArbiterState,
                     eventBus, tick, time, logs, tickLogs,
                   );
+                  totalAbilityDmg += r.dealt;
+                  totalRawAbilityDmg += r.rawDealt;
                 }
               }
             }
