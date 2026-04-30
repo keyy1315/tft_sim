@@ -1519,8 +1519,10 @@ function triggerGravBooster(
   time: number,
 ): void {
   if (unit.gravesGravBoosterMaxAttacks <= 0) return;
-  // 1. AS bonus 활성 (다음 N attacks 동안)
-  unit.gravesGravBoosterAttacksRemaining = unit.gravesGravBoosterMaxAttacks;
+  // 1. AS bonus 활성 (다음 N attacks 동안).
+  // codex P1: kill 직후 같은 attack cycle 끝의 attacksRemaining-- 가 1 stack 즉시 소비함.
+  // → kill shot 자체는 boost 적용 대상 아니므로 +1 compensation. 결과: 다음 N attacks 보장.
+  unit.gravesGravBoosterAttacksRemaining = unit.gravesGravBoosterMaxAttacks + 1;
   // 2. dash to next target — alive enemy 가 있으면 가장 가까운 적 한정으로 이동.
   if (enemyTeamAlive.length === 0) return;
   let nextTarget: CombatUnit | undefined;
@@ -1549,6 +1551,7 @@ function triggerLatentExplosion(
   tick: number,
   time: number,
   logs: CombatLog[],
+  killerArbiterState: ArbiterTriggerState,  // codex P2: splash kill 도 enemyDeathCount 카운트
 ): void {
   if (deadTarget.gravesLatentStored <= 0) return;
   const splashDamage = deadTarget.gravesLatentStored;
@@ -1570,6 +1573,8 @@ function triggerLatentExplosion(
       splashTarget.currentHp = 0;
       splashTarget.state = 'dead';
       killer.killCount++;
+      // codex P2: Arbiter on_enemy_death trigger 일관성 — 다른 kill path 와 동일하게 카운트.
+      killerArbiterState.enemyDeathCount++;
       eventBus.emit('on_kill', { sourceId: killer.id, targetId: splashTarget.id, tick });
       eventBus.emit('on_death', { sourceId: splashTarget.id, targetId: killer.id, tick });
     }
@@ -3657,7 +3662,8 @@ export function simulateCombat(
             // 최신상 LatentExplosion — target 사망 시 stored 누적량 splash.
             if (target.gravesLatentStored > 0) {
               const ownEnemyTeam = unit.team === 'player' ? enemies : playerUnits;
-              triggerLatentExplosion(unit, target, ownEnemyTeam, eventBus, tick, time, logs);
+              const ownArbiterState = unit.team === 'player' ? playerArbiterState : enemyArbiterState;
+              triggerLatentExplosion(unit, target, ownEnemyTeam, eventBus, tick, time, logs, ownArbiterState);
             }
             // 최신상 GravBooster/2 — 처치 관여 시 dash + AS buff start (NumAttacks 동안).
             if (unit.gravesGravBoosterMaxAttacks > 0) {
@@ -3732,7 +3738,9 @@ export function simulateCombat(
             }
 
             // 최신상 LatentExplosion — 추가 hit 도 stored 에 누적.
-            if (unit.gravesLatentStoredPct > 0 && extraFinal > 0 && target.currentHp > 0) {
+            // codex P2: 치명 extra hit (currentHp <= 0 으로 만든 hit) 의 damage 도 stored 에
+            // 포함되어야 splash 폭발량 정확. currentHp 가드 제거 — 평타 first hit 과 동일.
+            if (unit.gravesLatentStoredPct > 0 && extraFinal > 0) {
               target.gravesLatentStored += extraFinal * unit.gravesLatentStoredPct;
             }
 
@@ -3749,7 +3757,8 @@ export function simulateCombat(
               // 최신상 LatentExplosion — 추가 hit 으로 사망해도 splash 발동.
               if (target.gravesLatentStored > 0) {
                 const ownEnemyTeam = unit.team === 'player' ? enemies : playerUnits;
-                triggerLatentExplosion(unit, target, ownEnemyTeam, eventBus, tick, time, logs);
+                const ownArbiterState = unit.team === 'player' ? playerArbiterState : enemyArbiterState;
+                triggerLatentExplosion(unit, target, ownEnemyTeam, eventBus, tick, time, logs, ownArbiterState);
               }
               // 최신상 GravBooster/2 — 추가 hit 으로 처치 시에도 trigger.
               if (unit.gravesGravBoosterMaxAttacks > 0) {
