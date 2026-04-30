@@ -1648,13 +1648,47 @@ function triggerLatentExplosion(
  * raw: NumBonusProjectiles=2/4/6, SpreadIncrease=0.20/0.30/0.40.
  * mitigation pipeline 적용 (resistance / DR / shield / invulnerable).
  */
+/**
+ * 공통 helper-hit kill follow-up — codex P2 (PR #57):
+ *  1. arbiter enemyDeathCount++ (Arbiter on_enemy_death trigger 일관성)
+ *  2. LatentExplosion splash (해당 enemy 의 stored > 0 일 때)
+ *  3. GravBooster trigger (attacker 활성 시)
+ * 평타 first hit / extra hit kill 사이트와 동일한 후속 처리 보장.
+ */
+function applyGravesHelperKill(
+  attacker: CombatUnit,
+  deadEnemy: CombatUnit,
+  enemyTeam: CombatUnit[],
+  occupiedPositions: Set<string>,
+  killerArbiterState: ArbiterTriggerState,
+  eventBus: EventBus,
+  tick: number,
+  time: number,
+  logs: CombatLog[],
+  tickLogs: CombatLog[],
+): void {
+  killerArbiterState.enemyDeathCount++;
+  if (deadEnemy.gravesLatentStored > 0) {
+    triggerLatentExplosion(attacker, deadEnemy, enemyTeam, eventBus, tick, time, logs, killerArbiterState);
+  }
+  if (attacker.gravesGravBoosterMaxAttacks > 0) {
+    const aliveEnemies = enemyTeam.filter(e => e.state !== 'dead');
+    triggerGravBooster(attacker, aliveEnemies, occupiedPositions, logs, tickLogs, tick, time);
+  }
+}
+
 function triggerBuckshot(
   attacker: CombatUnit,
   primaryTarget: CombatUnit,
   finalDamage: number,
   enemyTeam: CombatUnit[],
+  occupiedPositions: Set<string>,
+  killerArbiterState: ArbiterTriggerState,
   eventBus: EventBus,
   tick: number,
+  time: number,
+  logs: CombatLog[],
+  tickLogs: CombatLog[],
 ): void {
   if (attacker.gravesBuckshotProjectiles <= 0) return;
   const extraProjectiles = attacker.gravesBuckshotProjectiles;
@@ -1674,12 +1708,17 @@ function triggerBuckshot(
     enemy.currentHp -= dmg;
     enemy.totalDamageTaken += dmg;
     attacker.totalDamageDealt += dmg;
+    // codex P2: helper hit 도 LatentExplosion stored 누적 (graves 가 입힌 모든 피해).
+    if (attacker.gravesLatentStoredPct > 0 && dmg > 0) {
+      enemy.gravesLatentStored += dmg * attacker.gravesLatentStoredPct;
+    }
     if (enemy.currentHp <= 0 && enemy.state !== 'dead') {
       enemy.currentHp = 0;
       enemy.state = 'dead';
       attacker.killCount++;
       eventBus.emit('on_kill', { sourceId: attacker.id, targetId: enemy.id, tick });
       eventBus.emit('on_death', { sourceId: enemy.id, targetId: attacker.id, tick });
+      applyGravesHelperKill(attacker, enemy, enemyTeam, occupiedPositions, killerArbiterState, eventBus, tick, time, logs, tickLogs);
     }
   }
 }
@@ -1694,8 +1733,13 @@ function triggerLaserBallistics(
   primaryTarget: CombatUnit,
   finalDamage: number,
   enemyTeam: CombatUnit[],
+  occupiedPositions: Set<string>,
+  killerArbiterState: ArbiterTriggerState,
   eventBus: EventBus,
   tick: number,
+  time: number,
+  logs: CombatLog[],
+  tickLogs: CombatLog[],
 ): void {
   if (attacker.gravesLaserPenetrationHexes <= 0) return;
   // primaryTarget 제외 가장 가까운 적 (관통 다음 적).
@@ -1716,12 +1760,17 @@ function triggerLaserBallistics(
   nextEnemy.currentHp -= dmg;
   nextEnemy.totalDamageTaken += dmg;
   attacker.totalDamageDealt += dmg;
+  // codex P2: helper hit 도 LatentExplosion stored 누적.
+  if (attacker.gravesLatentStoredPct > 0 && dmg > 0) {
+    nextEnemy.gravesLatentStored += dmg * attacker.gravesLatentStoredPct;
+  }
   if (nextEnemy.currentHp <= 0 && nextEnemy.state !== 'dead') {
     nextEnemy.currentHp = 0;
     nextEnemy.state = 'dead';
     attacker.killCount++;
     eventBus.emit('on_kill', { sourceId: attacker.id, targetId: nextEnemy.id, tick });
     eventBus.emit('on_death', { sourceId: nextEnemy.id, targetId: attacker.id, tick });
+    applyGravesHelperKill(attacker, nextEnemy, enemyTeam, occupiedPositions, killerArbiterState, eventBus, tick, time, logs, tickLogs);
   }
 }
 
@@ -1735,8 +1784,13 @@ function triggerFragmentation(
   primaryTarget: CombatUnit,
   finalDamage: number,
   enemyTeam: CombatUnit[],
+  occupiedPositions: Set<string>,
+  killerArbiterState: ArbiterTriggerState,
   eventBus: EventBus,
   tick: number,
+  time: number,
+  logs: CombatLog[],
+  tickLogs: CombatLog[],
 ): void {
   if (attacker.gravesFragDamage <= 0 || attacker.gravesFragProjectiles <= 0) return;
   const fragDmg = finalDamage * attacker.gravesFragDamage;
@@ -1754,12 +1808,17 @@ function triggerFragmentation(
     enemy.currentHp -= dmg;
     enemy.totalDamageTaken += dmg;
     attacker.totalDamageDealt += dmg;
+    // codex P2: helper hit 도 LatentExplosion stored 누적.
+    if (attacker.gravesLatentStoredPct > 0 && dmg > 0) {
+      enemy.gravesLatentStored += dmg * attacker.gravesLatentStoredPct;
+    }
     if (enemy.currentHp <= 0 && enemy.state !== 'dead') {
       enemy.currentHp = 0;
       enemy.state = 'dead';
       attacker.killCount++;
       eventBus.emit('on_kill', { sourceId: attacker.id, targetId: enemy.id, tick });
       eventBus.emit('on_death', { sourceId: enemy.id, targetId: attacker.id, tick });
+      applyGravesHelperKill(attacker, enemy, enemyTeam, occupiedPositions, killerArbiterState, eventBus, tick, time, logs, tickLogs);
     }
   }
 }
@@ -3848,11 +3907,14 @@ export function simulateCombat(
 
           // 최신상 Phase 3C-1 — 평타 base AOE (Buckshot/Laser/Frag).
           // 모든 helper 가 mitigation pipeline 적용 + on_kill/on_death emit (kill 시).
+          // codex P2 (PR #57): kill 시 arbiter death count + LatentExplosion + GravBooster
+          // follow-up 일관성 위해 occupiedPositions/arbiterState/tickLogs/time 전달.
           {
             const ownEnemyTeam = unit.team === 'player' ? enemies : playerUnits;
-            triggerBuckshot(unit, target, finalDamage, ownEnemyTeam, eventBus, tick);
-            triggerLaserBallistics(unit, target, finalDamage, ownEnemyTeam, eventBus, tick);
-            triggerFragmentation(unit, target, finalDamage, ownEnemyTeam, eventBus, tick);
+            const ownArbiterState = unit.team === 'player' ? playerArbiterState : enemyArbiterState;
+            triggerBuckshot(unit, target, finalDamage, ownEnemyTeam, occupiedPositions, ownArbiterState, eventBus, tick, time, logs, tickLogs);
+            triggerLaserBallistics(unit, target, finalDamage, ownEnemyTeam, occupiedPositions, ownArbiterState, eventBus, tick, time, logs, tickLogs);
+            triggerFragmentation(unit, target, finalDamage, ownEnemyTeam, occupiedPositions, ownArbiterState, eventBus, tick, time, logs, tickLogs);
           }
 
           // 별돌보미 뱀(Serpent) — 강화 칸 별돌보미 가 평타로 적 명중 시 중독 적용
@@ -3956,11 +4018,13 @@ export function simulateCombat(
             }
 
             // 최신상 Phase 3C-1 — 추가 hit 도 base AOE (Buckshot/Laser/Frag) 트리거.
+            // codex P2 (PR #57): helper kill follow-up 일관성 (arbiter / LatentExplosion / GravBooster).
             {
               const ownEnemyTeam = unit.team === 'player' ? enemies : playerUnits;
-              triggerBuckshot(unit, target, extraFinal, ownEnemyTeam, eventBus, tick);
-              triggerLaserBallistics(unit, target, extraFinal, ownEnemyTeam, eventBus, tick);
-              triggerFragmentation(unit, target, extraFinal, ownEnemyTeam, eventBus, tick);
+              const ownArbiterState = unit.team === 'player' ? playerArbiterState : enemyArbiterState;
+              triggerBuckshot(unit, target, extraFinal, ownEnemyTeam, occupiedPositions, ownArbiterState, eventBus, tick, time, logs, tickLogs);
+              triggerLaserBallistics(unit, target, extraFinal, ownEnemyTeam, occupiedPositions, ownArbiterState, eventBus, tick, time, logs, tickLogs);
+              triggerFragmentation(unit, target, extraFinal, ownEnemyTeam, occupiedPositions, ownArbiterState, eventBus, tick, time, logs, tickLogs);
             }
 
             if (target.currentHp <= 0) {
