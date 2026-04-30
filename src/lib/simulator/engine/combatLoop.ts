@@ -206,6 +206,13 @@ function createCombatUnit(
     gravesGravBoosterAttacksRemaining: 0,
     gravesLatentStoredPct: 0,
     gravesLatentStored: 0,
+    gravesBuckshotProjectiles: 0,
+    gravesBuckshotSpread: 0,
+    gravesLaserPenetrationHexes: 0,
+    gravesLaserDmgReductionPerTarget: 0,
+    gravesFragDamage: 0,
+    gravesFragProjectiles: 0,
+    gravesMeltthroughArmorMR: 0,
     gragasCarryActive: false,
     leonaCarryActive: false,
     attackCount: 0,
@@ -1359,6 +1366,38 @@ const GRAVES_STAT_UPGRADE_HANDLERS: Record<string, (u: CombatUnit, baseAd: numbe
   LatentExplosion:    (u)     => {
     u.gravesLatentStoredPct = Math.max(u.gravesLatentStoredPct, 0.15);
   },
+  // Phase 3C-1 — 평타 base AOE (Buckshot/Laser/Frag/Melt).
+  // Buckshot: NumBonusProjectiles 2/4/6, SpreadIncrease 0.20/0.30/0.40.
+  Buckshot:           (u)     => {
+    u.gravesBuckshotProjectiles = Math.max(u.gravesBuckshotProjectiles, 2);
+    u.gravesBuckshotSpread = Math.max(u.gravesBuckshotSpread, 0.20);
+  },
+  Buckshot2:          (u)     => {
+    u.gravesBuckshotProjectiles = Math.max(u.gravesBuckshotProjectiles, 4);
+    u.gravesBuckshotSpread = Math.max(u.gravesBuckshotSpread, 0.30);
+  },
+  Buckshot3:          (u)     => {
+    u.gravesBuckshotProjectiles = Math.max(u.gravesBuckshotProjectiles, 6);
+    u.gravesBuckshotSpread = Math.max(u.gravesBuckshotSpread, 0.40);
+  },
+  // LaserBallistics: BonusHexes=1, DamageReductionPerTarget=0.5.
+  LaserBallistics:    (u)     => {
+    u.gravesLaserPenetrationHexes = Math.max(u.gravesLaserPenetrationHexes, 1);
+    u.gravesLaserDmgReductionPerTarget = Math.max(u.gravesLaserDmgReductionPerTarget, 0.5);
+  },
+  // FragmentationRounds: FragmentDamage 0.15/0.20, FragmentProjectiles 2/3.
+  FragmentationRounds: (u)    => {
+    u.gravesFragDamage = Math.max(u.gravesFragDamage, 0.15);
+    u.gravesFragProjectiles = Math.max(u.gravesFragProjectiles, 2);
+  },
+  FragmentationRounds2: (u)   => {
+    u.gravesFragDamage = Math.max(u.gravesFragDamage, 0.20);
+    u.gravesFragProjectiles = Math.max(u.gravesFragProjectiles, 3);
+  },
+  // Meltthrough: ArmorMRReduction=4 (매초 graves 주변 2hex 적군 armor/MR -4).
+  Meltthrough:        (u)     => {
+    u.gravesMeltthroughArmorMR = Math.max(u.gravesMeltthroughArmorMR, 4);
+  },
 };
 
 /**
@@ -1411,7 +1450,16 @@ const GRAVES_UPGRADE_APPLY_ORDER: ReadonlyArray<string> = [
   'GravBooster',
   'GravBooster2',
   'LatentExplosion',
-  // 6. % multiplier (가장 마지막 — 1·2 단계의 flat HP/AD 가산 후 적용)
+  // 6. Phase 3C-1 — 평타 base AOE (정렬 — 결정성).
+  //    Buckshot 1→2→3 순서, Frag 1→2 순서로 max() override.
+  'Buckshot',
+  'Buckshot2',
+  'Buckshot3',
+  'FragmentationRounds',
+  'FragmentationRounds2',
+  'LaserBallistics',
+  'Meltthrough',
+  // 7. % multiplier (가장 마지막 — 1·2 단계의 flat HP/AD 가산 후 적용)
   'SheerMass',
 ];
 
@@ -1589,6 +1637,190 @@ function triggerLatentExplosion(
   }
   // 폭발 후 stored 초기화 (재사용 안 함 — target 이미 사망)
   deadTarget.gravesLatentStored = 0;
+}
+
+/**
+ * Buckshot/2/3 — 평타 명중 시 추가 (N-1) projectile 을 nearby 적군에 분산.
+ * 사용자 결정: "타겟 + 주변 혼합" — 첫 hit 은 target (이미 처리됨), 추가 (N-1) 은
+ * graves 주변 가까운 적 N-1 명에 finalDmg 만큼 추가 hit. SpreadIncrease 는 nearby radius
+ * 결정 (1 + round(spread × 2.5) → 0.20→1, 0.30→2, 0.40→2 hex).
+ *
+ * raw: NumBonusProjectiles=2/4/6, SpreadIncrease=0.20/0.30/0.40.
+ * mitigation pipeline 적용 (resistance / DR / shield / invulnerable).
+ */
+/**
+ * 공통 helper-hit kill follow-up — codex P2 (PR #57):
+ *  1. arbiter enemyDeathCount++ (Arbiter on_enemy_death trigger 일관성)
+ *  2. LatentExplosion splash (해당 enemy 의 stored > 0 일 때)
+ *  3. GravBooster trigger (attacker 활성 시)
+ * 평타 first hit / extra hit kill 사이트와 동일한 후속 처리 보장.
+ */
+function applyGravesHelperKill(
+  attacker: CombatUnit,
+  deadEnemy: CombatUnit,
+  enemyTeam: CombatUnit[],
+  occupiedPositions: Set<string>,
+  killerArbiterState: ArbiterTriggerState,
+  eventBus: EventBus,
+  tick: number,
+  time: number,
+  logs: CombatLog[],
+  tickLogs: CombatLog[],
+): void {
+  killerArbiterState.enemyDeathCount++;
+  if (deadEnemy.gravesLatentStored > 0) {
+    triggerLatentExplosion(attacker, deadEnemy, enemyTeam, eventBus, tick, time, logs, killerArbiterState);
+  }
+  if (attacker.gravesGravBoosterMaxAttacks > 0) {
+    const aliveEnemies = enemyTeam.filter(e => e.state !== 'dead');
+    triggerGravBooster(attacker, aliveEnemies, occupiedPositions, logs, tickLogs, tick, time);
+  }
+}
+
+function triggerBuckshot(
+  attacker: CombatUnit,
+  primaryTarget: CombatUnit,
+  finalDamage: number,
+  enemyTeam: CombatUnit[],
+  occupiedPositions: Set<string>,
+  killerArbiterState: ArbiterTriggerState,
+  eventBus: EventBus,
+  tick: number,
+  time: number,
+  logs: CombatLog[],
+  tickLogs: CombatLog[],
+): void {
+  if (attacker.gravesBuckshotProjectiles <= 0) return;
+  const extraProjectiles = attacker.gravesBuckshotProjectiles;
+  const spreadRadius = 1 + Math.round(attacker.gravesBuckshotSpread * 2.5);
+  // primaryTarget 제외, attacker 주변 spread radius 안 가까운 적 (정렬 — distance asc).
+  const candidates = enemyTeam
+    .filter((e) => e.id !== primaryTarget.id && e.state !== 'dead')
+    .map((e) => ({ enemy: e, dist: hexDistance(attacker.position, e.position) }))
+    .filter((x) => x.dist <= spreadRadius)
+    .sort((a, b) => a.dist - b.dist)
+    .slice(0, extraProjectiles);
+  for (const { enemy } of candidates) {
+    let dmg = applyResistance(finalDamage, enemy.stats.armor, attacker.stats.armorPen);
+    if (enemy.damageReduction > 0) dmg *= (1 - enemy.damageReduction);
+    dmg = applyShield(enemy, dmg, eventBus, tick);
+    if (enemy.statusEffects.some(e => e.type === 'invulnerable')) dmg = 0;
+    enemy.currentHp -= dmg;
+    enemy.totalDamageTaken += dmg;
+    attacker.totalDamageDealt += dmg;
+    // codex P2: helper hit 도 LatentExplosion stored 누적 (graves 가 입힌 모든 피해).
+    if (attacker.gravesLatentStoredPct > 0 && dmg > 0) {
+      enemy.gravesLatentStored += dmg * attacker.gravesLatentStoredPct;
+    }
+    if (enemy.currentHp <= 0 && enemy.state !== 'dead') {
+      enemy.currentHp = 0;
+      enemy.state = 'dead';
+      attacker.killCount++;
+      eventBus.emit('on_kill', { sourceId: attacker.id, targetId: enemy.id, tick });
+      eventBus.emit('on_death', { sourceId: enemy.id, targetId: attacker.id, tick });
+      applyGravesHelperKill(attacker, enemy, enemyTeam, occupiedPositions, killerArbiterState, eventBus, tick, time, logs, tickLogs);
+    }
+  }
+}
+
+/**
+ * LaserBallistics — 평타 hit 후 다음 가까운 적 1명에 추가 hit (감소 50%).
+ * 단일화: BonusHexes=1 의미는 1 칸 너머 추가 비행. 시뮬은 단일 타겟 모델 → 가까운 적 next 1명.
+ * raw: BonusHexes=1, DamageReductionPerTarget=0.5.
+ */
+function triggerLaserBallistics(
+  attacker: CombatUnit,
+  primaryTarget: CombatUnit,
+  finalDamage: number,
+  enemyTeam: CombatUnit[],
+  occupiedPositions: Set<string>,
+  killerArbiterState: ArbiterTriggerState,
+  eventBus: EventBus,
+  tick: number,
+  time: number,
+  logs: CombatLog[],
+  tickLogs: CombatLog[],
+): void {
+  if (attacker.gravesLaserPenetrationHexes <= 0) return;
+  // primaryTarget 제외 가장 가까운 적 (관통 다음 적).
+  const candidates = enemyTeam.filter((e) => e.id !== primaryTarget.id && e.state !== 'dead');
+  if (candidates.length === 0) return;
+  let nextEnemy: CombatUnit | undefined;
+  let bestDist = Infinity;
+  for (const e of candidates) {
+    const d = hexDistance(primaryTarget.position, e.position);
+    if (d < bestDist) { bestDist = d; nextEnemy = e; }
+  }
+  if (!nextEnemy) return;
+  const reducedDmg = finalDamage * (1 - attacker.gravesLaserDmgReductionPerTarget);
+  let dmg = applyResistance(reducedDmg, nextEnemy.stats.armor, attacker.stats.armorPen);
+  if (nextEnemy.damageReduction > 0) dmg *= (1 - nextEnemy.damageReduction);
+  dmg = applyShield(nextEnemy, dmg, eventBus, tick);
+  if (nextEnemy.statusEffects.some(e => e.type === 'invulnerable')) dmg = 0;
+  nextEnemy.currentHp -= dmg;
+  nextEnemy.totalDamageTaken += dmg;
+  attacker.totalDamageDealt += dmg;
+  // codex P2: helper hit 도 LatentExplosion stored 누적.
+  if (attacker.gravesLatentStoredPct > 0 && dmg > 0) {
+    nextEnemy.gravesLatentStored += dmg * attacker.gravesLatentStoredPct;
+  }
+  if (nextEnemy.currentHp <= 0 && nextEnemy.state !== 'dead') {
+    nextEnemy.currentHp = 0;
+    nextEnemy.state = 'dead';
+    attacker.killCount++;
+    eventBus.emit('on_kill', { sourceId: attacker.id, targetId: nextEnemy.id, tick });
+    eventBus.emit('on_death', { sourceId: nextEnemy.id, targetId: attacker.id, tick });
+    applyGravesHelperKill(attacker, nextEnemy, enemyTeam, occupiedPositions, killerArbiterState, eventBus, tick, time, logs, tickLogs);
+  }
+}
+
+/**
+ * FragmentationRounds/2 — 평타 hit 시 primaryTarget 주변 N hex 적군 N명에 magic damage.
+ * raw: FragmentDamage=0.15/0.20, FragmentProjectiles=2/3.
+ * splash radius = 1 hex (close fragments).
+ */
+function triggerFragmentation(
+  attacker: CombatUnit,
+  primaryTarget: CombatUnit,
+  finalDamage: number,
+  enemyTeam: CombatUnit[],
+  occupiedPositions: Set<string>,
+  killerArbiterState: ArbiterTriggerState,
+  eventBus: EventBus,
+  tick: number,
+  time: number,
+  logs: CombatLog[],
+  tickLogs: CombatLog[],
+): void {
+  if (attacker.gravesFragDamage <= 0 || attacker.gravesFragProjectiles <= 0) return;
+  const fragDmg = finalDamage * attacker.gravesFragDamage;
+  const candidates = enemyTeam
+    .filter((e) => e.id !== primaryTarget.id && e.state !== 'dead')
+    .map((e) => ({ enemy: e, dist: hexDistance(primaryTarget.position, e.position) }))
+    .filter((x) => x.dist <= 1)
+    .sort((a, b) => a.dist - b.dist)
+    .slice(0, attacker.gravesFragProjectiles);
+  for (const { enemy } of candidates) {
+    let dmg = applyResistance(fragDmg, enemy.stats.magicResist, attacker.stats.magicPen);
+    if (enemy.damageReduction > 0) dmg *= (1 - enemy.damageReduction);
+    dmg = applyShield(enemy, dmg, eventBus, tick);
+    if (enemy.statusEffects.some(e => e.type === 'invulnerable')) dmg = 0;
+    enemy.currentHp -= dmg;
+    enemy.totalDamageTaken += dmg;
+    attacker.totalDamageDealt += dmg;
+    // codex P2: helper hit 도 LatentExplosion stored 누적.
+    if (attacker.gravesLatentStoredPct > 0 && dmg > 0) {
+      enemy.gravesLatentStored += dmg * attacker.gravesLatentStoredPct;
+    }
+    if (enemy.currentHp <= 0 && enemy.state !== 'dead') {
+      enemy.currentHp = 0;
+      enemy.state = 'dead';
+      attacker.killCount++;
+      eventBus.emit('on_kill', { sourceId: attacker.id, targetId: enemy.id, tick });
+      eventBus.emit('on_death', { sourceId: enemy.id, targetId: attacker.id, tick });
+      applyGravesHelperKill(attacker, enemy, enemyTeam, occupiedPositions, killerArbiterState, eventBus, tick, time, logs, tickLogs);
+    }
+  }
 }
 
 function applyGravesStatUpgrades(units: CombatUnit[], upgrades: string[] | undefined): void {
@@ -2076,6 +2308,13 @@ function spawnFreljordTurrets(
             gravesGravBoosterAttacksRemaining: 0,
             gravesLatentStoredPct: 0,
             gravesLatentStored: 0,
+            gravesBuckshotProjectiles: 0,
+            gravesBuckshotSpread: 0,
+            gravesLaserPenetrationHexes: 0,
+            gravesLaserDmgReductionPerTarget: 0,
+            gravesFragDamage: 0,
+            gravesFragProjectiles: 0,
+            gravesMeltthroughArmorMR: 0,
             gragasCarryActive: false,
             leonaCarryActive: false,
             attackCount: 0,
@@ -2243,6 +2482,13 @@ function trySpawnGalio(
     gravesGravBoosterAttacksRemaining: 0,
     gravesLatentStoredPct: 0,
     gravesLatentStored: 0,
+    gravesBuckshotProjectiles: 0,
+    gravesBuckshotSpread: 0,
+    gravesLaserPenetrationHexes: 0,
+    gravesLaserDmgReductionPerTarget: 0,
+    gravesFragDamage: 0,
+    gravesFragProjectiles: 0,
+    gravesMeltthroughArmorMR: 0,
     gragasCarryActive: false,
     leonaCarryActive: false,
     attackCount: 0,
@@ -3471,6 +3717,21 @@ export function simulateCombat(
       }
     }
 
+    // 최신상 Meltthrough — 매 1초 graves 주변 2hex 적군 armor/MR -N (영구 누적, floor 0).
+    if (tick > 0 && tick % TICKS_PER_SECOND === 0) {
+      for (const u of allUnits) {
+        if (u.state === 'dead') continue;
+        if (u.gravesMeltthroughArmorMR <= 0) continue;
+        const enemyTeam = u.team === 'player' ? enemies : playerUnits;
+        for (const e of enemyTeam) {
+          if (e.state === 'dead') continue;
+          if (hexDistance(u.position, e.position) > 2) continue;
+          e.stats.armor = Math.max(0, e.stats.armor - u.gravesMeltthroughArmorMR);
+          e.stats.magicResist = Math.max(0, e.stats.magicResist - u.gravesMeltthroughArmorMR);
+        }
+      }
+    }
+
     // 최신상 EmergencyShielding/2 — tick pre-check (safety net).
     // codex P1 fix: damage application 직후 maybeTriggerEmergencyShield() 호출이
     // primary path (평타/DoubleTap inline). 본 tick pre-check 는 비-attack
@@ -3644,6 +3905,18 @@ export function simulateCombat(
             target.gravesLatentStored += finalDamage * unit.gravesLatentStoredPct;
           }
 
+          // 최신상 Phase 3C-1 — 평타 base AOE (Buckshot/Laser/Frag).
+          // 모든 helper 가 mitigation pipeline 적용 + on_kill/on_death emit (kill 시).
+          // codex P2 (PR #57): kill 시 arbiter death count + LatentExplosion + GravBooster
+          // follow-up 일관성 위해 occupiedPositions/arbiterState/tickLogs/time 전달.
+          {
+            const ownEnemyTeam = unit.team === 'player' ? enemies : playerUnits;
+            const ownArbiterState = unit.team === 'player' ? playerArbiterState : enemyArbiterState;
+            triggerBuckshot(unit, target, finalDamage, ownEnemyTeam, occupiedPositions, ownArbiterState, eventBus, tick, time, logs, tickLogs);
+            triggerLaserBallistics(unit, target, finalDamage, ownEnemyTeam, occupiedPositions, ownArbiterState, eventBus, tick, time, logs, tickLogs);
+            triggerFragmentation(unit, target, finalDamage, ownEnemyTeam, occupiedPositions, ownArbiterState, eventBus, tick, time, logs, tickLogs);
+          }
+
           // 별돌보미 뱀(Serpent) — 강화 칸 별돌보미 가 평타로 적 명중 시 중독 적용
           triggerSerpentPoison(unit, target, finalDamage);
 
@@ -3742,6 +4015,16 @@ export function simulateCombat(
             // 포함되어야 splash 폭발량 정확. currentHp 가드 제거 — 평타 first hit 과 동일.
             if (unit.gravesLatentStoredPct > 0 && extraFinal > 0) {
               target.gravesLatentStored += extraFinal * unit.gravesLatentStoredPct;
+            }
+
+            // 최신상 Phase 3C-1 — 추가 hit 도 base AOE (Buckshot/Laser/Frag) 트리거.
+            // codex P2 (PR #57): helper kill follow-up 일관성 (arbiter / LatentExplosion / GravBooster).
+            {
+              const ownEnemyTeam = unit.team === 'player' ? enemies : playerUnits;
+              const ownArbiterState = unit.team === 'player' ? playerArbiterState : enemyArbiterState;
+              triggerBuckshot(unit, target, extraFinal, ownEnemyTeam, occupiedPositions, ownArbiterState, eventBus, tick, time, logs, tickLogs);
+              triggerLaserBallistics(unit, target, extraFinal, ownEnemyTeam, occupiedPositions, ownArbiterState, eventBus, tick, time, logs, tickLogs);
+              triggerFragmentation(unit, target, extraFinal, ownEnemyTeam, occupiedPositions, ownArbiterState, eventBus, tick, time, logs, tickLogs);
             }
 
             if (target.currentHp <= 0) {

@@ -614,6 +614,35 @@ export interface CombatUnit {
    */
   gravesLatentStored: number;
   /**
+   * Buckshot/2/3 — 평타 시 추가 발사 projectile 수 (N-1 nearby hits).
+   * 0 = 미활성 / 2 / 4 / 6. raw NumBonusProjectiles.
+   */
+  gravesBuckshotProjectiles: number;
+  /**
+   * Buckshot/2/3 — spread 정도 (nearby radius 영향). 0 / 0.20 / 0.30 / 0.40.
+   * radius = 1 + round(spread × 2.5) → 1 / 2 / 2 / 2 hex (단순화).
+   */
+  gravesBuckshotSpread: number;
+  /**
+   * LaserBallistics — 관통 hex 수 (다음 적까지 1칸). 0 / 1.
+   * 단일 tier 만 존재 (LaserBallistics2/3 raw 는 tree 미표시 — Riot 미구현).
+   */
+  gravesLaserPenetrationHexes: number;
+  /** LaserBallistics — 관통 적당 damage reduction. 0 / 0.5. */
+  gravesLaserDmgReductionPerTarget: number;
+  /**
+   * FragmentationRounds/2 — 평타 시 주변 파편 fraction. 0 / 0.15 / 0.20.
+   * raw FragmentDamage. magic damage type.
+   */
+  gravesFragDamage: number;
+  /** FragmentationRounds/2 — 파편 개수 (nearby targets). 0 / 2 / 3. */
+  gravesFragProjectiles: number;
+  /**
+   * Meltthrough — 매 1초 graves 주변 2 hex 적군 armor/MR -N (영구 누적, floor 0).
+   * 0 = 미활성 / 4 = 활성. raw ArmorMRReduction.
+   */
+  gravesMeltthroughArmorMR: number;
+  /**
    * 자폭(TFT17_Augment_GragasCarry) 활성 + 가장 강한 그라가스로 선정된 unit 만 true.
    * 그라가스 ability 가 거대한 폭발 (자기 자신 데미지, 다른 아군 X) 로 변환되며,
    * 자폭 데미지로 hp 가 1 미만으로 떨어지지 않음 (HP floor=1).
