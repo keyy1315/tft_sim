@@ -863,14 +863,19 @@ function applyFlexTraitBuffs(activeTraits: ActiveTrait[], ownTeam: CombatUnit[])
     if (u.state === 'dead') continue;
     const isFlexUnit = unitHasTrait(u, '여행자');
     const multiplier = isFlexUnit ? 2 : 1;
-    if (u.role === 'Tank' && shieldHP > 0) {
+    // codex P1 (PR #61): 여행자 챔프는 탱커/비탱커 무관 두 효과 모두 ×2 받음
+    // ("능력치 두 배" 해석). 일반 챔프는 role 별 하나만.
+    const eligibleForShield = isFlexUnit || u.role === 'Tank';
+    const eligibleForAmp = isFlexUnit || u.role !== 'Tank';
+    if (eligibleForShield && shieldHP > 0) {
       const sh = shieldHP * multiplier;
       u.shield += sh;
       u.statusEffects.push({
         type: 'shield', sourceId: u.id,
         remainingTicks: shieldTicks, value: sh,
       });
-    } else if (u.role !== 'Tank' && bonusDA > 0) {
+    }
+    if (eligibleForAmp && bonusDA > 0) {
       u.damageAmp += bonusDA * multiplier;
     }
   }
