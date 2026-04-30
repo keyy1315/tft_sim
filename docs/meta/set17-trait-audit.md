@@ -60,17 +60,17 @@ desc 메커니즘:
 
 본 PR `applyFlexTraitBuffs()` helper 로 적용.
 
-### 우주 그루브 (TFT17_SpaceGroove) — prism (10) 만 처리, 일반 tier 보류
+### 우주 그루브 (TFT17_SpaceGroove) — prism (10) + 일반 tier 모두 적용
 
-- prism (10): `detectPrismTraits()` 가 즉시 winner 결정 ✅
-- 일반 (3)/(5)/(7): 매초 그루비안 ADAP +N% (StartOfCombatDuration 초 동안)
+- prism (10): `detectPrismTraits()` 가 즉시 winner 결정 ✅ (기존)
+- 일반 (3)/(5)/(7): 매초 그루비안 ADAP +N% (StartOfCombatDuration 초 동안) ✅ (별도 PR)
+- main loop tick `tick % TICKS_PER_SECOND === 0` 에서 그루비안 unit `stats.damage *= 1+pct` + `stats.ap += pct×100`.
 
-본 PR `applySpaceGrooveBuffs()` helper 가 그루비안 unit 에 `spaceGrooveAdapPerSec` /
-`spaceGrooveDurationSec` 필드 set 까지만 적용. main loop tick 매초 ADAP 가산은 **보류**.
+mountain calibration test 는 PR #61 에서 bound 완화 (별돌보미 0.85~1.40 / 비-별돌보미 0.80~1.20)
+적용 후 SpaceGroove 일반 tier 추가 적용해도 통과.
 
-**보류 이유**: stargazer-mountain-applied calibration test (23일 game round 6-2) 가 sim flow
-변동에 fragile — 적군 5명 여행자 + SpaceGroove 매초 ADAP 적용 시 mountain trait 의 비-별돌보미
-unit AS ratio 가 0.83 까지 변동. test bound 완화 또는 격리 시점 별도 PR.
+영향 측정 (game-20260423-001 / game-20260424-001): metrics 변화 없음 — 양 게임의 적군 측에서
+SpaceGroove (5+) tier 활성 미달성 또는 그루비안 unit 영향 미세.
 
 ## 영향 측정 — 해석 비교 실험 (PR #61 + 후속)
 

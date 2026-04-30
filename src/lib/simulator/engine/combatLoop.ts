@@ -4148,10 +4148,19 @@ export function simulateCombat(
     }
 
     // 우주 그루브 (SpaceGroove) 일반 tier — 매초 그루비안 ADAP +N% 가산.
-    // 보류: 본 효과 적용 시 stargazer-mountain-applied calibration test 가 fragile
-    // (sim flow 변동으로 비-별돌보미 unit asRatio 0.83 까지 변동). 필드는 set 되지만 적용 보류 —
-    // 별도 PR (audit + calibration test 보강 후) 로 격리 진행.
-    // applySpaceGrooveBuffs() 에서 spaceGrooveAdapPerSec / spaceGrooveDurationSec 는 set 됨.
+    // applySpaceGrooveBuffs() 가 그루비안 unit 에 spaceGrooveAdapPerSec / spaceGrooveDurationSec set.
+    // StartOfCombatDuration 초 동안만, 그 이후 효과 종료.
+    if (tick > 0 && tick % TICKS_PER_SECOND === 0) {
+      const combatSecond = tick / TICKS_PER_SECOND;
+      for (const u of allUnits) {
+        if (u.state === 'dead') continue;
+        if (u.spaceGrooveAdapPerSec <= 0 || u.spaceGrooveDurationSec <= 0) continue;
+        if (combatSecond > u.spaceGrooveDurationSec) continue;
+        const pct = u.spaceGrooveAdapPerSec / 100;
+        u.stats.damage = u.stats.damage * (1 + pct);
+        u.stats.ap = u.stats.ap + u.spaceGrooveAdapPerSec;
+      }
+    }
 
     // 최신상 EmergencyShielding/2 — tick pre-check (safety net).
     // codex P1 fix: damage application 직후 maybeTriggerEmergencyShield() 호출이
