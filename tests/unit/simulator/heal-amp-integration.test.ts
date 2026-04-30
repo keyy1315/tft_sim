@@ -96,9 +96,10 @@ describe('healAmp 적용 사이트 코드 grep — 회귀 안전성', () => {
     const patternA = /\* \(1 \+ \(\w+\.healAmp \?\? 0\)\)/g;
     const matches = file.match(patternA);
     expect(matches, 'healAmp 곱셈 패턴이 코드에 포함되어야 함').toBeDefined();
-    // PR #52: 8 신규 사이트 + 기존 1 (Fountain stacking, line 3122) = 정확 9 매치.
+    // PR #52: 8 신규 사이트 + 기존 1 (Fountain stacking) = 9 매치.
+    // G2 Phase 3A: Nanomachines (`nanoBase * (1 + ...)`) 추가 → 10 매치.
     // 새 heal 사이트 추가 시 본 카운트도 갱신 필수.
-    expect(matches!.length).toBe(9);
+    expect(matches!.length).toBe(10);
   });
 
   it('각 heal 사이트별 fingerprint — 의미 단위 회귀 가드', async () => {
@@ -120,6 +121,8 @@ describe('healAmp 적용 사이트 코드 grep — 회귀 안전성', () => {
       { name: 'ability self-heal (Heal/APHeal/PercentMaximumHealthHealing)', pattern: /healAmount \* \(1 \+ \(unit\.healAmp \?\? 0\)\)/ },
       // 기존 1곳 (Fountain stacking, line 3122) — `healBase * (1 + (u.healAmp ?? 0))`
       { name: 'Fountain stacking heal (PR #41 기존)', pattern: /healBase \* \(1 \+ \(u\.healAmp \?\? 0\)\)/ },
+      // G2 Phase 3A — Nanomachines 매 1초 maxHp × 3% 회복 (`nanoBase * (1 + (u.healAmp ?? 0))`)
+      { name: 'Nanomachines periodic regen (G2 Phase 3A)', pattern: /nanoBase \* \(1 \+ \(u\.healAmp \?\? 0\)\)/ },
     ];
     for (const { name, pattern } of sites) {
       expect(file, `heal 사이트 missing: ${name}`).toMatch(pattern);
