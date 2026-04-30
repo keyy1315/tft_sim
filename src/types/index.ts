@@ -542,6 +542,39 @@ export interface CombatUnit {
    */
   gravesTankDamageAmp: number;
   /**
+   * Nanomachines 업그레이드 — 매초 maxHp × N% 자가 회복. 0 = 미활성, 0.03 = 활성.
+   * main loop 의 1초 주기 tick 에서 누적 적용 (TICKS_PER_SECOND 마다).
+   */
+  gravesNanoRegenPct: number;
+  /**
+   * RipperBullets/2 업그레이드 — 평타 명중 시 대상 armor/MR -N. 0 = 미활성, 1/2 = tier.
+   * 영구 누적 (전투 종료 시까지). on_attack hook 후 즉시 적용.
+   */
+  gravesRipperReduce: number;
+  /**
+   * EmergencyShielding/2 — 저체력 시 1회 maxHp×ShieldPct shield 부여 (Duration 초).
+   * 0 = 미활성 / 0.4 (40%) = trigger HP fraction. 매 tick 의 hp/maxHp 체크.
+   */
+  gravesEmergencyTriggerHpFrac: number;
+  /** EmergencyShielding/2 — shield 양 = maxHp × N. 0.5 = 50% (tier 1) / 0.75 = 75% (tier 2). */
+  gravesEmergencyShieldFrac: number;
+  /** EmergencyShielding/2 — shield 지속 시간 (초). 2.5 (tier 1) / 4 (tier 2). */
+  gravesEmergencyDurationSec: number;
+  /** EmergencyShielding/2 — 1회 한정 가드. trigger 발동 시 true 로 전환. */
+  gravesEmergencyUsed: boolean;
+  /**
+   * Shockwave 업그레이드 — 전투 시작 시 그레이브즈 정면 가까운 적 N명에게
+   * maxHp×0.15 마법 + 2초 stun. true = 활성. on_combat_start 시 1회 처리.
+   */
+  gravesShockwaveActive: boolean;
+  /**
+   * ReactiveArmor 업그레이드 — 피격 시 armor/MR +N stack (perStack), 최대 50회.
+   * 0 = 미활성 / 4 = 활성 (per-hit 증가량). on_hit_taken hook 에서 stack.
+   */
+  gravesReactivePerStack: number;
+  /** ReactiveArmor 누적 stack 수. 0..50 사이 제한. */
+  gravesReactiveStackCount: number;
+  /**
    * 자폭(TFT17_Augment_GragasCarry) 활성 + 가장 강한 그라가스로 선정된 unit 만 true.
    * 그라가스 ability 가 거대한 폭발 (자기 자신 데미지, 다른 아군 X) 로 변환되며,
    * 자폭 데미지로 hp 가 1 미만으로 떨어지지 않음 (HP floor=1).

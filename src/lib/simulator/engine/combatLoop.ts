@@ -187,6 +187,15 @@ function createCombatUnit(
     gravesAbilityDamageBonus: 0,
     gravesUpgrades: [],
     gravesTankDamageAmp: 0,
+    gravesNanoRegenPct: 0,
+    gravesRipperReduce: 0,
+    gravesEmergencyTriggerHpFrac: 0,
+    gravesEmergencyShieldFrac: 0,
+    gravesEmergencyDurationSec: 0,
+    gravesEmergencyUsed: false,
+    gravesShockwaveActive: false,
+    gravesReactivePerStack: 0,
+    gravesReactiveStackCount: 0,
     gragasCarryActive: false,
     leonaCarryActive: false,
     attackCount: 0,
@@ -1260,6 +1269,15 @@ function applyGravesFrameEffects(
  *   SheerMass           maxHp × 1.25
  *
  * AD% 는 base × star scaling (Frame CloseQuarters 와 동일 기준).
+ *
+ * Phase 3A 추가 8종 (event-driven flag set — 실제 효과는 combatLoop hook 에서):
+ *   RipperBullets       gravesRipperReduce = 1   (평타 시 적 armor/MR -1)
+ *   RipperBullets2      gravesRipperReduce = 2   (평타 시 적 armor/MR -2)
+ *   Nanomachines        gravesNanoRegenPct = 0.03 (매 1초 maxHp×3% heal)
+ *   EmergencyShielding  triggerHpFrac=0.4 / shieldFrac=0.5 / durationSec=2.5
+ *   EmergencyShielding2 triggerHpFrac=0.4 / shieldFrac=0.75 / durationSec=4
+ *   Shockwave           gravesShockwaveActive = true (전투 시작 가까운 적 maxHp×15% 마법 + 2s stun)
+ *   ReactiveArmor       gravesReactivePerStack = 4 (피격 시 armor/MR +4 stack, 최대 50회)
  */
 const GRAVES_STAT_UPGRADE_HANDLERS: Record<string, (u: CombatUnit, baseAd: number) => void> = {
   LeechingImplants:  (u, ad) => { u.stats.damage += ad * 0.10; u.omnivamp += 0.10; },
@@ -1284,6 +1302,24 @@ const GRAVES_STAT_UPGRADE_HANDLERS: Record<string, (u: CombatUnit, baseAd: numbe
     u.maxHp = newMax;
     u.currentHp = newMax;
   },
+  // Phase 3A — flag setters. 실제 효과는 main loop / event hook 에서.
+  // higher-tier 가 lower 를 덮어쓰도록 max() 적용 (RipperBullets1+2 동시 입력 방지/정렬은
+  // canonical order 에서 보장하지만, Set 기반 dedup 후 양쪽 다 들어와도 의미가 일치하도록).
+  RipperBullets:      (u)     => { u.gravesRipperReduce = Math.max(u.gravesRipperReduce, 1); },
+  RipperBullets2:     (u)     => { u.gravesRipperReduce = Math.max(u.gravesRipperReduce, 2); },
+  Nanomachines:       (u)     => { u.gravesNanoRegenPct = Math.max(u.gravesNanoRegenPct, 0.03); },
+  EmergencyShielding: (u)     => {
+    u.gravesEmergencyTriggerHpFrac = 0.4;
+    u.gravesEmergencyShieldFrac = Math.max(u.gravesEmergencyShieldFrac, 0.5);
+    u.gravesEmergencyDurationSec = Math.max(u.gravesEmergencyDurationSec, 2.5);
+  },
+  EmergencyShielding2:(u)     => {
+    u.gravesEmergencyTriggerHpFrac = 0.4;
+    u.gravesEmergencyShieldFrac = Math.max(u.gravesEmergencyShieldFrac, 0.75);
+    u.gravesEmergencyDurationSec = Math.max(u.gravesEmergencyDurationSec, 4);
+  },
+  Shockwave:          (u)     => { u.gravesShockwaveActive = true; },
+  ReactiveArmor:      (u)     => { u.gravesReactivePerStack = Math.max(u.gravesReactivePerStack, 4); },
 };
 
 /**
@@ -1317,9 +1353,103 @@ const GRAVES_UPGRADE_APPLY_ORDER: ReadonlyArray<string> = [
   'Heartseeker2',
   'Heartseeker3',
   'Tankbuster',
-  // 3. % multiplier (가장 마지막 — 1·2 단계의 flat HP/AD 가산 후 적용)
+  // 3. event-driven flag setters (Phase 3A — Math.max 사용으로 순서 무관, 단 결정성 보장 위해 정렬)
+  'EmergencyShielding',
+  'EmergencyShielding2',
+  'Nanomachines',
+  'ReactiveArmor',
+  'RipperBullets',
+  'RipperBullets2',
+  'Shockwave',
+  // 4. % multiplier (가장 마지막 — 1·2 단계의 flat HP/AD 가산 후 적용)
   'SheerMass',
 ];
+
+/**
+ * Shockwave (충격파) — 전투 시작 시 가까운 적 N명에게 maxHp × 0.15 마법 피해 + 2초 stun.
+ *
+ * raw effects: ShockvavePercentMaxHealthDamage=0.15, ShockwaveStunDuration=2.
+ * NumTargets 변수가 raw 에 정의되지 않음 → 원본은 cone shape (전방 부채꼴).
+ * 시뮬은 facing 정보 없음 → "그레이브즈에게 가장 가까운 적 2명" 으로 단순화.
+ *
+ * applyGravesStatUpgrades 가 활성화한 unit 1명 한정 (가장 강한 그레이브즈).
+ * tick=0, time=0 시점에 호출. on_death emit 으로 누적 핸들러 정합 유지.
+ */
+/**
+ * EmergencyShielding/2 trigger — HP × triggerHpFrac 도달 시 1회 shield 부여.
+ * 호출 시점: damage application 직후 (codex P1) + tick pre-check (safety net).
+ *
+ * 1-tick burst 시나리오 정합성: 평타 first hit 후 즉시 호출 → 후속 DoubleTap
+ * 추가 hit 부터 shield 흡수. tick pre-check 만으로는 같은 tick 안에서
+ * "trigger 도달 + lethal" 시 shield 미발동.
+ */
+function maybeTriggerEmergencyShield(unit: CombatUnit): void {
+  if (unit.gravesEmergencyTriggerHpFrac <= 0) return;
+  if (unit.gravesEmergencyUsed) return;
+  if (unit.maxHp <= 0) return;
+  if (unit.currentHp / unit.maxHp > unit.gravesEmergencyTriggerHpFrac) return;
+  const shieldAmt = unit.maxHp * unit.gravesEmergencyShieldFrac;
+  const shieldTicks = Math.round(unit.gravesEmergencyDurationSec * TICKS_PER_SECOND);
+  unit.shield += shieldAmt;
+  unit.statusEffects.push({
+    type: 'shield',
+    sourceId: unit.id,
+    remainingTicks: shieldTicks,
+    value: shieldAmt,
+  });
+  unit.gravesEmergencyUsed = true;
+}
+
+function applyGravesShockwave(
+  ownTeam: CombatUnit[],
+  enemyTeam: CombatUnit[],
+  eventBus: EventBus,
+  logs: CombatLog[],
+): void {
+  const graves = ownTeam.find((u) => u.gravesShockwaveActive && u.state !== 'dead');
+  if (!graves) return;
+
+  const aliveEnemies = enemyTeam.filter((e) => e.state !== 'dead');
+  if (aliveEnemies.length === 0) return;
+
+  // 가까운 적 2명 (cone 단순화)
+  const sorted = [...aliveEnemies].sort(
+    (a, b) => hexDistance(graves.position, a.position) - hexDistance(graves.position, b.position),
+  );
+  const targets = sorted.slice(0, 2);
+
+  const stunTicks = Math.round(2 * TICKS_PER_SECOND);
+  for (const target of targets) {
+    const rawDmg = target.maxHp * 0.15;
+    // codex P2: 정상 mitigation pipeline 사용 — Warden shield / damageReduction /
+    // invulnerable 등 combat-start 방어 효과 우회 방지.
+    let finalDmg = applyResistance(rawDmg, target.stats.magicResist, graves.stats.magicPen);
+    if (target.damageReduction > 0) finalDmg *= (1 - target.damageReduction);
+    finalDmg = applyShield(target, finalDmg, eventBus, 0);
+    if (target.statusEffects.some(e => e.type === 'invulnerable')) finalDmg = 0;
+
+    target.currentHp -= finalDmg;
+    target.totalDamageTaken += finalDmg;
+    graves.totalDamageDealt += finalDmg;
+    target.statusEffects.push({ type: 'stun', sourceId: graves.id, remainingTicks: stunTicks });
+    target.state = 'idle';
+    target.attackCooldown = 0;
+
+    const log: CombatLog = {
+      tick: 0, time: 0, type: 'ability',
+      sourceId: graves.id, targetId: target.id,
+      value: Math.round(finalDmg),
+      message: `${graves.champion.name} 충격파 발동! ${target.champion.name}에게 ${Math.round(finalDmg)} 마법 피해 + 기절 2초`,
+    };
+    logs.push(log);
+
+    if (target.currentHp <= 0) {
+      target.currentHp = 0;
+      target.state = 'dead';
+      eventBus.emit('on_death', { sourceId: target.id, targetId: graves.id, tick: 0 });
+    }
+  }
+}
 
 function applyGravesStatUpgrades(units: CombatUnit[], upgrades: string[] | undefined): void {
   if (!upgrades || upgrades.length === 0) return;
@@ -1773,6 +1903,15 @@ function spawnFreljordTurrets(
             gravesAbilityDamageBonus: 0,
             gravesUpgrades: [],
             gravesTankDamageAmp: 0,
+            gravesNanoRegenPct: 0,
+            gravesRipperReduce: 0,
+            gravesEmergencyTriggerHpFrac: 0,
+            gravesEmergencyShieldFrac: 0,
+            gravesEmergencyDurationSec: 0,
+            gravesEmergencyUsed: false,
+            gravesShockwaveActive: false,
+            gravesReactivePerStack: 0,
+            gravesReactiveStackCount: 0,
             gragasCarryActive: false,
             leonaCarryActive: false,
             attackCount: 0,
@@ -1921,6 +2060,15 @@ function trySpawnGalio(
     gravesAbilityDamageBonus: 0,
     gravesUpgrades: [],
     gravesTankDamageAmp: 0,
+    gravesNanoRegenPct: 0,
+    gravesRipperReduce: 0,
+    gravesEmergencyTriggerHpFrac: 0,
+    gravesEmergencyShieldFrac: 0,
+    gravesEmergencyDurationSec: 0,
+    gravesEmergencyUsed: false,
+    gravesShockwaveActive: false,
+    gravesReactivePerStack: 0,
+    gravesReactiveStackCount: 0,
     gragasCarryActive: false,
     leonaCarryActive: false,
     attackCount: 0,
@@ -2648,6 +2796,10 @@ export function simulateCombat(
   // 최신상 무기고 stat upgrade — Frame 과 동일 unit 에 누적.
   applyGravesStatUpgrades(playerUnits, options.playerGravesUpgrades);
   applyGravesStatUpgrades(enemies, options.enemyGravesUpgrades);
+  // Shockwave (충격파) — 전투 시작 시 가까운 적 2명에 maxHp×15% 마법 + 2s stun.
+  // applyGravesStatUpgrades 가 gravesShockwaveActive=true 설정한 unit 한정 발동.
+  applyGravesShockwave(playerUnits, enemies, eventBus, logs);
+  applyGravesShockwave(enemies, playerUnits, eventBus, logs);
   // 선봉대 보호막은 전투 시작 시점 (tick=0, time=0).
   applyVanguardEffects(playerActiveTraits, playerUnits, 0, 0, logs);
   applyVanguardEffects(enemyActiveTraits, enemies, 0, 0, logs);
@@ -3133,6 +3285,27 @@ export function simulateCombat(
       }
     }
 
+    // 최신상 Nanomachines — 매 1초마다 maxHp × N% 자가 회복 (healAmp 곱셈 적용).
+    if (tick > 0 && tick % TICKS_PER_SECOND === 0) {
+      for (const u of allUnits) {
+        if (u.state === 'dead') continue;
+        if (u.gravesNanoRegenPct > 0) {
+          const nanoBase = u.maxHp * u.gravesNanoRegenPct;
+          const heal = nanoBase * (1 + (u.healAmp ?? 0));
+          u.currentHp = Math.min(u.maxHp, u.currentHp + heal);
+        }
+      }
+    }
+
+    // 최신상 EmergencyShielding/2 — tick pre-check (safety net).
+    // codex P1 fix: damage application 직후 maybeTriggerEmergencyShield() 호출이
+    // primary path (평타/DoubleTap inline). 본 tick pre-check 는 비-attack
+    // damage source (DoT/burn/poison/regen 후 HP threshold crossing) 보완.
+    for (const u of allUnits) {
+      if (u.state === 'dead') continue;
+      maybeTriggerEmergencyShield(u);
+    }
+
     // In-combat augment effects (apply every second = every 30 ticks)
     if (tick > 0 && tick % TICKS_PER_SECOND === 0) {
       const combatSecond = tick / TICKS_PER_SECOND;
@@ -3274,6 +3447,10 @@ export function simulateCombat(
           target.totalDamageTaken += finalDamage;
           unit.totalDamageDealt += finalDamage;
 
+          // 최신상 EmergencyShielding/2 — codex P1: damage application 직후 즉시 체크
+          // (1-tick burst 시 후속 hit 부터 shield 흡수 보장).
+          maybeTriggerEmergencyShield(target);
+
           // 별돌보미 뱀(Serpent) — 강화 칸 별돌보미 가 평타로 적 명중 시 중독 적용
           triggerSerpentPoison(unit, target, finalDamage);
 
@@ -3321,11 +3498,27 @@ export function simulateCombat(
             unit.totalDamageDealt += extraFinal;
             unit.attackCount++;
 
+            // 최신상 EmergencyShielding/2 — codex P1: DoubleTap 추가 hit 직후도 즉시 체크.
+            maybeTriggerEmergencyShield(target);
+
             // 풀 attack 이벤트 emit — 일반 평타와 동일 path.
             eventBus.emit('on_attack', { sourceId: unit.id, targetId: target.id, value: extraFinal, tick });
             eventBus.emit('on_hit', { sourceId: unit.id, targetId: target.id, value: extraFinal, damageType: 'physical', tick });
             eventBus.emit('on_damage', { sourceId: target.id, targetId: unit.id, value: extraFinal, damageType: 'physical', tick });
             eventBus.emit('on_hit_taken', { sourceId: target.id, targetId: unit.id, value: extraFinal, damageType: 'physical', tick });
+
+            // 최신상 RipperBullets/2 — DoubleTap 추가 hit 도 동일하게 armor/MR shred.
+            // state 'dead' 마킹은 아래 currentHp <= 0 분기에서 처리 → 여기선 currentHp 만 가드.
+            if (unit.gravesRipperReduce > 0 && target.currentHp > 0) {
+              target.stats.armor = Math.max(0, target.stats.armor - unit.gravesRipperReduce);
+              target.stats.magicResist = Math.max(0, target.stats.magicResist - unit.gravesRipperReduce);
+            }
+            // 최신상 ReactiveArmor — DoubleTap 추가 hit 도 stack 누적.
+            if (target.gravesReactivePerStack > 0 && target.gravesReactiveStackCount < 50 && target.currentHp > 0) {
+              target.stats.armor += target.gravesReactivePerStack;
+              target.stats.magicResist += target.gravesReactivePerStack;
+              target.gravesReactiveStackCount++;
+            }
 
             if (target.currentHp <= 0) {
               target.currentHp = 0;
@@ -3453,6 +3646,19 @@ export function simulateCombat(
           eventBus.emit('on_damage', { sourceId: target.id, targetId: unit.id, value: finalDamage, damageType: 'physical', tick });
           // 피격 방어자 관점 — 거인의 결의 / 반도체 카운터 등
           eventBus.emit('on_hit_taken', { sourceId: target.id, targetId: unit.id, value: finalDamage, damageType: 'physical', tick });
+
+          // 최신상 RipperBullets/2 — 평타 명중 시 적 armor/MR -N (영구 누적, floor 0).
+          if (unit.gravesRipperReduce > 0 && target.state !== 'dead') {
+            target.stats.armor = Math.max(0, target.stats.armor - unit.gravesRipperReduce);
+            target.stats.magicResist = Math.max(0, target.stats.magicResist - unit.gravesRipperReduce);
+          }
+
+          // 최신상 ReactiveArmor — 피격 시 armor/MR +perStack 누적 (max 50회).
+          if (target.gravesReactivePerStack > 0 && target.gravesReactiveStackCount < 50 && target.state !== 'dead') {
+            target.stats.armor += target.gravesReactivePerStack;
+            target.stats.magicResist += target.gravesReactivePerStack;
+            target.gravesReactiveStackCount++;
+          }
 
           const log: CombatLog = {
             tick, time, type: 'attack',

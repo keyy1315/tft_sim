@@ -198,19 +198,27 @@ Set 17 그레이브즈 전용 시너지 **`최신상`(GravesTrait)** 의 핵심 
 | Phase | 범위 | 구현 PR | 상태 |
 |---|---|---|---|
 | **Phase 1** | Frame 3종 (root) — stat / mechanic | #45 | ✅ 머지 완료 (8bccb64) |
-| **Phase 2** | 단순 stat upgrade 18종 | #46 | 🟢 OPEN, codex P2 1건 잔여 |
-| **Phase 3** | 메커닉 필요 31종 (Buckshot/RevUp/GravBooster/EmergencyShielding 등) | — | ❌ 미구현 |
-| **Phase 4** | tree 시각화 + round-by-round 선택 UI + 라운드 진행 시뮬레이션 | — | ❌ 미구현 |
+| **Phase 2** | 단순 stat upgrade 18종 | #46 | ✅ 머지 완료 (41d561f) |
+| **Phase 3A** | 메커닉 단순 트리거 / periodic 8종 | (본 PR) | 🟢 작업 중 |
+| **Phase 3B** | 메커닉 공격 횟수 변종 + onKill 7종 | — | ❌ 미구현 |
+| **Phase 3C** | 메커닉 AOE / 투사체 10종 | — | ❌ 미구현 |
+| **Phase 3D** | 메커닉 복합 5종 | — | ❌ 미구현 |
+| **Phase 4** | tree 시각화 + round-by-round 선택 UI | #49,50,51 | ✅ 머지 완료 |
 
 ### Phase 1 + 2 누적 18종 (raw effects 직접 가산)
 LeechingImplants/2, HeavyPlating, PrecisionScope/2/3, Fission/2/3, Heartseeker/2/3,
 Tankbuster, Coolant/2, APRounds/2, SheerMass
 
-### Phase 3 메커닉 잔여 31종 분류
-- **단순 트리거 (~6)**: EmergencyShielding/2, LatentExplosion, Shockwave, ReactiveArmor, Backup
-- **공격 동작 변경 (~10)**: Buckshot/2/3, LaserBallistics, TripleTap, DoubleTap2, RipperBullets/2, FragmentationRounds/2
-- **stacking / 영구효과 (~7)**: RevUp/2, Nanomachines, BlastRadius/2/3, Meltthrough, VoidCoefficient
-- **복합 메커닉 (~8)**: GravBooster/2, Choke, AimAssistant, SympatheticDetonation, Heartseeker3 확장
+### Phase 3A 8종 (단순 트리거 + periodic; Backup 은 lolchess 미표시 → 시뮬 미구현)
+- **periodic / passive**: Nanomachines (매 1초 maxHp×3% heal), ReactiveArmor (피격 시 armor/MR +4 stack, max 50)
+- **저체력 1회 trigger**: EmergencyShielding/2 (HP 40% 시 shield 50/75% × 2.5/4s)
+- **전투 시작 1회**: Shockwave (가까운 적 2명 maxHp×15% 마법 + 2s stun)
+- **onAttack debuff stack**: RipperBullets/2 (평타 시 적 armor/MR -1/-2)
+
+### Phase 3B/3C/3D 메커닉 잔여 23종 분류
+- **3B 공격 횟수 / onKill (~7)**: DoubleTap2, TripleTap, RevUp/2, GravBooster/2, LatentExplosion
+- **3C AOE / 투사체 (~10)**: Buckshot/2/3, LaserBallistics, FragmentationRounds/2, BlastRadius/2/3, SympatheticDetonation, Meltthrough
+- **3D 복합 (~5)**: VoidCoefficient, Choke, AimAssistant, Heartseeker3 확장
 
 ---
 
