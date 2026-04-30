@@ -72,21 +72,26 @@ desc 메커니즘:
 변동에 fragile — 적군 5명 여행자 + SpaceGroove 매초 ADAP 적용 시 mountain trait 의 비-별돌보미
 unit AS ratio 가 0.83 까지 변동. test bound 완화 또는 격리 시점 별도 PR.
 
-## 영향 측정 (본 PR — 여행자만 적용)
+## 영향 측정 — 해석 비교 실험 (PR #61 + 후속)
 
-| game | matchRate | dmgErr |
-|---|---|---|
-| game-20260423-001 (mountain) | 45.5% (변화 없음) | -41.8% → **-45.2%** (-3.4pp) |
-| game-20260424-001 (well) | 61.9% → **57.1%** (-4.8pp) | -29.6% → **-32.7%** (-3.1pp) |
+| 시나리오 | 23일 matchRate | 23일 dmgErr | 24일 matchRate | 24일 dmgErr |
+|---|---|---|---|---|
+| **FlexTrait 미적용** (baseline) | **45.5%** | **-41.8%** | **61.9%** | **-29.6%** |
+| 해석 B (role 한정, 보수적) | 45.5% (=) | -45.2% (-3.4pp) | 57.1% (-4.8pp) | -32.7% (-3.1pp) |
+| 해석 A (codex, 두 effect ×2) | 40.9% (-4.5pp) | -50.1% (-8.3pp) | 57.1% (-4.8pp) | -33.8% (-4.2pp) |
 
-**회귀 분석**:
-- 23일 게임: 적군 5명 여행자 (Aurora/Karma/Pyke/GiantMech/Tinybot) 활성 → 적군 stats 강화
-- 24일 게임도 적군 측 여행자 활성 가능
-- 결과: player damage 측정값 감소 + winner 예측 더 player-loss 편향
+**핵심 발견**:
+- **두 해석 모두 baseline 보다 회귀** → FlexTrait 자체가 over-buff
+- 해석 B 가 A 보다 보수적 (회귀 -3.4pp 절감)
+- 24일 matchRate 회귀 -4.8pp 는 두 해석 동일 → role 한정 vs 두 effect 차이가 24일 게임에 영향 없음
+- raw 해석 자체가 잘못된 가능성 (PBE 잔존 / over-buff)
 
-**개선 가능 점**:
-- 여행자 "능력치 두 배" 해석 재검토 (BonusDA × 2 vs 본인 한정 stat 두 배 — 후자가 약함)
-- 적용 후 실제 게임 결과와 비교해 over-buff 여부 확인 (사용자 검수 필요)
+**채택 결정**: 해석 B (role 한정, codex 해석 revert) — 회귀 절감 + 사용자 검수까지 보수적 적용.
+
+**잔여 가설** (사용자 검수 필요):
+1. raw `ShieldHP` / `BonusDA` 가 실제 게임 17.2 LIVE 보다 강함 (PBE 잔존?)
+2. 적군 측 여행자 효과가 sim 에 over-amplified (mitigation 누락?)
+3. "여행자 능력치 두 배" 가 또 다른 의미 (champion base stats 두 배?)
 
 ## 후속 (본 PR 외 항목)
 
