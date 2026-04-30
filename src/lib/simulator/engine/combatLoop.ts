@@ -216,6 +216,9 @@ function createCombatUnit(
     gravesBlastIncreasedRadius: 0,
     gravesBlastDmgReductionPerHex: 0,
     gravesSympatheticReduction: 0,
+    gravesVoidCoefficientPct: 0,
+    gravesChokeSpreadDecrease: 0,
+    gravesAimAssistBonusPerHex: 0,
     gragasCarryActive: false,
     leonaCarryActive: false,
     attackCount: 0,
@@ -1424,6 +1427,20 @@ const GRAVES_STAT_UPGRADE_HANDLERS: Record<string, (u: CombatUnit, baseAd: numbe
   SympatheticDetonation: (u)  => {
     u.gravesSympatheticReduction = Math.max(u.gravesSympatheticReduction, 0.30);
   },
+  // Phase 3D — 복합 메커닉 (Heartseeker3 는 raw 가 critChance/critDmg 만 — Phase 2 에서
+  // 이미 처리됨, 본 Phase 별도 작업 불필요).
+  // VoidCoefficient: PercentManaReductionPerCast=0.15. 매 cast 직후 maxMana × (1-0.15).
+  VoidCoefficient:    (u)     => {
+    u.gravesVoidCoefficientPct = Math.max(u.gravesVoidCoefficientPct, 0.15);
+  },
+  // Choke: SpreadDecrease=0.75. Buckshot spread 75% 감소.
+  Choke:              (u)     => {
+    u.gravesChokeSpreadDecrease = Math.max(u.gravesChokeSpreadDecrease, 0.75);
+  },
+  // AimAssistant: BonusDamagePerHex=0.05. 평타 시 distance × 0.05 damage amp.
+  AimAssistant:       (u)     => {
+    u.gravesAimAssistBonusPerHex = Math.max(u.gravesAimAssistBonusPerHex, 0.05);
+  },
 };
 
 /**
@@ -1491,7 +1508,11 @@ const GRAVES_UPGRADE_APPLY_ORDER: ReadonlyArray<string> = [
   'BlastRadius2',
   'BlastRadius3',
   'SympatheticDetonation',
-  // 8. % multiplier (가장 마지막 — 1·2 단계의 flat HP/AD 가산 후 적용)
+  // 8. Phase 3D — 복합 메커닉 (정렬 — 결정성).
+  'AimAssistant',
+  'Choke',
+  'VoidCoefficient',
+  // 9. % multiplier (가장 마지막 — 1·2 단계의 flat HP/AD 가산 후 적용)
   'SheerMass',
 ];
 
@@ -1724,7 +1745,9 @@ function triggerBuckshot(
 ): void {
   if (attacker.gravesBuckshotProjectiles <= 0) return;
   const extraProjectiles = attacker.gravesBuckshotProjectiles;
-  const spreadRadius = 1 + Math.round(attacker.gravesBuckshotSpread * 2.5);
+  // Phase 3D Choke — SpreadDecrease 만큼 spread 감소 (raw SpreadDecrease=0.75).
+  const effectiveSpread = attacker.gravesBuckshotSpread * (1 - attacker.gravesChokeSpreadDecrease);
+  const spreadRadius = 1 + Math.round(effectiveSpread * 2.5);
   // primaryTarget 제외, attacker 주변 spread radius 안 가까운 적 (정렬 — distance asc).
   const candidates = enemyTeam
     .filter((e) => e.id !== primaryTarget.id && e.state !== 'dead')
@@ -2461,6 +2484,9 @@ function spawnFreljordTurrets(
             gravesBlastIncreasedRadius: 0,
             gravesBlastDmgReductionPerHex: 0,
             gravesSympatheticReduction: 0,
+            gravesVoidCoefficientPct: 0,
+            gravesChokeSpreadDecrease: 0,
+            gravesAimAssistBonusPerHex: 0,
             gragasCarryActive: false,
             leonaCarryActive: false,
             attackCount: 0,
@@ -2638,6 +2664,9 @@ function trySpawnGalio(
     gravesBlastIncreasedRadius: 0,
     gravesBlastDmgReductionPerHex: 0,
     gravesSympatheticReduction: 0,
+    gravesVoidCoefficientPct: 0,
+    gravesChokeSpreadDecrease: 0,
+    gravesAimAssistBonusPerHex: 0,
     gragasCarryActive: false,
     leonaCarryActive: false,
     attackCount: 0,
@@ -4001,6 +4030,11 @@ export function simulateCombat(
           }
           // 저격수 (Sniper) — 거리 기반 추가 damage amp
           totalDamageAmp += computeSniperDamageAmp(unit, target);
+          // 최신상 AimAssistant — distance 1 hex 당 +N% damage amp.
+          if (unit.gravesAimAssistBonusPerHex > 0) {
+            const dist = hexDistance(unit.position, target.position);
+            totalDamageAmp += dist * unit.gravesAimAssistBonusPerHex;
+          }
           const rawDamage = unit.stats.damage * critMult * (1 + totalDamageAmp);
           let finalDamage = applyResistance(rawDamage, target.stats.armor, unit.stats.armorPen);
 
@@ -4352,6 +4386,11 @@ export function simulateCombat(
             unit.castCount++;
             if (unitHasTrait(unit, '중재자')) {
               (unit.team === 'player' ? playerArbiterState : enemyArbiterState).manaSpent += unit.maxMana;
+            }
+            // 최신상 VoidCoefficient — 매 cast 직후 maxMana × (1 - N), min 10.
+            // raw PercentManaReductionPerCast=0.15.
+            if (unit.gravesVoidCoefficientPct > 0) {
+              unit.maxMana = Math.max(10, unit.maxMana * (1 - unit.gravesVoidCoefficientPct));
             }
             // 마나 소모 시점 — PsyOps 공감 임플란트 등
             eventBus.emit('on_mana_spent', { sourceId: unit.id, value: spentMana, tick });

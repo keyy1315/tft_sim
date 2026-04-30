@@ -196,9 +196,9 @@ describe('GravesTrait stat upgrades — 단순 stat 18종 적용', () => {
     expect(grav.gravesTankDamageAmp).toBe(0);
   });
 
-  it('미지원 upgrade ID (Phase 3D 항목) → silently skip', () => {
-    // Choke (3D 미구현) + AimAssistant (3D 미구현) + Heartseeker (Phase 2 구현됨).
-    const { grav } = runWith(['Choke', 'AimAssistant', 'Heartseeker']);
+  it('미지원 upgrade ID (lolchess 미표시 항목) → silently skip', () => {
+    // Backup (lolchess 미표시 — Riot pity slot, 시뮬 미구현) + 가공 ID + Heartseeker.
+    const { grav } = runWith(['Backup', 'NonexistentId', 'Heartseeker']);
     expect(grav.gravesUpgrades).toEqual(['Heartseeker']);
   });
 
