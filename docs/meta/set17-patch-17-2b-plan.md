@@ -5,6 +5,81 @@
 > 라이브 출시: 2026-04-29
 > 출처 URL: <https://teamfighttactics.leagueoflegends.com/en-us/news/game-updates/teamfight-tactics-patch-17-2/>
 
+---
+
+## 🚀 다음 세션 시작 가이드 (Session Handoff)
+
+> **마지막 작업일**: 2026-04-30
+> **새 세션 시작 시 첫 명령**: `docs/meta/set17-patch-17-2b-plan.md` + `docs/meta/set17-hero-augments.md` 읽고 컨텍스트 회복
+
+### 현재 상태 스냅샷
+
+| PR | 상태 | 내용 | 머지 후 다음 |
+|---|---|---|---|
+| **PR #67** | ✅ 머지 완료 (2026-04-30) | 17.2b 직접 수치 변경 (브라이어/레오나/잭스 ability variable + 군체의 심장 disabled) | — |
+| **PR #68** | 🟡 **OPEN** — 사용자 검토/머지 대기 | Hero Augment stat/abilityData 시스템 + 17.2b 데이터 반영 (그라가스 healthCost / 모데 shield / 레오나 damage) | codex 리뷰 응답 후 머지 |
+| **PR2 (신병 추가)** | ⏸️ 미시작 | CDragon 에서 신병 augment fetch → raw JSON 추가 | PR #68 머지 후 진행 |
+
+### 새 세션 첫 액션 결정 트리
+
+1. **PR #68 codex 리뷰 결과 확인** — `gh pr view 68 --comments`
+   - codex P1/P2 있으면 → 수정 → push → 멘션 reply
+   - 리뷰 OK 또는 무시 가능 → 사용자에게 머지 가능 알림
+2. **PR #68 머지된 후** → 아래 후속 작업 중 사용자 우선순위 확인:
+
+### 사용자 결정 대기 중인 항목 (PR #68 머지 후)
+
+| 우선순위 후보 | 작업 양 | 의존성 |
+|---|---|---|
+| **PR2 — 신병 augment 추가** | 1시간 | CDragon fetch + raw JSON 부분 추가 |
+| **PR4 — 자폭 적군 damage 시뮬 적용** | 2-3시간 | 자폭이 현재 적군 damage flow skip — 큰 리팩토링. healthCost 0.20 + 적군 magic damage (baseDamageHpFrac × maxHp + AP) + hexReduction 0.45 + 탱커 +60% |
+| **PR5 — augment-specific damage 시뮬 분기** | 2시간 | 레오나/잭스/모데 등이 carry augment 활성 시 abilityData.damage 사용하도록 getAbilityDamage 분기 |
+| **PR6 — 사용자 stat 측정 후 statOverrides 채우기** | 30분 + 사용자 데이터 | 사용자가 인게임에서 augment 활성/비활성 챔프 stat 비교 측정 후 carryAugments.ts 의 statOverrides 채움 |
+| **PR7+ — 복잡 메커니즘 5종** | 각 1-3시간 | X-shape (Pyke) / multi-stun (꼬마정령) / 3-skill cycle (Aatrox) / bouncing (Poppy) / 미프 (정령족 잠재력) |
+
+### 핵심 결정 사항 (이전 세션에서 확정)
+
+- **데이터 수정 원칙**: raw JSON 전체 덮어쓰기 절대 금지. 변경 필드만 부분 Edit. (메모리 `feedback_data_edit.md`)
+- **PR 분리 전략**: 큰 작업은 항상 PR 단위 분리, 각 PR 머지 후 다음 진행
+- **영웅 증강 시뮬 단순화**: "주문력 전사" / "공격력 전사" → 시뮬 내부 `'Fighter'` 단일 role. 차별화는 ability config 로
+- **statOverrides 채움 정책**: 사용자가 게임에서 직접 측정한 데이터로만 채움. 추측 금지
+- **17.2b 정확 반영분** (PR #67 + #68 합산):
+  - 브라이어 ADDamage [120, 180, 285] (raw)
+  - 레오나 ShieldAmount [..., 480, 620, 870] (raw 일반 ability)
+  - 잭스 ShieldAP [..., 470, 550, 850] (raw)
+  - 군체의 심장 disabled
+  - 그라가스 자폭: `healthCost 0.20`, `hexReduction 0.45` (carryAugments)
+  - 모데카이저 뜨거운 죽음: `shield [225, 250, 300]` (carryAugments)
+  - 레오나 방패 여전사: `damage [90, 135, 225]` (carryAugments)
+
+### 빠른 명령어 cheat sheet
+
+```bash
+# 현재 PR 상태 확인
+gh pr list
+gh pr view 68 --comments
+
+# dev 동기화 (이전 세션에서 이미 dev 정리됨)
+git checkout dev && git pull origin dev
+
+# PR2 시작 시 (신병 augment)
+git checkout -b feature/patch-17-2b-new-recruit
+# CDragon fetch → public/data/tft_set17_augments.json 부분 추가
+
+# 검증 명령
+pnpm lint && pnpm typecheck && pnpm build
+pnpm exec vitest run
+```
+
+### 세션 컨텍스트 빨리 회복하기
+
+1. 본 문서 (PR 분리 전략 + 변경 내역 + 후속 작업)
+2. `docs/meta/set17-hero-augments.md` (8 영웅 증강 도메인 지식)
+3. 메모리 `feedback_data_edit.md` (데이터 수정 원칙 — **반드시 준수**)
+4. PR #67, #68 본문 (코드 변경 요약)
+
+---
+
 ## 17.2b 변경 내역 (전체)
 
 ### 신의 제안 (Market Offerings)
