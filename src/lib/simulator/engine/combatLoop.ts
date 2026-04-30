@@ -4337,8 +4337,11 @@ export function simulateCombat(
       gainManaPerTick(unit, TICK_DURATION);
 
       // Augment mana regen (per second, applied per tick)
+      // codex P1 (PR #64): 전달자 InnateManaGain — augmentManaRegen 도 +N% 곱셈 적용.
+      // 본 augmentManaRegen 에 trait ManaTrait 의 channelerManaRegen / teamManaRegen 도 가산되어 있음.
       if (unit.augmentManaRegen > 0) {
-        unit.currentMana = Math.min(unit.maxMana, unit.currentMana + unit.augmentManaRegen * TICK_DURATION);
+        const channelerMult = 1 + (unit.channelerInnateManaGain ?? 0);
+        unit.currentMana = Math.min(unit.maxMana, unit.currentMana + unit.augmentManaRegen * TICK_DURATION * channelerMult);
       }
 
       if (unit.attackCooldown > 0) unit.attackCooldown--;
@@ -4402,11 +4405,13 @@ export function simulateCombat(
             const dist = hexDistance(unit.position, target.position);
             totalDamageAmp += dist * unit.gravesAimAssistBonusPerHex;
           }
-          // 습격자 (6) ShieldAD — 보호막 활성 시 추가 AD %.
+          // 습격자 (6) ShieldAD — 보호막 활성 시 AD stat bonus (codex P2 PR #64).
+          // raw 의미는 AD stat 보너스 — damage amp 가 아님. stat-side 곱셈 (multiplicative with damage amp).
+          let effectiveAd = unit.stats.damage;
           if (unit.meleeShieldADBonus > 0 && unit.shield > 0) {
-            totalDamageAmp += unit.meleeShieldADBonus;
+            effectiveAd *= (1 + unit.meleeShieldADBonus);
           }
-          const rawDamage = unit.stats.damage * critMult * (1 + totalDamageAmp);
+          const rawDamage = effectiveAd * critMult * (1 + totalDamageAmp);
           let finalDamage = applyResistance(rawDamage, target.stats.armor, unit.stats.armorPen);
 
           // Apply target's damage reduction from augments
