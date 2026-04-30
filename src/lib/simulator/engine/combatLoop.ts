@@ -213,6 +213,9 @@ function createCombatUnit(
     gravesFragDamage: 0,
     gravesFragProjectiles: 0,
     gravesMeltthroughArmorMR: 0,
+    gravesBlastIncreasedRadius: 0,
+    gravesBlastDmgReductionPerHex: 0,
+    gravesSympatheticReduction: 0,
     gragasCarryActive: false,
     leonaCarryActive: false,
     attackCount: 0,
@@ -1398,6 +1401,29 @@ const GRAVES_STAT_UPGRADE_HANDLERS: Record<string, (u: CombatUnit, baseAd: numbe
   Meltthrough:        (u)     => {
     u.gravesMeltthroughArmorMR = Math.max(u.gravesMeltthroughArmorMR, 4);
   },
+  // Phase 3C-2 — ability AOE.
+  // BlastRadius/2/3: IncreasedRadius=1/2/3, DamageReductionPerHex=0.5/0.30/0.30.
+  // 상위 tier 가 항상 override (radius / reduction 별도 비교).
+  BlastRadius:        (u)     => {
+    if (u.gravesBlastIncreasedRadius < 1) {
+      u.gravesBlastIncreasedRadius = 1;
+      u.gravesBlastDmgReductionPerHex = 0.5;
+    }
+  },
+  BlastRadius2:       (u)     => {
+    if (u.gravesBlastIncreasedRadius < 2) {
+      u.gravesBlastIncreasedRadius = 2;
+      u.gravesBlastDmgReductionPerHex = 0.30;
+    }
+  },
+  BlastRadius3:       (u)     => {
+    u.gravesBlastIncreasedRadius = 3;  // 최상위 tier — 항상 override.
+    u.gravesBlastDmgReductionPerHex = 0.30;
+  },
+  // SympatheticDetonation: SympatheticDamageReduction=0.30.
+  SympatheticDetonation: (u)  => {
+    u.gravesSympatheticReduction = Math.max(u.gravesSympatheticReduction, 0.30);
+  },
 };
 
 /**
@@ -1459,7 +1485,13 @@ const GRAVES_UPGRADE_APPLY_ORDER: ReadonlyArray<string> = [
   'FragmentationRounds2',
   'LaserBallistics',
   'Meltthrough',
-  // 7. % multiplier (가장 마지막 — 1·2 단계의 flat HP/AD 가산 후 적용)
+  // 7. Phase 3C-2 — ability AOE (정렬 — 결정성).
+  //    BlastRadius 1→2→3 순서로 override (radius/reduction 페어 보존).
+  'BlastRadius',
+  'BlastRadius2',
+  'BlastRadius3',
+  'SympatheticDetonation',
+  // 8. % multiplier (가장 마지막 — 1·2 단계의 flat HP/AD 가산 후 적용)
   'SheerMass',
 ];
 
@@ -1820,6 +1852,108 @@ function triggerFragmentation(
       eventBus.emit('on_death', { sourceId: enemy.id, targetId: attacker.id, tick });
       applyGravesHelperKill(attacker, enemy, enemyTeam, occupiedPositions, killerArbiterState, eventBus, tick, time, logs, tickLogs);
     }
+  }
+}
+
+/**
+ * BlastRadius/2/3 — graves ability primary hit 위치 기준 N hex 내 적군에 추가 magic 폭발.
+ * 거리 별 base × (1 - DamageReductionPerHex × distance) 감소.
+ *
+ * raw: IncreasedRadius=1/2/3, DamageReductionPerHex=0.5/0.30/0.30.
+ * 기존 ability primaryTargets (cone hit) 에 이미 가한 적군 제외.
+ * mitigation pipeline 적용 + on_kill/on_death + applyGravesHelperKill follow-up.
+ */
+function triggerAbilityBlastRadius(
+  attacker: CombatUnit,
+  primaryHitPos: HexCoord,
+  primaryHitTargets: CombatUnit[],
+  baseDmg: number,
+  enemyTeam: CombatUnit[],
+  occupiedPositions: Set<string>,
+  killerArbiterState: ArbiterTriggerState,
+  eventBus: EventBus,
+  tick: number,
+  time: number,
+  logs: CombatLog[],
+  tickLogs: CombatLog[],
+): void {
+  if (attacker.gravesBlastIncreasedRadius <= 0) return;
+  const radius = attacker.gravesBlastIncreasedRadius;
+  const decay = attacker.gravesBlastDmgReductionPerHex;
+  const primarySet = new Set(primaryHitTargets.map((t) => t.id));
+  const candidates = enemyTeam
+    .filter((e) => !primarySet.has(e.id) && e.state !== 'dead')
+    .map((e) => ({ enemy: e, dist: hexDistance(primaryHitPos, e.position) }))
+    .filter((x) => x.dist <= radius && x.dist >= 1);
+  for (const { enemy, dist } of candidates) {
+    const distFactor = Math.max(0, 1 - decay * dist);
+    const reducedDmg = baseDmg * distFactor;
+    let dmg = applyResistance(reducedDmg, enemy.stats.magicResist, attacker.stats.magicPen);
+    if (enemy.damageReduction > 0) dmg *= (1 - enemy.damageReduction);
+    dmg = applyShield(enemy, dmg, eventBus, tick);
+    if (enemy.statusEffects.some(e => e.type === 'invulnerable')) dmg = 0;
+    enemy.currentHp -= dmg;
+    enemy.totalDamageTaken += dmg;
+    attacker.totalDamageDealt += dmg;
+    if (attacker.gravesLatentStoredPct > 0 && dmg > 0) {
+      enemy.gravesLatentStored += dmg * attacker.gravesLatentStoredPct;
+    }
+    if (enemy.currentHp <= 0 && enemy.state !== 'dead') {
+      enemy.currentHp = 0;
+      enemy.state = 'dead';
+      attacker.killCount++;
+      eventBus.emit('on_kill', { sourceId: attacker.id, targetId: enemy.id, tick });
+      eventBus.emit('on_death', { sourceId: enemy.id, targetId: attacker.id, tick });
+      applyGravesHelperKill(attacker, enemy, enemyTeam, occupiedPositions, killerArbiterState, eventBus, tick, time, logs, tickLogs);
+    }
+  }
+}
+
+/**
+ * SympatheticDetonation — graves ability primary hit 한 적 인접 1 hex 가까운 다른 적 1명에
+ * 추가 magic 폭발 (-30% reduced). 단일 sympatheticTarget 만 처리 (게임 spec).
+ *
+ * raw: SympatheticDamageReduction=0.30.
+ */
+function triggerAbilitySympatheticDetonation(
+  attacker: CombatUnit,
+  primaryHitTarget: CombatUnit,
+  baseDmg: number,
+  enemyTeam: CombatUnit[],
+  occupiedPositions: Set<string>,
+  killerArbiterState: ArbiterTriggerState,
+  eventBus: EventBus,
+  tick: number,
+  time: number,
+  logs: CombatLog[],
+  tickLogs: CombatLog[],
+): void {
+  if (attacker.gravesSympatheticReduction <= 0) return;
+  const candidates = enemyTeam
+    .filter((e) => e.id !== primaryHitTarget.id && e.state !== 'dead')
+    .map((e) => ({ enemy: e, dist: hexDistance(primaryHitTarget.position, e.position) }))
+    .filter((x) => x.dist <= 1)
+    .sort((a, b) => a.dist - b.dist);
+  if (candidates.length === 0) return;
+  const sympathy = candidates[0].enemy;
+  const reducedDmg = baseDmg * (1 - attacker.gravesSympatheticReduction);
+  let dmg = applyResistance(reducedDmg, sympathy.stats.magicResist, attacker.stats.magicPen);
+  if (sympathy.damageReduction > 0) dmg *= (1 - sympathy.damageReduction);
+  dmg = applyShield(sympathy, dmg, eventBus, tick);
+  if (sympathy.statusEffects.some(e => e.type === 'invulnerable')) dmg = 0;
+  sympathy.currentHp -= dmg;
+  sympathy.totalDamageTaken += dmg;
+  attacker.totalDamageDealt += dmg;
+  if (attacker.gravesLatentStoredPct > 0 && dmg > 0) {
+    sympathy.gravesLatentStored += dmg * attacker.gravesLatentStoredPct;
+  }
+  if (sympathy.currentHp <= 0 && sympathy.state !== 'dead') {
+    sympathy.currentHp = 0;
+    sympathy.state = 'dead';
+    attacker.killCount++;
+    eventBus.emit('on_kill', { sourceId: attacker.id, targetId: sympathy.id, tick });
+    eventBus.emit('on_death', { sourceId: sympathy.id, targetId: attacker.id, tick });
+    applyGravesHelperKill(attacker, sympathy, enemyTeam, occupiedPositions, killerArbiterState, eventBus, tick, time, logs, tickLogs);
   }
 }
 
@@ -2315,6 +2449,9 @@ function spawnFreljordTurrets(
             gravesFragDamage: 0,
             gravesFragProjectiles: 0,
             gravesMeltthroughArmorMR: 0,
+            gravesBlastIncreasedRadius: 0,
+            gravesBlastDmgReductionPerHex: 0,
+            gravesSympatheticReduction: 0,
             gragasCarryActive: false,
             leonaCarryActive: false,
             attackCount: 0,
@@ -2489,6 +2626,9 @@ function trySpawnGalio(
     gravesFragDamage: 0,
     gravesFragProjectiles: 0,
     gravesMeltthroughArmorMR: 0,
+    gravesBlastIncreasedRadius: 0,
+    gravesBlastDmgReductionPerHex: 0,
+    gravesSympatheticReduction: 0,
     gragasCarryActive: false,
     leonaCarryActive: false,
     attackCount: 0,
@@ -4412,6 +4552,28 @@ export function simulateCombat(
                   tickLogs.push(deathLog);
                   eventBus.emit('on_kill', { sourceId: unit.id, targetId: t.id, tick });
                   eventBus.emit('on_death', { sourceId: t.id, targetId: unit.id, tick });
+                }
+              }
+
+              // 최신상 Phase 3C-2 — ability AOE (BlastRadius / SympatheticDetonation).
+              // ability primary hit 처리 끝난 직후 호출. abilityTarget 위치 기준.
+              // baseDmg = abilityDmg (raw hit count damage 단위, mitigation 전).
+              if (unit.gravesBlastIncreasedRadius > 0 || unit.gravesSympatheticReduction > 0) {
+                const ownEnemyTeam = unit.team === 'player' ? enemies : playerUnits;
+                const ownArbiterState = unit.team === 'player' ? playerArbiterState : enemyArbiterState;
+                if (unit.gravesBlastIncreasedRadius > 0) {
+                  triggerAbilityBlastRadius(
+                    unit, abilityTarget.position, abilityTargets, abilityDmg,
+                    ownEnemyTeam, occupiedPositions, ownArbiterState,
+                    eventBus, tick, time, logs, tickLogs,
+                  );
+                }
+                if (unit.gravesSympatheticReduction > 0) {
+                  triggerAbilitySympatheticDetonation(
+                    unit, abilityTarget, abilityDmg,
+                    ownEnemyTeam, occupiedPositions, ownArbiterState,
+                    eventBus, tick, time, logs, tickLogs,
+                  );
                 }
               }
             }
