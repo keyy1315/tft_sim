@@ -575,6 +575,23 @@ export interface CombatUnit {
   /** ReactiveArmor 누적 stack 수. 0..50 사이 제한. */
   gravesReactiveStackCount: number;
   /**
+   * TripleTap (한 발에 세 놈) 업그레이드 — N% 확률 추가 2 hit (총 3회).
+   * 0 = 미활성 / 0.18 = 활성. DoubleTap Frame / DoubleTap2 와 별개 roll —
+   * TripleTap 발동 시 DoubleTap path skip (중복 방지).
+   */
+  gravesTripleAttackChance: number;
+  /**
+   * RevUp/2 (엔진 가동) 업그레이드 — 같은 대상 연속 공격마다 AS +N% stack.
+   * 0 = 미활성 / 0.08 = RevUp / 0.15 = RevUp2.
+   */
+  gravesRevUpPerStack: number;
+  /** RevUp/2 누적 AS bonus 한도. 0 / 0.80 (RevUp) / 1.50 (RevUp2). */
+  gravesRevUpMaxBonus: number;
+  /** RevUp/2 sticky target id — 마지막 공격 대상. 다른 대상 공격 시 stack reset. */
+  gravesRevUpStickyTargetId: string | null;
+  /** RevUp/2 누적 stack 수. 같은 target 연속 공격 시 ++, 다른 target 시 0. */
+  gravesRevUpStackCount: number;
+  /**
    * 자폭(TFT17_Augment_GragasCarry) 활성 + 가장 강한 그라가스로 선정된 unit 만 true.
    * 그라가스 ability 가 거대한 폭발 (자기 자신 데미지, 다른 아군 X) 로 변환되며,
    * 자폭 데미지로 hp 가 1 미만으로 떨어지지 않음 (HP floor=1).
