@@ -201,8 +201,9 @@ Set 17 그레이브즈 전용 시너지 **`최신상`(GravesTrait)** 의 핵심 
 | **Phase 2** | 단순 stat upgrade 18종 | #46 | ✅ 머지 완료 (41d561f) |
 | **Phase 3A** | 메커닉 단순 트리거 / periodic 8종 | #54 | ✅ 머지 완료 |
 | **Phase 3B-1** | 공격 횟수 변종 + sticky stack 4종 | #55 | ✅ 머지 완료 |
-| **Phase 3B-2** | onKill / dash / 누적 폭발 3종 | (본 PR) | 🟢 작업 중 |
-| **Phase 3C** | 메커닉 AOE / 투사체 10종 | — | ❌ 미구현 |
+| **Phase 3B-2** | onKill / dash / 누적 폭발 3종 | #56 | ✅ 머지 완료 |
+| **Phase 3C-1** | 평타 base AOE 7종 | (본 PR) | 🟢 작업 중 |
+| **Phase 3C-2** | ability AOE 4종 | — | ❌ 미구현 |
 | **Phase 3D** | 메커닉 복합 5종 | — | ❌ 미구현 |
 | **Phase 4** | tree 시각화 + round-by-round 선택 UI | #49,50,51 | ✅ 머지 완료 |
 
@@ -226,8 +227,14 @@ Tankbuster, Coolant/2, APRounds/2, SheerMass
 - GravBooster2 (NumAttacks=3 — 동상 raw 미정의 → 시뮬 미구현)
 - LatentExplosion (StoredDamage=0.15 — 입힌 피해 15% 누적, 처치 시 2hex splash)
 
-### Phase 3C/3D 메커닉 잔여 15종 분류
-- **3C AOE / 투사체 (~10)**: Buckshot/2/3, LaserBallistics, FragmentationRounds/2, BlastRadius/2/3, SympatheticDetonation, Meltthrough
+### Phase 3C-1 7종 (평타 base AOE)
+- Buckshot/2/3 (NumBonusProjectiles 2/4/6, SpreadIncrease 0.20/0.30/0.40 — 타겟+주변 혼합 multi-hit)
+- LaserBallistics (BonusHexes=1, DamageReductionPerTarget=0.5 — 관통 1명)
+- FragmentationRounds/2 (FragmentDamage 0.15/0.20, Projectiles 2/3 — 평타 시 주변 파편)
+- Meltthrough (ArmorMRReduction=4 — 매초 graves 주변 2hex 적 armor/MR -4)
+
+### Phase 3C-2/3D 메커닉 잔여 8종 분류
+- **3C-2 ability AOE (~4)**: BlastRadius/2/3, SympatheticDetonation
 - **3D 복합 (~5)**: VoidCoefficient, Choke, AimAssistant, Heartseeker3 확장
 
 ---
