@@ -643,6 +643,21 @@ export interface CombatUnit {
    */
   gravesMeltthroughArmorMR: number;
   /**
+   * BlastRadius/2/3 — ability primary hit 위치 기준 N hex 추가 폭발 반경.
+   * 0 = 미활성 / 1 / 2 / 3. raw IncreasedRadius.
+   */
+  gravesBlastIncreasedRadius: number;
+  /**
+   * BlastRadius/2/3 — 거리당 데미지 감소. distance × N% 만큼 감소.
+   * 0 / 0.5 (BlastRadius) / 0.30 (BlastRadius2/3). raw DamageReductionPerHex.
+   */
+  gravesBlastDmgReductionPerHex: number;
+  /**
+   * SympatheticDetonation — ability hit 한 적 인접 1 hex 가까운 적 1명에 추가 폭발.
+   * 0 = 미활성 / 0.30 = 활성 (30% reduced). raw SympatheticDamageReduction.
+   */
+  gravesSympatheticReduction: number;
+  /**
    * 자폭(TFT17_Augment_GragasCarry) 활성 + 가장 강한 그라가스로 선정된 unit 만 true.
    * 그라가스 ability 가 거대한 폭발 (자기 자신 데미지, 다른 아군 X) 로 변환되며,
    * 자폭 데미지로 hp 가 1 미만으로 떨어지지 않음 (HP floor=1).

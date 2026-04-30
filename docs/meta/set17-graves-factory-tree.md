@@ -202,8 +202,8 @@ Set 17 그레이브즈 전용 시너지 **`최신상`(GravesTrait)** 의 핵심 
 | **Phase 3A** | 메커닉 단순 트리거 / periodic 8종 | #54 | ✅ 머지 완료 |
 | **Phase 3B-1** | 공격 횟수 변종 + sticky stack 4종 | #55 | ✅ 머지 완료 |
 | **Phase 3B-2** | onKill / dash / 누적 폭발 3종 | #56 | ✅ 머지 완료 |
-| **Phase 3C-1** | 평타 base AOE 7종 | (본 PR) | 🟢 작업 중 |
-| **Phase 3C-2** | ability AOE 4종 | — | ❌ 미구현 |
+| **Phase 3C-1** | 평타 base AOE 7종 | #57 | ✅ 머지 완료 |
+| **Phase 3C-2** | ability AOE 4종 | (본 PR) | 🟢 작업 중 |
 | **Phase 3D** | 메커닉 복합 5종 | — | ❌ 미구현 |
 | **Phase 4** | tree 시각화 + round-by-round 선택 UI | #49,50,51 | ✅ 머지 완료 |
 
@@ -233,8 +233,11 @@ Tankbuster, Coolant/2, APRounds/2, SheerMass
 - FragmentationRounds/2 (FragmentDamage 0.15/0.20, Projectiles 2/3 — 평타 시 주변 파편)
 - Meltthrough (ArmorMRReduction=4 — 매초 graves 주변 2hex 적 armor/MR -4)
 
-### Phase 3C-2/3D 메커닉 잔여 8종 분류
-- **3C-2 ability AOE (~4)**: BlastRadius/2/3, SympatheticDetonation
+### Phase 3C-2 4종 (ability AOE)
+- BlastRadius/2/3 (IncreasedRadius=1/2/3, DamageReductionPerHex=0.5/0.30/0.30 — primary hit 위치 N hex 안 추가 폭발, 거리 비례 감소)
+- SympatheticDetonation (SympatheticDamageReduction=0.30 — primary hit 적 인접 가까운 1명 -30% 추가 폭발)
+
+### Phase 3D 메커닉 잔여 5종 분류
 - **3D 복합 (~5)**: VoidCoefficient, Choke, AimAssistant, Heartseeker3 확장
 
 ---
