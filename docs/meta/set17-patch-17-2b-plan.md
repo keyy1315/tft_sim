@@ -205,12 +205,35 @@ PR1 본문이 아닌 **별도 분석 코멘트** 로 정리:
 
 ## 작업 순서 (다른 세션 인계용)
 
-1. **PR1 부터 시작** — 가장 명확하고 빠름. 머지까지 30분.
-2. PR1 머지 후 **PR2** — 신병 CDragon fetch 후 추가
-3. PR2 머지 후 **PR3** — Hero Augment 시스템 리팩토링
-4. PR3 머지 후 — 모데카이저 등 잔여 영웅 증강 데이터 (사용자 제공 후) 후속 PR
+1. ~~**PR1 부터 시작**~~ ✅ **머지 완료** (PR #67) — 직접 수치 변경 + 군체의 심장 disabled
+2. ~~PR1 머지 후 **PR3 (Hero Augment 시스템)** 먼저 진행~~ — **본 PR 진행 중** (PR2 신병 추가는 후순위로 미룸 — 사용자 결정)
+3. **PR3 머지 후 PR2** — 신병 CDragon fetch 후 추가
+4. **후속 PR** — 사용자 인게임 stat 측정 결과로 statOverrides 채우기 + 복잡 메커니즘 (3-skill cycle / X-shape / bouncing / 미프) 시뮬 적용
 
 각 PR 별로 codex 리뷰 결과 확인 → 수정 → 멘션 → 머지.
+
+## PR3 본 PR 적용 항목 (2026-04-30 작업)
+
+✅ **본 PR 적용**:
+- `CarryAugmentConfig.statOverrides` 슬롯 (사용자 추후 채움)
+- `CarryAbilityData` 확장 (shield/healthCost/hexReduction/asGain/secondaryDamage 등 27 변수)
+- 8 영웅 증강 모두 `abilityData` 채움 (사용자 인게임 데이터 기반)
+- 17.2b 변경분 정확 반영:
+  - 그라가스 자폭 `healthCost: 0.20`, `hexReduction: 0.45`
+  - 모데카이저 뜨거운 죽음 `shield: [225, 250, 300]`
+  - 레오나 방패 여전사 `damage: [90, 135, 225]`
+- `applyHeroCarryTransforms` generic 화 (CARRY_AUGMENTS iterate, statOverrides 적용)
+- 자폭 self-damage 가 `maxHp × healthCost` 정확 적용
+- 회귀 가드 19 tests 신규
+
+⏭️ **후속 PR (구현 미완)**:
+- 자폭 적군 damage / hexReduction / 탱커 +60% 시뮬 적용 (현재 적군 damage flow skip 구조)
+- augment-specific damage 시뮬 분기 (레오나 90/135/225, 잭스 starLevel asGain, 모데 shield 등)
+- 파이크 X-shape 멀티 타겟 + onKill 재시전
+- 꼬마정령 multi-stun + 미프 스케일
+- 아트록스 3-skill cycle + N.O.V.A.
+- 뽀삐 bouncing projectile + 미프
+- `statOverrides` 슬롯 사용자 인게임 측정 후 채움
 
 ## 참고 문서
 

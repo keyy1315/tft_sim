@@ -5,7 +5,7 @@ import {
   MF_MODE_CONFIG, ArbiterLaw, STAR_SCALING,
 } from '@/types';
 import arbiterLawsData from '../../../../public/data/arbiter_laws.json';
-import { findCarryAugment } from '@/data/carryAugments';
+import { findCarryAugment, CARRY_AUGMENTS } from '@/data/carryAugments';
 import type { StatusEffectType } from '@/types';
 import { calculateStats, getItemEffects } from '@/lib/simulator/systems/stat';
 import { getAbilityDamage, getAbilityShield, findAbilityTargets, CHAMPION_ABILITY_PATTERNS, getChampionScaling, starValue, getSynergyScaling } from '@/lib/simulator/systems/ability';
@@ -1497,37 +1497,46 @@ function findStrongestUnitByApi(units: CombatUnit[], apiName: string): CombatUni
 }
 
 /**
- * Hero carry augment 변환 — 자폭(GragasCarry) / 방패 여전사(LeonaCarry).
+ * Hero carry augment 변환 — 영웅 증강 활성 시 가장 강한 챔프 1명을 augment-specific
+ * 빌드로 변환:
+ *   1. 역할군 변경 (사용자 명세 "주문력 전사" / "공격력 전사" → 시뮬 내부 'Fighter')
+ *   2. statOverrides 적용 (HP/AS/range 등 — 사용자 인게임 측정 기반 채워넣기)
+ *   3. ability override 는 getAbilityConfigForUnit (carry augment lookup) 에서 처리
  *
- * 자폭 (TFT17_Augment_GragasCarry):
- *   - 가장 강한 그라가스 → "주문력 전사" 변환 (role='APFighter').
- *   - ability 가 거대한 폭발 (자기 자신 데미지, 다른 아군 X) 로 변환.
- *   - 자폭 self-damage 로 hp 가 1 미만으로 떨어지지 않음 (HP floor=1).
+ * 변환 후 마나 재생 / 공격 속도 / 타게팅은 변경된 role 룰 자동 적용 (mana.ts 등).
  *
- * 방패 여전사 (TFT17_Augment_LeonaCarry):
- *   - 가장 강한 레오나 → "공격력 전사" 변환 (role='ADFighter').
- *   - ability 가 적 가로질러 dash + 첫 적중 대상 기절 (CC) 로 변환.
- *
- * 변환 결과 unit 만 gragasCarryActive / leonaCarryActive 가 true. 일반 그라가스/레오나
- * (carry 미선정) 는 기존 ability 그대로.
+ * gragasCarryActive / leonaCarryActive 는 ability 분기용 flag 로 유지 (기존 호출 경로 호환).
+ * 다른 carry augment (Nasus/Aatrox/Poppy/Pyke/IvernMinion/Jax/Mordekaiser) 는
+ * findCarryAugment 에서 ability 가져오므로 별도 flag 불필요.
  */
 function applyHeroCarryTransforms(augmentApiNames: string[], units: CombatUnit[]): void {
   const augSet = new Set(augmentApiNames);
-  // 사용자 명세 "주문력 전사" / "공격력 전사" 는 raw GameRole 표기.
-  // 시뮬 내부 UnitRole 은 단순화 ('Fighter' 단일) — 마나 획득/타게팅 룰 동일하게 처리됨.
-  // 차별화 (AP vs AD) 는 ability config (selfDamage/firstHitOnlyStun) 로 표현.
-  if (augSet.has('TFT17_Augment_GragasCarry')) {
-    const target = findStrongestUnitByApi(units, 'TFT17_Gragas');
-    if (target) {
-      target.gragasCarryActive = true;
-      target.role = 'Fighter';
+  for (const cfg of CARRY_AUGMENTS) {
+    if (!augSet.has(cfg.augmentApiName)) continue;
+    const target = findStrongestUnitByApi(units, cfg.targetChampionApiName);
+    if (!target) continue;
+    // role 변환: statOverrides.role 우선, 없으면 default 'Fighter' (사용자 명세 단순화)
+    target.role = cfg.statOverrides?.role ?? 'Fighter';
+    // statOverrides 적용 — undefined 필드는 기존 stat 유지 (안전 default)
+    const so = cfg.statOverrides;
+    if (so) {
+      if (so.hp !== undefined) {
+        target.maxHp = so.hp;
+        target.currentHp = so.hp;
+      }
+      if (so.armor !== undefined) target.stats.armor = so.armor;
+      if (so.magicResist !== undefined) target.stats.magicResist = so.magicResist;
+      if (so.damage !== undefined) target.stats.damage = so.damage;
+      if (so.attackSpeed !== undefined) target.stats.attackSpeed = so.attackSpeed;
+      if (so.range !== undefined) target.stats.range = so.range;
+      if (so.mana !== undefined) target.maxMana = so.mana;
+      if (so.initialMana !== undefined) target.currentMana = so.initialMana;
     }
-  }
-  if (augSet.has('TFT17_Augment_LeonaCarry')) {
-    const target = findStrongestUnitByApi(units, 'TFT17_Leona');
-    if (target) {
+    // ability 분기용 flag (기존 호출 경로 호환)
+    if (cfg.augmentApiName === 'TFT17_Augment_GragasCarry') {
+      target.gragasCarryActive = true;
+    } else if (cfg.augmentApiName === 'TFT17_Augment_LeonaCarry') {
       target.leonaCarryActive = true;
-      target.role = 'Fighter';
     }
   }
 }
@@ -4882,23 +4891,32 @@ export function simulateCombat(
 
             // 자폭 (GragasCarry) — 일반 ability target 흐름 skip + self 에 데미지 + HP floor.
             // 사용자 명세: 그라가스 본인 데미지, 다른 아군 X, 자기 스킬로 죽지 않음 (HP >= 1).
+            // 17.2b: self-damage 는 maxHp × healthCost (0.20). 기존 raw ability damage 사용 시
+            //   AP 스케일이 그대로 self 에 가해져 부정확 — abilityData.healthCost 우선 사용.
+            //   적군 damage / hexReduction / 탱커 보너스 적용은 후속 PR (자폭이 현재 적군 flow skip 구조).
             if (config.selfDamage) {
               const hpFloor = config.selfDamageHpFloor ?? 0;
+              // 영웅 증강 abilityData.healthCost 가 있으면 maxHp × healthCost, 없으면 raw ability damage.
+              const carryCfg = findCarryAugment(unit.champion.apiName, augNames);
+              const healthCost = carryCfg?.abilityData?.healthCost;
+              const selfDamageRaw = healthCost !== undefined
+                ? unit.maxHp * healthCost
+                : rawAbilityDmg;
               const beforeHp = unit.currentHp;
-              const dmgApplied = Math.max(0, Math.min(rawAbilityDmg, beforeHp - hpFloor));
-              unit.currentHp = Math.max(hpFloor, beforeHp - rawAbilityDmg);
+              const dmgApplied = Math.max(0, Math.min(selfDamageRaw, beforeHp - hpFloor));
+              unit.currentHp = Math.max(hpFloor, beforeHp - selfDamageRaw);
               unit.totalDamageTaken += dmgApplied;
               const selfLog: CombatLog = {
                 tick, time, type: 'ability',
                 sourceId: unit.id, targetId: unit.id,
                 value: Math.round(dmgApplied),
-                message: `${unit.champion.name}이(가) 자폭! 자기 자신에게 ${Math.round(dmgApplied)} 피해 (HP floor=${hpFloor})`,
+                message: `${unit.champion.name}이(가) 자폭! 자기 자신에게 ${Math.round(dmgApplied)} 피해 (HP floor=${hpFloor}${healthCost !== undefined ? `, ${Math.round(healthCost * 100)}% maxHp` : ''})`,
               };
               logs.push(selfLog);
               tickLogs.push(selfLog);
               // on_cast 이벤트 emit — PsyOps 등 cast event subscriber 호환 (codex P2 회귀 가드).
               // targetId 는 self (적군 X). value 는 실제 입은 self damage. rawValue 는 동일 (no resistance for self).
-              eventBus.emit('on_cast', { sourceId: unit.id, targetId: unit.id, value: dmgApplied, rawValue: rawAbilityDmg, tick });
+              eventBus.emit('on_cast', { sourceId: unit.id, targetId: unit.id, value: dmgApplied, rawValue: selfDamageRaw, tick });
               continue; // 일반 ability 흐름 skip — 적군/아군 데미지 없음
             }
 
