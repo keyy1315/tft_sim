@@ -1375,6 +1375,31 @@ const GRAVES_UPGRADE_APPLY_ORDER: ReadonlyArray<string> = [
  * applyGravesStatUpgrades 가 활성화한 unit 1명 한정 (가장 강한 그레이브즈).
  * tick=0, time=0 시점에 호출. on_death emit 으로 누적 핸들러 정합 유지.
  */
+/**
+ * EmergencyShielding/2 trigger — HP × triggerHpFrac 도달 시 1회 shield 부여.
+ * 호출 시점: damage application 직후 (codex P1) + tick pre-check (safety net).
+ *
+ * 1-tick burst 시나리오 정합성: 평타 first hit 후 즉시 호출 → 후속 DoubleTap
+ * 추가 hit 부터 shield 흡수. tick pre-check 만으로는 같은 tick 안에서
+ * "trigger 도달 + lethal" 시 shield 미발동.
+ */
+function maybeTriggerEmergencyShield(unit: CombatUnit): void {
+  if (unit.gravesEmergencyTriggerHpFrac <= 0) return;
+  if (unit.gravesEmergencyUsed) return;
+  if (unit.maxHp <= 0) return;
+  if (unit.currentHp / unit.maxHp > unit.gravesEmergencyTriggerHpFrac) return;
+  const shieldAmt = unit.maxHp * unit.gravesEmergencyShieldFrac;
+  const shieldTicks = Math.round(unit.gravesEmergencyDurationSec * TICKS_PER_SECOND);
+  unit.shield += shieldAmt;
+  unit.statusEffects.push({
+    type: 'shield',
+    sourceId: unit.id,
+    remainingTicks: shieldTicks,
+    value: shieldAmt,
+  });
+  unit.gravesEmergencyUsed = true;
+}
+
 function applyGravesShockwave(
   ownTeam: CombatUnit[],
   enemyTeam: CombatUnit[],
@@ -1396,7 +1421,13 @@ function applyGravesShockwave(
   const stunTicks = Math.round(2 * TICKS_PER_SECOND);
   for (const target of targets) {
     const rawDmg = target.maxHp * 0.15;
-    const finalDmg = applyResistance(rawDmg, target.stats.magicResist, graves.stats.magicPen);
+    // codex P2: 정상 mitigation pipeline 사용 — Warden shield / damageReduction /
+    // invulnerable 등 combat-start 방어 효과 우회 방지.
+    let finalDmg = applyResistance(rawDmg, target.stats.magicResist, graves.stats.magicPen);
+    if (target.damageReduction > 0) finalDmg *= (1 - target.damageReduction);
+    finalDmg = applyShield(target, finalDmg, eventBus, 0);
+    if (target.statusEffects.some(e => e.type === 'invulnerable')) finalDmg = 0;
+
     target.currentHp -= finalDmg;
     target.totalDamageTaken += finalDmg;
     graves.totalDamageDealt += finalDmg;
@@ -3266,24 +3297,13 @@ export function simulateCombat(
       }
     }
 
-    // 최신상 EmergencyShielding/2 — 저체력(HP×triggerFrac) 도달 시 1회 maxHp×shieldFrac shield.
-    // 매 tick 체크 (HP 변동이 빈번한 attack tick 에 즉시 반응). Duration 후 expire.
+    // 최신상 EmergencyShielding/2 — tick pre-check (safety net).
+    // codex P1 fix: damage application 직후 maybeTriggerEmergencyShield() 호출이
+    // primary path (평타/DoubleTap inline). 본 tick pre-check 는 비-attack
+    // damage source (DoT/burn/poison/regen 후 HP threshold crossing) 보완.
     for (const u of allUnits) {
       if (u.state === 'dead') continue;
-      if (u.gravesEmergencyTriggerHpFrac <= 0) continue;
-      if (u.gravesEmergencyUsed) continue;
-      if (u.maxHp <= 0) continue;
-      if (u.currentHp / u.maxHp > u.gravesEmergencyTriggerHpFrac) continue;
-      const shieldAmt = u.maxHp * u.gravesEmergencyShieldFrac;
-      const shieldTicks = Math.round(u.gravesEmergencyDurationSec * TICKS_PER_SECOND);
-      u.shield += shieldAmt;
-      u.statusEffects.push({
-        type: 'shield',
-        sourceId: u.id,
-        remainingTicks: shieldTicks,
-        value: shieldAmt,
-      });
-      u.gravesEmergencyUsed = true;
+      maybeTriggerEmergencyShield(u);
     }
 
     // In-combat augment effects (apply every second = every 30 ticks)
@@ -3427,6 +3447,10 @@ export function simulateCombat(
           target.totalDamageTaken += finalDamage;
           unit.totalDamageDealt += finalDamage;
 
+          // 최신상 EmergencyShielding/2 — codex P1: damage application 직후 즉시 체크
+          // (1-tick burst 시 후속 hit 부터 shield 흡수 보장).
+          maybeTriggerEmergencyShield(target);
+
           // 별돌보미 뱀(Serpent) — 강화 칸 별돌보미 가 평타로 적 명중 시 중독 적용
           triggerSerpentPoison(unit, target, finalDamage);
 
@@ -3473,6 +3497,9 @@ export function simulateCombat(
             target.totalDamageTaken += extraFinal;
             unit.totalDamageDealt += extraFinal;
             unit.attackCount++;
+
+            // 최신상 EmergencyShielding/2 — codex P1: DoubleTap 추가 hit 직후도 즉시 체크.
+            maybeTriggerEmergencyShield(target);
 
             // 풀 attack 이벤트 emit — 일반 평타와 동일 path.
             eventBus.emit('on_attack', { sourceId: unit.id, targetId: target.id, value: extraFinal, tick });
