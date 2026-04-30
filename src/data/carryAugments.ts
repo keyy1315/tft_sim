@@ -142,12 +142,13 @@ export const CARRY_AUGMENTS: CarryAugmentConfig[] = [
   {
     augmentApiName: 'TFT17_Augment_PoppyCarry',
     targetChampionApiName: 'TFT17_Poppy',
-    abilityOverride: { pattern: 'single', dash: 'to_target' },
+    // 정령단 속도: ranged projectile (rangeOverride=4). dash 없음 — 사거리 증가가 핵심.
+    abilityOverride: { pattern: 'single' },
     rangeOverride: 4,
     damageTypeOverride: 'physical',
     abilityData: {
       name: '정령단 속도',
-      desc: '거대한 정령을 소환하여 대상에게 발사. 적중한 적에게 AD + 100% 방어력 + 미프 정령족 잠재력 가산. 처치 시 가장 가까운 적에게 잔여 damage 튕김.',
+      desc: '원거리 공격력 마법사로 변환 (사거리 +N칸). 거대한 정령을 발사. 적중한 적에게 AD + 100% 방어력 + 미프 정령족 잠재력 가산. 처치 시 가장 가까운 적에게 잔여 damage 튕김.',
       mana: '30/100',
       damage: [340, 510, 850],
       armorScale: 1.0, // 100% armor 가산

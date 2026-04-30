@@ -98,6 +98,15 @@ describe('CARRY_AUGMENTS 카탈로그 — 8 영웅 증강 abilityData 정의', (
     expect(ivern?.abilityData?.stunDuration).toEqual([1.25, 1.5, 1.75]);
     expect(ivern?.abilityData?.onAttackBonus).toEqual([40, 60, 90]);
   });
+
+  it('뽀삐 정령단 속도: ranged projectile (dash 없음, rangeOverride=4) — codex P1 회귀 가드', () => {
+    // 정령단 속도는 ranged projectile augment. dash 추가 시 매 cast 마다 melee 점프 →
+    // 의도된 ranged behavior 깨짐. abilityOverride 에 dash 없는지 검증.
+    const poppy = CARRY_AUGMENTS.find(c => c.augmentApiName === 'TFT17_Augment_PoppyCarry');
+    expect(poppy).toBeDefined();
+    expect(poppy!.abilityOverride.dash).toBeUndefined();
+    expect(poppy!.rangeOverride).toBe(4);
+  });
 });
 
 describe('applyHeroCarryTransforms — 8 영웅 증강 모두 처리', () => {
