@@ -72,21 +72,38 @@ desc 메커니즘:
 변동에 fragile — 적군 5명 여행자 + SpaceGroove 매초 ADAP 적용 시 mountain trait 의 비-별돌보미
 unit AS ratio 가 0.83 까지 변동. test bound 완화 또는 격리 시점 별도 PR.
 
-## 영향 측정 (본 PR — 여행자만 적용)
+## 영향 측정 — 해석 비교 실험 (PR #61 + 후속)
 
-| game | matchRate | dmgErr |
-|---|---|---|
-| game-20260423-001 (mountain) | 45.5% (변화 없음) | -41.8% → **-45.2%** (-3.4pp) |
-| game-20260424-001 (well) | 61.9% → **57.1%** (-4.8pp) | -29.6% → **-32.7%** (-3.1pp) |
+| 시나리오 | 23일 matchRate | 23일 dmgErr | 24일 matchRate | 24일 dmgErr |
+|---|---|---|---|---|
+| **FlexTrait 미적용** (baseline) | **45.5%** | **-41.8%** | **61.9%** | **-29.6%** |
+| 해석 B (role 한정, 보수적) | 45.5% (=) | -45.2% (-3.4pp) | 57.1% (-4.8pp) | -32.7% (-3.1pp) |
+| 해석 A (codex, 두 effect ×2) | 40.9% (-4.5pp) | -50.1% (-8.3pp) | 57.1% (-4.8pp) | -33.8% (-4.2pp) |
 
-**회귀 분석**:
-- 23일 게임: 적군 5명 여행자 (Aurora/Karma/Pyke/GiantMech/Tinybot) 활성 → 적군 stats 강화
-- 24일 게임도 적군 측 여행자 활성 가능
-- 결과: player damage 측정값 감소 + winner 예측 더 player-loss 편향
+**핵심 발견**:
+- **두 해석 모두 baseline 보다 회귀** → FlexTrait 자체가 over-buff
+- 해석 B 가 A 보다 보수적 (회귀 -3.4pp 절감)
+- 24일 matchRate 회귀 -4.8pp 는 두 해석 동일 → role 한정 vs 두 effect 차이가 24일 게임에 영향 없음
+- raw 해석 자체가 잘못된 가능성 (PBE 잔존 / over-buff)
 
-**개선 가능 점**:
-- 여행자 "능력치 두 배" 해석 재검토 (BonusDA × 2 vs 본인 한정 stat 두 배 — 후자가 약함)
-- 적용 후 실제 게임 결과와 비교해 over-buff 여부 확인 (사용자 검수 필요)
+**채택 결정**: 해석 B (role 한정) — **사용자 게임 mechanic 검수로 정답 확인** (2026-04-30).
+
+게임 메커니즘 (사용자 확인):
+- 일반 탱커 = ShieldHP 보호막 (×1)
+- 일반 비탱커 = BonusDA damage amp (×1)
+- 여행자 챔프 = 본인 role 의 effect 만 ×2 (탱커이면 보호막 ×2, 비탱커이면 damage amp ×2)
+
+예시: 보드 위 모데카이저(탱커, 비여행자) + 꼬마정령(탱커, 여행자) + 오로라(비탱커, 여행자) (2) tier:
+- 모데카이저: 보호막 175
+- 꼬마정령: 보호막 350 (175×2)
+- 오로라: 피해 증폭 18% (9%×2)
+
+**잔여 회귀 -3.4pp 분석** (over-buff 아닌 정상 영향 가설):
+- baseline (FlexTrait 미적용) = 적군 측 미구현으로 약한 적군 → player damage 측정값 부풀려짐
+- 해석 B 적용 후 = 적군 정확도 ↑ → player damage 측정값 정확하게 감소 (-3.4pp)
+- 즉 baseline 의 dmgErr -41.8% 가 "잘못된 약한 적군" 기준 → 표면 dmgErr 는 악화 보이지만 sim 정확도 는 ↑
+
+**검증 방법** (향후): player 측 trait (운명술사 / N.O.V.A. 등 추가 정확도) 구현 후 dmgErr 절대값 줄어드는지 확인.
 
 ## 후속 (본 PR 외 항목)
 
