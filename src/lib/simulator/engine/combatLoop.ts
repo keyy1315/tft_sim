@@ -226,6 +226,11 @@ function createCombatUnit(
     mfReplicatorEffectiveness: 0,
     spaceGrooveAdapPerSec: 0,
     spaceGrooveDurationSec: 0,
+    challengerBurstEndTick: 0,
+    challengerBurstPercent: 0,
+    channelerInnateManaGain: 0,
+    meleeMaxShieldPct: 0,
+    meleeShieldADBonus: 0,
     gragasCarryActive: false,
     leonaCarryActive: false,
     attackCount: 0,
@@ -317,6 +322,32 @@ function applyStartPassives(unit: CombatUnit): void {
 }
 
 /** Set 17 시너지 전투 버프 적용 (JSON scaling 데이터 기반) */
+/**
+ * 습격자 (MeleeTrait) 흡혈→보호막 변환 helper.
+ *
+ * raw audit 발견 (PR #64): omnivamp heal 의 overflow (currentHp == maxHp cap 으로 손실되는 양) 을
+ * 보호막으로 변환. cap: maxHp × meleeMaxShieldPct (0.25 = 25%).
+ *
+ * 호출자: 평타 / DoubleTap extra hit / ability heal 의 omnivamp 사이트.
+ */
+function applyOmnivampHealWithMeleeShield(unit: CombatUnit, heal: number): void {
+  const before = unit.currentHp;
+  unit.currentHp = Math.min(unit.maxHp, before + heal);
+  if (unit.meleeMaxShieldPct <= 0) return;
+  const overflow = heal - (unit.currentHp - before);
+  if (overflow <= 0) return;
+  const cap = unit.maxHp * unit.meleeMaxShieldPct;
+  const room = Math.max(0, cap - unit.shield);
+  const addShield = Math.min(overflow, room);
+  if (addShield > 0) {
+    unit.shield += addShield;
+    unit.statusEffects.push({
+      type: 'shield', sourceId: unit.id,
+      remainingTicks: MAX_TICKS, value: addShield,
+    });
+  }
+}
+
 function applySet17SynergyBuffs(traits: ActiveTrait[], units: CombatUnit[]): void {
   for (const at of traits) {
     if (!at.activeEffect || at.style === 0) continue;
@@ -382,6 +413,37 @@ function applySet17SynergyBuffs(traits: ActiveTrait[], units: CombatUnit[]): voi
         if (isChampTrait(u)) {
           u.stats.damage = Math.round(u.stats.damage * (1 + adap / 100));
           u.stats.ap += adap;
+        }
+      }
+    }
+
+    // 도전자 (TFT17_ASTrait) Burst — 새 대상 dash 시 AS +BurstPercent% × BurstDuration 초.
+    // raw audit 발견: BurstDuration=2.5, BurstPercent=0.5. combat-start 에선 burstPercent 만 set.
+    if (at.trait.apiName === 'TFT17_ASTrait') {
+      const burstPct = (at.activeEffect.variables['BurstPercent'] ?? 0) as number;
+      for (const u of units) {
+        if (isChampTrait(u)) u.challengerBurstPercent = burstPct;
+      }
+    }
+
+    // 전달자 (TFT17_ManaTrait) InnateManaGain — 전달자 unit 의 mana gain × (1 + N).
+    // raw audit 발견: InnateManaGain=0.20. mana 가산 함수 multiplier.
+    if (at.trait.apiName === 'TFT17_ManaTrait') {
+      const innate = (at.activeEffect.variables['InnateManaGain'] ?? 0) as number;
+      for (const u of units) {
+        if (isChampTrait(u)) u.channelerInnateManaGain = innate;
+      }
+    }
+
+    // 습격자 (TFT17_MeleeTrait) MaxPercentHealthShield + ShieldAD —
+    // raw audit 발견: 흡혈 초과량 → 보호막 변환 (cap maxHp × 0.25). (6) tier ShieldAD=0.20 (보호막 활성 시 +AD).
+    if (at.trait.apiName === 'TFT17_MeleeTrait') {
+      const maxShield = (at.activeEffect.variables['MaxPercentHealthShield'] ?? 0) as number;
+      const shieldAD = (at.activeEffect.variables['ShieldAD'] ?? 0) as number;
+      for (const u of units) {
+        if (isChampTrait(u)) {
+          u.meleeMaxShieldPct = maxShield;
+          u.meleeShieldADBonus = shieldAD;
         }
       }
     }
@@ -2585,6 +2647,12 @@ function getEffectiveAttackSpeed(unit: CombatUnit): number {
     as *= (1 + unit.gravesGravBoosterBonusAS);
   }
 
+  // 도전자 Burst — 새 대상 dash 후 BurstDuration 초 동안 AS +BurstPercent.
+  // challengerBurstEndTick 만료 체크는 main loop 에서 처리. 여기선 endTick > 0 이면 활성.
+  if (unit.challengerBurstEndTick > 0 && unit.challengerBurstPercent > 0) {
+    as *= (1 + unit.challengerBurstPercent);
+  }
+
   return as;
 }
 
@@ -2700,6 +2768,11 @@ function spawnFreljordTurrets(
             mfReplicatorEffectiveness: 0,
             spaceGrooveAdapPerSec: 0,
             spaceGrooveDurationSec: 0,
+            challengerBurstEndTick: 0,
+            challengerBurstPercent: 0,
+            channelerInnateManaGain: 0,
+            meleeMaxShieldPct: 0,
+            meleeShieldADBonus: 0,
             gragasCarryActive: false,
             leonaCarryActive: false,
             attackCount: 0,
@@ -2887,6 +2960,11 @@ function trySpawnGalio(
     mfReplicatorEffectiveness: 0,
     spaceGrooveAdapPerSec: 0,
     spaceGrooveDurationSec: 0,
+    challengerBurstEndTick: 0,
+    challengerBurstPercent: 0,
+    channelerInnateManaGain: 0,
+    meleeMaxShieldPct: 0,
+    meleeShieldADBonus: 0,
     gragasCarryActive: false,
     leonaCarryActive: false,
     attackCount: 0,
@@ -4030,6 +4108,10 @@ export function simulateCombat(
     for (const u of allUnits) {
       if (u.state === 'dead') continue;
       tickBastionDouble(u, tick);
+      // 도전자 Burst 만료 — dash 시점에 set 된 endTick 도달 시 0 reset.
+      if (u.challengerBurstEndTick > 0 && tick >= u.challengerBurstEndTick) {
+        u.challengerBurstEndTick = 0;
+      }
     }
     // N.O.V.A. (DRX) power surge — TeamAttackDelay 도달 시 한 번만 발동.
     tickDrxNova(playerDrxState, tick, time);
@@ -4255,8 +4337,11 @@ export function simulateCombat(
       gainManaPerTick(unit, TICK_DURATION);
 
       // Augment mana regen (per second, applied per tick)
+      // codex P1 (PR #64): 전달자 InnateManaGain — augmentManaRegen 도 +N% 곱셈 적용.
+      // 본 augmentManaRegen 에 trait ManaTrait 의 channelerManaRegen / teamManaRegen 도 가산되어 있음.
       if (unit.augmentManaRegen > 0) {
-        unit.currentMana = Math.min(unit.maxMana, unit.currentMana + unit.augmentManaRegen * TICK_DURATION);
+        const channelerMult = 1 + (unit.channelerInnateManaGain ?? 0);
+        unit.currentMana = Math.min(unit.maxMana, unit.currentMana + unit.augmentManaRegen * TICK_DURATION * channelerMult);
       }
 
       if (unit.attackCooldown > 0) unit.attackCooldown--;
@@ -4285,6 +4370,11 @@ export function simulateCombat(
         const prev = allEnemy.find(e => e.id === prevTargetId);
         if (prev && prev.state === 'dead') {
           applyAbilityDash(unit, 'to_target', target, enemyTeamAlive, occupiedPositions, logs, tickLogs, tick, time);
+          // 도전자 Burst — dash 시 AS +BurstPercent% × BurstDuration 초 활성.
+          // raw BurstDuration=2.5. main loop 만료 체크에서 endTick 도달 시 0 reset.
+          if (unit.challengerBurstPercent > 0) {
+            unit.challengerBurstEndTick = tick + Math.round(2.5 * TICKS_PER_SECOND);
+          }
         }
       }
 
@@ -4315,7 +4405,13 @@ export function simulateCombat(
             const dist = hexDistance(unit.position, target.position);
             totalDamageAmp += dist * unit.gravesAimAssistBonusPerHex;
           }
-          const rawDamage = unit.stats.damage * critMult * (1 + totalDamageAmp);
+          // 습격자 (6) ShieldAD — 보호막 활성 시 AD stat bonus (codex P2 PR #64).
+          // raw 의미는 AD stat 보너스 — damage amp 가 아님. stat-side 곱셈 (multiplicative with damage amp).
+          let effectiveAd = unit.stats.damage;
+          if (unit.meleeShieldADBonus > 0 && unit.shield > 0) {
+            effectiveAd *= (1 + unit.meleeShieldADBonus);
+          }
+          const rawDamage = effectiveAd * critMult * (1 + totalDamageAmp);
           let finalDamage = applyResistance(rawDamage, target.stats.armor, unit.stats.armorPen);
 
           // Apply target's damage reduction from augments
@@ -4413,7 +4509,8 @@ export function simulateCombat(
             const grievousReduction = target.augmentGrievousWounds > 0 ? (1 - target.augmentGrievousWounds) : 1;
             // healAmp 곱셈 적용 — 모든 피해 흡혈 (omnivamp) 도 회복량 증폭 효과 대상.
             const heal = finalDamage * unit.omnivamp * grievousReduction * (1 + (unit.healAmp ?? 0));
-            unit.currentHp = Math.min(unit.maxHp, unit.currentHp + heal);
+            // 습격자 흡혈→보호막 (PR #64): overflow 를 보호막으로 변환.
+            applyOmnivampHealWithMeleeShield(unit, heal);
             eventBus.emit('on_heal', { sourceId: unit.id, value: heal, tick });
           }
 
@@ -4521,7 +4618,7 @@ export function simulateCombat(
             if (unit.omnivamp > 0 && extraFinal > 0) {
               const grievousReduction = target.augmentGrievousWounds > 0 ? (1 - target.augmentGrievousWounds) : 1;
               const heal = extraFinal * unit.omnivamp * grievousReduction * (1 + (unit.healAmp ?? 0));
-              unit.currentHp = Math.min(unit.maxHp, unit.currentHp + heal);
+              applyOmnivampHealWithMeleeShield(unit, heal);
               eventBus.emit('on_heal', { sourceId: unit.id, value: heal, tick });
             }
           }
@@ -4921,7 +5018,7 @@ export function simulateCombat(
             if (unit.omnivamp > 0 && totalAbilityDmg > 0) {
               const grievousReduction = target.augmentGrievousWounds > 0 ? (1 - target.augmentGrievousWounds) : 1;
               const heal = totalAbilityDmg * unit.omnivamp * grievousReduction * (1 + (unit.healAmp ?? 0));
-              unit.currentHp = Math.min(unit.maxHp, unit.currentHp + heal);
+              applyOmnivampHealWithMeleeShield(unit, heal);
             }
 
             // 별돌보미 우물(Fountain) — 강화 칸 안 별돌보미 스킬 시전 시

@@ -33,6 +33,15 @@ export function getManaConfig(role: UnitRole): ManaConfig {
 }
 
 /**
+ * 전달자 (TFT17_ManaTrait) InnateManaGain 곱셈자.
+ * raw audit 발견 (PR #64): 0.20 일 때 mana 가산 × 1.20.
+ * unit.channelerInnateManaGain 활성 시에만 적용 (전달자 unit 한정).
+ */
+function channelerMultiplier(unit: CombatUnit): number {
+  return 1 + (unit.channelerInnateManaGain ?? 0);
+}
+
+/**
  * 공격 시 마나 획득
  * Caster가 스턴 상태이면 마나 획득 불가
  */
@@ -41,7 +50,8 @@ export function gainManaOnAttack(unit: CombatUnit): void {
   if (isStunned) return;
 
   const config = getManaConfig(unit.role);
-  unit.currentMana = Math.min(unit.maxMana, unit.currentMana + config.manaPerAttack);
+  const gain = config.manaPerAttack * channelerMultiplier(unit);
+  unit.currentMana = Math.min(unit.maxMana, unit.currentMana + gain);
 }
 
 /**
@@ -55,7 +65,7 @@ export function gainManaPerTick(unit: CombatUnit, tickDuration: number): void {
   const config = getManaConfig(unit.role);
   if (config.manaPerSecond <= 0) return;
 
-  const manaGain = config.manaPerSecond * tickDuration;
+  const manaGain = config.manaPerSecond * tickDuration * channelerMultiplier(unit);
   unit.currentMana = Math.min(unit.maxMana, unit.currentMana + manaGain);
 }
 
@@ -67,6 +77,7 @@ export function gainManaOnDamageTaken(unit: CombatUnit, damageTaken: number): vo
   const config = getManaConfig(unit.role);
   if (!config.manaFromDamage) return;
 
-  const manaGain = Math.min(42.5, (damageTaken / unit.maxHp) * 100 * 0.7);
+  const baseGain = Math.min(42.5, (damageTaken / unit.maxHp) * 100 * 0.7);
+  const manaGain = baseGain * channelerMultiplier(unit);
   unit.currentMana = Math.min(unit.maxMana, unit.currentMana + manaGain);
 }

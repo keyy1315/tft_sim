@@ -704,6 +704,30 @@ export interface CombatUnit {
    */
   spaceGrooveDurationSec: number;
   /**
+   * 도전자 Burst — 새 대상 dash 발동 시 burst 종료 tick.
+   * dash 시점에 tick + BurstDuration × TICKS_PER_SECOND 로 set.
+   * tick < endTick 동안 getEffectiveAttackSpeed 에 BurstPercent 가산.
+   * 0 = 미활성 / 비활성. raw BurstDuration=2.5, BurstPercent=0.50.
+   */
+  challengerBurstEndTick: number;
+  /** 도전자 Burst — 활성 시 AS multiplicative bonus. 0 = 미활성 / 0.50 (50%). */
+  challengerBurstPercent: number;
+  /**
+   * 전달자 InnateManaGain — 모든 mana gain × (1 + N).
+   * 0 = 미활성 / 0.20 (20% 증가). raw InnateManaGain.
+   */
+  channelerInnateManaGain: number;
+  /**
+   * 습격자 흡혈→보호막 — 흡혈 초과량 (currentHp == maxHp) 을 보호막으로 변환.
+   * 보호막 cap: maxHp × meleeMaxShieldPct. 0 = 미활성 / 0.25 = 25%. raw MaxPercentHealthShield.
+   */
+  meleeMaxShieldPct: number;
+  /**
+   * 습격자 (6) tier ShieldAD — 보호막 활성 시 추가 AD %.
+   * 0 = 미활성 / 0.20 (20%). raw ShieldAD.
+   */
+  meleeShieldADBonus: number;
+  /**
    * 자폭(TFT17_Augment_GragasCarry) 활성 + 가장 강한 그라가스로 선정된 unit 만 true.
    * 그라가스 ability 가 거대한 폭발 (자기 자신 데미지, 다른 아군 X) 로 변환되며,
    * 자폭 데미지로 hp 가 1 미만으로 떨어지지 않음 (HP floor=1).
