@@ -104,9 +104,9 @@ describe('GravesTrait Phase 3B-1 — RevUp/2 (sticky target AS stack)', () => {
   it('RevUp 활성 + 평타 N회 → 같은 target stack 누적 (1명 적 시나리오)', () => {
     const grav = gravesOf(runWith(['RevUp']));
     // 같은 적 1명 → 모든 평타 sticky target match → stack 누적.
-    // 첫 hit 은 stickyId=null → reset (stack=0), 두 번째 hit 부터 stack++.
+    // codex P2 fix: sticky target 잡는 첫 hit 도 stack=1 → N hit 후 stack=N.
     expect(grav.gravesRevUpStickyTargetId).not.toBeNull();
-    if (grav.attackCount >= 2) {
+    if (grav.attackCount >= 1) {
       expect(grav.gravesRevUpStackCount).toBeGreaterThanOrEqual(1);
     }
   });

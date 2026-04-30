@@ -3494,12 +3494,14 @@ export function simulateCombat(
 
           // 최신상 RevUp/2 — sticky target 매칭 시 stack++, 다른 대상 시 reset.
           // 한 공격 = 1 stack (DoubleTap/TripleTap extra hit 은 별도 카운트 안 함).
+          // codex P2: sticky target 을 잡는 hit 도 자체로 1 stack — raw "AttackSpeedPerAttack"
+          // semantics 정합. 0 으로 reset 하면 다음 attack 까지 AS bonus 1 stack 늦게 시작.
           if (unit.gravesRevUpPerStack > 0) {
             if (unit.gravesRevUpStickyTargetId === target.id) {
               unit.gravesRevUpStackCount++;
             } else {
               unit.gravesRevUpStickyTargetId = target.id;
-              unit.gravesRevUpStackCount = 0;
+              unit.gravesRevUpStackCount = 1;
             }
           }
 
