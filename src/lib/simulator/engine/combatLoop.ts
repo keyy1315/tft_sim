@@ -730,32 +730,68 @@ function applyJhinAnnihilator(activeTraits: ActiveTrait[], enemies: CombatUnit[]
 }
 
 /**
- * 파멸자 (벡스) — TFT17_VexUniqueTrait. 전투 시작 시 모든 적 표식 → 첫 hit 시 ADAP1% 강탈.
+ * 파멸자 (벡스) — TFT17_VexUniqueTrait. 양 팀 동시 처리 (symmetric).
  *
  * raw: ADAP1=12 (12%).
+ * codex P1 fix (PR #60): 양 팀 순차 호출 시 두 번째 Vex 가 이미 차감된 stats 에서 강탈 →
+ * deterministic player advantage. 양쪽 강탈량 snapshot 으로 계산 후 동시 적용.
+ *
  * 시뮬 단순화: combat-start 시 즉시 일괄 적용 (적이 모두 hit 받게 됨 가정 — 표식 메커니즘 생략).
- * 모든 적 (damage + ap) × 0.12 합산 → 가장 강한 Vex 1명에게 가산 + 적 stat 차감.
  */
-function applyVexDoom(activeTraits: ActiveTrait[], ownTeam: CombatUnit[], enemies: CombatUnit[]): void {
-  const trait = activeTraits.find(t => t.trait.apiName === 'TFT17_VexUniqueTrait' && t.activeEffect);
-  if (!trait?.activeEffect) return;
-  const stealPct = ((trait.activeEffect.variables['ADAP1'] ?? 12) as number) / 100;
-  if (stealPct <= 0) return;
-  const vex = findStrongestUnitByApi(ownTeam, 'TFT17_Vex');
-  if (!vex) return;
-  let stolenAd = 0;
-  let stolenAp = 0;
-  for (const e of enemies) {
-    if (e.state === 'dead') continue;
-    const adSteal = e.stats.damage * stealPct;
-    const apSteal = e.stats.ap * stealPct;
-    e.stats.damage = Math.max(0, e.stats.damage - adSteal);
-    e.stats.ap = Math.max(0, e.stats.ap - apSteal);
-    stolenAd += adSteal;
-    stolenAp += apSteal;
+function applyVexDoomBothSides(
+  playerActiveTraits: ActiveTrait[],
+  enemyActiveTraits: ActiveTrait[],
+  playerUnits: CombatUnit[],
+  enemies: CombatUnit[],
+): void {
+  const playerTrait = playerActiveTraits.find(t => t.trait.apiName === 'TFT17_VexUniqueTrait' && t.activeEffect);
+  const enemyTrait = enemyActiveTraits.find(t => t.trait.apiName === 'TFT17_VexUniqueTrait' && t.activeEffect);
+  const playerVex = playerTrait ? findStrongestUnitByApi(playerUnits, 'TFT17_Vex') : null;
+  const enemyVex = enemyTrait ? findStrongestUnitByApi(enemies, 'TFT17_Vex') : null;
+  if (!playerVex && !enemyVex) return;
+
+  const playerPct = playerTrait?.activeEffect ? ((playerTrait.activeEffect.variables['ADAP1'] ?? 12) as number) / 100 : 0;
+  const enemyPct = enemyTrait?.activeEffect ? ((enemyTrait.activeEffect.variables['ADAP1'] ?? 12) as number) / 100 : 0;
+
+  // Snapshot 단계: 원본 stats 기반 강탈량 계산. 양 팀 모두 원본에서 비례 차감.
+  type Steal = { unit: CombatUnit; ad: number; ap: number };
+  const enemySteals: Steal[] = [];  // playerVex 가 적군에서 가져갈 양
+  const playerSteals: Steal[] = []; // enemyVex 가 player 에서 가져갈 양
+  if (playerVex && playerPct > 0) {
+    for (const e of enemies) {
+      if (e.state === 'dead') continue;
+      enemySteals.push({ unit: e, ad: e.stats.damage * playerPct, ap: e.stats.ap * playerPct });
+    }
   }
-  vex.stats.damage += stolenAd;
-  vex.stats.ap += stolenAp;
+  if (enemyVex && enemyPct > 0) {
+    for (const p of playerUnits) {
+      if (p.state === 'dead') continue;
+      playerSteals.push({ unit: p, ad: p.stats.damage * enemyPct, ap: p.stats.ap * enemyPct });
+    }
+  }
+  // Apply 단계: 차감 + 가산.
+  let playerVexAd = 0, playerVexAp = 0;
+  let enemyVexAd = 0, enemyVexAp = 0;
+  for (const s of enemySteals) {
+    s.unit.stats.damage = Math.max(0, s.unit.stats.damage - s.ad);
+    s.unit.stats.ap = Math.max(0, s.unit.stats.ap - s.ap);
+    playerVexAd += s.ad;
+    playerVexAp += s.ap;
+  }
+  for (const s of playerSteals) {
+    s.unit.stats.damage = Math.max(0, s.unit.stats.damage - s.ad);
+    s.unit.stats.ap = Math.max(0, s.unit.stats.ap - s.ap);
+    enemyVexAd += s.ad;
+    enemyVexAp += s.ap;
+  }
+  if (playerVex) {
+    playerVex.stats.damage += playerVexAd;
+    playerVex.stats.ap += playerVexAp;
+  }
+  if (enemyVex) {
+    enemyVex.stats.damage += enemyVexAd;
+    enemyVex.stats.ap += enemyVexAp;
+  }
 }
 
 /**
@@ -803,8 +839,11 @@ function applyPartyTrickster(activeTraits: ActiveTrait[], ownTeam: CombatUnit[])
  * 복제자 (MF) — TFT17_APTrait. minUnits=2 / 4 두 tier.
  * raw: Effectiveness=0.22 (2-3) / 0.45 (4+).
  *
- * MF replicator mode 한정 — 스킬 cast 시 ability damage × Effectiveness 추가 적용.
- * combat-start 시 mfMode === 'replicator' 인 MF 에만 effectiveness 설정.
+ * codex P1 fix (PR #60): 모든 복제자 trait 보유 unit 에 적용 — MF replicator mode +
+ * 자연 복제자 챔프 (Lulu/Nami/Veigar/Pantheon/Lissandra) 모두 포함.
+ * unitHasTrait('복제자') 로 식별 (resolvedTraits 통합 검사).
+ *
+ * 스킬 cast 시 ability damage × (1 + Effectiveness) 적용 (단일 cast 등가).
  */
 function applyReplicatorTrait(activeTraits: ActiveTrait[], ownTeam: CombatUnit[]): void {
   const trait = activeTraits.find(t => t.trait.apiName === 'TFT17_APTrait' && t.activeEffect);
@@ -812,7 +851,7 @@ function applyReplicatorTrait(activeTraits: ActiveTrait[], ownTeam: CombatUnit[]
   const effectiveness = (trait.activeEffect.variables['Effectiveness'] ?? 0.22) as number;
   if (effectiveness <= 0) return;
   for (const u of ownTeam) {
-    if (u.champion.apiName === 'TFT17_MissFortune') {
+    if (unitHasTrait(u, '복제자')) {
       u.mfReplicatorEffectiveness = effectiveness;
     }
   }
@@ -3461,9 +3500,8 @@ export function simulateCombat(
   applyShenBastionAura(enemyActiveTraits, enemies);
   applyJhinAnnihilator(playerActiveTraits, enemies);  // 적 대상
   applyJhinAnnihilator(enemyActiveTraits, playerUnits);
-  // 파멸자 (Vex) — 적 ADAP 12% 강탈 → 가장 강한 Vex 에 가산.
-  applyVexDoom(playerActiveTraits, playerUnits, enemies);
-  applyVexDoom(enemyActiveTraits, enemies, playerUnits);
+  // 파멸자 (Vex) — 적 ADAP 12% 강탈. codex P1 (PR #60): 양 팀 snapshot 동시 처리로 order bias 제거.
+  applyVexDoomBothSides(playerActiveTraits, enemyActiveTraits, playerUnits, enemies);
   // 은하계 사냥꾼 (Zed) — Zed +40% AD (분신 alive 가정 단순화).
   applyZedShadow(playerActiveTraits, playerUnits);
   applyZedShadow(enemyActiveTraits, enemies);
