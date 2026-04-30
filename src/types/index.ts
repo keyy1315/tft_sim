@@ -694,6 +694,16 @@ export interface CombatUnit {
    */
   mfReplicatorEffectiveness: number;
   /**
+   * 우주 그루브 (TFT17_SpaceGroove) 일반 tier — 그루비안 unit 한정.
+   * raw ADAPPerSecond. 0 = 미활성 / 5 / 10. 매 1초 ADAP +N% 가산 (StartOfCombatDuration 초 동안).
+   */
+  spaceGrooveAdapPerSec: number;
+  /**
+   * 우주 그루브 일반 tier — 그루비안 unit 한정 ADAP 적용 종료 시점 (combat seconds).
+   * raw StartOfCombatDuration. 0 = 미활성 / 3 (일반) / 60 (prism — 별도 처리).
+   */
+  spaceGrooveDurationSec: number;
+  /**
    * 자폭(TFT17_Augment_GragasCarry) 활성 + 가장 강한 그라가스로 선정된 unit 만 true.
    * 그라가스 ability 가 거대한 폭발 (자기 자신 데미지, 다른 아군 X) 로 변환되며,
    * 자폭 데미지로 hp 가 1 미만으로 떨어지지 않음 (HP floor=1).

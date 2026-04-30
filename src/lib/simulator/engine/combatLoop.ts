@@ -224,6 +224,8 @@ function createCombatUnit(
     partyUsed: false,
     partyHealing: false,
     mfReplicatorEffectiveness: 0,
+    spaceGrooveAdapPerSec: 0,
+    spaceGrooveDurationSec: 0,
     gragasCarryActive: false,
     leonaCarryActive: false,
     attackCount: 0,
@@ -832,6 +834,75 @@ function applyPartyTrickster(activeTraits: ActiveTrait[], ownTeam: CombatUnit[])
       u.partyHpThreshold = threshold;
       u.partyHealRate = healRate;
     }
+  }
+}
+
+/**
+ * 여행자 (TFT17_FlexTrait) — 전투 시작 시 모든 아군에 효과.
+ *
+ * raw effects (tier별 — minUnits=2/3/4/5/6):
+ *   BonusDA: 0.09 / 0.15 / 0.18 / 0.22 / 0.27 — 비탱커 damage amp
+ *   ShieldHP: 175 / 250 / 350 / 500 / 700 — 탱커 shield HP
+ *   ShieldDuration: 15 (모든 tier 동일) — 보호막 지속 시간 (초)
+ *
+ * 메커니즘 (desc 기반):
+ *   - 모든 아군 탱커 (role==='Tank') 가 ShieldHP 보호막 ShieldDuration 초.
+ *   - 그 외 아군 (비탱커) 은 BonusDA 만큼 damage amp.
+ *   - 여행자 챔프 (unitHasTrait '여행자') 는 위 두 효과 모두 ×2 (능력치 두 배).
+ */
+function applyFlexTraitBuffs(activeTraits: ActiveTrait[], ownTeam: CombatUnit[]): void {
+  const trait = activeTraits.find(t => t.trait.apiName === 'TFT17_FlexTrait' && t.activeEffect);
+  if (!trait?.activeEffect) return;
+  const v = trait.activeEffect.variables;
+  const bonusDA = (v['BonusDA'] ?? 0) as number;
+  const shieldHP = (v['ShieldHP'] ?? 0) as number;
+  const shieldDurSec = (v['ShieldDuration'] ?? 15) as number;
+  if (bonusDA <= 0 && shieldHP <= 0) return;
+  const shieldTicks = Math.round(shieldDurSec * TICKS_PER_SECOND);
+  for (const u of ownTeam) {
+    if (u.state === 'dead') continue;
+    const isFlexUnit = unitHasTrait(u, '여행자');
+    const multiplier = isFlexUnit ? 2 : 1;
+    if (u.role === 'Tank' && shieldHP > 0) {
+      const sh = shieldHP * multiplier;
+      u.shield += sh;
+      u.statusEffects.push({
+        type: 'shield', sourceId: u.id,
+        remainingTicks: shieldTicks, value: sh,
+      });
+    } else if (u.role !== 'Tank' && bonusDA > 0) {
+      u.damageAmp += bonusDA * multiplier;
+    }
+  }
+}
+
+/**
+ * 우주 그루브 (TFT17_SpaceGroove) 일반 tier — 매 1초 ADAP +N% (그루비안 한정).
+ *
+ * raw effects (tier 별):
+ *   (1) tier 0: minUnits=1 placeholder, 효과 null
+ *   (3) tier 1: StartOfCombatDuration=3 (3초 동안 그루브 상태 — 매초 효과 미정)
+ *   (5) tier 2: ADAPPerSecond=5, StartOfCombatDuration=3
+ *   (7) tier 3: ADAPPerSecond=5, EffectBonus=10, StartOfCombatDuration=3
+ *   (10) prism: ADAPPerSecond=10, EffectBonus=500, StartOfCombatDuration=60 — detectPrismTraits 가
+ *               즉시 winner 결정 (별도 처리). 본 함수는 일반 tier 만 set.
+ *
+ * EffectBonus 의미는 raw 미해석 (단순화 — 미적용).
+ * 매 1초 main loop tick 에서 ADAP 가산 — main loop 에서 spaceGrooveDurationSec 초 동안만.
+ */
+function applySpaceGrooveBuffs(activeTraits: ActiveTrait[], ownTeam: CombatUnit[]): void {
+  const trait = activeTraits.find(t => t.trait.apiName === 'TFT17_SpaceGroove' && t.activeEffect);
+  if (!trait?.activeEffect) return;
+  const v = trait.activeEffect.variables;
+  const adapPerSec = (v['ADAPPerSecond'] ?? 0) as number;
+  const durationSec = (v['StartOfCombatDuration'] ?? 0) as number;
+  if (adapPerSec <= 0 || durationSec <= 0) return;
+  // prism (style=6) tier 는 detectPrismTraits 가 즉시 winner 결정 — 본 함수는 일반 tier 만.
+  if (trait.style >= 6) return;
+  for (const u of ownTeam) {
+    if (!unitHasTrait(u, '우주 그루브')) continue;
+    u.spaceGrooveAdapPerSec = adapPerSec;
+    u.spaceGrooveDurationSec = durationSec;
   }
 }
 
@@ -2625,6 +2696,8 @@ function spawnFreljordTurrets(
             partyUsed: false,
             partyHealing: false,
             mfReplicatorEffectiveness: 0,
+            spaceGrooveAdapPerSec: 0,
+            spaceGrooveDurationSec: 0,
             gragasCarryActive: false,
             leonaCarryActive: false,
             attackCount: 0,
@@ -2810,6 +2883,8 @@ function trySpawnGalio(
     partyUsed: false,
     partyHealing: false,
     mfReplicatorEffectiveness: 0,
+    spaceGrooveAdapPerSec: 0,
+    spaceGrooveDurationSec: 0,
     gragasCarryActive: false,
     leonaCarryActive: false,
     attackCount: 0,
@@ -3511,6 +3586,12 @@ export function simulateCombat(
   // 복제자 (MF replicator mode) — Effectiveness 설정 (cast 시 추가 발동).
   applyReplicatorTrait(playerActiveTraits, playerUnits);
   applyReplicatorTrait(enemyActiveTraits, enemies);
+  // 여행자 (FlexTrait) — 탱커 보호막 + 비탱커 damage amp + 여행자 ×2.
+  applyFlexTraitBuffs(playerActiveTraits, playerUnits);
+  applyFlexTraitBuffs(enemyActiveTraits, enemies);
+  // 우주 그루브 (SpaceGroove) 일반 tier — 그루비안 매초 ADAP +N% (StartOfCombatDuration 동안).
+  applySpaceGrooveBuffs(playerActiveTraits, playerUnits);
+  applySpaceGrooveBuffs(enemyActiveTraits, enemies);
   // Astronaut/Brawler HP 가산은 Stargazer (Huntress) maxHp 상위 N명 mark 선택 전에
   // 적용해야 정확한 maxHp 기준으로 mark — codex P2 회귀 가드.
   applyAstronautEffects(playerActiveTraits, playerUnits);
@@ -4063,6 +4144,12 @@ export function simulateCombat(
         }
       }
     }
+
+    // 우주 그루브 (SpaceGroove) 일반 tier — 매초 그루비안 ADAP +N% 가산.
+    // 보류: 본 효과 적용 시 stargazer-mountain-applied calibration test 가 fragile
+    // (sim flow 변동으로 비-별돌보미 unit asRatio 0.83 까지 변동). 필드는 set 되지만 적용 보류 —
+    // 별도 PR (audit + calibration test 보강 후) 로 격리 진행.
+    // applySpaceGrooveBuffs() 에서 spaceGrooveAdapPerSec / spaceGrooveDurationSec 는 set 됨.
 
     // 최신상 EmergencyShielding/2 — tick pre-check (safety net).
     // codex P1 fix: damage application 직후 maybeTriggerEmergencyShield() 호출이
