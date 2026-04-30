@@ -1288,10 +1288,15 @@ function applyBrawlerEffects(activeTraits: ActiveTrait[], units: CombatUnit[]): 
  *   (2) tier (style 1)  : 블랙홀 execute — currentHp/maxHp ≤ 0.08 적 즉사
  *   (4) tier (style 3)  : (2) + ADAP 45% AD/AP 가산
  *   (6) tier (style 5)  : (4) + 가장 강한 darkStar unit Supermassive
- *                          (ADAP × (1 + 0.85), maxHp × (1 + 0.30))
+ *                          (ADAP × (1 + 0.85), ExecuteHPPercent × (1 + 0.85))
+ *                          + 소형 블랙홀 maxHp = (아군 darkStar maxHp 합) × 0.30
  *   (9) tier (style 6)  : 프리즘 — 별도 prism handler 처리 (10레벨 즉시 승리)
  *
  * 암흑의 별 챔프 (6명): Kaisa, Karma, Jhin, Chogath, Lissandra, Mordekaiser.
+ *
+ * PercentHealth=0.30 변수는 FakeUnit (소형 블랙홀) ability desc 에서 사용:
+ *   "아군 암흑의 별 체력의 30% 만큼 최대 체력을 얻습니다."
+ *   raw hp=1 base 만으로는 첫 공격에 즉사 → 합산 보정 필수.
  */
 function applyDarkStarEffects(activeTraits: ActiveTrait[], units: CombatUnit[]): void {
   const trait = activeTraits.find(t => t.trait.apiName === 'TFT17_DarkStar');
@@ -1300,7 +1305,7 @@ function applyDarkStarEffects(activeTraits: ActiveTrait[], units: CombatUnit[]):
   const adap = (v.ADAP ?? 0) as number;
   const executePct = (v.ExecuteHPPercent ?? 0) as number;
   const supermassiveBonus = (v.SupermassivePercentBonus ?? 0) as number;
-  // PercentHealth=0.30 raw 변수는 desc 에 미사용 → 적용 안 함 (codex 후속 검토).
+  const blackholeHpFrac = (v.PercentHealth ?? 0) as number;
 
   // darkStar unit 식별 (FakeUnit 소형 블랙홀 은 traits=[] 라서 자연 제외됨)
   const darkStarUnits = units.filter(u => unitHasTrait(u, '암흑의 별'));
@@ -1337,6 +1342,22 @@ function applyDarkStarEffects(activeTraits: ActiveTrait[], units: CombatUnit[]):
       // ExecuteHPPercent 도 +85% 강화 — base 0.08 × 1.85 ≈ 0.148 (codex P1 회귀 가드).
       if (executePct > 0) {
         strongest.darkStarExecuteThreshold = executePct * (1 + supermassiveBonus);
+      }
+    }
+  }
+
+  // (6)+ tier 소형 블랙홀 maxHp 보정 (FakeUnit ability desc):
+  //   "아군 암흑의 별 체력의 30% 만큼 최대 체력을 얻습니다."
+  //   합산 시점 — Brawler/Astronaut/Stargazer HP buff 모두 적용 후 (호출 순서 보장).
+  //   미보정 시 hp=1 base 그대로 첫 공격에 즉사 (사용자 보고 회귀 가드).
+  if (trait.style >= 5 && blackholeHpFrac > 0) {
+    const blackholes = units.filter(u => u.champion.apiName === 'TFT17_DarkStar_FakeUnit');
+    if (blackholes.length > 0) {
+      const totalDarkStarHp = darkStarUnits.reduce((sum, u) => sum + u.maxHp, 0);
+      const bonusHp = Math.round(totalDarkStarHp * blackholeHpFrac);
+      for (const bh of blackholes) {
+        bh.maxHp = bh.maxHp + bonusHp;
+        bh.currentHp = bh.maxHp;
       }
     }
   }
