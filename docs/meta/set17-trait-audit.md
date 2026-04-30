@@ -107,6 +107,46 @@ SpaceGroove (5+) tier 활성 미달성 또는 그루비안 unit 영향 미세.
 
 ## 후속 (본 PR 외 항목)
 
-1. **SpaceGroove 일반 tier 격리 PR** — calibration test 보강 후 매초 ADAP 가산 활성
+1. ~~**SpaceGroove 일반 tier 격리 PR**~~ → ✅ PR #63 머지
 2. **파티광 SpaceGroove 후속 효과** — Blitzcrank 회복 완료 후 번개 4배
 3. **사용자 검수**: 적군 측 여행자 5명 활성 게임에서 sim vs actual 비교 — over-buff 정도 측정
+
+## Step 3 — 전체 시너지 재검증 (2026-04-30)
+
+총 165 raw 변수 (hash 제외):
+- 처리됨: 119 (72%)
+- sim 외부 정상: 17 (10%)
+- 미적용: 29 (18%)
+
+미적용 분류 후 시뮬 영향 큰 3종 발견 → PR #64 적용:
+
+### 도전자 (TFT17_ASTrait) Burst — 적용
+- BurstDuration=2.5, BurstPercent=0.5
+- desc: "대상 사망 시 새 대상 dash + AS 상승 효과 50% 증가 (2.5초)"
+- 기존 dash 처리 됐지만 burst AS missed → 이번에 추가
+- 새 필드: `challengerBurstEndTick` / `challengerBurstPercent`
+
+### 전달자 (TFT17_ManaTrait) InnateManaGain — 적용
+- InnateManaGain=0.20
+- desc: "전달자가 모든 요소로부터 얻는 마나가 20% 증가"
+- mana.ts 의 `gainManaOnAttack/PerTick/OnDamageTaken` 함수에 multiplier 적용
+- 새 필드: `channelerInnateManaGain`
+
+### 습격자 (TFT17_MeleeTrait) 흡혈→보호막 + (6) ShieldAD — 적용
+- MaxPercentHealthShield=0.25, ShieldAD=0.20 (tier 2 만)
+- desc: "흡혈 초과 회복량을 보호막으로 전환 (cap maxHp × 25%)"
+- omnivamp heal 시점에 helper 호출 (3 사이트: 평타 / DoubleTap / ability)
+- (6) tier 보호막 활성 시 평타 +20% AD
+- 새 필드: `meleeMaxShieldPct` / `meleeShieldADBonus`
+
+### False Positive (이미 처리, case mismatch)
+
+- 구원자 BonusOffensiveStat / BonusDefensiveStat — `offensiveStat/defensiveStat` 매핑 ✅
+- 전달자 ChannelerManaRegen / TeamManaRegen — `channelerManaRegen/teamManaRegen` 소문자 매핑 ✅
+
+### Sim 외부 정상 (구현 불필요)
+
+- 지휘관 RoundsPerMod, 예언자 rounds, 신성 결투가 PVE, 최신상 NumberOfUpgrades
+- 메카 TransformedPercentHealth (ability 변환 자체는 sim 처리)
+- 보루 AttackSpeedDuration (작은 영향), Stargazer Shield_Duration (변종 처리됨)
+- 중재자 일부 trigger 변수 (이미 ArbiterLaw 처리)
