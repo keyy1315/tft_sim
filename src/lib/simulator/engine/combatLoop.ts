@@ -231,6 +231,10 @@ function createCombatUnit(
     channelerInnateManaGain: 0,
     meleeMaxShieldPct: 0,
     meleeShieldADBonus: 0,
+    blitzBoltCooldownSec: 0,
+    blitzBoltDamage: 0,
+    blitzBoltLastFireTick: 0,
+    blitzBoltSpeedMult: 1,
     gragasCarryActive: false,
     leonaCarryActive: false,
     attackCount: 0,
@@ -885,6 +889,27 @@ function applyZedShadow(activeTraits: ActiveTrait[], ownTeam: CombatUnit[]): voi
  * main loop tick 마다 HP < threshold 도달 시 invulnerable + heal mode 활성.
  * HP 100% 도달 시 heal mode 종료. 후속 SpaceGroove + 번개 4배 효과는 미구현.
  */
+/**
+ * Blitzcrank Bolt passive 활성화 — combat-start 시 Blitzcrank unit 에 cooldown/damage set.
+ *
+ * raw ability variables (champion):
+ *   BoltCooldown: [_, 2, 2, 0.5] — star1=2s, star2=2s, star3=0.5s
+ *   BoltDamage: [_, 60, 90, 150] — star1=60, star2=90, star3=150
+ *
+ * 매 BoltCooldown 초마다 main loop 에서 가장 체력 높은 적에 magic damage (AP scaling).
+ * 파티광 회복 완료 시 blitzBoltSpeedMult ×4 적용 (effective cooldown / 4).
+ */
+function applyBlitzcrankBoltPassive(ownTeam: CombatUnit[]): void {
+  for (const u of ownTeam) {
+    if (u.champion.apiName !== 'TFT17_Blitzcrank') continue;
+    const cooldownArr = u.champion.ability.variables?.find(v => v.name === 'BoltCooldown')?.value;
+    const damageArr = u.champion.ability.variables?.find(v => v.name === 'BoltDamage')?.value;
+    if (!cooldownArr || !damageArr) continue;
+    u.blitzBoltCooldownSec = cooldownArr[u.starLevel] ?? cooldownArr[1] ?? 0;
+    u.blitzBoltDamage = damageArr[u.starLevel] ?? damageArr[1] ?? 0;
+  }
+}
+
 function applyPartyTrickster(activeTraits: ActiveTrait[], ownTeam: CombatUnit[]): void {
   const trait = activeTraits.find(t => t.trait.apiName === 'TFT17_BlitzcrankUniqueTrait' && t.activeEffect);
   if (!trait?.activeEffect) return;
@@ -2773,6 +2798,10 @@ function spawnFreljordTurrets(
             channelerInnateManaGain: 0,
             meleeMaxShieldPct: 0,
             meleeShieldADBonus: 0,
+            blitzBoltCooldownSec: 0,
+            blitzBoltDamage: 0,
+            blitzBoltLastFireTick: 0,
+            blitzBoltSpeedMult: 1,
             gragasCarryActive: false,
             leonaCarryActive: false,
             attackCount: 0,
@@ -2965,6 +2994,10 @@ function trySpawnGalio(
     channelerInnateManaGain: 0,
     meleeMaxShieldPct: 0,
     meleeShieldADBonus: 0,
+    blitzBoltCooldownSec: 0,
+    blitzBoltDamage: 0,
+    blitzBoltLastFireTick: 0,
+    blitzBoltSpeedMult: 1,
     gragasCarryActive: false,
     leonaCarryActive: false,
     attackCount: 0,
@@ -3663,6 +3696,9 @@ export function simulateCombat(
   // 파티광 (Blitzcrank) — HP threshold/healRate 설정 (main loop tick 에서 trigger).
   applyPartyTrickster(playerActiveTraits, playerUnits);
   applyPartyTrickster(enemyActiveTraits, enemies);
+  // Blitzcrank Bolt passive — 매 BoltCooldown 초마다 가장 체력 높은 적에 magic damage.
+  applyBlitzcrankBoltPassive(playerUnits);
+  applyBlitzcrankBoltPassive(enemies);
   // 복제자 (MF replicator mode) — Effectiveness 설정 (cast 시 추가 발동).
   applyReplicatorTrait(playerActiveTraits, playerUnits);
   applyReplicatorTrait(enemyActiveTraits, enemies);
@@ -4254,7 +4290,7 @@ export function simulateCombat(
     }
 
     // 파티광 (Blitzcrank) — HP < threshold 도달 시 1회 invulnerable + heal mode.
-    // HP 100% 도달 시 종료. 후속 SpaceGroove 효과는 미구현.
+    // HP 100% 도달 시 종료 + Bolt 발사 속도 4배 활성 (PR #65).
     for (const u of allUnits) {
       if (u.state === 'dead') continue;
       if (u.partyHpThreshold <= 0) continue;
@@ -4278,6 +4314,45 @@ export function simulateCombat(
       if (u.partyHealing && u.currentHp >= u.maxHp) {
         u.partyHealing = false;
         u.statusEffects = u.statusEffects.filter(e => !(e.type === 'invulnerable' && e.sourceId === u.id));
+        // 파티광 후속 효과 (PR #65): 회복 완료 시 Bolt 발사 속도 ×4 활성 (전투 종료까지 지속).
+        if (u.blitzBoltCooldownSec > 0) u.blitzBoltSpeedMult = 4;
+      }
+    }
+
+    // Blitzcrank Bolt passive — 매 (BoltCooldown / boltSpeedMult) 초마다 가장 체력 높은 적에 magic damage.
+    // raw: BoltCooldown 1성2 / 2성2 / 3성0.5, BoltDamage 1성60 / 2성90 / 3성150 (AP scaling).
+    for (const u of allUnits) {
+      if (u.state === 'dead') continue;
+      if (u.blitzBoltCooldownSec <= 0 || u.blitzBoltDamage <= 0) continue;
+      const effectiveCooldownTicks = Math.max(1, Math.round(u.blitzBoltCooldownSec / u.blitzBoltSpeedMult * TICKS_PER_SECOND));
+      if (tick - u.blitzBoltLastFireTick < effectiveCooldownTicks) continue;
+      // 가장 체력 높은 적군 찾기.
+      const enemyTeam = u.team === 'player' ? aliveEnemies : alivePlayers;
+      if (enemyTeam.length === 0) continue;
+      let bestEnemy: CombatUnit | null = null;
+      let bestHp = -1;
+      for (const e of enemyTeam) {
+        if (e.currentHp > bestHp) { bestHp = e.currentHp; bestEnemy = e; }
+      }
+      if (!bestEnemy) continue;
+      // magic damage = boltDamage × (1 + ap/100). mitigation pipeline 적용.
+      const rawDmg = u.blitzBoltDamage * (1 + u.stats.ap / 100);
+      let final = applyResistance(rawDmg, bestEnemy.stats.magicResist, u.stats.magicPen);
+      if (bestEnemy.damageReduction > 0) final *= (1 - bestEnemy.damageReduction);
+      final = applyShield(bestEnemy, final, eventBus, tick);
+      if (bestEnemy.statusEffects.some(e => e.type === 'invulnerable')) final = 0;
+      bestEnemy.currentHp -= final;
+      bestEnemy.totalDamageTaken += final;
+      u.totalDamageDealt += final;
+      u.blitzBoltLastFireTick = tick;
+      if (bestEnemy.currentHp <= 0 && bestEnemy.state !== 'dead') {
+        bestEnemy.currentHp = 0;
+        bestEnemy.state = 'dead';
+        u.killCount++;
+        if (u.team === 'player') playerArbiterState.enemyDeathCount++;
+        else enemyArbiterState.enemyDeathCount++;
+        eventBus.emit('on_kill', { sourceId: u.id, targetId: bestEnemy.id, tick });
+        eventBus.emit('on_death', { sourceId: bestEnemy.id, targetId: u.id, tick });
       }
     }
 
