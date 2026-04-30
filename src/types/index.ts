@@ -728,6 +728,18 @@ export interface CombatUnit {
    */
   meleeShieldADBonus: number;
   /**
+   * Blitzcrank Bolt passive — 매 BoltCooldown 초마다 가장 체력 높은 적에 magic damage.
+   * 0 = 미활성 / >0 = 활성 cooldown sec. raw star-scaled.
+   * partyHealing 종료 시 boltSpeedMult ×4 적용 (effective = boltCooldownSec / boltSpeedMult).
+   */
+  blitzBoltCooldownSec: number;
+  /** Blitzcrank Bolt — magic damage value (star-scaled). 0 = 미활성. */
+  blitzBoltDamage: number;
+  /** Blitzcrank Bolt — last fire tick. 다음 fire 시점 = lastFireTick + (cooldownSec / mult) × TPS. */
+  blitzBoltLastFireTick: number;
+  /** 파티광 후속 효과 — 회복 완료 후 Bolt 발사 속도 multiplier. 1 default / 4 (회복 완료 후). */
+  blitzBoltSpeedMult: number;
+  /**
    * 자폭(TFT17_Augment_GragasCarry) 활성 + 가장 강한 그라가스로 선정된 unit 만 true.
    * 그라가스 ability 가 거대한 폭발 (자기 자신 데미지, 다른 아군 X) 로 변환되며,
    * 자폭 데미지로 hp 가 1 미만으로 떨어지지 않음 (HP floor=1).
