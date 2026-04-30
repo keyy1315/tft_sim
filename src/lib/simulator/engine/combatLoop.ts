@@ -196,6 +196,11 @@ function createCombatUnit(
     gravesShockwaveActive: false,
     gravesReactivePerStack: 0,
     gravesReactiveStackCount: 0,
+    gravesTripleAttackChance: 0,
+    gravesRevUpPerStack: 0,
+    gravesRevUpMaxBonus: 0,
+    gravesRevUpStickyTargetId: null,
+    gravesRevUpStackCount: 0,
     gragasCarryActive: false,
     leonaCarryActive: false,
     attackCount: 0,
@@ -1320,6 +1325,21 @@ const GRAVES_STAT_UPGRADE_HANDLERS: Record<string, (u: CombatUnit, baseAd: numbe
   },
   Shockwave:          (u)     => { u.gravesShockwaveActive = true; },
   ReactiveArmor:      (u)     => { u.gravesReactivePerStack = Math.max(u.gravesReactivePerStack, 4); },
+  // Phase 3B-1 — DoubleTap2/TripleTap chance + RevUp/2 sticky stack.
+  // DoubleTap2 (35%) 는 Frame DoubleTap (25%) 와 같은 필드 max() override.
+  DoubleTap2:         (u)     => { u.gravesDoubleAttackChance = Math.max(u.gravesDoubleAttackChance, 0.35); },
+  TripleTap:          (u)     => { u.gravesTripleAttackChance = Math.max(u.gravesTripleAttackChance, 0.18); },
+  RevUp:              (u)     => {
+    if (u.gravesRevUpPerStack < 0.08) {
+      u.gravesRevUpPerStack = 0.08;
+      u.gravesRevUpMaxBonus = 0.80;
+    }
+  },
+  RevUp2:             (u)     => {
+    // tier 2 가 더 높으니 항상 override.
+    u.gravesRevUpPerStack = 0.15;
+    u.gravesRevUpMaxBonus = 1.50;
+  },
 };
 
 /**
@@ -1361,7 +1381,13 @@ const GRAVES_UPGRADE_APPLY_ORDER: ReadonlyArray<string> = [
   'RipperBullets',
   'RipperBullets2',
   'Shockwave',
-  // 4. % multiplier (가장 마지막 — 1·2 단계의 flat HP/AD 가산 후 적용)
+  // 4. Phase 3B-1 — chance / sticky stack (정렬 — 결정성).
+  //    RevUp 먼저, RevUp2 가 override (강제 max-tier 가지므로 순서 중요).
+  'DoubleTap2',
+  'RevUp',
+  'RevUp2',
+  'TripleTap',
+  // 5. % multiplier (가장 마지막 — 1·2 단계의 flat HP/AD 가산 후 적용)
   'SheerMass',
 ];
 
@@ -1827,6 +1853,15 @@ function getEffectiveAttackSpeed(unit: CombatUnit): number {
     as *= (1 + missingPct * asPerPct * apScale);
   }
 
+  // 최신상 RevUp/2 — 같은 대상 연속 공격 stack 한정 AS 가산 (cap = MaxBonus).
+  if (unit.gravesRevUpPerStack > 0 && unit.gravesRevUpStackCount > 0) {
+    const bonus = Math.min(
+      unit.gravesRevUpStackCount * unit.gravesRevUpPerStack,
+      unit.gravesRevUpMaxBonus,
+    );
+    as *= (1 + bonus);
+  }
+
   return as;
 }
 
@@ -1912,6 +1947,11 @@ function spawnFreljordTurrets(
             gravesShockwaveActive: false,
             gravesReactivePerStack: 0,
             gravesReactiveStackCount: 0,
+            gravesTripleAttackChance: 0,
+            gravesRevUpPerStack: 0,
+            gravesRevUpMaxBonus: 0,
+            gravesRevUpStickyTargetId: null,
+            gravesRevUpStackCount: 0,
             gragasCarryActive: false,
             leonaCarryActive: false,
             attackCount: 0,
@@ -2069,6 +2109,11 @@ function trySpawnGalio(
     gravesShockwaveActive: false,
     gravesReactivePerStack: 0,
     gravesReactiveStackCount: 0,
+    gravesTripleAttackChance: 0,
+    gravesRevUpPerStack: 0,
+    gravesRevUpMaxBonus: 0,
+    gravesRevUpStickyTargetId: null,
+    gravesRevUpStackCount: 0,
     gragasCarryActive: false,
     leonaCarryActive: false,
     attackCount: 0,
@@ -3447,6 +3492,17 @@ export function simulateCombat(
           target.totalDamageTaken += finalDamage;
           unit.totalDamageDealt += finalDamage;
 
+          // 최신상 RevUp/2 — sticky target 매칭 시 stack++, 다른 대상 시 reset.
+          // 한 공격 = 1 stack (DoubleTap/TripleTap extra hit 은 별도 카운트 안 함).
+          if (unit.gravesRevUpPerStack > 0) {
+            if (unit.gravesRevUpStickyTargetId === target.id) {
+              unit.gravesRevUpStackCount++;
+            } else {
+              unit.gravesRevUpStickyTargetId = target.id;
+              unit.gravesRevUpStackCount = 0;
+            }
+          }
+
           // 최신상 EmergencyShielding/2 — codex P1: damage application 직후 즉시 체크
           // (1-tick burst 시 후속 hit 부터 shield 흡수 보장).
           maybeTriggerEmergencyShield(target);
@@ -3476,13 +3532,25 @@ export function simulateCombat(
             eventBus.emit('on_heal', { sourceId: unit.id, value: heal, tick });
           }
 
-          // 최신상 (GravesTrait) DoubleTap Frame — 25% 확률 추가 1회 공격.
+          // 최신상 (GravesTrait) DoubleTap / TripleTap — 추가 hit 발동.
+          //   - DoubleTap Frame (25%) + DoubleTap2 weapon (35%) 는 같은 필드 max() override.
+          //   - TripleTap weapon (18%) 은 별개 roll — 발동 시 2 추가 hit, DoubleTap path skip (mutual exclusive).
           // codex P1 가드: rawDamage 부터 mitigation pipeline 다시 거쳐야 (shielded target
           // 에 첫 hit post-shield 값 재사용 시 under-damage 발생).
           // codex P2 가드: 풀 attack 이벤트 emit (on_attack/on_damage/on_hit/on_hit_taken)
           // — item runtime counter 등 attack-count 기반 시스템 정확 작동.
-          if (unit.gravesDoubleAttackChance > 0 && target.state !== 'dead'
-              && rng.next() < unit.gravesDoubleAttackChance) {
+          let extraHits = 0;
+          let extraHitReason = '사수 프레임 추가 공격';
+          if (target.state !== 'dead') {
+            if (unit.gravesTripleAttackChance > 0 && rng.next() < unit.gravesTripleAttackChance) {
+              extraHits = 2;
+              extraHitReason = '한 발에 세 놈 추가 공격';
+            } else if (unit.gravesDoubleAttackChance > 0 && rng.next() < unit.gravesDoubleAttackChance) {
+              extraHits = 1;
+            }
+          }
+          for (let extraHitIdx = 0; extraHitIdx < extraHits; extraHitIdx++) {
+            if (target.state === 'dead') break;
             // 새 hit — rawDamage 재사용 (동일 source stats 기반) + mitigation 재계산.
             // 단, crit 은 첫 hit 와 동일하게 취급 (rawDamage 에 critMult 이미 포함).
             let extraFinal = applyResistance(rawDamage, target.stats.armor, unit.stats.armorPen);
@@ -3498,7 +3566,7 @@ export function simulateCombat(
             unit.totalDamageDealt += extraFinal;
             unit.attackCount++;
 
-            // 최신상 EmergencyShielding/2 — codex P1: DoubleTap 추가 hit 직후도 즉시 체크.
+            // 최신상 EmergencyShielding/2 — codex P1: DoubleTap/TripleTap 추가 hit 직후도 즉시 체크.
             maybeTriggerEmergencyShield(target);
 
             // 풀 attack 이벤트 emit — 일반 평타와 동일 path.
@@ -3507,13 +3575,13 @@ export function simulateCombat(
             eventBus.emit('on_damage', { sourceId: target.id, targetId: unit.id, value: extraFinal, damageType: 'physical', tick });
             eventBus.emit('on_hit_taken', { sourceId: target.id, targetId: unit.id, value: extraFinal, damageType: 'physical', tick });
 
-            // 최신상 RipperBullets/2 — DoubleTap 추가 hit 도 동일하게 armor/MR shred.
+            // 최신상 RipperBullets/2 — 추가 hit 도 동일하게 armor/MR shred.
             // state 'dead' 마킹은 아래 currentHp <= 0 분기에서 처리 → 여기선 currentHp 만 가드.
             if (unit.gravesRipperReduce > 0 && target.currentHp > 0) {
               target.stats.armor = Math.max(0, target.stats.armor - unit.gravesRipperReduce);
               target.stats.magicResist = Math.max(0, target.stats.magicResist - unit.gravesRipperReduce);
             }
-            // 최신상 ReactiveArmor — DoubleTap 추가 hit 도 stack 누적.
+            // 최신상 ReactiveArmor — 추가 hit 도 stack 누적.
             if (target.gravesReactivePerStack > 0 && target.gravesReactiveStackCount < 50 && target.currentHp > 0) {
               target.stats.armor += target.gravesReactivePerStack;
               target.stats.magicResist += target.gravesReactivePerStack;
@@ -3526,13 +3594,13 @@ export function simulateCombat(
               unit.killCount++;
               if (unit.team === 'player') playerArbiterState.enemyDeathCount++;
               else enemyArbiterState.enemyDeathCount++;
-              const dlog: CombatLog = { tick, time, type: 'death', sourceId: target.id, message: `${target.champion.name} 사망! (사수 프레임 추가 공격)` };
+              const dlog: CombatLog = { tick, time, type: 'death', sourceId: target.id, message: `${target.champion.name} 사망! (${extraHitReason})` };
               logs.push(dlog); tickLogs.push(dlog);
               eventBus.emit('on_kill', { sourceId: unit.id, targetId: target.id, tick });
               eventBus.emit('on_death', { sourceId: target.id, targetId: unit.id, tick });
             }
 
-            // 별돌보미 뱀(Serpent) — DoubleTap 추가 hit 도 중독 적용.
+            // 별돌보미 뱀(Serpent) — 추가 hit 도 중독 적용.
             triggerSerpentPoison(unit, target, extraFinal);
 
             // omnivamp 도 추가 hit 에 적용 (attack 1회 와 동일). healAmp 곱셈 적용.
