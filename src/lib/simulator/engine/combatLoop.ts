@@ -201,6 +201,11 @@ function createCombatUnit(
     gravesRevUpMaxBonus: 0,
     gravesRevUpStickyTargetId: null,
     gravesRevUpStackCount: 0,
+    gravesGravBoosterBonusAS: 0,
+    gravesGravBoosterMaxAttacks: 0,
+    gravesGravBoosterAttacksRemaining: 0,
+    gravesLatentStoredPct: 0,
+    gravesLatentStored: 0,
     gragasCarryActive: false,
     leonaCarryActive: false,
     attackCount: 0,
@@ -1340,6 +1345,20 @@ const GRAVES_STAT_UPGRADE_HANDLERS: Record<string, (u: CombatUnit, baseAd: numbe
     u.gravesRevUpPerStack = 0.15;
     u.gravesRevUpMaxBonus = 1.50;
   },
+  // Phase 3B-2 — onKill dash + AS buff / 누적 저장 → splash.
+  // GravBooster: BonusMultAS=0.40, NumAttacks=2 (raw).
+  // GravBooster2: BonusMultAS=0.40, NumAttacks=3 (raw). 동상 효과는 raw 미정의 → 시뮬 미구현.
+  GravBooster:        (u)     => {
+    u.gravesGravBoosterBonusAS = Math.max(u.gravesGravBoosterBonusAS, 0.40);
+    u.gravesGravBoosterMaxAttacks = Math.max(u.gravesGravBoosterMaxAttacks, 2);
+  },
+  GravBooster2:       (u)     => {
+    u.gravesGravBoosterBonusAS = Math.max(u.gravesGravBoosterBonusAS, 0.40);
+    u.gravesGravBoosterMaxAttacks = Math.max(u.gravesGravBoosterMaxAttacks, 3);
+  },
+  LatentExplosion:    (u)     => {
+    u.gravesLatentStoredPct = Math.max(u.gravesLatentStoredPct, 0.15);
+  },
 };
 
 /**
@@ -1387,7 +1406,12 @@ const GRAVES_UPGRADE_APPLY_ORDER: ReadonlyArray<string> = [
   'RevUp',
   'RevUp2',
   'TripleTap',
-  // 5. % multiplier (가장 마지막 — 1·2 단계의 flat HP/AD 가산 후 적용)
+  // 5. Phase 3B-2 — onKill dash / 누적 splash (정렬 — 결정성).
+  //    GravBooster 먼저, GravBooster2 가 NumAttacks override.
+  'GravBooster',
+  'GravBooster2',
+  'LatentExplosion',
+  // 6. % multiplier (가장 마지막 — 1·2 단계의 flat HP/AD 가산 후 적용)
   'SheerMass',
 ];
 
@@ -1475,6 +1499,96 @@ function applyGravesShockwave(
       eventBus.emit('on_death', { sourceId: target.id, targetId: graves.id, tick: 0 });
     }
   }
+}
+
+/**
+ * GravBooster/2 — graves 가 처치 관여 시 호출. AS bonus N attacks 활성 + dash to next target.
+ *
+ * raw effects: BonusMultAS=0.40, NumAttacks=2 (GravBooster) / 3 (GravBooster2).
+ * 동상 (chill) 효과는 raw 미정의 → 시뮬 미구현 (lolchess UI 텍스트 기반 추정).
+ *
+ * dash: applyAbilityDash(to_target) 재사용. nextTarget 이 없으면 dash skip, AS buff 만 적용.
+ */
+function triggerGravBooster(
+  unit: CombatUnit,
+  enemyTeamAlive: CombatUnit[],
+  occupiedPositions: Set<string>,
+  logs: CombatLog[],
+  tickLogs: CombatLog[],
+  tick: number,
+  time: number,
+): void {
+  if (unit.gravesGravBoosterMaxAttacks <= 0) return;
+  // 1. AS bonus 활성 (다음 N attacks 동안).
+  // codex P1: kill 직후 같은 attack cycle 끝의 attacksRemaining-- 가 1 stack 즉시 소비함.
+  // → kill shot 자체는 boost 적용 대상 아니므로 +1 compensation. 결과: 다음 N attacks 보장.
+  unit.gravesGravBoosterAttacksRemaining = unit.gravesGravBoosterMaxAttacks + 1;
+  // 2. dash to next target — alive enemy 가 있으면 가장 가까운 적 한정으로 이동.
+  if (enemyTeamAlive.length === 0) return;
+  let nextTarget: CombatUnit | undefined;
+  let bestDist = Infinity;
+  for (const e of enemyTeamAlive) {
+    const d = hexDistance(unit.position, e.position);
+    if (d < bestDist) { bestDist = d; nextTarget = e; }
+  }
+  if (!nextTarget) return;
+  applyAbilityDash(unit, 'to_target', nextTarget, enemyTeamAlive, occupiedPositions, logs, tickLogs, tick, time);
+}
+
+/**
+ * LatentExplosion — target 사망 시 누적 stored damage 만큼 2 hex 반경 적군에 splash.
+ *
+ * raw: LatentExplosionStoredDamage=0.15. graves attacker 가 hit 한 만큼 target.gravesLatentStored
+ * 에 누적. graves 처치 관여 시 splash. splash damage = stored 1.0 (raw 별도 factor 없음).
+ *
+ * splash 는 mitigation pipeline (resistance / shield / DR / invulnerable) 적용.
+ */
+function triggerLatentExplosion(
+  killer: CombatUnit,  // graves
+  deadTarget: CombatUnit,
+  enemyTeam: CombatUnit[],
+  eventBus: EventBus,
+  tick: number,
+  time: number,
+  logs: CombatLog[],
+  killerArbiterState: ArbiterTriggerState,  // codex P2: splash kill 도 enemyDeathCount 카운트
+): void {
+  if (deadTarget.gravesLatentStored <= 0) return;
+  const splashDamage = deadTarget.gravesLatentStored;
+  const splashEnemies = enemyTeam.filter(
+    (e) => e.id !== deadTarget.id && e.state !== 'dead' &&
+           hexDistance(deadTarget.position, e.position) <= 2,
+  );
+  for (const splashTarget of splashEnemies) {
+    let final = applyResistance(splashDamage, splashTarget.stats.armor, killer.stats.armorPen);
+    if (splashTarget.damageReduction > 0) final *= (1 - splashTarget.damageReduction);
+    final = applyShield(splashTarget, final, eventBus, tick);
+    if (splashTarget.statusEffects.some(e => e.type === 'invulnerable')) final = 0;
+
+    splashTarget.currentHp -= final;
+    splashTarget.totalDamageTaken += final;
+    killer.totalDamageDealt += final;
+
+    if (splashTarget.currentHp <= 0 && splashTarget.state !== 'dead') {
+      splashTarget.currentHp = 0;
+      splashTarget.state = 'dead';
+      killer.killCount++;
+      // codex P2: Arbiter on_enemy_death trigger 일관성 — 다른 kill path 와 동일하게 카운트.
+      killerArbiterState.enemyDeathCount++;
+      eventBus.emit('on_kill', { sourceId: killer.id, targetId: splashTarget.id, tick });
+      eventBus.emit('on_death', { sourceId: splashTarget.id, targetId: killer.id, tick });
+    }
+  }
+  if (splashEnemies.length > 0) {
+    logs.push({
+      tick, time, type: 'ability',
+      sourceId: killer.id, targetId: deadTarget.id,
+      value: Math.round(splashDamage),
+      message: `${killer.champion.name} 지연 폭발! ${splashEnemies.length}명에 ${Math.round(splashDamage)} 물리 피해`,
+    });
+  }
+  // 폭발 후 stored 초기화 (재사용 안 함 — target 이미 사망)
+  deadTarget.gravesLatentStored = 0;
 }
 
 function applyGravesStatUpgrades(units: CombatUnit[], upgrades: string[] | undefined): void {
@@ -1862,6 +1976,11 @@ function getEffectiveAttackSpeed(unit: CombatUnit): number {
     as *= (1 + bonus);
   }
 
+  // 최신상 GravBooster/2 — 처치 후 N attacks 동안 AS +40%.
+  if (unit.gravesGravBoosterAttacksRemaining > 0 && unit.gravesGravBoosterBonusAS > 0) {
+    as *= (1 + unit.gravesGravBoosterBonusAS);
+  }
+
   return as;
 }
 
@@ -1952,6 +2071,11 @@ function spawnFreljordTurrets(
             gravesRevUpMaxBonus: 0,
             gravesRevUpStickyTargetId: null,
             gravesRevUpStackCount: 0,
+            gravesGravBoosterBonusAS: 0,
+            gravesGravBoosterMaxAttacks: 0,
+            gravesGravBoosterAttacksRemaining: 0,
+            gravesLatentStoredPct: 0,
+            gravesLatentStored: 0,
             gragasCarryActive: false,
             leonaCarryActive: false,
             attackCount: 0,
@@ -2114,6 +2238,11 @@ function trySpawnGalio(
     gravesRevUpMaxBonus: 0,
     gravesRevUpStickyTargetId: null,
     gravesRevUpStackCount: 0,
+    gravesGravBoosterBonusAS: 0,
+    gravesGravBoosterMaxAttacks: 0,
+    gravesGravBoosterAttacksRemaining: 0,
+    gravesLatentStoredPct: 0,
+    gravesLatentStored: 0,
     gragasCarryActive: false,
     leonaCarryActive: false,
     attackCount: 0,
@@ -3509,6 +3638,12 @@ export function simulateCombat(
           // (1-tick burst 시 후속 hit 부터 shield 흡수 보장).
           maybeTriggerEmergencyShield(target);
 
+          // 최신상 LatentExplosion — 입힌 피해 N% 를 target 의 stored 에 누적.
+          // graves attacker 에서만 활성. target 사망 시 splash.
+          if (unit.gravesLatentStoredPct > 0 && finalDamage > 0) {
+            target.gravesLatentStored += finalDamage * unit.gravesLatentStoredPct;
+          }
+
           // 별돌보미 뱀(Serpent) — 강화 칸 별돌보미 가 평타로 적 명중 시 중독 적용
           triggerSerpentPoison(unit, target, finalDamage);
 
@@ -3524,6 +3659,18 @@ export function simulateCombat(
             logs.push(deathLog); tickLogs.push(deathLog);
             eventBus.emit('on_kill', { sourceId: unit.id, targetId: target.id, tick });
             eventBus.emit('on_death', { sourceId: target.id, targetId: unit.id, tick });
+            // 최신상 LatentExplosion — target 사망 시 stored 누적량 splash.
+            if (target.gravesLatentStored > 0) {
+              const ownEnemyTeam = unit.team === 'player' ? enemies : playerUnits;
+              const ownArbiterState = unit.team === 'player' ? playerArbiterState : enemyArbiterState;
+              triggerLatentExplosion(unit, target, ownEnemyTeam, eventBus, tick, time, logs, ownArbiterState);
+            }
+            // 최신상 GravBooster/2 — 처치 관여 시 dash + AS buff start (NumAttacks 동안).
+            if (unit.gravesGravBoosterMaxAttacks > 0) {
+              const ownEnemyTeam = unit.team === 'player' ? enemies : playerUnits;
+              const aliveEnemiesForDash = ownEnemyTeam.filter(e => e.state !== 'dead');
+              triggerGravBooster(unit, aliveEnemiesForDash, occupiedPositions, logs, tickLogs, tick, time);
+            }
           }
 
           if (unit.omnivamp > 0 && finalDamage > 0) {
@@ -3590,6 +3737,13 @@ export function simulateCombat(
               target.gravesReactiveStackCount++;
             }
 
+            // 최신상 LatentExplosion — 추가 hit 도 stored 에 누적.
+            // codex P2: 치명 extra hit (currentHp <= 0 으로 만든 hit) 의 damage 도 stored 에
+            // 포함되어야 splash 폭발량 정확. currentHp 가드 제거 — 평타 first hit 과 동일.
+            if (unit.gravesLatentStoredPct > 0 && extraFinal > 0) {
+              target.gravesLatentStored += extraFinal * unit.gravesLatentStoredPct;
+            }
+
             if (target.currentHp <= 0) {
               target.currentHp = 0;
               target.state = 'dead';
@@ -3600,6 +3754,18 @@ export function simulateCombat(
               logs.push(dlog); tickLogs.push(dlog);
               eventBus.emit('on_kill', { sourceId: unit.id, targetId: target.id, tick });
               eventBus.emit('on_death', { sourceId: target.id, targetId: unit.id, tick });
+              // 최신상 LatentExplosion — 추가 hit 으로 사망해도 splash 발동.
+              if (target.gravesLatentStored > 0) {
+                const ownEnemyTeam = unit.team === 'player' ? enemies : playerUnits;
+                const ownArbiterState = unit.team === 'player' ? playerArbiterState : enemyArbiterState;
+                triggerLatentExplosion(unit, target, ownEnemyTeam, eventBus, tick, time, logs, ownArbiterState);
+              }
+              // 최신상 GravBooster/2 — 추가 hit 으로 처치 시에도 trigger.
+              if (unit.gravesGravBoosterMaxAttacks > 0) {
+                const ownEnemyTeam = unit.team === 'player' ? enemies : playerUnits;
+                const aliveEnemiesForDash = ownEnemyTeam.filter(e => e.state !== 'dead');
+                triggerGravBooster(unit, aliveEnemiesForDash, occupiedPositions, logs, tickLogs, tick, time);
+              }
             }
 
             // 별돌보미 뱀(Serpent) — 추가 hit 도 중독 적용.
@@ -3641,6 +3807,11 @@ export function simulateCombat(
 
           unit.state = 'attacking';
           unit.attackCount++;
+
+          // 최신상 GravBooster/2 — boosted attack 한 번 소비 (NumAttacks 카운트 다운).
+          if (unit.gravesGravBoosterAttacksRemaining > 0) {
+            unit.gravesGravBoosterAttacksRemaining--;
+          }
 
           // 중재자 법률 카운터 업데이트
           if (unitHasTrait(unit, '중재자')) {

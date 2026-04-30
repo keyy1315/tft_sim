@@ -197,8 +197,8 @@ describe('GravesTrait stat upgrades — 단순 stat 18종 적용', () => {
   });
 
   it('미지원 upgrade ID (Phase 3C/3D 항목) → silently skip', () => {
-    // Buckshot (3C 미구현) + GravBooster (3B-2 미구현) + Heartseeker (Phase 2 구현됨).
-    const { grav } = runWith(['Buckshot', 'GravBooster', 'Heartseeker']);
+    // Buckshot (3C 미구현) + Choke (3D 미구현) + Heartseeker (Phase 2 구현됨).
+    const { grav } = runWith(['Buckshot', 'Choke', 'Heartseeker']);
     expect(grav.gravesUpgrades).toEqual(['Heartseeker']);
   });
 

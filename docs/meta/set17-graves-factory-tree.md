@@ -200,8 +200,8 @@ Set 17 그레이브즈 전용 시너지 **`최신상`(GravesTrait)** 의 핵심 
 | **Phase 1** | Frame 3종 (root) — stat / mechanic | #45 | ✅ 머지 완료 (8bccb64) |
 | **Phase 2** | 단순 stat upgrade 18종 | #46 | ✅ 머지 완료 (41d561f) |
 | **Phase 3A** | 메커닉 단순 트리거 / periodic 8종 | #54 | ✅ 머지 완료 |
-| **Phase 3B-1** | 공격 횟수 변종 + sticky stack 4종 | (본 PR) | 🟢 작업 중 |
-| **Phase 3B-2** | onKill / dash / 누적 폭발 3종 | — | ❌ 미구현 |
+| **Phase 3B-1** | 공격 횟수 변종 + sticky stack 4종 | #55 | ✅ 머지 완료 |
+| **Phase 3B-2** | onKill / dash / 누적 폭발 3종 | (본 PR) | 🟢 작업 중 |
 | **Phase 3C** | 메커닉 AOE / 투사체 10종 | — | ❌ 미구현 |
 | **Phase 3D** | 메커닉 복합 5종 | — | ❌ 미구현 |
 | **Phase 4** | tree 시각화 + round-by-round 선택 UI | #49,50,51 | ✅ 머지 완료 |
@@ -221,8 +221,12 @@ Tankbuster, Coolant/2, APRounds/2, SheerMass
 - TripleTap (18% chance × 추가 2 hit, DoubleTap 와 mutual exclusive roll)
 - RevUp/2 (sticky target 연속 공격 stack — AS +8/15% per stack, max +80/150%)
 
-### Phase 3B-2/3C/3D 메커닉 잔여 18종 분류
-- **3B-2 onKill / dash (~3)**: GravBooster/2, LatentExplosion
+### Phase 3B-2 3종 (onKill / dash / 누적 폭발)
+- GravBooster (BonusMultAS=0.40, NumAttacks=2 — 처치 시 dash + AS +40% × 2 attacks)
+- GravBooster2 (NumAttacks=3 — 동상 raw 미정의 → 시뮬 미구현)
+- LatentExplosion (StoredDamage=0.15 — 입힌 피해 15% 누적, 처치 시 2hex splash)
+
+### Phase 3C/3D 메커닉 잔여 15종 분류
 - **3C AOE / 투사체 (~10)**: Buckshot/2/3, LaserBallistics, FragmentationRounds/2, BlastRadius/2/3, SympatheticDetonation, Meltthrough
 - **3D 복합 (~5)**: VoidCoefficient, Choke, AimAssistant, Heartseeker3 확장
 

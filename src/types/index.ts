@@ -592,6 +592,28 @@ export interface CombatUnit {
   /** RevUp/2 누적 stack 수. 같은 target 연속 공격 시 ++, 다른 target 시 0. */
   gravesRevUpStackCount: number;
   /**
+   * GravBooster/2 (중력 증폭기) — 처치 관여 시 다음 적으로 dash + AS +N% (M attacks 동안).
+   * 0 = 미활성 / 0.40 = 활성. raw BonusMultAS=0.40 (tier 동일).
+   */
+  gravesGravBoosterBonusAS: number;
+  /** GravBooster/2 — 처치 시 활성화될 max attacks (kill trigger 시 attacksRemaining=N). */
+  gravesGravBoosterMaxAttacks: number;
+  /**
+   * GravBooster/2 — 현재 남은 boosted attacks. >0 일 때 AS bonus 활성.
+   * Attack hit 후 -- → 0 시 boost 만료.
+   */
+  gravesGravBoosterAttacksRemaining: number;
+  /**
+   * LatentExplosion (지연 폭발) — 입힌 피해 N% 저장. 0 = 미활성 / 0.15 = 활성.
+   * graves attacker 측 unit 에 set. damage 적용 시 target 의 stored 에 가산.
+   */
+  gravesLatentStoredPct: number;
+  /**
+   * LatentExplosion — 적 unit 에 누적 저장된 damage. graves 가 hit 한 만큼 누적.
+   * target 사망 시 (graves 처치 관여) stored 만큼 2 hex 반경 splash.
+   */
+  gravesLatentStored: number;
+  /**
    * 자폭(TFT17_Augment_GragasCarry) 활성 + 가장 강한 그라가스로 선정된 unit 만 true.
    * 그라가스 ability 가 거대한 폭발 (자기 자신 데미지, 다른 아군 X) 로 변환되며,
    * 자폭 데미지로 hp 가 1 미만으로 떨어지지 않음 (HP floor=1).
