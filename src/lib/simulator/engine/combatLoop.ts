@@ -4076,6 +4076,39 @@ export function simulateCombat(
     const t = enemies.find(u => u.champion.apiName === options.enemyNovaStrikeSelectorUnit);
     if (t) t.aatroxNovaStrikeSelector = true;
   }
+
+  // PR7-C.8 (17.2b): N.O.V.A. 타격 선택기 자동 할당.
+  // 사용자 spec: "전투 시뮬레이션에서 타격 선택기를 설정하지 않았다면 (5) N.O.V.A 유닛 중
+  // 가장 강한 유닛에게 타격 선택기를 적용".
+  // 조건: DRX trait minUnits >= 5 활성 (item 데이터 raw apiName='TFT17_DRXSelector').
+  // 가장 강한 = starLevel × cost (사용자 결정 — findStrongestUnitByApi 패턴 일관).
+  // explicit selector 옵션 우선, 미설정 시 fallback.
+  const NOVA_APIS = ['TFT17_Aatrox', 'TFT17_Caitlyn', 'TFT17_Akali', 'TFT17_Maokai', 'TFT17_Kindred'];
+  const autoAssignNovaSelector = (
+    activeTraits: ActiveTrait[],
+    teamUnits: CombatUnit[],
+    explicitSelector: string | undefined,
+  ) => {
+    if (explicitSelector) return; // 명시적 옵션 우선
+    const drxTrait = activeTraits.find(t => t.trait.apiName === 'TFT17_DRX' && t.activeEffect);
+    // (5) 활성 검사: minUnits >= 5
+    if (!drxTrait?.activeEffect) return;
+    const minUnits = (drxTrait.activeEffect.minUnits ?? 0) as number;
+    if (minUnits < 5) return;
+    // NOVA 유닛 중 가장 강한 (starLevel × cost) 선정
+    const novaUnits = teamUnits.filter(u =>
+      u.state !== 'dead' && NOVA_APIS.includes(u.champion.apiName)
+    );
+    if (novaUnits.length === 0) return;
+    novaUnits.sort((a, b) => {
+      const scoreA = a.starLevel * (a.champion.cost ?? 0);
+      const scoreB = b.starLevel * (b.champion.cost ?? 0);
+      return scoreB - scoreA; // 내림차순
+    });
+    novaUnits[0].aatroxNovaStrikeSelector = true;
+  };
+  autoAssignNovaSelector(playerActiveTraits, playerUnits, options.playerNovaStrikeSelectorUnit);
+  autoAssignNovaSelector(enemyActiveTraits, enemies, options.enemyNovaStrikeSelectorUnit);
   // 전사 AS 패시브 — carry 변환 후 적용 (codex P2 PR #68).
   // role='Fighter' 로 변환된 carry (Jax/Pyke/Poppy/Aatrox/Gragas/Leona/Mordekaiser)
   // 도 stage-based AS bonus 수령. 일반 'Fighter' role 챔프와 동일 처리.
