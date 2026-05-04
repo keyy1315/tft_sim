@@ -6052,8 +6052,6 @@ export function simulateCombat(
             let oorStunApplied = false;
             for (const t of abilityTargets) {
               if (t.state === 'dead') continue;
-              const resistance = dmgType === 'magic' ? t.stats.magicResist : t.stats.armor;
-              const pen = dmgType === 'magic' ? unit.stats.magicPen : unit.stats.armorPen;
               // 저격수 (Sniper) — 거리 기반 추가 damage amp
               const sniperAmp = computeSniperDamageAmp(unit, t);
               // refactor (carry-damage-modifier): 통합 helper 호출 — 5 carry modifier 모두 적용.
@@ -6071,10 +6069,11 @@ export function simulateCombat(
               }
               // raw 누적 — mitigation 전 per-target modifier 적용 후.
               totalRawAbilityDmg += rawDmg;
-              let dmg = dmgType === 'true' ? rawDmg : applyResistance(rawDmg, resistance, pen);
-              if (t.damageReduction > 0) dmg *= (1 - t.damageReduction);
-              dmg = applyShield(t, dmg, eventBus, tick);
-              if (t.statusEffects.some(e => e.type === 'invulnerable')) dmg = 0;
+              // refactor (oor-cast-mitigation): 통합 mitigation helper — in-range 와 완전 일관.
+              // 정정 사항 2건: (1) non-target reduction (Fighter/Assassin ×0.85) OOR 도 적용.
+              // (2) true damage 처리 helper applyResistance(rawDmg, 0, 0) = rawDmg 자동 동일.
+              // 사용자 결정 (refactor/oor-cast-mitigation): in-range 와 완전 일관.
+              const dmg = applyAbilityMitigation(unit, t, rawDmg, dmgType, eventBus, tick);
               t.currentHp -= dmg;
               t.totalDamageTaken += dmg;
               unit.totalDamageDealt += dmg;
@@ -6084,14 +6083,10 @@ export function simulateCombat(
               triggerSerpentPoison(unit, t, dmg);
 
               if (t.currentHp <= 0) {
-                t.state = 'dead';
-                t.currentHp = 0;
-                unit.killCount++;
-                if (unit.team === 'player') playerArbiterState.enemyDeathCount++;
-                else enemyArbiterState.enemyDeathCount++;
-                eventBus.emit('on_kill', { sourceId: unit.id, targetId: t.id, tick });
-                eventBus.emit('on_death', { sourceId: t.id, targetId: unit.id, tick });
+                // refactor: 통합 markTargetDead helper + deathLog 별도 작성
+                const ownArbOOR = unit.team === 'player' ? playerArbiterState : enemyArbiterState;
                 logs.push({ tick, time, type: 'death', sourceId: t.id, message: `${t.champion.name} 사망!` });
+                markTargetDead(unit, t, ownArbOOR, eventBus, tick);
               }
 
               if (outOfRangeConfig.stun && outOfRangeConfig.stun > 0 && t.currentHp > 0) {
