@@ -391,6 +391,36 @@ describe('PR5 — augment-specific damage 시뮬 분기 (resolveAbilityDamage)',
     // magic AP scaling 공식
     expect(file).toMatch(/baseValue \* \(1 \+ ap \/ 100\)/);
   });
+
+  // codex P1 (PR #71) 회귀 가드 — self_buff pattern carry 는 caster 본인이 target 이라
+  // augment damage override 시 self-hit 대량 damage 야기. raw 챔프 변수 사용으로 회귀 방지.
+  it('self_buff pattern carry (Jax/Zed) 는 augment damage override 미적용 (codex P1 PR #71)', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const file = fs.readFileSync(
+      path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+      'utf8',
+    );
+    // 두 cast site 모두 self_buff 검사 패턴 포함:
+    //   carryForDamage = config.pattern !== 'self_buff' ? carryCfg : null
+    //   oorCarryForDamage = outOfRangeConfig.pattern !== 'self_buff' ? oorCarryCfg : null
+    const generalPattern = /config\.pattern\s*!==\s*'self_buff'\s*\?\s*carryCfg\s*:\s*null/;
+    const oorPattern = /outOfRangeConfig\.pattern\s*!==\s*'self_buff'\s*\?\s*oorCarryCfg\s*:\s*null/;
+    expect(file).toMatch(generalPattern);
+    expect(file).toMatch(oorPattern);
+  });
+
+  it('Jax/Zed carry 는 self_buff pattern 으로 정의 (회귀 가드)', () => {
+    // self_buff pattern 인 carry augment 들이 실제로 그 pattern 인지 검증.
+    // 만약 다른 pattern 으로 변경되면 codex P1 회귀 가드 코드 (위 fingerprint) 와 의미 어긋남.
+    const jax = CARRY_AUGMENTS.find(c => c.augmentApiName === 'TFT17_Augment_JaxCarry');
+    const zed = CARRY_AUGMENTS.find(c => c.augmentApiName === 'TFT17_Augment_InvaderZed');
+    expect(jax?.abilityOverride.pattern).toBe('self_buff');
+    expect(zed?.abilityOverride.pattern).toBe('self_buff');
+    // 두 augment 모두 abilityData.damage 정의 (self_buff 면 시뮬에서 무시되어야 함)
+    expect(jax?.abilityData?.damage).toBeDefined();
+    expect(zed?.abilityData?.damage).toBeDefined();
+  });
 });
 
 describe('CarryAugmentConfig.statOverrides — 슬롯 추후 채움 가드', () => {

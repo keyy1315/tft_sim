@@ -4936,9 +4936,14 @@ export function simulateCombat(
             // raw getAbilityDamage (raw 챔프 ability 변수) vs carry-specific damage 분기.
             // 자폭 (그라가스) 은 selfDamage 분기에서 abilityData 직접 참조 — 본 분기는 영향 없음
             // (selfDamage healthCost 가 있어 rawAbilityDmg fallback 미사용).
+            // codex P1 (PR #71): self_buff pattern (Jax/Zed carry) 은 caster 본인이 target 이라
+            // augment damage override 시 self-hit 대량 damage (예: Jax 155+/cast). raw 챔프
+            // 변수 (작은 값, 예: Jax Duration=4초) 는 damage 의미 약해 self-hit 영향 미미.
+            // → self_buff pattern 은 carry damage override 적용 안 함.
             const carryCfg = findCarryAugment(unit.champion.apiName, augNames);
+            const carryForDamage = config.pattern !== 'self_buff' ? carryCfg : null;
             const { damage: rawAbilityDmgBase, type: dmgType } = resolveAbilityDamage(
-              unit.champion, unit.starLevel, unit.stats.ap, carryCfg, config.damageVar
+              unit.champion, unit.starLevel, unit.stats.ap, carryForDamage, config.damageVar
             );
             // SharpshooterModule (위력 프레임) — 스킬 피해 +5% 가산.
             const rawAbilityDmg = rawAbilityDmgBase * (1 + (unit.gravesAbilityDamageBonus ?? 0));
@@ -5419,9 +5424,11 @@ export function simulateCombat(
 
           // PR5 (17.2b): OOR cast 경로 (사거리 밖 dash cast) 도 carry augment 활성 시
           // abilityData.damage override 적용 — 일반 cast 경로 (line 4892~) 와 동일 패턴.
+          // codex P1 (PR #71): self_buff pattern 은 self-hit 회귀 방지로 raw 사용 (일반 cast 와 동일).
           const oorCarryCfg = findCarryAugment(unit.champion.apiName, augNames);
+          const oorCarryForDamage = outOfRangeConfig.pattern !== 'self_buff' ? oorCarryCfg : null;
           const { damage: rawOORDmg, type: dmgType } = resolveAbilityDamage(
-            unit.champion, unit.starLevel, unit.stats.ap, oorCarryCfg, outOfRangeConfig.damageVar
+            unit.champion, unit.starLevel, unit.stats.ap, oorCarryForDamage, outOfRangeConfig.damageVar
           );
           const oorHitTotal = outOfRangeConfig.hitCount ? rawOORDmg * outOfRangeConfig.hitCount : rawOORDmg;
           const oorIsSplit = outOfRangeConfig.hitCount && outOfRangeConfig.pattern !== 'single';
