@@ -1,6 +1,7 @@
 import type { RawChampion, RawItem } from '@/types';
 import type { ParsedMatch, ParsedParticipant } from '@/lib/riot';
 import type { CoverageResult, UnsupportedReason, AnalysisConfidence } from '@/types/analysis';
+import { normalizeChampionId } from '@/lib/analysis/championIdAliases';
 
 /** 소환/특수 유닛 — 커버리지 체크에서 무시 */
 function isSpecialUnit(characterId: string): boolean {
@@ -124,8 +125,10 @@ export function checkCoverage(
   const supportedChampionIds: string[] = [];
   const unsupportedChampionIds: string[] = [];
   for (const id of allChampionIds) {
-    if (championApiNames.has(id)) {
-      supportedChampionIds.push(id);
+    // Riot raw ID(예: TFT17_RekSai) 는 canonical(예: TFT17_Reksai) 로 정규화 후 카탈로그 조회.
+    const normalized = normalizeChampionId(id);
+    if (championApiNames.has(normalized)) {
+      supportedChampionIds.push(normalized);
     } else {
       unsupportedChampionIds.push(id);
     }
