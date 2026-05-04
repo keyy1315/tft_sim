@@ -5323,8 +5323,22 @@ export function simulateCombat(
                       recastBaseDmg *= (1 + carryCfg.abilityData.tankBonusMultiplier);
                     }
 
-                    const ampMul = 1 + unit.damageAmp + computeSniperDamageAmp(unit, t);
-                    let dmg = recastBaseDmg * ampMul;
+                    // codex P2 (PR #72): full damage amp stack — 일반 cast loop (line ~5155)
+                    // 와 동일하게 inventionTankDamageAmp / gravesTankDamageAmp /
+                    // mfReplicatorEffectiveness 포함. Tank target 한정 buff 누락 시
+                    // recast under-damage 회귀.
+                    let recastDamageAmp = unit.damageAmp;
+                    if (unit.inventionTankDamageAmp > 0 && t.role === 'Tank') {
+                      recastDamageAmp += unit.inventionTankDamageAmp;
+                    }
+                    if (unit.gravesTankDamageAmp > 0 && t.role === 'Tank') {
+                      recastDamageAmp += unit.gravesTankDamageAmp;
+                    }
+                    recastDamageAmp += computeSniperDamageAmp(unit, t);
+                    if (unit.mfReplicatorEffectiveness > 0) {
+                      recastDamageAmp += unit.mfReplicatorEffectiveness;
+                    }
+                    let dmg = recastBaseDmg * (1 + recastDamageAmp);
                     if (unit.spellCanCrit && rng.next() < unit.stats.critChance) {
                       dmg *= unit.stats.critMultiplier;
                     }
@@ -5346,6 +5360,10 @@ export function simulateCombat(
                     t.totalDamageTaken += effectiveDmg;
                     unit.totalDamageDealt += effectiveDmg;
                     totalAbilityDmg += effectiveDmg;
+
+                    // codex P2 (PR #72): Serpent poison — 일반 cast loop 와 동일하게
+                    // 강화 칸 별돌보미 ability 명중 시 중독 적용. recast hits 도 동일 처리.
+                    triggerSerpentPoison(unit, t, effectiveDmg);
 
                     const recastLog: CombatLog = {
                       tick, time, type: 'ability',

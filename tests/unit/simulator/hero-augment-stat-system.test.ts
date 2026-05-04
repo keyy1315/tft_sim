@@ -482,6 +482,42 @@ describe('PR7-A — 파이크 carry X-shape 멀티 타겟 + onKill cascade', () 
     expect(file).toMatch(/recastTarget\.state !== 'dead'\) break/);
   });
 
+  // codex P2 (PR #72) 회귀 가드 — recast 코드가 일반 cast loop 의 4개 buff 모두 포함.
+  // 누락 시 inventionTankDamageAmp / gravesTankDamageAmp / mfReplicatorEffectiveness 미적용
+  // → recast under-damage 회귀.
+  it('cascade recast 가 full damage amp stack 포함 (codex P2 PR #72)', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const file = fs.readFileSync(
+      path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+      'utf8',
+    );
+    // recast loop 안에 4개 amp source 모두 포함:
+    //   - inventionTankDamageAmp (Tank 한정)
+    //   - gravesTankDamageAmp (Tank 한정)
+    //   - computeSniperDamageAmp (per target)
+    //   - mfReplicatorEffectiveness (replicator)
+    expect(file).toMatch(/recastDamageAmp\s*\+=\s*unit\.inventionTankDamageAmp/);
+    expect(file).toMatch(/recastDamageAmp\s*\+=\s*unit\.gravesTankDamageAmp/);
+    expect(file).toMatch(/recastDamageAmp\s*\+=\s*computeSniperDamageAmp/);
+    expect(file).toMatch(/recastDamageAmp\s*\+=\s*unit\.mfReplicatorEffectiveness/);
+  });
+
+  // codex P2 (PR #72) 회귀 가드 — recast hits 가 Serpent poison trigger 호출.
+  it('cascade recast 가 triggerSerpentPoison 호출 (codex P2 PR #72)', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const file = fs.readFileSync(
+      path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+      'utf8',
+    );
+    // recast loop 안 (recastBaseDmg / recastDamageAmp 등) 에서 triggerSerpentPoison 호출 확인.
+    // 일반 cast loop 1회 + recast loop 1회 = 총 2회 호출되어야 함.
+    const calls = file.match(/triggerSerpentPoison\(unit,\s*t,\s*effectiveDmg\)/g);
+    expect(calls).toBeDefined();
+    expect(calls!.length).toBeGreaterThanOrEqual(2);
+  });
+
   it('파이크 carry 활성 시 시뮬 정상 작동 (sanity)', () => {
     const pyke = champions.find(c => c.apiName === 'TFT17_Pyke');
     const enemy = champions.find(c => c.apiName === 'TFT17_Aatrox');
