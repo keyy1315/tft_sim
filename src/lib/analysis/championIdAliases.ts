@@ -15,3 +15,22 @@ const CHAMPION_ID_ALIASES: Record<string, string> = {
 export function normalizeChampionId(rawId: string): string {
   return CHAMPION_ID_ALIASES[rawId] ?? rawId;
 }
+
+/**
+ * canonical apiName → 그 canonical 로 정규화되는 Riot raw ID 목록.
+ * 모듈 로드 시점에 1회 역매핑 캐시.
+ *
+ * lookup 페이지의 `championMeta` 같이 raw ID 로 직접 조회하는 경로에서
+ * canonical 메타를 alias 키에도 미러 등록해 미지원 표시(`?`) 를 방지하기 위함.
+ */
+const CANONICAL_TO_RAW_IDS: Record<string, string[]> = (() => {
+  const reverse: Record<string, string[]> = {};
+  for (const [raw, canonical] of Object.entries(CHAMPION_ID_ALIASES)) {
+    (reverse[canonical] ??= []).push(raw);
+  }
+  return reverse;
+})();
+
+export function getRiotChampionRawIds(canonicalApiName: string): string[] {
+  return CANONICAL_TO_RAW_IDS[canonicalApiName] ?? [];
+}
