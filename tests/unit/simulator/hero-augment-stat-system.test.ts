@@ -903,6 +903,56 @@ describe('PR7-E — 미프 시너지 + carry onAttack 패시브', () => {
 
     // codex P1 (PR #76) 회귀 가드 — OOR cast 경로에도 hexReduction + multi-stun 적용.
     // in-range vs OOR 동일 결과 보장.
+    // refactor: cast-mitigation-helpers — applyAbilityMitigation + markTargetDead helper 추출.
+    // 6 cast site (PR4 자폭 / cast loop main / PR7-A cascade / PR7-C N.O.V.A. / PR7-D bouncing / PR7-E onAttackBonus)
+    // 가 helper 호출. mitigation 5단계 + 사망 처리 일관성 보장.
+    it('applyAbilityMitigation helper 정의됨 + 5단계 mitigation pipeline (refactor)', async () => {
+      const fs = await import('node:fs');
+      const path = await import('node:path');
+      const file = fs.readFileSync(
+        path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+        'utf8',
+      );
+      // helper 시그니처 + 5단계 mitigation 패턴 검증
+      expect(file).toMatch(/function applyAbilityMitigation\(/);
+      expect(file).toMatch(/let effectiveDmg = applyResistance\(rawDmg, resistance, pen\)/);
+      expect(file).toMatch(/if \(t\.damageReduction > 0\) effectiveDmg \*= \(1 - t\.damageReduction\)/);
+      expect(file).toMatch(/NON_TARGET_DAMAGE_REDUCTION/);
+      expect(file).toMatch(/effectiveDmg = applyShield\(t, effectiveDmg, eventBus, tick\)/);
+      expect(file).toMatch(/if \(t\.statusEffects\.some\(e => e\.type === 'invulnerable'\)\) effectiveDmg = 0/);
+    });
+
+    it('markTargetDead helper 정의됨 (refactor)', async () => {
+      const fs = await import('node:fs');
+      const path = await import('node:path');
+      const file = fs.readFileSync(
+        path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+        'utf8',
+      );
+      expect(file).toMatch(/function markTargetDead\(/);
+      // 핵심 동작: HP clamp + state + counts + emit
+      expect(file).toMatch(/t\.currentHp = 0;\s*t\.state = 'dead'/);
+      expect(file).toMatch(/eventBus\.emit\('on_kill'/);
+      expect(file).toMatch(/eventBus\.emit\('on_death'/);
+    });
+
+    it('helper caller 6곳 호출 (PR4 자폭 / cast main / PR7-A cascade / PR7-C N.O.V.A. / PR7-D bouncing / PR7-E onAttack)', async () => {
+      const fs = await import('node:fs');
+      const path = await import('node:path');
+      const file = fs.readFileSync(
+        path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+        'utf8',
+      );
+      // applyAbilityMitigation 호출 count >= 6 (PR4/main/cascade/N.O.V.A./bouncing/onAttack)
+      const mitigationCalls = file.match(/applyAbilityMitigation\(unit,/g);
+      expect(mitigationCalls).toBeDefined();
+      expect(mitigationCalls!.length).toBeGreaterThanOrEqual(6);
+      // markTargetDead 호출 count >= 6
+      const deadCalls = file.match(/markTargetDead\(unit,/g);
+      expect(deadCalls).toBeDefined();
+      expect(deadCalls!.length).toBeGreaterThanOrEqual(6);
+    });
+
     it('OOR cast 경로 꼬마정령 hexReduction + multi-stun 동기화 (codex P1 PR #76)', async () => {
       const fs = await import('node:fs');
       const path = await import('node:path');
