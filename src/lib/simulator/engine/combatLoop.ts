@@ -4895,11 +4895,19 @@ export function simulateCombat(
             // SharpshooterModule (위력 프레임) — 스킬 피해 +5% 가산.
             const rawAbilityDmg = rawAbilityDmgBase * (1 + (unit.gravesAbilityDamageBonus ?? 0));
 
-            // 자폭 (GragasCarry) — 일반 ability target 흐름 skip + self 에 데미지 + HP floor.
-            // 사용자 명세: 그라가스 본인 데미지, 다른 아군 X, 자기 스킬로 죽지 않음 (HP >= 1).
-            // 17.2b: self-damage 는 maxHp × healthCost (0.20). 기존 raw ability damage 사용 시
-            //   AP 스케일이 그대로 self 에 가해져 부정확 — abilityData.healthCost 우선 사용.
-            //   적군 damage / hexReduction / 탱커 보너스 적용은 후속 PR (자폭이 현재 적군 flow skip 구조).
+            // 자폭 (GragasCarry) — self 데미지 + 반경 N칸 적군 magic AOE.
+            // 사용자 명세: 그라가스 본인 데미지 (자기 스킬로 죽지 않음, HP >= 1) + 적군에게 magic damage.
+            // 17.2b 변경:
+            //   - self-damage: maxHp × healthCost (0.30 → 0.20)
+            //   - hexReduction: 0.55 → 0.45
+            // PR4 (17.2b 후속): 적군 AOE damage 적용 — 기존엔 self-damage 만 처리하던 회귀.
+            //   공식 (도메인 set17-hero-augments.md + 사용자 결정):
+            //     baseAOE = maxHp × baseDamageHpFrac + AP × (abilityData.damage[star] / 100)
+            //     distance multiplier = (1 - hexReduction) ^ distance  (multiplicative)
+            //     tank multiplier = role === 'Tank' 일 때 (1 + tankBonusMultiplier), 그 외 1
+            //   적군에 일반 ability mitigation 동일 적용 (resistance + DR + Fighter/Assassin
+            //   non-target reduction + shield + invulnerable). damageAmp / sniper / crit 는
+            //   raw 도메인 공식에 명시 없어 미적용 — 자폭 mechanics 원형 보존.
             if (config.selfDamage) {
               const hpFloor = config.selfDamageHpFloor ?? 0;
               // 영웅 증강 abilityData.healthCost 가 있으면 maxHp × healthCost, 없으면 raw ability damage.
@@ -4923,7 +4931,75 @@ export function simulateCombat(
               // on_cast 이벤트 emit — PsyOps 등 cast event subscriber 호환 (codex P2 회귀 가드).
               // targetId 는 self (적군 X). value 는 실제 입은 self damage. rawValue 는 동일 (no resistance for self).
               eventBus.emit('on_cast', { sourceId: unit.id, targetId: unit.id, value: dmgApplied, rawValue: selfDamageRaw, tick });
-              continue; // 일반 ability 흐름 skip — 적군/아군 데미지 없음
+
+              // === PR4 (17.2b) — 자폭 적군 AOE damage ===
+              const ad = carryCfg?.abilityData;
+              if (ad?.damage && ad.baseDamageHpFrac !== undefined && ad.hexReduction !== undefined) {
+                const aoeRadius = config.radius ?? 3;
+                const baseDamage = ad.damage[unit.starLevel - 1] ?? ad.damage[0];
+                const baseAOE = unit.maxHp * ad.baseDamageHpFrac + unit.stats.ap * (baseDamage / 100);
+                const tankBonus = ad.tankBonusMultiplier ?? 0;
+                const aoeDmgType: DamageType = ad.damageType ?? 'magic';
+                const opposingTeam = unit.team === 'player' ? enemies : playerUnits;
+                const ownArbiterState = unit.team === 'player' ? playerArbiterState : enemyArbiterState;
+
+                for (const t of opposingTeam) {
+                  if (t.state === 'dead') continue;
+                  const dist = hexDistance(unit.position, t.position);
+                  if (dist > aoeRadius) continue;
+
+                  // multiplicative falloff (사용자 결정 — raw 미정의로 추정)
+                  const distMul = Math.pow(1 - ad.hexReduction, dist);
+                  // 탱커 정의: role === 'Tank' 만 (사용자 결정 — 코드 전반 일관)
+                  const tankMul = t.role === 'Tank' ? (1 + tankBonus) : 1.0;
+                  const rawDmg = baseAOE * distMul * tankMul;
+
+                  const resistance = aoeDmgType === 'magic' ? t.stats.magicResist
+                    : aoeDmgType === 'physical' ? t.stats.armor : 0;
+                  const pen = aoeDmgType === 'magic' ? unit.stats.magicPen
+                    : aoeDmgType === 'physical' ? unit.stats.armorPen : 0;
+                  let effectiveDmg = applyResistance(rawDmg, resistance, pen);
+
+                  if (t.damageReduction > 0) effectiveDmg *= (1 - t.damageReduction);
+                  // Fighter/Assassin 비타겟 피해 감소 — 자폭은 타겟 개념 없음(AOE) 이라 항상 적용.
+                  if (t.role === 'Fighter' || t.role === 'Assassin') {
+                    effectiveDmg *= (1 - NON_TARGET_DAMAGE_REDUCTION);
+                  }
+                  effectiveDmg = applyShield(t, effectiveDmg, eventBus, tick);
+                  if (t.statusEffects.some(e => e.type === 'invulnerable')) effectiveDmg = 0;
+
+                  t.currentHp -= effectiveDmg;
+                  t.totalDamageTaken += effectiveDmg;
+                  unit.totalDamageDealt += effectiveDmg;
+
+                  const aoeLog: CombatLog = {
+                    tick, time, type: 'ability',
+                    sourceId: unit.id, targetId: t.id,
+                    value: Math.round(effectiveDmg),
+                    message: `${unit.champion.name}의 자폭 폭발! ${t.champion.name}에게 ${Math.round(effectiveDmg)} 마법 피해 (${dist}칸${t.role === 'Tank' ? ', 탱커 +' + Math.round(tankBonus * 100) + '%' : ''})`,
+                  };
+                  logs.push(aoeLog);
+                  tickLogs.push(aoeLog);
+
+                  if (t.currentHp <= 0) {
+                    t.currentHp = 0;
+                    t.state = 'dead';
+                    unit.killCount++;
+                    ownArbiterState.enemyDeathCount++;
+                    const deathLog: CombatLog = {
+                      tick, time, type: 'death',
+                      sourceId: t.id,
+                      message: `${t.champion.name} 사망! (${unit.champion.name}의 자폭)`,
+                    };
+                    logs.push(deathLog);
+                    tickLogs.push(deathLog);
+                    eventBus.emit('on_kill', { sourceId: unit.id, targetId: t.id, tick });
+                    eventBus.emit('on_death', { sourceId: t.id, targetId: unit.id, tick });
+                  }
+                }
+              }
+
+              continue; // 일반 ability 흐름 skip — 자폭 전용 처리 끝
             }
 
             // hitCount: single은 곱연산, AOE/multi는 총 피해를 타겟 수로 분배 (후술)
