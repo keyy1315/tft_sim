@@ -5167,8 +5167,25 @@ export function simulateCombat(
                 if (unit.mfReplicatorEffectiveness > 0) {
                   abilityDamageAmp += unit.mfReplicatorEffectiveness;
                 }
-                // 초가스: % 최대체력 피해 추가
+                // PR7-A (17.2b): 파이크 carry primary vs secondary damage 분기 + tankBonus.
+                //   primary target (대상): abilityData.damage (rawAbilityDmg, abilityDmg 에 이미 반영됨)
+                //   secondary targets (X-shape 주변 적): abilityData.secondaryDamage
+                //   tankBonusMultiplier: primary target 이 탱커 일 때만 +N% (사용자 결정 PR4 동일 — role==='Tank' 만)
                 let baseDmg = abilityDmg;
+                const isPrimaryTarget = t === abilityTarget;
+                if (carryCfg?.abilityData?.secondaryDamage && !isPrimaryTarget) {
+                  const secArr = carryCfg.abilityData.secondaryDamage;
+                  const secBase = secArr[unit.starLevel - 1] ?? secArr[0];
+                  const secDmgType: DamageType = carryCfg.damageTypeOverride
+                    ?? carryCfg.abilityData.damageType ?? 'magic';
+                  baseDmg = secDmgType === 'magic'
+                    ? secBase * (1 + unit.stats.ap / 100)
+                    : secBase;
+                }
+                if (isPrimaryTarget && carryCfg?.abilityData?.tankBonusMultiplier && t.role === 'Tank') {
+                  baseDmg *= (1 + carryCfg.abilityData.tankBonusMultiplier);
+                }
+                // 초가스: % 최대체력 피해 추가
                 if (unit.champion.apiName === 'TFT17_Chogath') {
                   const pctVar = unit.champion.ability.variables?.find(v => v.name === 'PercentMaximumHealthDamage');
                   const pctHp = pctVar?.value?.[unit.starLevel] ?? 0.08;
@@ -5256,6 +5273,101 @@ export function simulateCombat(
                   tickLogs.push(deathLog);
                   eventBus.emit('on_kill', { sourceId: unit.id, targetId: t.id, tick });
                   eventBus.emit('on_death', { sourceId: t.id, targetId: unit.id, tick });
+                }
+              }
+
+              // === PR7-A (17.2b) — 파이크 carry onKillRecast cascade ===
+              // primary target 처치 시 완전 재 cast (새 dash + 새 X-shape) damage × recastMul.
+              // 사용자 결정: cascade max chain 5 (무한 루프 방지). 새 dash to_lowest_hp.
+              // 재시전 damage 는 totalAbilityDmg / totalRawAbilityDmg 에 누적 — omnivamp / Fountain
+              // / on_cast 정합. damageAmp / sniper / crit / mitigation 은 cast loop 와 동일 적용.
+              const recastMul = carryCfg?.abilityData?.onKillRecastMultiplier ?? 0;
+              if (recastMul > 0 && abilityTarget.state === 'dead') {
+                const MAX_RECAST_CHAIN = 5;
+                let chainCount = 0;
+                while (chainCount < MAX_RECAST_CHAIN) {
+                  chainCount++;
+                  const aliveOpp = opposingTeam.filter(u => u.state !== 'dead');
+                  if (aliveOpp.length === 0) break;
+                  const newPrimary = findLowestHpEnemy(aliveOpp);
+                  if (!newPrimary) break;
+
+                  // 새 dash + 새 X-shape 재계산
+                  let recastTarget = newPrimary;
+                  if (config.dash) {
+                    recastTarget = applyAbilityDash(
+                      unit, config.dash, newPrimary, opposingTeam,
+                      occupiedPositions, logs, tickLogs, tick, time
+                    );
+                  }
+                  const recastTargets = findAbilityTargets(unit, recastTarget, opposingTeam, config);
+                  const recastAlive = recastTargets.filter(rt => rt.state !== 'dead');
+
+                  for (const t of recastAlive) {
+                    const isPrimaryRecast = t === recastTarget;
+                    // primary vs secondary base damage 분기 (cast loop 패턴 동일)
+                    let recastBaseDmg: number;
+                    if (carryCfg?.abilityData?.secondaryDamage && !isPrimaryRecast) {
+                      const secArr = carryCfg.abilityData.secondaryDamage;
+                      const secBase = secArr[unit.starLevel - 1] ?? secArr[0];
+                      const secDt: DamageType = carryCfg.damageTypeOverride
+                        ?? carryCfg.abilityData.damageType ?? 'magic';
+                      recastBaseDmg = secDt === 'magic'
+                        ? secBase * (1 + unit.stats.ap / 100)
+                        : secBase;
+                    } else {
+                      recastBaseDmg = abilityDmg;
+                    }
+                    recastBaseDmg *= recastMul;
+                    if (isPrimaryRecast && carryCfg?.abilityData?.tankBonusMultiplier && t.role === 'Tank') {
+                      recastBaseDmg *= (1 + carryCfg.abilityData.tankBonusMultiplier);
+                    }
+
+                    const ampMul = 1 + unit.damageAmp + computeSniperDamageAmp(unit, t);
+                    let dmg = recastBaseDmg * ampMul;
+                    if (unit.spellCanCrit && rng.next() < unit.stats.critChance) {
+                      dmg *= unit.stats.critMultiplier;
+                    }
+                    totalRawAbilityDmg += dmg;
+
+                    const resistance = dmgType === 'magic' ? t.stats.magicResist
+                      : dmgType === 'physical' ? t.stats.armor : 0;
+                    const pen = dmgType === 'magic' ? unit.stats.magicPen
+                      : dmgType === 'physical' ? unit.stats.armorPen : 0;
+                    let effectiveDmg = applyResistance(dmg, resistance, pen);
+                    if (t.damageReduction > 0) effectiveDmg *= (1 - t.damageReduction);
+                    if ((t.role === 'Fighter' || t.role === 'Assassin') && t.target !== unit.id) {
+                      effectiveDmg *= (1 - NON_TARGET_DAMAGE_REDUCTION);
+                    }
+                    effectiveDmg = applyShield(t, effectiveDmg, eventBus, tick);
+                    if (t.statusEffects.some(e => e.type === 'invulnerable')) effectiveDmg = 0;
+
+                    t.currentHp -= effectiveDmg;
+                    t.totalDamageTaken += effectiveDmg;
+                    unit.totalDamageDealt += effectiveDmg;
+                    totalAbilityDmg += effectiveDmg;
+
+                    const recastLog: CombatLog = {
+                      tick, time, type: 'ability',
+                      sourceId: unit.id, targetId: t.id,
+                      value: Math.round(effectiveDmg),
+                      message: `${unit.champion.name} 자동 재시전 #${chainCount}! ${t.champion.name}에게 ${Math.round(effectiveDmg)} 피해 (×${recastMul})`,
+                    };
+                    logs.push(recastLog);
+                    tickLogs.push(recastLog);
+
+                    if (t.currentHp <= 0) {
+                      t.currentHp = 0;
+                      t.state = 'dead';
+                      unit.killCount++;
+                      if (unit.team === 'player') playerArbiterState.enemyDeathCount++;
+                      else enemyArbiterState.enemyDeathCount++;
+                      eventBus.emit('on_kill', { sourceId: unit.id, targetId: t.id, tick });
+                      eventBus.emit('on_death', { sourceId: t.id, targetId: unit.id, tick });
+                    }
+                  }
+                  // primary recast target 처치 못했으면 cascade 종료
+                  if (recastTarget.state !== 'dead') break;
                 }
               }
 

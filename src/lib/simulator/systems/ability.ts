@@ -336,6 +336,23 @@ export function findAbilityTargets(
     case 'self_buff':
       return [caster];
 
+    case 'x_shape': {
+      // PR7-A (17.2b): 파이크 carry "X 모양으로 베기" — 대상 + 4 diagonal hex direction.
+      // axial 6 directions 중 horizontal (E/W = [±1, 0]) 제외, 4 angled direction 선택:
+      //   NE [+1,-1], NW [0,-1], SE [0,+1], SW [-1,+1]
+      // 시각적으로 X 형태. 사용자 결정 (PR #?? 후속) — raw 데이터 비어있어 추정.
+      const tp = primaryTarget.position;
+      const xHexes: { q: number; r: number }[] = [
+        tp, // 대상 본인
+        { q: tp.q + 1, r: tp.r - 1 }, // NE
+        { q: tp.q,     r: tp.r - 1 }, // NW
+        { q: tp.q,     r: tp.r + 1 }, // SE
+        { q: tp.q - 1, r: tp.r + 1 }, // SW
+      ];
+      const xSet = new Set(xHexes.map(h => `${h.q},${h.r}`));
+      return alive.filter(u => xSet.has(`${u.position.q},${u.position.r}`));
+    }
+
     default:
       return [primaryTarget];
   }

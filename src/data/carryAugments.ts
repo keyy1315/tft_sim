@@ -208,7 +208,8 @@ export const CARRY_AUGMENTS: CarryAugmentConfig[] = [
   {
     augmentApiName: 'TFT17_Augment_PykeCarry',
     targetChampionApiName: 'TFT17_Pyke',
-    abilityOverride: { pattern: 'single', dash: 'to_lowest_hp' },
+    // PR7-A (17.2b): X-shape pattern (대상 + 4 diagonal hex). dash to_lowest_hp 후 X 모양 베기.
+    abilityOverride: { pattern: 'x_shape', dash: 'to_lowest_hp' },
     damageTypeOverride: 'physical',
     scalingInput: { label: '처치 수', unit: '회', max: 999, effectPerStack: '골드 +1' },
     abilityData: {
