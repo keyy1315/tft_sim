@@ -37,14 +37,14 @@
 
 | 옵션 | 후보 | 영향 게임 | 사이즈 |
 |---|---|---|---|
-| **A** | Fountain 스킬 힐 (`Fountain_HealPercent`) | 24일 직접 | 작음 |
+| ~~**A**~~ | ~~Fountain 스킬 힐 (`Fountain_HealPercent`)~~ ⚠️ **17.2 LIVE 비활성** (Riot patch note: "룰루와 자야 효과 찾는 중") — 진행 금지. Riot patch 17.3+ 효과 확정 시 재고. 메모리 `stargazer_fountain_inactive.md` 참조 | ~~24일 직접~~ | ~~작음~~ |
 | **B** | Huntress 표식 + Serpent 중독 (statusEffect 시스템) | 양 게임 잠재 | 중간 |
 | **C** | Shield cashout (사망 카운트 → 강화 칸 별돌보미 buff) | (현재 게임 영향 적음) | 중간 |
 | **D** | Mountain emblem 누적 (RoundsPerEmblem) | 23일 잠재 | 작음 |
 | **E** | 강화 칸 player level 점진 추가 (revealedTiles) | 양 게임 정확도 | 중간 |
-| **F** | 통합 PR (A+B+C+D+E 한 번에) | 측정 베이스 한 번에 | 크게 |
+| **F** | 통합 PR (B+C+D+E 한 번에) | 측정 베이스 한 번에 | 크게 |
 
-**추천 순서**: A (Fountain — 24일 직접 영향, 단일 메커니즘) → B → C → D → E.
+**추천 순서**: B → C → D → E. (옵션 A Fountain 은 17.2 LIVE 비활성으로 제외)
 
 ## 다음 세션 시작 가이드
 
@@ -58,8 +58,8 @@ pnpm test --run       # baseline 306 pass 확인
 ```
 
 ### 1. PR-4 시작 결정
-- 사용자에게 옵션 (A~F) 중 선택 받기
-- 옵션 A (Fountain) 추천 — 작고 측정 가능
+- 사용자에게 옵션 (B~F) 중 선택 받기 (옵션 A Fountain 은 17.2 LIVE 비활성으로 제외)
+- 옵션 B (Huntress 표식 + Serpent 중독) 또는 D (Mountain emblem 누적) 추천 — 측정 가능 + 활성 메커니즘
 
 ### 2. 작업 패턴 (이전 세션 표준)
 1. 새 feature 브랜치 (`feature/stargazer-...`)

@@ -17,7 +17,10 @@ import * as path from 'node:path';
 const { augments: filteredAugments } = loadServerCatalogs();
 const rawJson = JSON.parse(
   fs.readFileSync(path.join(process.cwd(), 'public/data/tft_set17_augments.json'), 'utf8'),
-) as { augments: Array<{ apiName: string; disable?: boolean }> };
+) as {
+  meta: { totalAugments: number };
+  augments: Array<{ apiName: string; disable?: boolean; name?: string }>;
+};
 const rawAugments = rawJson.augments;
 
 describe('Augment Set17 풀 필터링 — disable + DISABLED 양쪽 검증', () => {
@@ -74,5 +77,23 @@ describe('Augment Set17 풀 필터링 — disable + DISABLED 양쪽 검증', () 
     for (const api of hidden) {
       expect(filteredAugments.find(a => a.apiName === api)).toBeUndefined();
     }
+  });
+
+  // PR2 (17.2b) — 신병 augment 추가. CDragon raw 그대로 (NumUnits=3 라이브에서는 1로 너프).
+  // 시뮬 영향 없는 econ augment 라 effects 수치는 무관, 카탈로그 노출만 검증.
+  it('17.2b 신병 augment 가 raw JSON 에 추가되어 있다 (apiName=TFT6_Augment_ForceOfNature)', () => {
+    const recruit = rawAugments.find(a => a.apiName === 'TFT6_Augment_ForceOfNature');
+    expect(recruit).toBeDefined();
+    expect(recruit?.name).toBe('신병');
+    expect(recruit?.disable).toBe(false);
+  });
+
+  it('신병 augment 가 loadServerCatalogs() 결과에 노출된다', () => {
+    const recruit = filteredAugments.find(a => a.apiName === 'TFT6_Augment_ForceOfNature');
+    expect(recruit).toBeDefined();
+  });
+
+  it('meta.totalAugments 가 augments 배열 길이와 일치한다', () => {
+    expect(rawJson.meta.totalAugments).toBe(rawAugments.length);
   });
 });
