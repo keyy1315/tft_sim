@@ -805,6 +805,37 @@ describe('PR7-C — 아트록스 carry 3-skill cycle + N.O.V.A. 추가 발동', 
 
   // PR7-C.7 (17.2b 후속) — Akali 단검 출혈 +10% 메커니즘.
   // 사용자 spec: "단검은 출혈 피해량을 10% 증가". Akali raw ability hit 적의 burn value × 1.10.
+  // PR7-C.8 (17.2b 후속) — N.O.V.A. 타격 선택기 raw data + 자동 할당.
+  // 사용자 spec: "선택기 미설정 시 (5) NOVA 시너지 가장 강한 유닛 자동 할당".
+  it('타격 선택기 raw data 추가 (TFT17_DRXSelector)', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const file = fs.readFileSync(
+      path.join(process.cwd(), 'public/data/tft_set17_items.json'),
+      'utf8',
+    );
+    const data = JSON.parse(file) as { items: Array<{ apiName: string; name: string; icon: string }> };
+    const selector = data.items.find(i => i.apiName === 'TFT17_DRXSelector');
+    expect(selector).toBeDefined();
+    expect(selector!.name).toBe('타격 선택기');
+    expect(selector!.icon).toBe('tft17_drxselector.tft_set17.png');
+  });
+
+  it('autoAssignNovaSelector 자동 할당 코드 fingerprint (PR7-C.8)', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const file = fs.readFileSync(
+      path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+      'utf8',
+    );
+    // helper 정의 + (5) 시너지 검사 + starLevel × cost 정렬
+    expect(file).toMatch(/autoAssignNovaSelector/);
+    expect(file).toMatch(/NOVA_APIS\s*=\s*\[\s*'TFT17_Aatrox'[\s\S]+?'TFT17_Kindred'/);
+    expect(file).toMatch(/minUnits\s*<\s*5/);
+    // strongest = starLevel × cost (내림차순)
+    expect(file).toMatch(/a\.starLevel \* \(a\.champion\.cost \?\? 0\)/);
+  });
+
   it('Akali 단검 burn refresh 코드 fingerprint (PR7-C.7)', async () => {
     const fs = await import('node:fs');
     const path = await import('node:path');
