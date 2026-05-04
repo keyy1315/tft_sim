@@ -6009,6 +6009,22 @@ export function simulateCombat(
                 unit.aatroxCycleCounter++;
               }
 
+              // === PR7-C.7 (17.2b): Akali raw ability "단검" hit 시 burn refresh ===
+              // 사용자 spec: "단검은 출혈 피해량을 10% 증가". Akali raw ability (관통 단검 5개) hit
+              // 한 적의 akali-nova-selector burn value × 1.10 (refresh). 적이 mark 없으면 무관.
+              // surge 전 (akali-nova-selector burn 없음) → 자연스럽게 무효.
+              if (unit.champion.apiName === 'TFT17_Akali') {
+                for (const t of abilityTargets) {
+                  if (t.state === 'dead') continue;
+                  const akaliBurn = t.statusEffects.find(
+                    se => se.type === 'burn' && se.sourceId === 'akali-nova-selector'
+                  );
+                  if (akaliBurn && akaliBurn.value) {
+                    akaliBurn.value *= 1.10;
+                  }
+                }
+              }
+
               // 최신상 Phase 3C-2 — ability AOE (BlastRadius / SympatheticDetonation).
               // ability primary hit 처리 끝난 직후 호출. abilityTarget 위치 기준.
               // baseDmg = abilityDmg (raw hit count damage 단위, mitigation 전).

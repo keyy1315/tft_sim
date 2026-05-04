@@ -770,6 +770,23 @@ describe('PR7-C — 아트록스 carry 3-skill cycle + N.O.V.A. 추가 발동', 
     expect(file).toMatch(/triggeredSet\.add\(e\.id\)/);
   });
 
+  // PR7-C.7 (17.2b 후속) — Akali 단검 출혈 +10% 메커니즘.
+  // 사용자 spec: "단검은 출혈 피해량을 10% 증가". Akali raw ability hit 적의 burn value × 1.10.
+  it('Akali 단검 burn refresh 코드 fingerprint (PR7-C.7)', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const file = fs.readFileSync(
+      path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+      'utf8',
+    );
+    // unit.champion.apiName === 'TFT17_Akali' 검사
+    expect(file).toMatch(/unit\.champion\.apiName === 'TFT17_Akali'/);
+    // akali-nova-selector burn 검색
+    expect(file).toMatch(/se\.type === 'burn' && se\.sourceId === 'akali-nova-selector'/);
+    // burn value × 1.10 refresh
+    expect(file).toMatch(/akaliBurn\.value \*= 1\.10/);
+  });
+
   it('Akali N.O.V.A. selector 효과 코드 fingerprint (PR7-C.6)', async () => {
     const fs = await import('node:fs');
     const path = await import('node:path');
