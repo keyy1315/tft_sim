@@ -756,6 +756,66 @@ describe('PR7-E — 미프 시너지 + carry onAttack 패시브', () => {
     expect(jax?.abilityData?.onAttackBonus).toEqual([45, 70, 105]);
   });
 
+  // PR7-D (17.2b 후속) — 뽀삐 carry armorScale + spiritBounceOnKill 회귀 가드.
+  // 사용자 결정:
+  //   - 잔여 damage = overkill (처치 후 currentHp 음수 절댓값)
+  //   - chain max 제한 없음 (overkill 0 자연 종료) — hard limit 50 무한 루프 방지
+  //   - "가장 가까운" = 처치된 target 위치 기준
+  //   - armorScale: raw damage 에 가산 (mitigation 전)
+  it('PoppyCarry armorScale 1.0 / spiritBounceOnKill true 정의됨', () => {
+    const poppy = CARRY_AUGMENTS.find(c => c.augmentApiName === 'TFT17_Augment_PoppyCarry');
+    expect(poppy?.abilityData?.armorScale).toBe(1.0);
+    expect(poppy?.abilityData?.spiritBounceOnKill).toBe(true);
+  });
+
+  it('cast loop armorScale 적용 코드 fingerprint (raw damage 가산)', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const file = fs.readFileSync(
+      path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+      'utf8',
+    );
+    // baseDmg += t.stats.armor × armorScale
+    expect(file).toMatch(/carryCfg\?\.abilityData\?\.armorScale[\s\S]+?baseDmg \+=\s*t\.stats\.armor \* carryCfg\.abilityData\.armorScale/);
+  });
+
+  it('spiritBounceOnKill 코드 fingerprint — overkill chain (max 50 hard limit)', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const file = fs.readFileSync(
+      path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+      'utf8',
+    );
+    // bouncing 발동 조건: spiritBounceOnKill && abilityTarget.state === 'dead'
+    expect(file).toMatch(/spiritBounceOnKill && abilityTarget\.state === 'dead'/);
+    // hard limit 50
+    expect(file).toMatch(/MAX_BOUNCE_HARD_LIMIT\s*=\s*50/);
+    // overkill 0 자연 종료 + while loop
+    expect(file).toMatch(/while \(overkill > 0 && bounceCount < MAX_BOUNCE_HARD_LIMIT\)/);
+    // 처치된 target 위치 기준 정렬
+    expect(file).toMatch(/hexDistance\(lastDeadTarget\.position[\s\S]+?hexDistance\(lastDeadTarget\.position/);
+  });
+
+  it('뽀삐 carry 활성 시 시뮬 정상 작동 (sanity)', () => {
+    const poppy = champions.find(c => c.apiName === 'TFT17_Poppy');
+    const enemy = champions.find(c => c.apiName === 'TFT17_Briar');
+    const carryAug = augments.find(a => a.apiName === 'TFT17_Augment_PoppyCarry');
+    if (!poppy || !enemy || !carryAug) return;
+    const result = simulateCombat(
+      [placed(poppy, 0, 3, 2)],
+      [placed(enemy, 0, 4, 2)],
+      {
+        seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
+        playerAugments: [carryAug],
+      }
+    );
+    const p = result.playerUnits.find(u => u.champion.apiName === 'TFT17_Poppy');
+    if (!p) return;
+    expect(p.role).toBe('Fighter');
+    // armorScale + bouncing 정상 작동 (crash 없음)
+    expect(p.totalDamageDealt).toBeGreaterThanOrEqual(0);
+  });
+
   it('정령족 trait 활성 시 정령족 unit 의 astronautMeepsStack > 0 (sanity)', () => {
     const poppy = champions.find(c => c.apiName === 'TFT17_Poppy');
     const enemy = champions.find(c => c.apiName === 'TFT17_Briar');

@@ -5371,6 +5371,12 @@ export function simulateCombat(
                 if (isPrimaryTarget && carryCfg?.abilityData?.tankBonusMultiplier && t.role === 'Tank') {
                   baseDmg *= (1 + carryCfg.abilityData.tankBonusMultiplier);
                 }
+                // PR7-D (17.2b): 뽀삐 carry armorScale — base damage + (target.armor × armorScale).
+                // 사용자 결정: raw damage 에 가산 (mitigation 전). 도메인 desc 자연스러운 해석.
+                // 도메인 line 142: "1성 damage 표기 385 = 340 AD + 100% armor + 미프 효과"
+                if (carryCfg?.abilityData?.armorScale) {
+                  baseDmg += t.stats.armor * carryCfg.abilityData.armorScale;
+                }
                 // 초가스: % 최대체력 피해 추가
                 if (unit.champion.apiName === 'TFT17_Chogath') {
                   const pctVar = unit.champion.ability.variables?.find(v => v.name === 'PercentMaximumHealthDamage');
@@ -5572,6 +5578,81 @@ export function simulateCombat(
                   }
                   // primary recast target 처치 못했으면 cascade 종료
                   if (recastTarget.state !== 'dead') break;
+                }
+              }
+
+              // === PR7-D (17.2b) — 뽀삐 carry spiritBounceOnKill ===
+              // primary target 처치 시 가장 가까운 alive 적에 overkill (잔여) damage 튕김.
+              // 사용자 결정:
+              //   - 잔여 damage = overkill (처치 후 currentHp 음수 절댓값)
+              //   - chain max 제한 없음 (overkill 0 되면 자연 종료) — 무한 루프 안전 hard limit 50
+              //   - "가장 가까운" 기준 = 처치된 target 위치 (게임 내 튕김 메커니즘 일관)
+              // mitigation 적용 (resistance + DR + non-target reduction + shield + invulnerable).
+              // bouncing damage 누적 totalAbilityDmg / Raw — omnivamp / Fountain / on_cast 정합.
+              if (carryCfg?.abilityData?.spiritBounceOnKill && abilityTarget.state === 'dead') {
+                const MAX_BOUNCE_HARD_LIMIT = 50;
+                let bounceCount = 0;
+                let lastDeadTarget: CombatUnit = abilityTarget;
+                let overkill = Math.max(0, -lastDeadTarget.currentHp);
+
+                while (overkill > 0 && bounceCount < MAX_BOUNCE_HARD_LIMIT) {
+                  bounceCount++;
+                  const aliveOpp = opposingTeam.filter(u => u.state !== 'dead');
+                  if (aliveOpp.length === 0) break;
+                  // 가장 가까운 alive 적 (처치된 target 위치 기준)
+                  aliveOpp.sort((a, b) =>
+                    hexDistance(lastDeadTarget.position, a.position)
+                    - hexDistance(lastDeadTarget.position, b.position)
+                  );
+                  const newTarget = aliveOpp[0];
+
+                  // mitigation (일반 ability 동일 패턴)
+                  const resistance = dmgType === 'magic' ? newTarget.stats.magicResist
+                    : dmgType === 'physical' ? newTarget.stats.armor : 0;
+                  const pen = dmgType === 'magic' ? unit.stats.magicPen
+                    : dmgType === 'physical' ? unit.stats.armorPen : 0;
+                  let bounceDmg = applyResistance(overkill, resistance, pen);
+                  if (newTarget.damageReduction > 0) bounceDmg *= (1 - newTarget.damageReduction);
+                  if ((newTarget.role === 'Fighter' || newTarget.role === 'Assassin')
+                      && newTarget.target !== unit.id) {
+                    bounceDmg *= (1 - NON_TARGET_DAMAGE_REDUCTION);
+                  }
+                  bounceDmg = applyShield(newTarget, bounceDmg, eventBus, tick);
+                  if (newTarget.statusEffects.some(e => e.type === 'invulnerable')) bounceDmg = 0;
+
+                  newTarget.currentHp -= bounceDmg;
+                  newTarget.totalDamageTaken += bounceDmg;
+                  unit.totalDamageDealt += bounceDmg;
+                  totalAbilityDmg += bounceDmg;
+                  totalRawAbilityDmg += overkill;
+
+                  triggerSerpentPoison(unit, newTarget, bounceDmg);
+
+                  const bounceLog: CombatLog = {
+                    tick, time, type: 'ability',
+                    sourceId: unit.id, targetId: newTarget.id,
+                    value: Math.round(bounceDmg),
+                    message: `${unit.champion.name} 정령 튕김 #${bounceCount}! ${newTarget.champion.name}에게 ${Math.round(bounceDmg)} 피해 (overkill ${Math.round(overkill)})`,
+                  };
+                  logs.push(bounceLog);
+                  tickLogs.push(bounceLog);
+
+                  // 새 target 처치 검사 — overkill 갱신 후 다음 chain
+                  if (newTarget.currentHp <= 0) {
+                    const newOverkill = Math.max(0, -newTarget.currentHp);
+                    newTarget.currentHp = 0;
+                    newTarget.state = 'dead';
+                    unit.killCount++;
+                    if (unit.team === 'player') playerArbiterState.enemyDeathCount++;
+                    else enemyArbiterState.enemyDeathCount++;
+                    eventBus.emit('on_kill', { sourceId: unit.id, targetId: newTarget.id, tick });
+                    eventBus.emit('on_death', { sourceId: newTarget.id, targetId: unit.id, tick });
+                    lastDeadTarget = newTarget;
+                    overkill = newOverkill;
+                  } else {
+                    // 처치 못 함 — bounce chain 자연 종료
+                    break;
+                  }
                 }
               }
 
