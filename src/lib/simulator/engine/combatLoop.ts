@@ -6355,6 +6355,20 @@ export function simulateCombat(
             }
           }
 
+          // codex P1 (PR #82): PR7-C.7 Akali 단검 burn refresh OOR 동기화 — in-range cast loop
+          // (line ~6011) 와 동일 패턴. Akali raw ability OOR 도 burn × 1.10 적용.
+          if (unit.champion.apiName === 'TFT17_Akali') {
+            for (const t of abilityTargets) {
+              if (t.state === 'dead') continue;
+              const akaliBurn = t.statusEffects.find(
+                se => se.type === 'burn' && se.sourceId === 'akali-nova-selector'
+              );
+              if (akaliBurn && akaliBurn.value) {
+                akaliBurn.value *= 1.10;
+              }
+            }
+          }
+
           // === 이즈리얼 드론: 스킬 사용 시 타겟에게 추가 물리 피해 ===
           const ezDronesOOR = (unit as CombatUnit & { _ezrealDrones?: number })._ezrealDrones ?? 0;
           if (ezDronesOOR > 0 && abilityTarget.state !== 'dead') {

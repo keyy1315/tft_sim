@@ -787,6 +787,25 @@ describe('PR7-C — 아트록스 carry 3-skill cycle + N.O.V.A. 추가 발동', 
     expect(file).toMatch(/akaliBurn\.value \*= 1\.10/);
   });
 
+  // codex P1 (PR #82) 회귀 가드 — Akali 단검 burn refresh OOR cast 동기화.
+  // in-range cast 와 OOR cast 모두 적용되도록 두 site 호출 검증.
+  it('Akali 단검 burn refresh in-range + OOR 둘 다 적용 (codex P1 PR #82)', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const file = fs.readFileSync(
+      path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+      'utf8',
+    );
+    // unit.champion.apiName === 'TFT17_Akali' 매치 횟수 >= 2 (in-range + OOR)
+    const akaliMatches = file.match(/unit\.champion\.apiName === 'TFT17_Akali'/g);
+    expect(akaliMatches).toBeDefined();
+    expect(akaliMatches!.length).toBeGreaterThanOrEqual(2);
+    // akali-nova-selector burn 검색 매치 횟수 >= 2
+    const burnMatches = file.match(/se\.type === 'burn' && se\.sourceId === 'akali-nova-selector'/g);
+    expect(burnMatches).toBeDefined();
+    expect(burnMatches!.length).toBeGreaterThanOrEqual(2);
+  });
+
   it('Akali N.O.V.A. selector 효과 코드 fingerprint (PR7-C.6)', async () => {
     const fs = await import('node:fs');
     const path = await import('node:path');
