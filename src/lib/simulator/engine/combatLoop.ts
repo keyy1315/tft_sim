@@ -4123,6 +4123,58 @@ export function simulateCombat(
         });
       }
     }
+
+    // === PR7-C.5 (17.2b): N.O.V.A. 타격 선택기 받은 NOVA 유닛 추가 효과 ===
+    // 사용자 spec: DRX (5) + 타격 선택기 → NOVA 유닛 1명에 6초 surge 시 추가 효과.
+    // Aatrox 는 cast loop 끝 별도 발동 (PR7-C). Maokai/Kindred 는 surge 시점 1회 발동.
+
+    // Maokai selector — 적군 광역 stun (starLevel 1/2/3 = 1.5/1.5/1.75초). 회복은 hasMaokai 기존.
+    const maokaiSelector = state.teamUnits.find(u =>
+      u.champion.apiName === 'TFT17_Maokai'
+      && u.aatroxNovaStrikeSelector
+      && u.state !== 'dead'
+    );
+    if (maokaiSelector) {
+      const maokaiStunArr = [1.5, 1.5, 1.75]; // starLevel 1/2/3
+      const maokaiStunDur = maokaiStunArr[maokaiSelector.starLevel - 1] ?? maokaiStunArr[0];
+      const maokaiStunTicks = Math.round(maokaiStunDur * TICKS_PER_SECOND);
+      for (const e of state.opposingTeam) {
+        if (e.state === 'dead') continue;
+        e.statusEffects.push({
+          type: 'stun', sourceId: 'maokai-nova-selector',
+          remainingTicks: maokaiStunTicks,
+        });
+        e.state = 'idle';
+        e.attackCooldown = 0;
+      }
+      logs.push({
+        tick, time, type: 'ability', sourceId: 'maokai-nova-selector',
+        message: `Maokai N.O.V.A. 선택기! 모든 적 ${maokaiStunDur}초 광역 기절`,
+      });
+    }
+
+    // Kindred selector — Kindred damageAmp +5% (영구) + 모든 적 표식. 5초 주기 mark 갱신은
+    // main loop tick 별도 처리 (kindredNovaMarkState). Tank shield 는 hasKindred 기존.
+    const kindredSelector = state.teamUnits.find(u =>
+      u.champion.apiName === 'TFT17_Kindred'
+      && u.aatroxNovaStrikeSelector
+      && u.state !== 'dead'
+    );
+    if (kindredSelector) {
+      kindredSelector.damageAmp += 0.05;
+      for (const e of state.opposingTeam) {
+        if (e.state === 'dead') continue;
+        e.statusEffects.push({
+          type: 'mark', sourceId: 'kindred-nova-selector',
+          remainingTicks: 9999,
+        });
+      }
+      logs.push({
+        tick, time, type: 'ability', sourceId: 'kindred-nova-selector',
+        message: `Kindred N.O.V.A. 선택기! +5% damage amp + 모든 적 표식`,
+      });
+    }
+
     logs.push({
       tick, time, type: 'ability',
       sourceId: 'drx-nova',
@@ -4442,6 +4494,41 @@ export function simulateCombat(
     // N.O.V.A. (DRX) power surge — TeamAttackDelay 도달 시 한 번만 발동.
     tickDrxNova(playerDrxState, tick, time);
     tickDrxNova(enemyDrxState, tick, time);
+
+    // PR7-C.5 (17.2b): Kindred N.O.V.A. 선택기 — surge 후 5초 주기로 모든 적 표식 갱신.
+    // 사용자 spec: surge (6초) → 5초 주기 (11초, 16초, ...) 로 모든 적 표식 부여.
+    // 표식은 statusEffect 'mark' (영구). 5초 주기 = 5 × TICKS_PER_SECOND.
+    const tickKindredNovaMark = (
+      drxState: ReturnType<typeof setupDrxNova>,
+      teamUnits: CombatUnit[],
+      opposingTeam: CombatUnit[],
+    ) => {
+      if (!drxState || !drxState.triggered) return;
+      const elapsedSinceSurge = tick - drxState.delayTicks;
+      if (elapsedSinceSurge <= 0) return;
+      const periodTicks = 5 * TICKS_PER_SECOND;
+      // 5초 주기 도달 시점 (surge 직후 첫 발동은 tickDrxNova 에서 처리. 본 helper 는 후속 갱신).
+      if (elapsedSinceSurge % periodTicks !== 0) return;
+      const kindredSelector = teamUnits.find(u =>
+        u.champion.apiName === 'TFT17_Kindred'
+        && u.aatroxNovaStrikeSelector
+        && u.state !== 'dead'
+      );
+      if (!kindredSelector) return;
+      for (const e of opposingTeam) {
+        if (e.state === 'dead') continue;
+        // 기존 mark 있으면 갱신 (제거 후 재추가) — duration refresh 패턴
+        e.statusEffects = e.statusEffects.filter(
+          se => !(se.type === 'mark' && se.sourceId === 'kindred-nova-selector')
+        );
+        e.statusEffects.push({
+          type: 'mark', sourceId: 'kindred-nova-selector',
+          remainingTicks: 9999,
+        });
+      }
+    };
+    tickKindredNovaMark(playerDrxState, playerUnits, enemies);
+    tickKindredNovaMark(enemyDrxState, enemies, playerUnits);
 
     // 아이템 효과 runtime — interval timer dispatch
     itemRuntime.onTick(tick);
