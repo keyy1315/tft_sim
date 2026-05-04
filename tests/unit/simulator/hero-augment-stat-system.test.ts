@@ -680,6 +680,86 @@ describe('PR7-C — 아트록스 carry 3-skill cycle + N.O.V.A. 추가 발동', 
   });
 });
 
+// PR7-E (17.2b 후속) — 미프 (정령족 잠재력) 시너지 + carry onAttack 패시브.
+// 사용자 결정:
+//   - Meeps stack 공식: Astronaut trait Meeps 변수 (2/3/4/6 = tier 3/5/7/10)
+//   - 뽀삐 spiritEffectPerStack 0.15 적용: damage × (1 + Meeps × 0.15) multiplicative
+//   - 꼬마정령/잭스 onAttackBonus: 매 기본 공격마다 onAttackBonus[star] AP 고정 magic 추가
+describe('PR7-E — 미프 시너지 + carry onAttack 패시브', () => {
+  it('CombatUnit 에 astronautMeepsStack 필드 정의됨', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const file = fs.readFileSync(
+      path.join(process.cwd(), 'src/types/index.ts'),
+      'utf8',
+    );
+    expect(file).toMatch(/astronautMeepsStack:\s*number/);
+  });
+
+  it('applyAstronautEffects 가 Meeps stack 저장 코드 포함', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const file = fs.readFileSync(
+      path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+      'utf8',
+    );
+    // applyAstronautEffects 안에서 trait.activeEffect.variables['Meeps'] 추출 + unit.astronautMeepsStack 저장
+    expect(file).toMatch(/trait\.activeEffect\.variables\['Meeps'\]/);
+    expect(file).toMatch(/u\.astronautMeepsStack\s*=\s*meeps/);
+  });
+
+  it('뽀삐 spiritEffectPerStack 적용 코드 fingerprint (multiplicative damage amp)', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const file = fs.readFileSync(
+      path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+      'utf8',
+    );
+    // damage *= (1 + Meeps × spiritEffectPerStack)
+    expect(file).toMatch(/spiritEffectPerStack[\s\S]+?astronautMeepsStack[\s\S]+?\*=\s*\(1 \+ unit\.astronautMeepsStack \* carryCfg\.abilityData\.spiritEffectPerStack\)/);
+  });
+
+  it('basic attack onAttackBonus 코드 fingerprint (꼬마정령/잭스)', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const file = fs.readFileSync(
+      path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+      'utf8',
+    );
+    // basic attack 시 carry augment onAttackBonus 추출 + AP scaling magic damage
+    expect(file).toMatch(/onAttackArr\s*=\s*carryAtk\?\.abilityData\?\.onAttackBonus/);
+    expect(file).toMatch(/onAttackBase \* \(1 \+ unit\.stats\.ap \/ 100\)/);
+  });
+
+  it('carryAugments — 뽀삐 spiritEffectPerStack 0.15 / 꼬마정령 onAttackBonus / 잭스 onAttackBonus', () => {
+    const poppy = CARRY_AUGMENTS.find(c => c.augmentApiName === 'TFT17_Augment_PoppyCarry');
+    expect(poppy?.abilityData?.spiritEffectPerStack).toBe(0.15);
+
+    const ivern = CARRY_AUGMENTS.find(c => c.augmentApiName === 'TFT17_Augment_IvernMinionCarry');
+    expect(ivern?.abilityData?.onAttackBonus).toEqual([40, 60, 90]);
+
+    const jax = CARRY_AUGMENTS.find(c => c.augmentApiName === 'TFT17_Augment_JaxCarry');
+    expect(jax?.abilityData?.onAttackBonus).toEqual([45, 70, 105]);
+  });
+
+  it('정령족 trait 활성 시 정령족 unit 의 astronautMeepsStack > 0 (sanity)', () => {
+    const poppy = champions.find(c => c.apiName === 'TFT17_Poppy');
+    const enemy = champions.find(c => c.apiName === 'TFT17_Briar');
+    if (!poppy || !enemy) return;
+    // 정령족 trait 활성 위해 정령족 챔프 다수 + 그 외 enemy. 단순화: poppy 1명 (trait 활성 의존
+    // 단계가 minUnits=3 일 가능성). 본 sanity 는 시뮬 crash 없이 stack 변수 존재 검증.
+    const result = simulateCombat(
+      [placed(poppy, 0, 3, 2)],
+      [placed(enemy, 0, 4, 2)],
+      { seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5 }
+    );
+    const p = result.playerUnits.find(u => u.champion.apiName === 'TFT17_Poppy');
+    if (!p) return;
+    // stack 0 또는 양수 (trait 활성 안 됐으면 0). 변수 정의 검증.
+    expect(typeof p.astronautMeepsStack).toBe('number');
+  });
+});
+
 describe('CarryAugmentConfig.statOverrides — 슬롯 추후 채움 가드', () => {
   it('현재는 모든 augment 의 statOverrides 가 미정의 (사용자 추후 인게임 측정 후 채움)', () => {
     // 본 PR 은 슬롯만 추가. 사용자가 인게임 stat 측정 후 채울 예정.

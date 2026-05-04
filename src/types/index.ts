@@ -771,6 +771,15 @@ export interface CombatUnit {
    * carry Aatrox + true 시 cycle 패턴이 global 로 확장 + 모든 적 knockup.
    */
   aatroxNovaStrikeSelector: boolean;
+  /**
+   * 정령족 (Astronaut) trait Meeps stack — PR7-E.
+   * applyAstronautEffects 가 trait 활성 tier 기준 Meeps 변수 (2/3/4/6) 저장.
+   * 정령족 unit (Bard/Gnar/Fizz/Rammus/Poppy/Corki/Veigar/IvernMinion) 만 > 0.
+   * 사용처:
+   *   - 뽀삐 carry: damage × (1 + Meeps × spiritEffectPerStack=0.15)
+   *   - 후속 PR (Meeps 챔프별 메커니즘): Bard MeepsPerMeep 등
+   */
+  astronautMeepsStack: number;
   /** MF 특성 선택 등으로 치환된 실제 트레이트 목록 */
   resolvedTraits?: string[];
   /** 스킬 치명타 가능 여부. 전투 시작 시 보건/무대 착용 또는 정밀 계열 시너지로 결정. */

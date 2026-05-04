@@ -250,6 +250,7 @@ function createCombatUnit(
     aatroxCycleCounter: 0,
     aatroxPreviouslyDead: false,
     aatroxNovaStrikeSelector: false,
+    astronautMeepsStack: 0,
     attackCount: 0,
     castCount: 0,
     killCount: 0,
@@ -1270,11 +1271,19 @@ function applyAstronautEffects(activeTraits: ActiveTrait[], units: CombatUnit[])
   const trait = activeTraits.find(t => t.trait.apiName === 'TFT17_Astronaut');
   if (!trait || !trait.activeEffect || trait.style === 0) return;
   const bonusHp = (trait.activeEffect.variables['BonusHealth'] ?? 0) as number;
-  if (bonusHp <= 0) return;
+  // PR7-E (17.2b): Meeps stack 저장 — 정령족 unit 의 carry damage / onAttack 패시브 사용.
+  // 사용자 결정: trait Meeps 변수 사용 (2/3/4/6 = tier 3/5/7/10).
+  const meeps = (trait.activeEffect.variables['Meeps'] ?? 0) as number;
   for (const u of units) {
     if (!unitHasTrait(u, '정령족')) continue;
-    u.maxHp += bonusHp;
-    u.currentHp += bonusHp;
+    if (bonusHp > 0) {
+      u.maxHp += bonusHp;
+      u.currentHp += bonusHp;
+    }
+    // PR7-E: Meeps stack 저장 (뽀삐 carry spiritEffectPerStack 등에 사용)
+    if (meeps > 0) {
+      u.astronautMeepsStack = meeps;
+    }
   }
 }
 
@@ -2893,6 +2902,7 @@ function spawnFreljordTurrets(
             aatroxCycleCounter: 0,
             aatroxPreviouslyDead: false,
             aatroxNovaStrikeSelector: false,
+            astronautMeepsStack: 0,
             attackCount: 0,
             castCount: 0,
             killCount: 0,
@@ -3092,6 +3102,7 @@ function trySpawnGalio(
     aatroxCycleCounter: 0,
     aatroxPreviouslyDead: false,
     aatroxNovaStrikeSelector: false,
+    astronautMeepsStack: 0,
     attackCount: 0,
     castCount: 0,
     killCount: 0,
@@ -4633,6 +4644,56 @@ export function simulateCombat(
           target.totalDamageTaken += finalDamage;
           unit.totalDamageDealt += finalDamage;
 
+          // PR7-E (17.2b): carry augment onAttackBonus 패시브 — 매 기본 공격마다 추가 magic.
+          // 사용자 결정: onAttackBonus[star] AP 고정 magic damage 추가 (stack 무관).
+          //   꼬마정령 carry [40,60,90] AP / 잭스 carry [45,70,105] AP.
+          // 정령족 trait 활성 의존 없음 — 단순 carry augment 활성 시 onAttack 추가.
+          // mitigation: magic resist + magicPen + DR + non-target reduction + shield + invulnerable.
+          {
+            const augNamesAtk = unit.team === 'player' ? playerAugApiNames : enemyAugApiNames;
+            const carryAtk = findCarryAugment(unit.champion.apiName, augNamesAtk);
+            const onAttackArr = carryAtk?.abilityData?.onAttackBonus;
+            if (onAttackArr && target.state !== 'dead') {
+              const onAttackBase = onAttackArr[unit.starLevel - 1] ?? onAttackArr[0];
+              if (onAttackBase > 0) {
+                // AP scaling — magic damage (꼬마정령/잭스 모두 magic)
+                const onAttackRaw = onAttackBase * (1 + unit.stats.ap / 100);
+                let onAttackDmg = applyResistance(onAttackRaw, target.stats.magicResist, unit.stats.magicPen);
+                if (target.damageReduction > 0) onAttackDmg *= (1 - target.damageReduction);
+                if ((target.role === 'Fighter' || target.role === 'Assassin') && target.target !== unit.id) {
+                  onAttackDmg *= (1 - NON_TARGET_DAMAGE_REDUCTION);
+                }
+                onAttackDmg = applyShield(target, onAttackDmg, eventBus, tick);
+                if (target.statusEffects.some(e => e.type === 'invulnerable')) onAttackDmg = 0;
+
+                target.currentHp -= onAttackDmg;
+                target.totalDamageTaken += onAttackDmg;
+                unit.totalDamageDealt += onAttackDmg;
+
+                if (onAttackDmg > 0) {
+                  const onAttackLog: CombatLog = {
+                    tick, time, type: 'attack',
+                    sourceId: unit.id, targetId: target.id,
+                    value: Math.round(onAttackDmg),
+                    message: `${unit.champion.name} carry 패시브! ${target.champion.name}에게 추가 ${Math.round(onAttackDmg)} 마법 피해`,
+                  };
+                  logs.push(onAttackLog);
+                  tickLogs.push(onAttackLog);
+                }
+
+                if (target.currentHp <= 0) {
+                  target.currentHp = 0;
+                  target.state = 'dead';
+                  unit.killCount++;
+                  if (unit.team === 'player') playerArbiterState.enemyDeathCount++;
+                  else enemyArbiterState.enemyDeathCount++;
+                  eventBus.emit('on_kill', { sourceId: unit.id, targetId: target.id, tick });
+                  eventBus.emit('on_death', { sourceId: target.id, targetId: unit.id, tick });
+                }
+              }
+            }
+          }
+
           // 최신상 RevUp/2 — sticky target 매칭 시 stack++, 다른 대상 시 reset.
           // 한 공격 = 1 stack (DoubleTap/TripleTap extra hit 은 별도 카운트 안 함).
           // codex P2: sticky target 을 잡는 hit 도 자체로 1 stack — raw "AttackSpeedPerAttack"
@@ -5050,6 +5111,13 @@ export function simulateCombat(
               );
               rawAbilityDmgBase = result.damage;
               dmgType = result.type;
+            }
+            // PR7-E (17.2b): 뽀삐 carry spiritEffectPerStack — 미프 정령족 잠재력 stack 당
+            // damage amp. 사용자 결정: damage × (1 + Meeps × 0.15) multiplicative.
+            // 정령족 trait 활성 시 unit.astronautMeepsStack > 0 (applyAstronautEffects).
+            // 다른 carry (꼬마정령 spiritEffectPerStack=0) 는 자연스럽게 무관.
+            if (carryCfg?.abilityData?.spiritEffectPerStack && unit.astronautMeepsStack > 0) {
+              rawAbilityDmgBase *= (1 + unit.astronautMeepsStack * carryCfg.abilityData.spiritEffectPerStack);
             }
             // SharpshooterModule (위력 프레임) — 스킬 피해 +5% 가산.
             const rawAbilityDmg = rawAbilityDmgBase * (1 + (unit.gravesAbilityDamageBonus ?? 0));
