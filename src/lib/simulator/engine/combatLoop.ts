@@ -4928,11 +4928,13 @@ export function simulateCombat(
               };
               logs.push(selfLog);
               tickLogs.push(selfLog);
-              // on_cast 이벤트 emit — PsyOps 등 cast event subscriber 호환 (codex P2 회귀 가드).
-              // targetId 는 self (적군 X). value 는 실제 입은 self damage. rawValue 는 동일 (no resistance for self).
-              eventBus.emit('on_cast', { sourceId: unit.id, targetId: unit.id, value: dmgApplied, rawValue: selfDamageRaw, tick });
 
               // === PR4 (17.2b) — 자폭 적군 AOE damage ===
+              // codex P1 (PR #70): post-cast pipeline 통합 — totalAbilityDmg 누적 후 omnivamp heal +
+              // Fountain heal + on_cast emit (value/rawValue 에 self + enemy 합산). on_cast 위치를
+              // self emit 직후가 아닌 적군 AOE 처리 끝난 시점으로 이동 (cast 1회 = emit 1회 표준 일관).
+              let totalSelfDestructDmg = 0;
+              let totalSelfDestructRawDmg = 0;
               const ad = carryCfg?.abilityData;
               if (ad?.damage && ad.baseDamageHpFrac !== undefined && ad.hexReduction !== undefined) {
                 const aoeRadius = config.radius ?? 3;
@@ -4953,6 +4955,7 @@ export function simulateCombat(
                   // 탱커 정의: role === 'Tank' 만 (사용자 결정 — 코드 전반 일관)
                   const tankMul = t.role === 'Tank' ? (1 + tankBonus) : 1.0;
                   const rawDmg = baseAOE * distMul * tankMul;
+                  totalSelfDestructRawDmg += rawDmg;
 
                   const resistance = aoeDmgType === 'magic' ? t.stats.magicResist
                     : aoeDmgType === 'physical' ? t.stats.armor : 0;
@@ -4961,8 +4964,9 @@ export function simulateCombat(
                   let effectiveDmg = applyResistance(rawDmg, resistance, pen);
 
                   if (t.damageReduction > 0) effectiveDmg *= (1 - t.damageReduction);
-                  // Fighter/Assassin 비타겟 피해 감소 — 자폭은 타겟 개념 없음(AOE) 이라 항상 적용.
-                  if (t.role === 'Fighter' || t.role === 'Assassin') {
+                  // codex P2 (PR #70): Fighter/Assassin 비타겟 피해 감소 — 일반 ability 와 동일하게
+                  // 그라가스를 타겟팅 중인 적은 non-target 아님 (`t.target !== unit.id` 조건 추가).
+                  if ((t.role === 'Fighter' || t.role === 'Assassin') && t.target !== unit.id) {
                     effectiveDmg *= (1 - NON_TARGET_DAMAGE_REDUCTION);
                   }
                   effectiveDmg = applyShield(t, effectiveDmg, eventBus, tick);
@@ -4971,6 +4975,7 @@ export function simulateCombat(
                   t.currentHp -= effectiveDmg;
                   t.totalDamageTaken += effectiveDmg;
                   unit.totalDamageDealt += effectiveDmg;
+                  totalSelfDestructDmg += effectiveDmg;
 
                   const aoeLog: CombatLog = {
                     tick, time, type: 'ability',
@@ -4998,6 +5003,26 @@ export function simulateCombat(
                   }
                 }
               }
+
+              // === codex P1 (PR #70): post-cast pipeline 통합 ===
+              // 일반 ability cast 끝부분 (line ~5214-5222) 와 동일한 처리:
+              //   1. omnivamp heal — totalSelfDestructDmg (적군 damage) 기반.
+              //      자폭은 primary target 없어 grievousReduction = 1.0 (단순화).
+              //   2. Fountain heal — 별돌보미 우물 별자리 강화칸 별돌보미 효과 (적군 damage 기반).
+              //   3. on_cast emit — value/rawValue 에 self damage + enemy damage 합산.
+              //      PsyOps 등 cast event subscriber 가 정확한 cast payload 수신.
+              if (unit.omnivamp > 0 && totalSelfDestructDmg > 0) {
+                const heal = totalSelfDestructDmg * unit.omnivamp * (1 + (unit.healAmp ?? 0));
+                applyOmnivampHealWithMeleeShield(unit, heal);
+              }
+              triggerFountainHeal(unit, totalSelfDestructDmg, tick, time, tickLogs);
+              eventBus.emit('on_cast', {
+                sourceId: unit.id,
+                targetId: unit.id, // primary target 없어 self 로 표기 (자폭 mechanics)
+                value: dmgApplied + totalSelfDestructDmg,
+                rawValue: selfDamageRaw + totalSelfDestructRawDmg,
+                tick,
+              });
 
               continue; // 일반 ability 흐름 skip — 자폭 전용 처리 끝
             }
