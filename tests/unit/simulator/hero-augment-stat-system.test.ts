@@ -731,6 +731,20 @@ describe('PR7-E — 미프 시너지 + carry onAttack 패시브', () => {
     expect(file).toMatch(/onAttackBase \* \(1 \+ unit\.stats\.ap \/ 100\)/);
   });
 
+  // codex P1 (PR #74) 회귀 가드 — onAttackBonus 가 currentHp > 0 검사 포함.
+  // basic attack damage 가 이미 currentHp 차감했으나 state 는 아직 'dead' 미변경 →
+  // currentHp <= 0 dead-but-not-yet-marked target 에 추가 damage 적용 회귀 방지.
+  it('onAttackBonus currentHp > 0 가드 (codex P1 PR #74)', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const file = fs.readFileSync(
+      path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+      'utf8',
+    );
+    // onAttackBonus 발동 조건에 target.currentHp > 0 포함
+    expect(file).toMatch(/onAttackArr && target\.state !== 'dead' && target\.currentHp > 0/);
+  });
+
   it('carryAugments — 뽀삐 spiritEffectPerStack 0.15 / 꼬마정령 onAttackBonus / 잭스 onAttackBonus', () => {
     const poppy = CARRY_AUGMENTS.find(c => c.augmentApiName === 'TFT17_Augment_PoppyCarry');
     expect(poppy?.abilityData?.spiritEffectPerStack).toBe(0.15);

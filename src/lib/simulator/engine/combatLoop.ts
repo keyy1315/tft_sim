@@ -4653,7 +4653,11 @@ export function simulateCombat(
             const augNamesAtk = unit.team === 'player' ? playerAugApiNames : enemyAugApiNames;
             const carryAtk = findCarryAugment(unit.champion.apiName, augNamesAtk);
             const onAttackArr = carryAtk?.abilityData?.onAttackBonus;
-            if (onAttackArr && target.state !== 'dead') {
+            // codex P1 (PR #74): basic attack damage 가 이미 target.currentHp 차감 적용됐으나
+            // target.state 는 아직 'dead' 로 변경 안 된 상태 (사망 처리는 별도 위치).
+            // currentHp <= 0 인 dead-but-not-yet-marked target 에 추가 damage 가해지면
+            // totalDamageDealt/Taken inflate + 대체 death path 강제. currentHp > 0 가드 추가.
+            if (onAttackArr && target.state !== 'dead' && target.currentHp > 0) {
               const onAttackBase = onAttackArr[unit.starLevel - 1] ?? onAttackArr[0];
               if (onAttackBase > 0) {
                 // AP scaling — magic damage (꼬마정령/잭스 모두 magic)
