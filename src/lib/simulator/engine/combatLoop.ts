@@ -793,6 +793,82 @@ function applyShield(unit: CombatUnit, damage: number, eventBus: EventBus, tick:
   return remaining;
 }
 
+/**
+ * 통합 ability mitigation pipeline (refactor: cast-mitigation-helpers).
+ *
+ * 8 cast site 에서 동일하게 호출하던 mitigation 5단계 통합:
+ *   1. resistance + penetration (magic/physical/true 분기)
+ *   2. damageReduction (DR — 증강 등)
+ *   3. Fighter/Assassin non-target reduction (`t.target !== unit.id` 시 ×0.85)
+ *   4. shield 흡수 (applyShield)
+ *   5. invulnerable 검사 (있으면 0)
+ *
+ * caller 8 곳:
+ *   - 일반 cast loop (line ~5468) — 표준 ability damage
+ *   - OOR cast loop (line ~6065) — 사거리 밖 dash cast
+ *   - PR4 자폭 적군 AOE (line ~5012) — 그라가스 자폭
+ *   - PR7-A 파이크 cascade (line ~5547) — onKillRecast
+ *   - PR7-C 아트록스 N.O.V.A. (line ~5616) — 추가 발동
+ *   - PR7-D 뽀삐 bouncing (line ~5687) — overkill chain
+ *   - PR7-E 꼬마정령/잭스 onAttackBonus (line ~4671) — basic attack 추가 magic
+ *
+ * codex P1 (PR #76) 권장 — OOR cast 누락 회귀 방지 + 신규 cast site 추가 시 mitigation
+ * 일관 보장. 본 helper 도입 후 신규 cast site 가 호출만 하면 모든 mitigation 자동 적용.
+ */
+function applyAbilityMitigation(
+  unit: CombatUnit,
+  t: CombatUnit,
+  rawDmg: number,
+  dmgType: DamageType,
+  eventBus: EventBus,
+  tick: number,
+): number {
+  const resistance = dmgType === 'magic' ? t.stats.magicResist
+    : dmgType === 'physical' ? t.stats.armor : 0;
+  const pen = dmgType === 'magic' ? unit.stats.magicPen
+    : dmgType === 'physical' ? unit.stats.armorPen : 0;
+  let effectiveDmg = applyResistance(rawDmg, resistance, pen);
+  if (t.damageReduction > 0) effectiveDmg *= (1 - t.damageReduction);
+  if ((t.role === 'Fighter' || t.role === 'Assassin') && t.target !== unit.id) {
+    effectiveDmg *= (1 - NON_TARGET_DAMAGE_REDUCTION);
+  }
+  effectiveDmg = applyShield(t, effectiveDmg, eventBus, tick);
+  if (t.statusEffects.some(e => e.type === 'invulnerable')) effectiveDmg = 0;
+  return effectiveDmg;
+}
+
+/**
+ * 통합 사망 처리 helper (refactor: cast-mitigation-helpers).
+ *
+ * caller 가 currentHp <= 0 검사 후 호출. helper 가:
+ *   1. currentHp 0 clamp
+ *   2. state = 'dead'
+ *   3. unit.killCount + ownArbiterState.enemyDeathCount 증가
+ *   4. on_kill / on_death event emit
+ *
+ * deathLog 작성은 caller 책임 (각 cast site 메시지 다름 — 자폭 / 일반 ability / 자동 재시전 등).
+ *
+ * **caller 책임**:
+ *   - currentHp <= 0 검사
+ *   - overkill 캡처 (PR7-D 뽀삐 bouncing 같이 clamp 전 음수 필요한 경우 — clamp 전에 직접 처리)
+ *
+ * 8 cast site 에서 일관 호출.
+ */
+function markTargetDead(
+  unit: CombatUnit,
+  t: CombatUnit,
+  ownArbiterState: { enemyDeathCount: number },
+  eventBus: EventBus,
+  tick: number,
+): void {
+  t.currentHp = 0;
+  t.state = 'dead';
+  unit.killCount++;
+  ownArbiterState.enemyDeathCount++;
+  eventBus.emit('on_kill', { sourceId: unit.id, targetId: t.id, tick });
+  eventBus.emit('on_death', { sourceId: t.id, targetId: unit.id, tick });
+}
+
 /** Warden 시너지 전투 시작 시 보호막 부여 (최대 체력의 PercentHealthShield%) */
 function applyWardenShields(activeTraits: ActiveTrait[], units: CombatUnit[]): void {
   const warden = activeTraits.find(t => t.trait.apiName === 'TFT16_Warden' && t.activeEffect);
@@ -4682,13 +4758,8 @@ export function simulateCombat(
               if (onAttackBase > 0) {
                 // AP scaling — magic damage (꼬마정령/잭스 모두 magic)
                 const onAttackRaw = onAttackBase * (1 + unit.stats.ap / 100);
-                let onAttackDmg = applyResistance(onAttackRaw, target.stats.magicResist, unit.stats.magicPen);
-                if (target.damageReduction > 0) onAttackDmg *= (1 - target.damageReduction);
-                if ((target.role === 'Fighter' || target.role === 'Assassin') && target.target !== unit.id) {
-                  onAttackDmg *= (1 - NON_TARGET_DAMAGE_REDUCTION);
-                }
-                onAttackDmg = applyShield(target, onAttackDmg, eventBus, tick);
-                if (target.statusEffects.some(e => e.type === 'invulnerable')) onAttackDmg = 0;
+                // refactor: 통합 mitigation helper 사용 (resistance + DR + non-target + shield + invulnerable)
+                const onAttackDmg = applyAbilityMitigation(unit, target, onAttackRaw, 'magic', eventBus, tick);
 
                 target.currentHp -= onAttackDmg;
                 target.totalDamageTaken += onAttackDmg;
@@ -4706,13 +4777,9 @@ export function simulateCombat(
                 }
 
                 if (target.currentHp <= 0) {
-                  target.currentHp = 0;
-                  target.state = 'dead';
-                  unit.killCount++;
-                  if (unit.team === 'player') playerArbiterState.enemyDeathCount++;
-                  else enemyArbiterState.enemyDeathCount++;
-                  eventBus.emit('on_kill', { sourceId: unit.id, targetId: target.id, tick });
-                  eventBus.emit('on_death', { sourceId: target.id, targetId: unit.id, tick });
+                  // refactor: 통합 markTargetDead helper 사용
+                  const ownArbiterStateAtk = unit.team === 'player' ? playerArbiterState : enemyArbiterState;
+                  markTargetDead(unit, target, ownArbiterStateAtk, eventBus, tick);
                 }
               }
             }
@@ -5208,20 +5275,8 @@ export function simulateCombat(
                   const rawDmg = baseAOE * distMul * tankMul;
                   totalSelfDestructRawDmg += rawDmg;
 
-                  const resistance = aoeDmgType === 'magic' ? t.stats.magicResist
-                    : aoeDmgType === 'physical' ? t.stats.armor : 0;
-                  const pen = aoeDmgType === 'magic' ? unit.stats.magicPen
-                    : aoeDmgType === 'physical' ? unit.stats.armorPen : 0;
-                  let effectiveDmg = applyResistance(rawDmg, resistance, pen);
-
-                  if (t.damageReduction > 0) effectiveDmg *= (1 - t.damageReduction);
-                  // codex P2 (PR #70): Fighter/Assassin 비타겟 피해 감소 — 일반 ability 와 동일하게
-                  // 그라가스를 타겟팅 중인 적은 non-target 아님 (`t.target !== unit.id` 조건 추가).
-                  if ((t.role === 'Fighter' || t.role === 'Assassin') && t.target !== unit.id) {
-                    effectiveDmg *= (1 - NON_TARGET_DAMAGE_REDUCTION);
-                  }
-                  effectiveDmg = applyShield(t, effectiveDmg, eventBus, tick);
-                  if (t.statusEffects.some(e => e.type === 'invulnerable')) effectiveDmg = 0;
+                  // refactor: 통합 mitigation helper (resistance + DR + non-target + shield + invulnerable)
+                  const effectiveDmg = applyAbilityMitigation(unit, t, rawDmg, aoeDmgType, eventBus, tick);
 
                   t.currentHp -= effectiveDmg;
                   t.totalDamageTaken += effectiveDmg;
@@ -5238,10 +5293,7 @@ export function simulateCombat(
                   tickLogs.push(aoeLog);
 
                   if (t.currentHp <= 0) {
-                    t.currentHp = 0;
-                    t.state = 'dead';
-                    unit.killCount++;
-                    ownArbiterState.enemyDeathCount++;
+                    // refactor: 통합 markTargetDead helper + deathLog 별도 작성
                     const deathLog: CombatLog = {
                       tick, time, type: 'death',
                       sourceId: t.id,
@@ -5249,8 +5301,7 @@ export function simulateCombat(
                     };
                     logs.push(deathLog);
                     tickLogs.push(deathLog);
-                    eventBus.emit('on_kill', { sourceId: unit.id, targetId: t.id, tick });
-                    eventBus.emit('on_death', { sourceId: t.id, targetId: unit.id, tick });
+                    markTargetDead(unit, t, ownArbiterState, eventBus, tick);
                   }
                 }
               }
@@ -5445,25 +5496,8 @@ export function simulateCombat(
                 // raw (mitigation 전) 누적 — on_cast.rawValue 용.
                 totalRawAbilityDmg += dmg;
 
-                const resistance = dmgType === 'magic' ? t.stats.magicResist
-                  : dmgType === 'physical' ? t.stats.armor : 0;
-                const pen = dmgType === 'magic' ? unit.stats.magicPen
-                  : dmgType === 'physical' ? unit.stats.armorPen : 0;
-                let effectiveDmg = applyResistance(dmg, resistance, pen);
-
-                if (t.damageReduction > 0) {
-                  effectiveDmg *= (1 - t.damageReduction);
-                }
-
-                // Fighter/Assassin 비타겟 피해 감소 15%
-                if ((t.role === 'Fighter' || t.role === 'Assassin') && t.target !== unit.id) {
-                  effectiveDmg *= (1 - NON_TARGET_DAMAGE_REDUCTION);
-                }
-
-                effectiveDmg = applyShield(t, effectiveDmg, eventBus, tick);
-                if (t.statusEffects.some(e => e.type === 'invulnerable')) {
-                  effectiveDmg = 0;
-                }
+                // refactor: 통합 mitigation helper (resistance + DR + non-target + shield + invulnerable)
+                const effectiveDmg = applyAbilityMitigation(unit, t, dmg, dmgType, eventBus, tick);
 
                 t.currentHp -= effectiveDmg;
                 t.totalDamageTaken += effectiveDmg;
@@ -5485,16 +5519,12 @@ export function simulateCombat(
                 // 타겟 사망 처리
                 if (t.currentHp <= 0) {
                   // codex P1 (PR #75): PR7-D 뽀삐 spiritBounceOnKill — primary target 처치 시
-                  // currentHp clamp (=0) 이전에 overkill 캡처. clamp 후 캡처하면 항상 0 →
-                  // bouncing while loop 진입 안 함 → 메커니즘 dead-code.
+                  // currentHp clamp 이전에 overkill 캡처. helper 호출 전에 처리.
                   if (t === abilityTarget && carryCfg?.abilityData?.spiritBounceOnKill) {
                     primaryOverkillForBounce = -t.currentHp;
                   }
-                  t.currentHp = 0;
-                  t.state = 'dead';
-                  unit.killCount++;
-                  if (unit.team === 'player') playerArbiterState.enemyDeathCount++;
-                  else enemyArbiterState.enemyDeathCount++;
+                  // refactor: 통합 markTargetDead helper + deathLog 별도
+                  const ownArbCast = unit.team === 'player' ? playerArbiterState : enemyArbiterState;
                   const deathLog: CombatLog = {
                     tick, time, type: 'death',
                     sourceId: t.id,
@@ -5502,8 +5532,7 @@ export function simulateCombat(
                   };
                   logs.push(deathLog);
                   tickLogs.push(deathLog);
-                  eventBus.emit('on_kill', { sourceId: unit.id, targetId: t.id, tick });
-                  eventBus.emit('on_death', { sourceId: t.id, targetId: unit.id, tick });
+                  markTargetDead(unit, t, ownArbCast, eventBus, tick);
                 }
               }
 
@@ -5575,17 +5604,8 @@ export function simulateCombat(
                     }
                     totalRawAbilityDmg += dmg;
 
-                    const resistance = dmgType === 'magic' ? t.stats.magicResist
-                      : dmgType === 'physical' ? t.stats.armor : 0;
-                    const pen = dmgType === 'magic' ? unit.stats.magicPen
-                      : dmgType === 'physical' ? unit.stats.armorPen : 0;
-                    let effectiveDmg = applyResistance(dmg, resistance, pen);
-                    if (t.damageReduction > 0) effectiveDmg *= (1 - t.damageReduction);
-                    if ((t.role === 'Fighter' || t.role === 'Assassin') && t.target !== unit.id) {
-                      effectiveDmg *= (1 - NON_TARGET_DAMAGE_REDUCTION);
-                    }
-                    effectiveDmg = applyShield(t, effectiveDmg, eventBus, tick);
-                    if (t.statusEffects.some(e => e.type === 'invulnerable')) effectiveDmg = 0;
+                    // refactor: 통합 mitigation helper
+                    const effectiveDmg = applyAbilityMitigation(unit, t, dmg, dmgType, eventBus, tick);
 
                     t.currentHp -= effectiveDmg;
                     t.totalDamageTaken += effectiveDmg;
@@ -5606,13 +5626,9 @@ export function simulateCombat(
                     tickLogs.push(recastLog);
 
                     if (t.currentHp <= 0) {
-                      t.currentHp = 0;
-                      t.state = 'dead';
-                      unit.killCount++;
-                      if (unit.team === 'player') playerArbiterState.enemyDeathCount++;
-                      else enemyArbiterState.enemyDeathCount++;
-                      eventBus.emit('on_kill', { sourceId: unit.id, targetId: t.id, tick });
-                      eventBus.emit('on_death', { sourceId: t.id, targetId: unit.id, tick });
+                      // refactor: markTargetDead helper
+                      const ownArbRecast = unit.team === 'player' ? playerArbiterState : enemyArbiterState;
+                      markTargetDead(unit, t, ownArbRecast, eventBus, tick);
                     }
                   }
                   // primary recast target 처치 못했으면 cascade 종료
@@ -5648,19 +5664,8 @@ export function simulateCombat(
                   );
                   const newTarget = aliveOpp[0];
 
-                  // mitigation (일반 ability 동일 패턴)
-                  const resistance = dmgType === 'magic' ? newTarget.stats.magicResist
-                    : dmgType === 'physical' ? newTarget.stats.armor : 0;
-                  const pen = dmgType === 'magic' ? unit.stats.magicPen
-                    : dmgType === 'physical' ? unit.stats.armorPen : 0;
-                  let bounceDmg = applyResistance(overkill, resistance, pen);
-                  if (newTarget.damageReduction > 0) bounceDmg *= (1 - newTarget.damageReduction);
-                  if ((newTarget.role === 'Fighter' || newTarget.role === 'Assassin')
-                      && newTarget.target !== unit.id) {
-                    bounceDmg *= (1 - NON_TARGET_DAMAGE_REDUCTION);
-                  }
-                  bounceDmg = applyShield(newTarget, bounceDmg, eventBus, tick);
-                  if (newTarget.statusEffects.some(e => e.type === 'invulnerable')) bounceDmg = 0;
+                  // refactor: 통합 mitigation helper
+                  const bounceDmg = applyAbilityMitigation(unit, newTarget, overkill, dmgType, eventBus, tick);
 
                   newTarget.currentHp -= bounceDmg;
                   newTarget.totalDamageTaken += bounceDmg;
@@ -5679,16 +5684,12 @@ export function simulateCombat(
                   logs.push(bounceLog);
                   tickLogs.push(bounceLog);
 
-                  // 새 target 처치 검사 — overkill 갱신 후 다음 chain
+                  // 새 target 처치 검사 — overkill 갱신 후 다음 chain (clamp 전 캡처)
                   if (newTarget.currentHp <= 0) {
                     const newOverkill = Math.max(0, -newTarget.currentHp);
-                    newTarget.currentHp = 0;
-                    newTarget.state = 'dead';
-                    unit.killCount++;
-                    if (unit.team === 'player') playerArbiterState.enemyDeathCount++;
-                    else enemyArbiterState.enemyDeathCount++;
-                    eventBus.emit('on_kill', { sourceId: unit.id, targetId: newTarget.id, tick });
-                    eventBus.emit('on_death', { sourceId: newTarget.id, targetId: unit.id, tick });
+                    // refactor: markTargetDead helper
+                    const ownArbBounce = unit.team === 'player' ? playerArbiterState : enemyArbiterState;
+                    markTargetDead(unit, newTarget, ownArbBounce, eventBus, tick);
                     lastDeadTarget = newTarget;
                     overkill = newOverkill;
                   } else {
@@ -5720,15 +5721,8 @@ export function simulateCombat(
                 const ownArbiterState = unit.team === 'player' ? playerArbiterState : enemyArbiterState;
                 for (const t of opposingTeam) {
                   if (t.state === 'dead') continue;
-                  const resistance = t.stats.armor;
-                  const pen = unit.stats.armorPen;
-                  let novaEffective = applyResistance(novaBase, resistance, pen);
-                  if (t.damageReduction > 0) novaEffective *= (1 - t.damageReduction);
-                  if ((t.role === 'Fighter' || t.role === 'Assassin') && t.target !== unit.id) {
-                    novaEffective *= (1 - NON_TARGET_DAMAGE_REDUCTION);
-                  }
-                  novaEffective = applyShield(t, novaEffective, eventBus, tick);
-                  if (t.statusEffects.some(e => e.type === 'invulnerable')) novaEffective = 0;
+                  // refactor: 통합 mitigation helper (physical novaDamage)
+                  const novaEffective = applyAbilityMitigation(unit, t, novaBase, 'physical', eventBus, tick);
 
                   t.currentHp -= novaEffective;
                   t.totalDamageTaken += novaEffective;
@@ -5753,12 +5747,8 @@ export function simulateCombat(
                   tickLogs.push(novaLog);
 
                   if (t.currentHp <= 0) {
-                    t.currentHp = 0;
-                    t.state = 'dead';
-                    unit.killCount++;
-                    ownArbiterState.enemyDeathCount++;
-                    eventBus.emit('on_kill', { sourceId: unit.id, targetId: t.id, tick });
-                    eventBus.emit('on_death', { sourceId: t.id, targetId: unit.id, tick });
+                    // refactor: markTargetDead helper
+                    markTargetDead(unit, t, ownArbiterState, eventBus, tick);
                   }
                 }
               }
