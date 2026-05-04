@@ -19,6 +19,7 @@ import { describe, it, expect } from 'vitest';
 import { simulateCombat } from '@/lib/simulator/engine/combatLoop';
 import { loadServerCatalogs } from '@/lib/validation/serverCatalogs';
 import { CARRY_AUGMENTS, findCarryAugment } from '@/data/carryAugments';
+import { getFighterASBonus } from '@/lib/simulator/models/unit';
 import type { PlacedChampion, RawChampion } from '@/types';
 
 const { champions, traits, augments } = loadServerCatalogs();
@@ -138,6 +139,40 @@ describe('applyHeroCarryTransforms — 8 영웅 증강 모두 처리', () => {
     if (u) {
       expect(u.role).toBe('Fighter');
     }
+  });
+
+  // codex P2 (PR #68) 회귀 가드 — hero carry 변환된 unit 도 stage-based Fighter AS bonus 수령.
+  // 변환 전 호출 순서로 인해 AS bonus 누락되는 회귀 방지.
+  it('PoppyCarry 변환 unit 이 stage-based Fighter AS bonus 수령 (codex P2 회귀 가드)', () => {
+    const poppy = champions.find(c => c.apiName === 'TFT17_Poppy');
+    const enemy = champions.find(c => c.apiName === 'TFT17_Briar');
+    const carryAug = augments.find(a => a.apiName === 'TFT17_Augment_PoppyCarry');
+    if (!poppy || !enemy || !carryAug) return;
+    const stage = 5;
+    const expectedBonus = getFighterASBonus(stage);
+    expect(expectedBonus).toBeGreaterThan(0); // sanity
+
+    // baseline — carry augment 없이 run (Poppy 본래 role 은 'Fighter' 가 아님)
+    const baseline = simulateCombat([placed(poppy, 0, 0)], [placed(enemy, 6, 3)], {
+      seed: 0, allTraits: traits, skipMirror: true, stageNumber: stage,
+    });
+    const baseUnit = baseline.playerUnits.find(u => u.champion.apiName === 'TFT17_Poppy');
+    if (!baseUnit) return;
+    const baseAS = baseUnit.stats.attackSpeed;
+
+    // carry augment 적용 — role='Fighter' 로 변환 + AS bonus 수령 기대
+    const transformed = simulateCombat([placed(poppy, 0, 0)], [placed(enemy, 6, 3)], {
+      seed: 0, allTraits: traits, skipMirror: true, stageNumber: stage,
+      playerAugments: [carryAug],
+    });
+    const tUnit = transformed.playerUnits.find(u => u.champion.apiName === 'TFT17_Poppy');
+    if (!tUnit) return;
+    expect(tUnit.role).toBe('Fighter');
+
+    // AS ratio 가 (1 + fighterASBonus) 만큼 증가했는지 검증.
+    // carry 변환은 attackSpeed 자체를 건드리지 않으므로 (statOverrides 비어있음) 순수 fighterAS 효과만 측정.
+    const ratio = tUnit.stats.attackSpeed / baseAS;
+    expect(ratio).toBeCloseTo(1 + expectedBonus, 3);
   });
 });
 

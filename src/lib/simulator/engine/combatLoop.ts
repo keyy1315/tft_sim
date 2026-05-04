@@ -3686,16 +3686,11 @@ export function simulateCombat(
   applySet17SynergyBuffs(enemyActiveTraits, enemies);
 
   // === 전사 AS 패시브 (스테이지 비례 5~30%) ===
+  // codex P2 (PR #68): hero carry augment 가 챔프 role 을 'Fighter' 로 변환할 수 있어
+  // applyHeroCarryTransforms 직후로 호출 위치 이동 (변환된 carry 도 AS bonus 수령).
+  // stageNumber 만 여기서 미리 계산해두고 실제 적용은 transform 이후로 연기.
   const stageNumber = options.stageNumber ?? 4;
   const fighterASBonus = getFighterASBonus(stageNumber);
-  if (fighterASBonus > 0) {
-    for (const u of playerUnits) {
-      if (u.role === 'Fighter') u.stats.attackSpeed *= (1 + fighterASBonus);
-    }
-    for (const u of enemies) {
-      if (u.role === 'Fighter') u.stats.attackSpeed *= (1 + fighterASBonus);
-    }
-  }
 
   // === 칸 버프 증강 ===
   if (options.playerHexBuffs?.length) applyHexBuffs(playerUnits, options.playerHexBuffs);
@@ -3769,6 +3764,17 @@ export function simulateCombat(
   // hero augment carry 변환 — 자폭(그라가스) / 방패 여전사(레오나).
   applyHeroCarryTransforms(playerAugApiNames, playerUnits);
   applyHeroCarryTransforms(enemyAugApiNames, enemies);
+  // 전사 AS 패시브 — carry 변환 후 적용 (codex P2 PR #68).
+  // role='Fighter' 로 변환된 carry (Jax/Pyke/Poppy/Aatrox/Gragas/Leona/Mordekaiser)
+  // 도 stage-based AS bonus 수령. 일반 'Fighter' role 챔프와 동일 처리.
+  if (fighterASBonus > 0) {
+    for (const u of playerUnits) {
+      if (u.role === 'Fighter') u.stats.attackSpeed *= (1 + fighterASBonus);
+    }
+    for (const u of enemies) {
+      if (u.role === 'Fighter') u.stats.attackSpeed *= (1 + fighterASBonus);
+    }
+  }
   // 최신상 (GravesTrait) Frame — 가장 강한 그레이브즈 1명에 stat/메커닉 적용.
   applyGravesFrameEffects(playerUnits, options.playerGravesFrame);
   applyGravesFrameEffects(enemies, options.enemyGravesFrame);
