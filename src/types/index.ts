@@ -402,7 +402,8 @@ export type AbilityPattern =
   | 'multi'       // 지정 다수
   | 'bounce'      // 튕김
   | 'global'      // 전체 적
-  | 'self_buff';  // 자기 버프
+  | 'self_buff'   // 자기 버프
+  | 'x_shape';    // X 모양 (대상 + 4 diagonal hex direction) — 파이크 carry
 
 export type StatusEffectType = 'stun' | 'slow' | 'burn' | 'shield' | 'invulnerable' | 'disarm' | 'taunt' | 'mark' | 'poison';
 

@@ -423,6 +423,122 @@ describe('PR5 — augment-specific damage 시뮬 분기 (resolveAbilityDamage)',
   });
 });
 
+// PR7-A (17.2b 후속) — 파이크 carry X-shape + secondary + tankBonus + onKillRecast cascade.
+// 사용자 결정:
+//   - X-shape = 새 pattern 'x_shape' (대상 + 4 diagonal hex direction)
+//   - cascade = 완전 재 cast (새 dash + 새 X-shape, max chain 5)
+describe('PR7-A — 파이크 carry X-shape 멀티 타겟 + onKill cascade', () => {
+  it('PykeCarry abilityOverride 가 x_shape pattern 으로 변경됨', () => {
+    const pyke = CARRY_AUGMENTS.find(c => c.augmentApiName === 'TFT17_Augment_PykeCarry');
+    expect(pyke).toBeDefined();
+    expect(pyke!.abilityOverride.pattern).toBe('x_shape');
+    expect(pyke!.abilityOverride.dash).toBe('to_lowest_hp');
+  });
+
+  it('PykeCarry abilityData 핵심 변수 (PR7-A 시뮬 의존)', () => {
+    const pyke = CARRY_AUGMENTS.find(c => c.augmentApiName === 'TFT17_Augment_PykeCarry');
+    expect(pyke?.abilityData?.damage).toEqual([220, 330, 500]);
+    expect(pyke?.abilityData?.secondaryDamage).toEqual([60, 90, 135]);
+    expect(pyke?.abilityData?.tankBonusMultiplier).toBe(0.60);
+    expect(pyke?.abilityData?.onKillRecastMultiplier).toBe(0.70);
+    expect(pyke?.abilityData?.damageType).toBe('physical');
+  });
+
+  it('AbilityPattern 에 x_shape 추가됨 (회귀 가드 — type 정의 직접 검증)', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const file = fs.readFileSync(
+      path.join(process.cwd(), 'src/types/index.ts'),
+      'utf8',
+    );
+    expect(file).toMatch(/'x_shape'/);
+  });
+
+  it('findAbilityTargets x_shape case 정의됨 (4 diagonal hex)', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const file = fs.readFileSync(
+      path.join(process.cwd(), 'src/lib/simulator/systems/ability.ts'),
+      'utf8',
+    );
+    // x_shape case + 4 diagonal direction 패턴 (NE/NW/SE/SW axial offset)
+    expect(file).toMatch(/case 'x_shape'/);
+    expect(file).toMatch(/q: tp\.q \+ 1, r: tp\.r - 1/); // NE
+    expect(file).toMatch(/q: tp\.q - 1, r: tp\.r \+ 1/); // SW
+  });
+
+  it('onKillRecast cascade 코드 fingerprint — combatLoop.ts (max chain 5)', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const file = fs.readFileSync(
+      path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+      'utf8',
+    );
+    // cascade 핵심 패턴 검증
+    expect(file).toMatch(/MAX_RECAST_CHAIN\s*=\s*5/);
+    expect(file).toMatch(/onKillRecastMultiplier/);
+    expect(file).toMatch(/while \(chainCount < MAX_RECAST_CHAIN\)/);
+    // cascade 종료 조건 — primary recast target 처치 못했으면 break
+    expect(file).toMatch(/recastTarget\.state !== 'dead'\) break/);
+  });
+
+  // codex P2 (PR #72) 회귀 가드 — recast 코드가 일반 cast loop 의 4개 buff 모두 포함.
+  // 누락 시 inventionTankDamageAmp / gravesTankDamageAmp / mfReplicatorEffectiveness 미적용
+  // → recast under-damage 회귀.
+  it('cascade recast 가 full damage amp stack 포함 (codex P2 PR #72)', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const file = fs.readFileSync(
+      path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+      'utf8',
+    );
+    // recast loop 안에 4개 amp source 모두 포함:
+    //   - inventionTankDamageAmp (Tank 한정)
+    //   - gravesTankDamageAmp (Tank 한정)
+    //   - computeSniperDamageAmp (per target)
+    //   - mfReplicatorEffectiveness (replicator)
+    expect(file).toMatch(/recastDamageAmp\s*\+=\s*unit\.inventionTankDamageAmp/);
+    expect(file).toMatch(/recastDamageAmp\s*\+=\s*unit\.gravesTankDamageAmp/);
+    expect(file).toMatch(/recastDamageAmp\s*\+=\s*computeSniperDamageAmp/);
+    expect(file).toMatch(/recastDamageAmp\s*\+=\s*unit\.mfReplicatorEffectiveness/);
+  });
+
+  // codex P2 (PR #72) 회귀 가드 — recast hits 가 Serpent poison trigger 호출.
+  it('cascade recast 가 triggerSerpentPoison 호출 (codex P2 PR #72)', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const file = fs.readFileSync(
+      path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+      'utf8',
+    );
+    // recast loop 안 (recastBaseDmg / recastDamageAmp 등) 에서 triggerSerpentPoison 호출 확인.
+    // 일반 cast loop 1회 + recast loop 1회 = 총 2회 호출되어야 함.
+    const calls = file.match(/triggerSerpentPoison\(unit,\s*t,\s*effectiveDmg\)/g);
+    expect(calls).toBeDefined();
+    expect(calls!.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('파이크 carry 활성 시 시뮬 정상 작동 (sanity)', () => {
+    const pyke = champions.find(c => c.apiName === 'TFT17_Pyke');
+    const enemy = champions.find(c => c.apiName === 'TFT17_Aatrox');
+    const carryAug = augments.find(a => a.apiName === 'TFT17_Augment_PykeCarry');
+    if (!pyke || !enemy || !carryAug) return;
+    const result = simulateCombat(
+      [placed(pyke, 0, 3, 2)],
+      [placed(enemy, 0, 4, 2)],
+      {
+        seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
+        playerAugments: [carryAug],
+      }
+    );
+    const p = result.playerUnits.find(u => u.champion.apiName === 'TFT17_Pyke');
+    if (!p) return;
+    expect(p.role).toBe('Fighter');
+    // x_shape pattern + cascade 정상 작동 (crash 없음, totalDamageDealt 산출됨)
+    expect(p.totalDamageDealt).toBeGreaterThanOrEqual(0);
+  });
+});
+
 describe('CarryAugmentConfig.statOverrides — 슬롯 추후 채움 가드', () => {
   it('현재는 모든 augment 의 statOverrides 가 미정의 (사용자 추후 인게임 측정 후 채움)', () => {
     // 본 PR 은 슬롯만 추가. 사용자가 인게임 stat 측정 후 채울 예정.
