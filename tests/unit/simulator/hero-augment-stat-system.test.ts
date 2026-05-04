@@ -772,6 +772,22 @@ describe('PR7-C — 아트록스 carry 3-skill cycle + N.O.V.A. 추가 발동', 
 
   // refactor: cast-post-processing-helper — applyCarryPostCastEffects helper 추출.
   // 꼬마정령 multi-stun + Akali burn refresh 통합. in-range / OOR 둘 다 helper 호출.
+  // codex P2 (PR #83) 회귀 가드 — helper 호출 위치가 splash AOE 후.
+  // 기존: splash 전 호출 → splash 로 죽을 적이 multi-stun 3 슬롯 차지 → 살아남는 적 stun 부족.
+  // 정정: splash 후 호출 → alive 적만 stun 슬롯.
+  it('applyCarryPostCastEffects 호출 위치가 splash AOE 직후 (codex P2 PR #83)', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const file = fs.readFileSync(
+      path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+      'utf8',
+    );
+    // 호출 위치 fingerprint — splash AOE (triggerAbilitySympatheticDetonation 또는 BlastRadius) 후
+    // 같은 if 블록 안에서 helper 호출되어야 함.
+    // 두 사이트 사이 ~1100자 (codex P2 코멘트 + 누적 코드 포함).
+    expect(file).toMatch(/triggerAbilitySympatheticDetonation\([\s\S]{0,1500}?applyCarryPostCastEffects\(unit, abilityTargets, carryCfg\)/);
+  });
+
   it('applyCarryPostCastEffects helper 정의 + 2 메커니즘 통합 (refactor)', async () => {
     const fs = await import('node:fs');
     const path = await import('node:path');

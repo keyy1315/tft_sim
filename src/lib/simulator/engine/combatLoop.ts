@@ -6066,11 +6066,6 @@ export function simulateCombat(
                 unit.aatroxCycleCounter++;
               }
 
-              // refactor (cast-post-processing-helper): 통합 helper 호출 — Akali burn refresh
-              // 등 carry post-cast 메커니즘. PR7-B 꼬마정령 multi-stun 은 cast loop 끝에서
-              // (line ~6160 근처) 별도 호출. 향후 통합 가능.
-              applyCarryPostCastEffects(unit, abilityTargets, carryCfg);
-
               // 최신상 Phase 3C-2 — ability AOE (BlastRadius / SympatheticDetonation).
               // ability primary hit 처리 끝난 직후 호출. abilityTarget 위치 기준.
               // baseDmg = abilityDmg (raw hit count damage 단위, mitigation 전).
@@ -6098,6 +6093,13 @@ export function simulateCombat(
                   totalRawAbilityDmg += r.rawDealt;
                 }
               }
+
+              // codex P2 (PR #83): refactor (cast-post-processing-helper) helper 호출을
+              // splash AOE (BlastRadius/SympatheticDetonation) 직후로 이동. 기존엔 splash
+              // 전 호출 → splash 로 죽을 적이 꼬마정령 multi-stun 3 슬롯 차지 → 살아남는 적
+              // stun 부족 회귀. splash 후 호출 시 alive 적만 stun 슬롯 채워서 정확.
+              // 통합 helper: 꼬마정령 multi-stun + Akali burn refresh.
+              applyCarryPostCastEffects(unit, abilityTargets, carryCfg);
             }
 
             // 전체 피해량 기반 흡혈 — healAmp 곱셈 적용.
