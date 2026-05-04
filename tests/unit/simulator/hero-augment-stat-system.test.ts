@@ -815,10 +815,12 @@ describe('PR7-C — 아트록스 carry 3-skill cycle + N.O.V.A. 추가 발동', 
       'utf8',
     );
     const data = JSON.parse(file) as { items: Array<{ apiName: string; name: string; icon: string }> };
-    const selector = data.items.find(i => i.apiName === 'TFT17_DRXSelector');
-    expect(selector).toBeDefined();
-    expect(selector!.name).toBe('타격 선택기');
-    expect(selector!.icon).toBe('tft17_drxselector.tft_set17.png');
+    // PR #85 codex P2: TFT17_DRXSelector 중복 엔트리 방지 (apiName 단일 보장)
+    const selectors = data.items.filter(i => i.apiName === 'TFT17_DRXSelector');
+    expect(selectors).toHaveLength(1);
+    const selector = selectors[0];
+    expect(selector.name).toBe('타격 선택기');
+    expect(selector.icon).toBe('tft17_drxselector.tft_set17.png');
   });
 
   it('autoAssignNovaSelector 자동 할당 코드 fingerprint (PR7-C.8)', async () => {
