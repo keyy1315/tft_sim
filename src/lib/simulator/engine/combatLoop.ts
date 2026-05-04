@@ -5,7 +5,7 @@ import {
   MF_MODE_CONFIG, ArbiterLaw, STAR_SCALING,
 } from '@/types';
 import arbiterLawsData from '../../../../public/data/arbiter_laws.json';
-import { findCarryAugment, CARRY_AUGMENTS } from '@/data/carryAugments';
+import { findCarryAugment, CARRY_AUGMENTS, type CarryAugmentConfig } from '@/data/carryAugments';
 import type { StatusEffectType } from '@/types';
 import { calculateStats, getItemEffects } from '@/lib/simulator/systems/stat';
 import { getAbilityDamage, getAbilityShield, findAbilityTargets, CHAMPION_ABILITY_PATTERNS, getChampionScaling, starValue, getSynergyScaling } from '@/lib/simulator/systems/ability';
@@ -537,6 +537,49 @@ function getAbilityConfigForUnit(unit: CombatUnit, augmentApiNames: string[]): A
   const carry = findCarryAugment(unit.champion.apiName, augmentApiNames);
   if (carry) return carry.abilityOverride;
   return CHAMPION_ABILITY_PATTERNS[unit.champion.apiName] ?? { pattern: 'single' };
+}
+
+/**
+ * PR5 (17.2b 후속) — Carry augment 활성 시 abilityData.damage override 적용.
+ *
+ * carry augment 가 활성이면 raw 챔프 ability 변수 대신 augment 의 abilityData.damage 사용.
+ * augment 활성 시 챔프 damage 변수는 raw 와 무관 (예: 레오나 carry damage [90,135,225] AD
+ * 는 raw 레오나 ShieldAmount 와 별개). damageType 도 augment 우선 (raw magic → physical 등).
+ *
+ * 공식 (일반 ability formula 일관):
+ *   - magic: damage = baseValue × (1 + AP/100)
+ *   - physical: damage = baseValue × (1 + bonusAdPercent), 0% default 는 baseValue 그대로
+ *
+ * 자폭 (그라가스 GragasCarry) 은 PR4 special formula (`maxHp × baseDamageHpFrac + AP × (damage/100)`)
+ * 사용 — 본 함수는 일반 cast 경로용. 자폭 분기는 별도 처리.
+ *
+ * damageType 우선순위 (사용자 결정 PR5):
+ *   1. damageTypeOverride (top-level, 명시적)
+ *   2. abilityData.damageType (fallback)
+ *   3. raw getAbilityDamage 결과 (carry abilityData 자체 없을 때)
+ */
+function resolveAbilityDamage(
+  champion: RawChampion,
+  starLevel: number,
+  ap: number,
+  carryCfg: CarryAugmentConfig | null | undefined,
+  damageVar?: string,
+): { damage: number; type: DamageType } {
+  if (carryCfg?.abilityData?.damage) {
+    const damageArr = carryCfg.abilityData.damage;
+    const baseValue = damageArr[starLevel - 1] ?? damageArr[0];
+    const dmgType: DamageType = carryCfg.damageTypeOverride
+      ?? carryCfg.abilityData.damageType
+      ?? 'magic';
+    let damage = baseValue;
+    if (dmgType === 'magic') {
+      damage = baseValue * (1 + ap / 100);
+    }
+    // physical: bonusAdPercent=0 default (raw getAbilityDamage 일관). carry 는 baseValue 그대로.
+    // true: scaling 없음.
+    return { damage, type: dmgType };
+  }
+  return getAbilityDamage(champion, starLevel, ap, 0, damageVar);
 }
 
 /** 대쉬 대상 헬퍼: 가장 먼 적 */
@@ -4889,8 +4932,13 @@ export function simulateCombat(
             // 스킬 시전 후 cast time — 이 시간 동안 공격 불가
             unit.attackCooldown = config.pattern === 'self_buff' ? SELF_BUFF_CAST_TICKS : CAST_TICKS;
 
-            const { damage: rawAbilityDmgBase, type: dmgType } = getAbilityDamage(
-              unit.champion, unit.starLevel, unit.stats.ap, 0, config.damageVar
+            // PR5 (17.2b): carry augment 활성 시 abilityData.damage override 우선 사용.
+            // raw getAbilityDamage (raw 챔프 ability 변수) vs carry-specific damage 분기.
+            // 자폭 (그라가스) 은 selfDamage 분기에서 abilityData 직접 참조 — 본 분기는 영향 없음
+            // (selfDamage healthCost 가 있어 rawAbilityDmg fallback 미사용).
+            const carryCfg = findCarryAugment(unit.champion.apiName, augNames);
+            const { damage: rawAbilityDmgBase, type: dmgType } = resolveAbilityDamage(
+              unit.champion, unit.starLevel, unit.stats.ap, carryCfg, config.damageVar
             );
             // SharpshooterModule (위력 프레임) — 스킬 피해 +5% 가산.
             const rawAbilityDmg = rawAbilityDmgBase * (1 + (unit.gravesAbilityDamageBonus ?? 0));
@@ -4911,7 +4959,7 @@ export function simulateCombat(
             if (config.selfDamage) {
               const hpFloor = config.selfDamageHpFloor ?? 0;
               // 영웅 증강 abilityData.healthCost 가 있으면 maxHp × healthCost, 없으면 raw ability damage.
-              const carryCfg = findCarryAugment(unit.champion.apiName, augNames);
+              // carryCfg 는 PR5 분기에서 이미 lookup (위 line). 자폭은 그라가스 carry 한정 진입.
               const healthCost = carryCfg?.abilityData?.healthCost;
               const selfDamageRaw = healthCost !== undefined
                 ? unit.maxHp * healthCost
@@ -5369,8 +5417,11 @@ export function simulateCombat(
           // 마나 소모 시점 (사거리 밖 dash cast 경로)
           eventBus.emit('on_mana_spent', { sourceId: unit.id, value: spentManaOOR, tick });
 
-          const { damage: rawOORDmg, type: dmgType } = getAbilityDamage(
-            unit.champion, unit.starLevel, unit.stats.ap, 0, outOfRangeConfig.damageVar
+          // PR5 (17.2b): OOR cast 경로 (사거리 밖 dash cast) 도 carry augment 활성 시
+          // abilityData.damage override 적용 — 일반 cast 경로 (line 4892~) 와 동일 패턴.
+          const oorCarryCfg = findCarryAugment(unit.champion.apiName, augNames);
+          const { damage: rawOORDmg, type: dmgType } = resolveAbilityDamage(
+            unit.champion, unit.starLevel, unit.stats.ap, oorCarryCfg, outOfRangeConfig.damageVar
           );
           const oorHitTotal = outOfRangeConfig.hitCount ? rawOORDmg * outOfRangeConfig.hitCount : rawOORDmg;
           const oorIsSplit = outOfRangeConfig.hitCount && outOfRangeConfig.pattern !== 'single';

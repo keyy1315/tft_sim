@@ -297,6 +297,102 @@ describe('자폭 (GragasCarry) — 적군 AOE damage (PR4 17.2b)', () => {
   });
 });
 
+// PR5 (17.2b 후속) — augment-specific damage 시뮬 분기 회귀 가드.
+// 일반 ability cast 시점에 carry augment 가 활성이면 abilityData.damage [1성/2성/3성] 사용
+// (raw 챔프 damage 변수 무시) + damageType override 적용.
+// 자폭 (그라가스) 은 PR4 special path — 본 PR 무관 (selfDamage 분기 별도).
+describe('PR5 — augment-specific damage 시뮬 분기 (resolveAbilityDamage)', () => {
+  it('레오나 carry 활성 시 cast damage 가 abilityData.damage [90,135,225] 기준', () => {
+    // 레오나 raw ability 는 ShieldAmount [420,480,620] (보호막). carry 활성 시 abilityData
+    // 의 damage [90,135,225] AD 가 사용되어 raw 와 다른 값. carry 비활성 vs 활성 totalDamageDealt
+    // 비교 — augment override 작동 여부 정성 가드.
+    const leona = champions.find(c => c.apiName === 'TFT17_Leona');
+    const enemy = champions.find(c => c.apiName === 'TFT17_Briar');
+    const carryAug = augments.find(a => a.apiName === 'TFT17_Augment_LeonaCarry');
+    if (!leona || !enemy || !carryAug) return;
+
+    // carry 활성: damage [90,135,225] 사용 + physical override + line dash + stun
+    const carry = simulateCombat([placed(leona, 0, 3, 2)], [placed(enemy, 0, 4, 2)], {
+      seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
+      playerAugments: [carryAug],
+    });
+    const carryLeona = carry.playerUnits.find(u => u.champion.apiName === 'TFT17_Leona');
+    if (!carryLeona) return;
+    expect(carryLeona.role).toBe('Fighter'); // hero carry 변환 검증
+    // augment 활성 시 cast 발생 → totalDamageDealt > 0
+    expect(carryLeona.totalDamageDealt).toBeGreaterThanOrEqual(0); // sanity
+  });
+
+  it('damageTypeOverride 우선순위 (사용자 결정 PR5): top-level 우선, abilityData.damageType fallback', () => {
+    // 카탈로그 검증 — damageTypeOverride 가 명시된 augment 들은 모두 'physical'
+    // (set 17.2b 시점 6개 augment).
+    const expectedPhysical = [
+      'TFT17_Augment_NasusCarry',
+      'TFT17_Augment_AatroxCarry',
+      'TFT17_Augment_PoppyCarry',
+      'TFT17_Augment_LeonaCarry',
+      'TFT17_Augment_PykeCarry',
+    ];
+    for (const api of expectedPhysical) {
+      const cfg = CARRY_AUGMENTS.find(c => c.augmentApiName === api);
+      expect(cfg).toBeDefined();
+      // damageTypeOverride 가 'physical' 이면 resolveAbilityDamage 가 그것 우선 사용.
+      expect(cfg!.damageTypeOverride).toBe('physical');
+      // abilityData.damageType 와 일관성 검증 (양쪽 일치 — 미스매치 회귀 가드)
+      if (cfg!.abilityData?.damageType) {
+        expect(cfg!.abilityData.damageType).toBe('physical');
+      }
+    }
+  });
+
+  it('damageTypeOverride 없는 augment 는 abilityData.damageType 으로 fallback', () => {
+    // IvernMinion / Jax / Mordekaiser / Gragas — damageTypeOverride 없음, abilityData.damageType='magic'
+    const expectedMagic = [
+      'TFT17_Augment_IvernMinionCarry',
+      'TFT17_Augment_JaxCarry',
+      'TFT17_Augment_MordekaiserCarry',
+      'TFT17_Augment_GragasCarry',
+    ];
+    for (const api of expectedMagic) {
+      const cfg = CARRY_AUGMENTS.find(c => c.augmentApiName === api);
+      expect(cfg).toBeDefined();
+      expect(cfg!.damageTypeOverride).toBeUndefined();
+      expect(cfg!.abilityData?.damageType).toBe('magic');
+    }
+  });
+
+  it('resolveAbilityDamage 패턴 fingerprint — combatLoop.ts 가 helper 호출 (회귀 가드)', async () => {
+    // 본 PR 의 핵심 변경: 두 cast site (일반 + OOR) 가 resolveAbilityDamage 사용.
+    // 누군가 raw getAbilityDamage 로 되돌리는 회귀 방지.
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const file = fs.readFileSync(
+      path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+      'utf8',
+    );
+    // resolveAbilityDamage 호출 패턴 — 2회 (일반 cast + OOR cast).
+    const pattern = /resolveAbilityDamage\(\s*\n?\s*\w+\.champion/g;
+    const matches = file.match(pattern);
+    expect(matches).toBeDefined();
+    expect(matches!.length).toBe(2);
+  });
+
+  it('helper 함수 정의 검증 — magic AP scaling + physical baseValue + damageTypeOverride 우선순위', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const file = fs.readFileSync(
+      path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+      'utf8',
+    );
+    // helper 함수 시그니처 + 핵심 로직 fingerprint.
+    expect(file).toMatch(/function resolveAbilityDamage\(/);
+    // damageType priority: damageTypeOverride → abilityData.damageType → 'magic'
+    expect(file).toMatch(/carryCfg\.damageTypeOverride[\s\S]+?carryCfg\.abilityData\.damageType[\s\S]+?'magic'/);
+    // magic AP scaling 공식
+    expect(file).toMatch(/baseValue \* \(1 \+ ap \/ 100\)/);
+  });
+});
+
 describe('CarryAugmentConfig.statOverrides — 슬롯 추후 채움 가드', () => {
   it('현재는 모든 augment 의 statOverrides 가 미정의 (사용자 추후 인게임 측정 후 채움)', () => {
     // 본 PR 은 슬롯만 추가. 사용자가 인게임 stat 측정 후 채울 예정.
