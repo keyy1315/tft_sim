@@ -794,6 +794,72 @@ function applyShield(unit: CombatUnit, damage: number, eventBus: EventBus, tick:
 }
 
 /**
+ * 통합 carry-specific damage modifier helper (refactor: carry-damage-modifier).
+ *
+ * cast loop 안의 baseDmg 계산 분기 5종 통합:
+ *   1. **singleTargetMultiplier** (아트록스 찍기 cycle): aliveTargets.length === 1 시 ×N
+ *   2. **secondaryDamage** (파이크 X-shape, 레오나 line): primary 외 target 에 별도 damage
+ *   3. **tankBonusMultiplier** (파이크 onKillRecast): primary target 이 Tank 일 때 ×(1+N)
+ *   4. **armorScale** (뽀삐): baseDmg + (target.armor × armorScale) — raw 가산
+ *   5. **hexReduction** (꼬마정령): abilityTarget 위치 기준 multiplicative falloff
+ *
+ * 자폭 (그라가스) 의 hexReduction / tankBonusMultiplier / baseDamageHpFrac 은 selfDamage
+ * 분기 special path (PR4) 라 본 helper 무관.
+ *
+ * caller 2 site (cast loop main + OOR cast loop). OOR 도 동일 helper 호출 → in-range 와
+ * 동작 일관 보장 (codex P1 #76 권장 사항: 다른 carry-specific 메커니즘 OOR 누락 회귀 자동 해소).
+ *
+ * **호출 순서**: 단독 적중 → secondary → tankBonus → armorScale → hexReduction
+ *   (기존 cast loop 분기 순서 보존).
+ */
+function applyCarryDamageModifiers(
+  baseDmg: number,
+  unit: CombatUnit,
+  t: CombatUnit,
+  carryCfg: CarryAugmentConfig | null | undefined,
+  context: {
+    abilityTarget: CombatUnit;
+    aliveTargetCount: number;
+    aatroxIsSingleTargetSlam: boolean;
+  },
+): number {
+  if (!carryCfg?.abilityData) return baseDmg;
+  const ad = carryCfg.abilityData;
+  const isPrimaryTarget = t === context.abilityTarget;
+
+  // 1. 단독 적중 multiplier (아트록스 찍기 cycle 한정)
+  if (context.aatroxIsSingleTargetSlam
+      && context.aliveTargetCount === 1
+      && ad.singleTargetMultiplier) {
+    baseDmg *= ad.singleTargetMultiplier;
+  }
+  // 2. secondary damage (파이크 X-shape 주변 적, 레오나 line 추가 적)
+  if (ad.secondaryDamage && !isPrimaryTarget) {
+    const secArr = ad.secondaryDamage;
+    const secBase = secArr[unit.starLevel - 1] ?? secArr[0];
+    const secDmgType: DamageType = carryCfg.damageTypeOverride ?? ad.damageType ?? 'magic';
+    baseDmg = secDmgType === 'magic'
+      ? secBase * (1 + unit.stats.ap / 100)
+      : secBase;
+  }
+  // 3. tankBonusMultiplier (primary target 이 Tank 일 때만 +N%)
+  if (isPrimaryTarget && ad.tankBonusMultiplier && t.role === 'Tank') {
+    baseDmg *= (1 + ad.tankBonusMultiplier);
+  }
+  // 4. armorScale (뽀삐: raw damage + target.armor × armorScale)
+  if (ad.armorScale) {
+    baseDmg += t.stats.armor * ad.armorScale;
+  }
+  // 5. hexReduction (꼬마정령 한정 — augmentApiName 검사. 자폭 그라가스는 selfDamage 분기 별도)
+  if (ad.hexReduction !== undefined
+      && carryCfg.augmentApiName === 'TFT17_Augment_IvernMinionCarry') {
+    const distFromCenter = hexDistance(context.abilityTarget.position, t.position);
+    baseDmg *= Math.pow(1 - ad.hexReduction, distFromCenter);
+  }
+  return baseDmg;
+}
+
+/**
  * 통합 ability mitigation pipeline (refactor: cast-mitigation-helpers).
  *
  * 8 cast site 에서 동일하게 호출하던 mitigation 5단계 통합:
@@ -5420,47 +5486,17 @@ export function simulateCombat(
                 if (unit.mfReplicatorEffectiveness > 0) {
                   abilityDamageAmp += unit.mfReplicatorEffectiveness;
                 }
-                // PR7-A (17.2b): 파이크 carry primary vs secondary damage 분기 + tankBonus.
-                //   primary target (대상): abilityData.damage (rawAbilityDmg, abilityDmg 에 이미 반영됨)
-                //   secondary targets (X-shape 주변 적): abilityData.secondaryDamage
-                //   tankBonusMultiplier: primary target 이 탱커 일 때만 +N% (사용자 결정 PR4 동일 — role==='Tank' 만)
-                let baseDmg = abilityDmg;
-                const isPrimaryTarget = t === abilityTarget;
-                // PR7-C (17.2b): Aatrox 찍기 단독 적중 ×2.5 — 찍기 cycle (cycleIdx=2)
-                // + abilityTargets 단일 (대상 본인만, radius 1 안에 다른 적 없음).
-                // N.O.V.A. 변환 (global pattern) 시에는 abilityTargets 다수라 자연스럽게 미적용.
-                if (aatroxIsSingleTargetSlam
-                    && aliveTargets.length === 1
-                    && carryCfg?.abilityData?.singleTargetMultiplier) {
-                  baseDmg *= carryCfg.abilityData.singleTargetMultiplier;
-                }
-                if (carryCfg?.abilityData?.secondaryDamage && !isPrimaryTarget) {
-                  const secArr = carryCfg.abilityData.secondaryDamage;
-                  const secBase = secArr[unit.starLevel - 1] ?? secArr[0];
-                  const secDmgType: DamageType = carryCfg.damageTypeOverride
-                    ?? carryCfg.abilityData.damageType ?? 'magic';
-                  baseDmg = secDmgType === 'magic'
-                    ? secBase * (1 + unit.stats.ap / 100)
-                    : secBase;
-                }
-                if (isPrimaryTarget && carryCfg?.abilityData?.tankBonusMultiplier && t.role === 'Tank') {
-                  baseDmg *= (1 + carryCfg.abilityData.tankBonusMultiplier);
-                }
-                // PR7-D (17.2b): 뽀삐 carry armorScale — base damage + (target.armor × armorScale).
-                // 사용자 결정: raw damage 에 가산 (mitigation 전). 도메인 desc 자연스러운 해석.
-                // 도메인 line 142: "1성 damage 표기 385 = 340 AD + 100% armor + 미프 효과"
-                if (carryCfg?.abilityData?.armorScale) {
-                  baseDmg += t.stats.armor * carryCfg.abilityData.armorScale;
-                }
-                // PR7-B (17.2b): 꼬마정령 carry hexReduction — abilityTarget 위치 기준 distance 기반
-                // multiplicative falloff (PR4 자폭 패턴 일관). 1칸당 -45%.
-                // (1 - hexReduction) ^ distance. 꼬마정령 carry 한정 (다른 carry 는 hexReduction
-                // 정의 안 됨). 자폭 그라가스는 selfDamage 분기 별도 처리라 본 분기 영향 없음.
-                if (carryCfg?.abilityData?.hexReduction !== undefined
-                    && carryCfg.augmentApiName === 'TFT17_Augment_IvernMinionCarry') {
-                  const distFromCenter = hexDistance(abilityTarget.position, t.position);
-                  baseDmg *= Math.pow(1 - carryCfg.abilityData.hexReduction, distFromCenter);
-                }
+                // refactor: 통합 carry-specific damage modifier helper (PR4~PR7-D 5 메커니즘).
+                //   1. singleTargetMultiplier (아트록스 찍기 cycle 단독 적중)
+                //   2. secondaryDamage (파이크 X-shape, 레오나 line)
+                //   3. tankBonusMultiplier (파이크 primary target Tank)
+                //   4. armorScale (뽀삐 raw 가산)
+                //   5. hexReduction (꼬마정령 abilityTarget 기준 multiplicative falloff)
+                let baseDmg = applyCarryDamageModifiers(abilityDmg, unit, t, carryCfg, {
+                  abilityTarget,
+                  aliveTargetCount: aliveTargets.length,
+                  aatroxIsSingleTargetSlam,
+                });
                 // 초가스: % 최대체력 피해 추가
                 if (unit.champion.apiName === 'TFT17_Chogath') {
                   const pctVar = unit.champion.ability.variables?.find(v => v.name === 'PercentMaximumHealthDamage');
@@ -6020,14 +6056,15 @@ export function simulateCombat(
               const pen = dmgType === 'magic' ? unit.stats.magicPen : unit.stats.armorPen;
               // 저격수 (Sniper) — 거리 기반 추가 damage amp
               const sniperAmp = computeSniperDamageAmp(unit, t);
-              // codex P1 (PR #76): PR7-B 꼬마정령 hexReduction OOR 동기화 — in-range cast 와
-              // 동일 multiplicative falloff. 일반 cast loop (line ~5378) 와 같은 패턴.
-              let oorBaseDmg = abilityDmg;
-              if (oorCarryCfg?.abilityData?.hexReduction !== undefined
-                  && oorCarryCfg.augmentApiName === 'TFT17_Augment_IvernMinionCarry') {
-                const distFromCenter = hexDistance(abilityTarget.position, t.position);
-                oorBaseDmg *= Math.pow(1 - oorCarryCfg.abilityData.hexReduction, distFromCenter);
-              }
+              // refactor (carry-damage-modifier): 통합 helper 호출 — 5 carry modifier 모두 적용.
+              // OOR cast 는 아트록스 cycle 미적용 (cycle counter 는 in-range cast 에서만 진행) →
+              // aatroxIsSingleTargetSlam=false. 다른 메커니즘 (secondary/tankBonus/armorScale/
+              // hexReduction) 은 in-range 와 일관 — codex P1 #76 의 다른 OOR 누락 회귀 자동 해소.
+              const oorBaseDmg = applyCarryDamageModifiers(abilityDmg, unit, t, oorCarryCfg, {
+                abilityTarget,
+                aliveTargetCount: oorAlive.length,
+                aatroxIsSingleTargetSlam: false,
+              });
               let rawDmg = oorBaseDmg * (1 + unit.damageAmp + sniperAmp);
               if (unit.spellCanCrit && rng.next() < unit.stats.critChance) {
                 rawDmg *= unit.stats.critMultiplier;

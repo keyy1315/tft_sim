@@ -593,8 +593,8 @@ describe('PR7-C — 아트록스 carry 3-skill cycle + N.O.V.A. 추가 발동', 
     expect(file).toMatch(/cycleIdx === 0[\s\S]+?pattern:\s*'single'/);
     expect(file).toMatch(/cycleIdx === 1[\s\S]+?pattern:\s*'cone'/);
     expect(file).toMatch(/pattern:\s*'aoe_circle'[\s\S]+?slamStunDuration/);
-    // 단독 적중 ×2.5
-    expect(file).toMatch(/aatroxIsSingleTargetSlam[\s\S]+?aliveTargets\.length === 1/);
+    // 단독 적중 ×2.5 — refactor (carry-damage-modifier): helper 안 패턴 검증
+    expect(file).toMatch(/context\.aatroxIsSingleTargetSlam[\s\S]+?context\.aliveTargetCount === 1[\s\S]+?ad\.singleTargetMultiplier/);
   });
 
   it('N.O.V.A. 추가 발동 코드 fingerprint — cycle 별개 + 모든 적 + 1초 knockup', async () => {
@@ -775,8 +775,8 @@ describe('PR7-E — 미프 시너지 + carry onAttack 패시브', () => {
       path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
       'utf8',
     );
-    // baseDmg += t.stats.armor × armorScale
-    expect(file).toMatch(/carryCfg\?\.abilityData\?\.armorScale[\s\S]+?baseDmg \+=\s*t\.stats\.armor \* carryCfg\.abilityData\.armorScale/);
+    // baseDmg += t.stats.armor × armorScale — refactor (carry-damage-modifier): helper 안 패턴 검증
+    expect(file).toMatch(/ad\.armorScale[\s\S]+?baseDmg \+= t\.stats\.armor \* ad\.armorScale/);
   });
 
   it('spiritBounceOnKill 코드 fingerprint — overkill chain (max 50 hard limit)', async () => {
@@ -886,7 +886,9 @@ describe('PR7-E — 미프 시너지 + carry onAttack 패시브', () => {
         'utf8',
       );
       // 꼬마정령 carry hexReduction multiplicative falloff
-      expect(file).toMatch(/carryCfg\.augmentApiName === 'TFT17_Augment_IvernMinionCarry'[\s\S]+?Math\.pow\(1 - carryCfg\.abilityData\.hexReduction, distFromCenter\)/);
+      // refactor (carry-damage-modifier): helper 안 패턴 검증 (in-range cast loop) +
+      // OOR cast loop 의 oorBaseDmg fingerprint 는 별도 테스트 유지.
+      expect(file).toMatch(/carryCfg\.augmentApiName === 'TFT17_Augment_IvernMinionCarry'[\s\S]+?Math\.pow\(1 - ad\.hexReduction, distFromCenter\)/);
     });
 
     it('multi-stun 코드 fingerprint — caster 위치 기준 가장 가까운 3명', async () => {
@@ -953,6 +955,39 @@ describe('PR7-E — 미프 시너지 + carry onAttack 패시브', () => {
       expect(deadCalls!.length).toBeGreaterThanOrEqual(6);
     });
 
+    // refactor: carry-damage-modifier — applyCarryDamageModifiers helper 추출.
+    // 5 carry 메커니즘 (singleTargetMultiplier / secondaryDamage / tankBonusMultiplier /
+    // armorScale / hexReduction) 통합. cast loop main + OOR cast loop 모두 helper 호출.
+    it('applyCarryDamageModifiers helper 정의 + 5 메커니즘 검증 (refactor)', async () => {
+      const fs = await import('node:fs');
+      const path = await import('node:path');
+      const file = fs.readFileSync(
+        path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+        'utf8',
+      );
+      // helper 함수 시그니처
+      expect(file).toMatch(/function applyCarryDamageModifiers\(/);
+      // 5 메커니즘 모두 helper 안에 정의됨
+      expect(file).toMatch(/ad\.singleTargetMultiplier/);
+      expect(file).toMatch(/ad\.secondaryDamage && !isPrimaryTarget/);
+      expect(file).toMatch(/isPrimaryTarget && ad\.tankBonusMultiplier && t\.role === 'Tank'/);
+      expect(file).toMatch(/ad\.armorScale/);
+      expect(file).toMatch(/ad\.hexReduction !== undefined[\s\S]+?TFT17_Augment_IvernMinionCarry/);
+    });
+
+    it('cast loop main + OOR cast loop 모두 applyCarryDamageModifiers 호출 (refactor)', async () => {
+      const fs = await import('node:fs');
+      const path = await import('node:path');
+      const file = fs.readFileSync(
+        path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+        'utf8',
+      );
+      // helper 호출 count >= 2 (cast loop main + OOR cast loop)
+      const calls = file.match(/applyCarryDamageModifiers\(abilityDmg, unit, t/g);
+      expect(calls).toBeDefined();
+      expect(calls!.length).toBeGreaterThanOrEqual(2);
+    });
+
     it('OOR cast 경로 꼬마정령 hexReduction + multi-stun 동기화 (codex P1 PR #76)', async () => {
       const fs = await import('node:fs');
       const path = await import('node:path');
@@ -960,8 +995,9 @@ describe('PR7-E — 미프 시너지 + carry onAttack 패시브', () => {
         path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
         'utf8',
       );
-      // OOR cast loop 안 hexReduction (oorBaseDmg 변수 + IvernMinionCarry 체크)
-      expect(file).toMatch(/oorBaseDmg \*= Math\.pow\(1 - oorCarryCfg\.abilityData\.hexReduction/);
+      // OOR cast loop 안 carry damage modifier — refactor (carry-damage-modifier) 후
+      // helper 호출로 통합 (oorBaseDmg = applyCarryDamageModifiers(...)). hexReduction 포함.
+      expect(file).toMatch(/oorBaseDmg = applyCarryDamageModifiers\(abilityDmg, unit, t, oorCarryCfg/);
       // OOR cast 끝 multi-stun (oorCarryCfg + IvernMinionCarry + IVERN_STUN_TARGETS_OOR=3)
       expect(file).toMatch(/IVERN_STUN_TARGETS_OOR\s*=\s*3/);
       expect(file).toMatch(/oorCarryCfg\?\.abilityData\?\.stunDuration[\s\S]+?TFT17_Augment_IvernMinionCarry/);
