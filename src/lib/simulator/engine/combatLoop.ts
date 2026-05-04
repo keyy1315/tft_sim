@@ -900,6 +900,14 @@ function applyAbilityMitigation(
   }
   effectiveDmg = applyShield(t, effectiveDmg, eventBus, tick);
   if (t.statusEffects.some(e => e.type === 'invulnerable')) effectiveDmg = 0;
+  // PR7-C.6 (17.2b): Caitlyn N.O.V.A. selector mark — incoming damage amp +10%.
+  // mark statusEffect 의 value 가 incoming amp 비율 (0.10). caitlyn-nova-selector source 한정.
+  // Kindred mark 는 value 없어 (표시만) 자연스럽게 무관.
+  for (const mark of t.statusEffects) {
+    if (mark.type === 'mark' && mark.sourceId === 'caitlyn-nova-selector' && mark.value) {
+      effectiveDmg *= (1 + mark.value);
+    }
+  }
   return effectiveDmg;
 }
 
@@ -4068,6 +4076,10 @@ export function simulateCombat(
   };
   const playerDrxState = setupDrxNova(playerActiveTraits, playerUnits, enemies);
   const enemyDrxState = setupDrxNova(enemyActiveTraits, enemies, playerUnits);
+  // PR7-C.6 (17.2b): Caitlyn N.O.V.A. selector 헤드샷 1회 추적용. mark 적이 처음 50% HP 이하
+  // 떨어진 시점만 trigger 발동 — 이후 HP 회복/재손실 시 재발동 안 함.
+  const playerCaitlynHeadshotTriggered = new Set<string>();
+  const enemyCaitlynHeadshotTriggered = new Set<string>();
 
   /**
    * main loop tick 마다 호출 — delayTicks 도달 시 한 번만 effect 적용.
@@ -4150,6 +4162,62 @@ export function simulateCombat(
       logs.push({
         tick, time, type: 'ability', sourceId: 'maokai-nova-selector',
         message: `Maokai N.O.V.A. 선택기! 모든 적 ${maokaiStunDur}초 광역 기절`,
+      });
+    }
+
+    // === PR7-C.6 (17.2b): Caitlyn N.O.V.A. 타격 선택기 추가 효과 ===
+    // 사용자 spec: surge 시 모든 적 mark + mark 적 받는 피해 +10%. mark 적 HP 처음 50% 이하 시
+    // 헤드샷 (76/114/222 물리, starLevel별, 1회). mark amp 적용은 applyAbilityMitigation 안
+    // (caitlyn-nova-selector mark.value=0.10 검사). 헤드샷 trigger 는 main loop tick 별도.
+    const caitlynSelector = state.teamUnits.find(u =>
+      u.champion.apiName === 'TFT17_Caitlyn'
+      && u.aatroxNovaStrikeSelector
+      && u.state !== 'dead'
+    );
+    if (caitlynSelector) {
+      for (const e of state.opposingTeam) {
+        if (e.state === 'dead') continue;
+        e.statusEffects.push({
+          type: 'mark', sourceId: 'caitlyn-nova-selector',
+          remainingTicks: 9999, value: 0.10, // incoming damage +10% (사용자 spec)
+        });
+      }
+      logs.push({
+        tick, time, type: 'ability', sourceId: 'caitlyn-nova-selector',
+        message: `Caitlyn N.O.V.A. 선택기! 모든 적 표식 (받는 피해 +10%)`,
+      });
+    }
+
+    // === PR7-C.6 (17.2b): Akali N.O.V.A. 타격 선택기 추가 효과 ===
+    // 사용자 spec: surge 시 모든 적 출혈 (매초 10/14/18 starLevel별 물리). 영구 적용 (전투 끝까지).
+    // burn statusEffect 사용 — value 는 매 tick damage. 매초 damage / TICKS_PER_SECOND.
+    const akaliSelector = state.teamUnits.find(u =>
+      u.champion.apiName === 'TFT17_Akali'
+      && u.aatroxNovaStrikeSelector
+      && u.state !== 'dead'
+    );
+    if (akaliSelector) {
+      const akaliBleedPerSec = [10, 14, 18];
+      const akaliBleedSec = akaliBleedPerSec[akaliSelector.starLevel - 1] ?? akaliBleedPerSec[0];
+      const akaliBleedRawPerTick = akaliBleedSec / TICKS_PER_SECOND;
+      for (const e of state.opposingTeam) {
+        if (e.state === 'dead') continue;
+        // codex P1 (PR #81): burn statusEffect 는 tickStatusEffects 에서 raw HP 차감 (mitigation 없음).
+        // 사용자 spec "물리 피해" → armor + pen 미리 적용 후 mitigated value 저장.
+        // DR 도 적용 (DOT snapshot 패턴 — 적용 시점 mitigation, armor 변동 시 추적 안 함).
+        // shield/invulnerable 은 매 tick 검사 어려워 단순화 (DOT 일반 패턴).
+        const mitigatedPerTick = applyResistance(akaliBleedRawPerTick, e.stats.armor, akaliSelector.stats.armorPen);
+        const finalPerTick = e.damageReduction > 0
+          ? mitigatedPerTick * (1 - e.damageReduction)
+          : mitigatedPerTick;
+        e.statusEffects.push({
+          type: 'burn', sourceId: 'akali-nova-selector',
+          remainingTicks: 9999, value: finalPerTick,
+        });
+      }
+      logs.push({
+        tick, time, type: 'ability', sourceId: 'akali-nova-selector',
+        message: `Akali N.O.V.A. 선택기! 모든 적 출혈 (매초 ${akaliBleedSec} 물리, mitigation 적용)`,
       });
     }
 
@@ -4530,6 +4598,56 @@ export function simulateCombat(
     tickKindredNovaMark(playerDrxState, playerUnits, enemies);
     tickKindredNovaMark(enemyDrxState, enemies, playerUnits);
 
+    // PR7-C.6 (17.2b): Caitlyn N.O.V.A. 선택기 헤드샷 trigger.
+    // mark 적 (caitlyn-nova-selector source) 이 처음으로 HP 50% 이하 떨어질 때 1회 헤드샷.
+    // 사용자 spec: 헤드샷 damage = [76, 114, 222] (starLevel 1/2/3 물리). caster = Caitlyn selector.
+    // per-target Set (caitlynHeadshotTriggered) 으로 1회 보장. main loop tick 매번 검사.
+    const tickCaitlynHeadshot = (
+      teamUnits: CombatUnit[],
+      opposingTeam: CombatUnit[],
+      triggeredSet: Set<string>,
+    ) => {
+      const caitlynShooter = teamUnits.find(u =>
+        u.champion.apiName === 'TFT17_Caitlyn'
+        && u.aatroxNovaStrikeSelector
+        && u.state !== 'dead'
+      );
+      if (!caitlynShooter) return;
+      const headshotArr = [76, 114, 222];
+      const headshotBase = headshotArr[caitlynShooter.starLevel - 1] ?? headshotArr[0];
+      for (const e of opposingTeam) {
+        if (e.state === 'dead') continue;
+        if (triggeredSet.has(e.id)) continue;
+        const hasMark = e.statusEffects.some(
+          se => se.type === 'mark' && se.sourceId === 'caitlyn-nova-selector'
+        );
+        if (!hasMark) continue;
+        if (e.currentHp / e.maxHp > 0.50) continue;
+        // 처음으로 50% 이하 — 헤드샷 1회 발동
+        triggeredSet.add(e.id);
+        const ownArbHs = caitlynShooter.team === 'player' ? playerArbiterState : enemyArbiterState;
+        // mitigation 통합 helper 사용 (in-range cast 와 일관)
+        const headshotDmg = applyAbilityMitigation(caitlynShooter, e, headshotBase, 'physical', eventBus, tick);
+        e.currentHp -= headshotDmg;
+        e.totalDamageTaken += headshotDmg;
+        caitlynShooter.totalDamageDealt += headshotDmg;
+        triggerSerpentPoison(caitlynShooter, e, headshotDmg);
+        const headshotLog: CombatLog = {
+          tick, time, type: 'ability',
+          sourceId: caitlynShooter.id, targetId: e.id,
+          value: Math.round(headshotDmg),
+          message: `Caitlyn N.O.V.A. 헤드샷! ${e.champion.name}에게 ${Math.round(headshotDmg)} 물리 피해`,
+        };
+        logs.push(headshotLog);
+        tickLogs.push(headshotLog);
+        if (e.currentHp <= 0) {
+          markTargetDead(caitlynShooter, e, ownArbHs, eventBus, tick);
+        }
+      }
+    };
+    tickCaitlynHeadshot(playerUnits, enemies, playerCaitlynHeadshotTriggered);
+    tickCaitlynHeadshot(enemies, playerUnits, enemyCaitlynHeadshotTriggered);
+
     // 아이템 효과 runtime — interval timer dispatch
     itemRuntime.onTick(tick);
 
@@ -4887,6 +5005,15 @@ export function simulateCombat(
 
           if (target.statusEffects.some(e => e.type === 'invulnerable')) {
             finalDamage = 0;
+          }
+
+          // codex P1 (PR #81): Caitlyn N.O.V.A. selector mark — basic attack 도 +10% incoming amp.
+          // applyAbilityMitigation 안에만 적용하면 ability 만 amp → basic attack 누락.
+          // 사용자 spec "표식이 남은 대상이 받는 피해를 10% 증가" 모든 damage path 일관.
+          for (const mark of target.statusEffects) {
+            if (mark.type === 'mark' && mark.sourceId === 'caitlyn-nova-selector' && mark.value) {
+              finalDamage *= (1 + mark.value);
+            }
           }
 
           target.currentHp -= finalDamage;

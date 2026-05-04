@@ -694,6 +694,97 @@ describe('PR7-C — 아트록스 carry 3-skill cycle + N.O.V.A. 추가 발동', 
     expect(file).toMatch(/sourceId: 'kindred-nova-selector'/);
   });
 
+  // PR7-C.6 (17.2b 후속) — Caitlyn / Akali N.O.V.A. 타격 선택기 추가 효과.
+  // 사용자 spec:
+  //   - Caitlyn: surge 시 모든 적 mark + mark 적 받는 피해 +10%. 50% HP 첫 trigger 헤드샷 (76/114/222).
+  //   - Akali: surge 시 모든 적 출혈 (매초 10/14/18 starLevel별 물리, 영구).
+  it('Caitlyn N.O.V.A. selector 효과 코드 fingerprint (PR7-C.6)', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const file = fs.readFileSync(
+      path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+      'utf8',
+    );
+    // tickDrxNova 안 caitlynSelector 검사
+    expect(file).toMatch(/caitlynSelector\s*=\s*state\.teamUnits\.find\([\s\S]+?'TFT17_Caitlyn'[\s\S]+?aatroxNovaStrikeSelector/);
+    // mark statusEffect (sourceId='caitlyn-nova-selector', value=0.10)
+    expect(file).toMatch(/sourceId: 'caitlyn-nova-selector'[\s\S]+?value: 0\.10/);
+  });
+
+  it('caitlyn mark amp +10% applyAbilityMitigation 안 적용 (PR7-C.6)', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const file = fs.readFileSync(
+      path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+      'utf8',
+    );
+    // mitigation 안 caitlyn-nova-selector mark amp 처리
+    expect(file).toMatch(/mark\.sourceId === 'caitlyn-nova-selector' && mark\.value/);
+    expect(file).toMatch(/effectiveDmg \*= \(1 \+ mark\.value\)/);
+  });
+
+  // codex P1 (PR #81) 회귀 가드 — Caitlyn mark amp 모든 damage path 적용.
+  // applyAbilityMitigation 외에 basic attack 도 적용.
+  it('basic attack 도 caitlyn mark amp 적용 (codex P1 PR #81)', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const file = fs.readFileSync(
+      path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+      'utf8',
+    );
+    // basic attack site (finalDamage *= (1 + mark.value)) — caitlyn-nova-selector mark 검사
+    // 출현 횟수: applyAbilityMitigation 안 1회 + basic attack 안 1회 = 최소 2회
+    const matches = file.match(/mark\.sourceId === 'caitlyn-nova-selector' && mark\.value/g);
+    expect(matches).toBeDefined();
+    expect(matches!.length).toBeGreaterThanOrEqual(2);
+    // basic attack 안 finalDamage *= (1 + mark.value) 패턴
+    expect(file).toMatch(/finalDamage \*= \(1 \+ mark\.value\)/);
+  });
+
+  // codex P1 (PR #81) 회귀 가드 — Akali burn 에 armor + pen + DR mitigation 적용.
+  it('Akali burn 에 armor mitigation 적용 (codex P1 PR #81)', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const file = fs.readFileSync(
+      path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+      'utf8',
+    );
+    // mitigatedPerTick = applyResistance(akaliBleedRawPerTick, e.stats.armor, akaliSelector.stats.armorPen)
+    expect(file).toMatch(/mitigatedPerTick\s*=\s*applyResistance\(akaliBleedRawPerTick, e\.stats\.armor, akaliSelector\.stats\.armorPen\)/);
+    // DR 적용
+    expect(file).toMatch(/finalPerTick\s*=\s*e\.damageReduction > 0[\s\S]+?mitigatedPerTick \* \(1 - e\.damageReduction\)/);
+  });
+
+  it('Caitlyn 헤드샷 trigger 코드 fingerprint (PR7-C.6)', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const file = fs.readFileSync(
+      path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+      'utf8',
+    );
+    // tickCaitlynHeadshot helper + headshot damage [76, 114, 222]
+    expect(file).toMatch(/tickCaitlynHeadshot/);
+    expect(file).toMatch(/headshotArr\s*=\s*\[76, 114, 222\]/);
+    // 50% HP trigger + Set 추적 (1회)
+    expect(file).toMatch(/e\.currentHp \/ e\.maxHp > 0\.50/);
+    expect(file).toMatch(/triggeredSet\.add\(e\.id\)/);
+  });
+
+  it('Akali N.O.V.A. selector 효과 코드 fingerprint (PR7-C.6)', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const file = fs.readFileSync(
+      path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+      'utf8',
+    );
+    // tickDrxNova 안 akaliSelector 검사
+    expect(file).toMatch(/akaliSelector\s*=\s*state\.teamUnits\.find\([\s\S]+?'TFT17_Akali'[\s\S]+?aatroxNovaStrikeSelector/);
+    // 출혈 starLevel별 [10, 14, 18] per second + burn statusEffect (sourceId='akali-nova-selector')
+    // codex P1 (PR #81): mitigated value 저장 (armor + pen 적용 후, DR 적용 후)
+    expect(file).toMatch(/akaliBleedPerSec\s*=\s*\[10, 14, 18\]/);
+    expect(file).toMatch(/sourceId: 'akali-nova-selector'[\s\S]+?value: finalPerTick/);
+  });
+
   it('Kindred 5초 주기 mark 갱신 코드 fingerprint (PR7-C.5)', async () => {
     const fs = await import('node:fs');
     const path = await import('node:path');
