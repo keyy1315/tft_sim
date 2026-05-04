@@ -466,7 +466,7 @@ function MatchCard({
           )}
           {participants && participants.map((p) => (
             <ParticipantRow
-              key={p.puuid}
+              key={`${p.puuid}-${p.placement}`}
               p={p}
               isMe={p.puuid === searchedPuuid}
               championMeta={result.championMeta ?? {}}
