@@ -794,6 +794,63 @@ function applyShield(unit: CombatUnit, damage: number, eventBus: EventBus, tick:
 }
 
 /**
+ * 통합 carry post-cast effects helper (refactor: cast-post-processing-helper).
+ *
+ * cast loop 끝 (mitigation/사망 처리 후, post-cast pipeline 직전) 에 호출.
+ * carry-specific 메커니즘 중 abilityTargets 후처리:
+ *   1. **꼬마정령 multi-stun** (PR7-B): caster 위치 기준 가장 가까운 3명 stun (1.25/1.5/1.75초)
+ *   2. **Akali 단검 burn refresh** (PR7-C.7): akali-nova-selector burn × 1.10
+ *
+ * caller 2 site (cast loop main + OOR cast loop). 두 site 모두 동일 호출 → 신규 carry
+ * post-cast 메커니즘 추가 시 helper 한 곳만 수정 (PR #76 multi-stun OOR 누락 / PR #82 Akali
+ * burn OOR 누락 같은 in-range/OOR 동기화 회귀 자동 방지).
+ *
+ * 향후 후속: post-cast pipeline (omnivamp / Fountain heal / on_cast emit) 도 helper 통합 가능.
+ */
+function applyCarryPostCastEffects(
+  unit: CombatUnit,
+  abilityTargets: CombatUnit[],
+  carryCfg: CarryAugmentConfig | null | undefined,
+): void {
+  // 1. 꼬마정령 carry multi-stun — caster 위치 기준 가장 가까운 3명 stun
+  if (carryCfg?.abilityData?.stunDuration
+      && carryCfg.augmentApiName === 'TFT17_Augment_IvernMinionCarry') {
+    const stunArr = carryCfg.abilityData.stunDuration;
+    const ivernStunDur = stunArr[unit.starLevel - 1] ?? stunArr[0];
+    if (ivernStunDur > 0) {
+      const ivernStunTicks = Math.round(ivernStunDur * TICKS_PER_SECOND);
+      const IVERN_STUN_TARGETS = 3;
+      const sortedClose = abilityTargets
+        .filter(t => t.state !== 'dead')
+        .slice()
+        .sort((a, b) =>
+          hexDistance(unit.position, a.position) - hexDistance(unit.position, b.position)
+        )
+        .slice(0, IVERN_STUN_TARGETS);
+      for (const t of sortedClose) {
+        t.statusEffects.push({ type: 'stun', sourceId: unit.id, remainingTicks: ivernStunTicks });
+        t.state = 'idle';
+        t.attackCooldown = 0;
+      }
+    }
+  }
+
+  // 2. Akali raw ability "단검" hit 시 akali-nova-selector burn × 1.10 (refresh).
+  // 사용자 spec PR7-C.7: "단검은 출혈 피해량을 10% 증가". surge 전 (burn 없음) → 자연스럽게 무효.
+  if (unit.champion.apiName === 'TFT17_Akali') {
+    for (const t of abilityTargets) {
+      if (t.state === 'dead') continue;
+      const akaliBurn = t.statusEffects.find(
+        se => se.type === 'burn' && se.sourceId === 'akali-nova-selector'
+      );
+      if (akaliBurn && akaliBurn.value) {
+        akaliBurn.value *= 1.10;
+      }
+    }
+  }
+}
+
+/**
  * 통합 carry-specific damage modifier helper (refactor: carry-damage-modifier).
  *
  * cast loop 안의 baseDmg 계산 분기 5종 통합:
@@ -6009,21 +6066,10 @@ export function simulateCombat(
                 unit.aatroxCycleCounter++;
               }
 
-              // === PR7-C.7 (17.2b): Akali raw ability "단검" hit 시 burn refresh ===
-              // 사용자 spec: "단검은 출혈 피해량을 10% 증가". Akali raw ability (관통 단검 5개) hit
-              // 한 적의 akali-nova-selector burn value × 1.10 (refresh). 적이 mark 없으면 무관.
-              // surge 전 (akali-nova-selector burn 없음) → 자연스럽게 무효.
-              if (unit.champion.apiName === 'TFT17_Akali') {
-                for (const t of abilityTargets) {
-                  if (t.state === 'dead') continue;
-                  const akaliBurn = t.statusEffects.find(
-                    se => se.type === 'burn' && se.sourceId === 'akali-nova-selector'
-                  );
-                  if (akaliBurn && akaliBurn.value) {
-                    akaliBurn.value *= 1.10;
-                  }
-                }
-              }
+              // refactor (cast-post-processing-helper): 통합 helper 호출 — Akali burn refresh
+              // 등 carry post-cast 메커니즘. PR7-B 꼬마정령 multi-stun 은 cast loop 끝에서
+              // (line ~6160 근처) 별도 호출. 향후 통합 가능.
+              applyCarryPostCastEffects(unit, abilityTargets, carryCfg);
 
               // 최신상 Phase 3C-2 — ability AOE (BlastRadius / SympatheticDetonation).
               // ability primary hit 처리 끝난 직후 호출. abilityTarget 위치 기준.
@@ -6081,30 +6127,8 @@ export function simulateCombat(
             }
 
             // === PR7-B (17.2b) — 꼬마정령 carry multi-stun ===
-            // abilityData.stunDuration[star] 정의 시 가장 가까운 N명 (default 3) 에 stun.
-            // 사용자 결정: caster (unit) 위치 기준 가장 가까운 3명 (radius 3 AOE 안 alive 적).
-            // 도메인 line 105: "가장 가까운 3명 1.25/1.5/1.75초 공중 띄움 (stun + knockup)"
-            if (carryCfg?.abilityData?.stunDuration
-                && carryCfg.augmentApiName === 'TFT17_Augment_IvernMinionCarry') {
-              const stunArr = carryCfg.abilityData.stunDuration;
-              const ivernStunDur = stunArr[unit.starLevel - 1] ?? stunArr[0];
-              if (ivernStunDur > 0) {
-                const ivernStunTicks = Math.round(ivernStunDur * TICKS_PER_SECOND);
-                const IVERN_STUN_TARGETS = 3;
-                const sortedClose = abilityTargets
-                  .filter(t => t.state !== 'dead')
-                  .slice()
-                  .sort((a, b) =>
-                    hexDistance(unit.position, a.position) - hexDistance(unit.position, b.position)
-                  )
-                  .slice(0, IVERN_STUN_TARGETS);
-                for (const t of sortedClose) {
-                  t.statusEffects.push({ type: 'stun', sourceId: unit.id, remainingTicks: ivernStunTicks });
-                  t.state = 'idle';
-                  t.attackCooldown = 0;
-                }
-              }
-            }
+            // refactor (cast-post-processing-helper): applyCarryPostCastEffects helper 로 통합
+            // (line ~6072 호출 — Akali burn refresh 와 함께 처리).
 
             // === 적 디버프 적용 ===
             if (config.debuff) {
@@ -6331,43 +6355,12 @@ export function simulateCombat(
             }
           }
 
-          // codex P1 (PR #76): PR7-B 꼬마정령 multi-stun OOR 동기화 — in-range cast (line ~5828)
-          // 와 동일 패턴. abilityData.stunDuration 정의 시 caster 위치 기준 가장 가까운 3명 stun.
-          if (oorCarryCfg?.abilityData?.stunDuration
-              && oorCarryCfg.augmentApiName === 'TFT17_Augment_IvernMinionCarry') {
-            const stunArr = oorCarryCfg.abilityData.stunDuration;
-            const ivernStunDur = stunArr[unit.starLevel - 1] ?? stunArr[0];
-            if (ivernStunDur > 0) {
-              const ivernStunTicks = Math.round(ivernStunDur * TICKS_PER_SECOND);
-              const IVERN_STUN_TARGETS_OOR = 3;
-              const sortedCloseOOR = abilityTargets
-                .filter(t => t.state !== 'dead')
-                .slice()
-                .sort((a, b) =>
-                  hexDistance(unit.position, a.position) - hexDistance(unit.position, b.position)
-                )
-                .slice(0, IVERN_STUN_TARGETS_OOR);
-              for (const t of sortedCloseOOR) {
-                t.statusEffects.push({ type: 'stun', sourceId: unit.id, remainingTicks: ivernStunTicks });
-                t.state = 'idle';
-                t.attackCooldown = 0;
-              }
-            }
-          }
-
-          // codex P1 (PR #82): PR7-C.7 Akali 단검 burn refresh OOR 동기화 — in-range cast loop
-          // (line ~6011) 와 동일 패턴. Akali raw ability OOR 도 burn × 1.10 적용.
-          if (unit.champion.apiName === 'TFT17_Akali') {
-            for (const t of abilityTargets) {
-              if (t.state === 'dead') continue;
-              const akaliBurn = t.statusEffects.find(
-                se => se.type === 'burn' && se.sourceId === 'akali-nova-selector'
-              );
-              if (akaliBurn && akaliBurn.value) {
-                akaliBurn.value *= 1.10;
-              }
-            }
-          }
+          // refactor (cast-post-processing-helper): in-range / OOR 둘 다 동일 helper 호출
+          // → 신규 carry post-cast 메커니즘 추가 시 helper 한 곳만 수정. PR #76 multi-stun
+          // OOR 누락 / PR #82 Akali burn OOR 누락 같은 동기화 회귀 자동 방지.
+          //   - 꼬마정령 multi-stun (PR7-B + PR #76 fix)
+          //   - Akali 단검 burn refresh (PR7-C.7 + PR #82 fix)
+          applyCarryPostCastEffects(unit, abilityTargets, oorCarryCfg);
 
           // === 이즈리얼 드론: 스킬 사용 시 타겟에게 추가 물리 피해 ===
           const ezDronesOOR = (unit as CombatUnit & { _ezrealDrones?: number })._ezrealDrones ?? 0;
