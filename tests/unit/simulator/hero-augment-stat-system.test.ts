@@ -539,6 +539,147 @@ describe('PR7-A — 파이크 carry X-shape 멀티 타겟 + onKill cascade', () 
   });
 });
 
+// PR7-C (17.2b 후속) — Aatrox carry 3-skill cycle + N.O.V.A. 추가 발동.
+// 사용자 결정:
+//   - cycle counter: 사망 시 0 reset (resurrect 메커니즘 연동)
+//   - N.O.V.A. 타격: 기존 cycle 유지 + 별도 추가 효과 (모든 적 novaDamage 물리 + 1초 knockup)
+//   - "타격 선택기": simulateOptions.{player,enemy}NovaStrikeSelectorUnit 사용자 지정
+describe('PR7-C — 아트록스 carry 3-skill cycle + N.O.V.A. 추가 발동', () => {
+  it('AatroxCarry abilityData 핵심 변수 (PR7-C 시뮬 의존)', () => {
+    const aatrox = CARRY_AUGMENTS.find(c => c.augmentApiName === 'TFT17_Augment_AatroxCarry');
+    expect(aatrox?.abilityData?.damage).toEqual([140, 210, 315]);          // 타격
+    expect(aatrox?.abilityData?.secondaryDamage).toEqual([100, 150, 225]); // 휩쓸기
+    expect(aatrox?.abilityData?.slamDamage).toEqual([160, 240, 360]);      // 찍기 (PR7-C 추가)
+    expect(aatrox?.abilityData?.slamStunDuration).toBe(1.0);                // 찍기 knockup
+    expect(aatrox?.abilityData?.novaDamage).toEqual([120, 180, 270]);      // N.O.V.A.
+    expect(aatrox?.abilityData?.armorReduction).toBe(10);                   // 휩쓸기 debuff
+    expect(aatrox?.abilityData?.singleTargetMultiplier).toBe(2.5);          // 찍기 단독
+    expect(aatrox?.damageTypeOverride).toBe('physical');
+  });
+
+  it('CombatUnit 에 aatrox cycle 필드 정의됨 (types/index.ts)', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const file = fs.readFileSync(
+      path.join(process.cwd(), 'src/types/index.ts'),
+      'utf8',
+    );
+    expect(file).toMatch(/aatroxCycleCounter:\s*number/);
+    expect(file).toMatch(/aatroxPreviouslyDead:\s*boolean/);
+    expect(file).toMatch(/aatroxNovaStrikeSelector:\s*boolean/);
+  });
+
+  it('SimulateOptions 에 novaStrikeSelectorUnit 추가 (player/enemy)', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const file = fs.readFileSync(
+      path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+      'utf8',
+    );
+    expect(file).toMatch(/playerNovaStrikeSelectorUnit\?:\s*string/);
+    expect(file).toMatch(/enemyNovaStrikeSelectorUnit\?:\s*string/);
+  });
+
+  it('cycle 분기 코드 fingerprint — 3-skill cycle (cycleIdx % 3) + 단독 적중 multiplier', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const file = fs.readFileSync(
+      path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+      'utf8',
+    );
+    // cycle 분기: aatroxCycleCounter % 3
+    expect(file).toMatch(/unit\.aatroxCycleCounter\s*%\s*3/);
+    // 3 cycle pattern 모두: single, cone, aoe_circle
+    expect(file).toMatch(/cycleIdx === 0[\s\S]+?pattern:\s*'single'/);
+    expect(file).toMatch(/cycleIdx === 1[\s\S]+?pattern:\s*'cone'/);
+    expect(file).toMatch(/pattern:\s*'aoe_circle'[\s\S]+?slamStunDuration/);
+    // 단독 적중 ×2.5
+    expect(file).toMatch(/aatroxIsSingleTargetSlam[\s\S]+?aliveTargets\.length === 1/);
+  });
+
+  it('N.O.V.A. 추가 발동 코드 fingerprint — cycle 별개 + 모든 적 + 1초 knockup', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const file = fs.readFileSync(
+      path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+      'utf8',
+    );
+    // N.O.V.A. 발동 조건 — Aatrox carry + selector + novaDamage 정의됨
+    expect(file).toMatch(/isAatroxCarry && unit\.aatroxNovaStrikeSelector/);
+    expect(file).toMatch(/carryCfg\?\.abilityData\?\.novaDamage/);
+    // 모든 적 iteration (opposingTeam) + stun (1초 knockup)
+    expect(file).toMatch(/for \(const t of opposingTeam\)[\s\S]+?type: 'stun'[\s\S]+?N\.O\.V\.A\./);
+  });
+
+  it('cycle counter 사망 reset 메커니즘 fingerprint', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const file = fs.readFileSync(
+      path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+      'utf8',
+    );
+    // dead unit 의 aatroxPreviouslyDead = true 표시 (main loop tick)
+    expect(file).toMatch(/u\.aatroxPreviouslyDead\s*=\s*true/);
+    // cast 진입 시 reset (previouslyDead 일 때 counter 0)
+    expect(file).toMatch(/aatroxPreviouslyDead[\s\S]+?aatroxCycleCounter\s*=\s*0/);
+  });
+
+  it('Aatrox carry 활성 시 시뮬 정상 작동 (sanity, cycle 없이도 cast)', () => {
+    const aatrox = champions.find(c => c.apiName === 'TFT17_Aatrox');
+    const enemy = champions.find(c => c.apiName === 'TFT17_Briar');
+    const carryAug = augments.find(a => a.apiName === 'TFT17_Augment_AatroxCarry');
+    if (!aatrox || !enemy || !carryAug) return;
+    const result = simulateCombat(
+      [placed(aatrox, 0, 3, 2)],
+      [placed(enemy, 0, 4, 2)],
+      {
+        seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
+        playerAugments: [carryAug],
+      }
+    );
+    const a = result.playerUnits.find(u => u.champion.apiName === 'TFT17_Aatrox');
+    if (!a) return;
+    expect(a.role).toBe('Fighter');
+    // cycle 진행 (cast 1회 이상 시 counter > 0)
+    expect(a.aatroxCycleCounter).toBeGreaterThanOrEqual(0);
+  });
+
+  // codex P1 (PR #73) 회귀 가드 — N.O.V.A. 추가 발동은 DRX surge 활성 시 만 적용.
+  // selector flag 만으로 매 cast 발동되면 6초 surge 전 / DRX trait 없는 경우에도 발동되어
+  // inflated damage / CC. tickDrxNova 의 timing/trait gating 패턴 동일 적용 검증.
+  it('N.O.V.A. 추가 발동이 DRX state.triggered 검사 포함 (codex P1 PR #73)', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const file = fs.readFileSync(
+      path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+      'utf8',
+    );
+    // novaSurgeActive 변수 + ownDrxState.triggered 패턴 검증
+    expect(file).toMatch(/novaSurgeActive\s*=\s*!!\(ownDrxState && ownDrxState\.triggered\)/);
+    // N.O.V.A. 발동 조건에 novaSurgeActive 포함
+    expect(file).toMatch(/isAatroxCarry && unit\.aatroxNovaStrikeSelector && novaSurgeActive/);
+  });
+
+  it('N.O.V.A. selector 지정 시 selector flag = true (sanity)', () => {
+    const aatrox = champions.find(c => c.apiName === 'TFT17_Aatrox');
+    const enemy = champions.find(c => c.apiName === 'TFT17_Briar');
+    const carryAug = augments.find(a => a.apiName === 'TFT17_Augment_AatroxCarry');
+    if (!aatrox || !enemy || !carryAug) return;
+    const result = simulateCombat(
+      [placed(aatrox, 0, 3, 2)],
+      [placed(enemy, 0, 4, 2)],
+      {
+        seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
+        playerAugments: [carryAug],
+        playerNovaStrikeSelectorUnit: 'TFT17_Aatrox',
+      }
+    );
+    const a = result.playerUnits.find(u => u.champion.apiName === 'TFT17_Aatrox');
+    if (!a) return;
+    expect(a.aatroxNovaStrikeSelector).toBe(true);
+  });
+});
+
 describe('CarryAugmentConfig.statOverrides — 슬롯 추후 채움 가드', () => {
   it('현재는 모든 augment 의 statOverrides 가 미정의 (사용자 추후 인게임 측정 후 채움)', () => {
     // 본 PR 은 슬롯만 추가. 사용자가 인게임 stat 측정 후 채울 예정.

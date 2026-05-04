@@ -95,6 +95,16 @@ export interface SimulateOptions {
   /** 칸 버프 증강 */
   playerHexBuffs?: HexBuff[];
   enemyHexBuffs?: HexBuff[];
+  /**
+   * N.O.V.A. (DRX 5+ 시너지) "타격 선택기" 아이템 받은 NOVA 유닛 apiName — PR7-C.
+   * 보드 위 NOVA 유닛 1명 (Aatrox/Caitlyn/Akali/Maokai/Kindred) 에만 적용.
+   * 시뮬에서는 apiName 으로 지정 (예: 'TFT17_Aatrox') — 매칭 unit 의
+   * aatroxNovaStrikeSelector flag = true.
+   * 본 PR (PR7-C) 은 carry Aatrox 한정 — cycle 패턴이 global 로 확장 + 모든 적 knockup.
+   * 다른 NOVA 유닛 효과 변환은 후속 PR.
+   */
+  playerNovaStrikeSelectorUnit?: string;
+  enemyNovaStrikeSelectorUnit?: string;
   /** 현재 스테이지 번호 (전사 AS 패시브, 기본값 4) */
   stageNumber?: number;
   /** 중재자 법률 */
@@ -237,6 +247,9 @@ function createCombatUnit(
     blitzBoltSpeedMult: 1,
     gragasCarryActive: false,
     leonaCarryActive: false,
+    aatroxCycleCounter: 0,
+    aatroxPreviouslyDead: false,
+    aatroxNovaStrikeSelector: false,
     attackCount: 0,
     castCount: 0,
     killCount: 0,
@@ -2877,6 +2890,9 @@ function spawnFreljordTurrets(
             blitzBoltSpeedMult: 1,
             gragasCarryActive: false,
             leonaCarryActive: false,
+            aatroxCycleCounter: 0,
+            aatroxPreviouslyDead: false,
+            aatroxNovaStrikeSelector: false,
             attackCount: 0,
             castCount: 0,
             killCount: 0,
@@ -3073,6 +3089,9 @@ function trySpawnGalio(
     blitzBoltSpeedMult: 1,
     gragasCarryActive: false,
     leonaCarryActive: false,
+    aatroxCycleCounter: 0,
+    aatroxPreviouslyDead: false,
+    aatroxNovaStrikeSelector: false,
     attackCount: 0,
     castCount: 0,
     killCount: 0,
@@ -3807,6 +3826,18 @@ export function simulateCombat(
   // hero augment carry 변환 — 자폭(그라가스) / 방패 여전사(레오나).
   applyHeroCarryTransforms(playerAugApiNames, playerUnits);
   applyHeroCarryTransforms(enemyAugApiNames, enemies);
+  // PR7-C (17.2b): N.O.V.A. 타격 선택기 — DRX 5+ 시너지 활성 시 사용자 지정 NOVA 유닛 1개에
+  // aatroxNovaStrikeSelector flag = true. 본 PR 은 carry Aatrox 한정 처리 (N.O.V.A. 추가 발동
+  // = 모든 적 novaDamage + 1초 공중 띄움). 다른 NOVA 유닛 (Caitlyn/Akali/Maokai/Kindred)
+  // 효과 추가는 후속 PR.
+  if (options.playerNovaStrikeSelectorUnit) {
+    const t = playerUnits.find(u => u.champion.apiName === options.playerNovaStrikeSelectorUnit);
+    if (t) t.aatroxNovaStrikeSelector = true;
+  }
+  if (options.enemyNovaStrikeSelectorUnit) {
+    const t = enemies.find(u => u.champion.apiName === options.enemyNovaStrikeSelectorUnit);
+    if (t) t.aatroxNovaStrikeSelector = true;
+  }
   // 전사 AS 패시브 — carry 변환 후 적용 (codex P2 PR #68).
   // role='Fighter' 로 변환된 carry (Jax/Pyke/Poppy/Aatrox/Gragas/Leona/Mordekaiser)
   // 도 stage-based AS bonus 수령. 일반 'Fighter' role 챔프와 동일 처리.
@@ -4220,8 +4251,15 @@ export function simulateCombat(
 
     // 요새 (Bastion) doubled buff 만료 처리 — 모든 global per-tick handlers (Piltover invention,
     // Galio impact 등) 가 mitigation 계산 시점에 정확한 stats 를 보도록 가장 먼저 처리 (codex P2).
+    // PR7-C (17.2b): Aatrox carry — dead unit 의 aatroxPreviouslyDead = true 표시 (resurrect
+    // 메커니즘 연동). 부활 시 다음 cast 진입 시 cycle counter 0 reset (cast site 처리).
     for (const u of allUnits) {
-      if (u.state === 'dead') continue;
+      if (u.state === 'dead') {
+        if (u.aatroxCycleCounter > 0 || !u.aatroxPreviouslyDead) {
+          u.aatroxPreviouslyDead = true;
+        }
+        continue;
+      }
       tickBastionDouble(u, tick);
       // 도전자 Burst 만료 — dash 시점에 set 된 endTick 도달 시 0 reset.
       if (u.challengerBurstEndTick > 0 && tick >= u.challengerBurstEndTick) {
@@ -4927,7 +4965,8 @@ export function simulateCombat(
             eventBus.emit('on_mana_spent', { sourceId: unit.id, value: spentMana, tick });
 
             const augNames = unit.team === 'player' ? playerAugApiNames : enemyAugApiNames;
-            const config: AbilityConfig = getAbilityConfigForUnit(unit, augNames);
+            // PR7-C (17.2b): Aatrox carry cycle 분기로 config dynamic 변경 가능 → const → let.
+            let config: AbilityConfig = getAbilityConfigForUnit(unit, augNames);
 
             // 스킬 시전 후 cast time — 이 시간 동안 공격 불가
             unit.attackCooldown = config.pattern === 'self_buff' ? SELF_BUFF_CAST_TICKS : CAST_TICKS;
@@ -4941,10 +4980,77 @@ export function simulateCombat(
             // 변수 (작은 값, 예: Jax Duration=4초) 는 damage 의미 약해 self-hit 영향 미미.
             // → self_buff pattern 은 carry damage override 적용 안 함.
             const carryCfg = findCarryAugment(unit.champion.apiName, augNames);
+
+            // === PR7-C (17.2b): Aatrox carry — 3-skill cycle + N.O.V.A. 변환 ===
+            // cast 마다 cycle counter % 3 으로 분기:
+            //   0 = 타격 (single AD)
+            //   1 = 휩쓸기 (cone radius 1, AD + armor 감소 10)
+            //   2 = 찍기 (aoe_circle radius 1, AD + knockup + 단독 적중 ×2.5)
+            // N.O.V.A. 타격 (carry Aatrox + aatroxNovaStrikeSelector=true): pattern → global
+            // + 모든 적 knockup. cycle damage 그대로 적용 (사용자 spec).
+            // 사망 시 cycle reset: aatroxPreviouslyDead 검사 (resurrect 메커니즘 연동, 미래 대비).
+            let aatroxCycleDamage: number | null = null;
+            let aatroxCycleDamageType: DamageType | null = null;
+            let aatroxIsSingleTargetSlam = false; // 찍기 cycle 단독 적중 multiplier 검사용
+            const isAatroxCarry = carryCfg?.augmentApiName === 'TFT17_Augment_AatroxCarry'
+              && !!carryCfg.abilityData;
+            if (isAatroxCarry) {
+              if (unit.aatroxPreviouslyDead) {
+                unit.aatroxCycleCounter = 0;
+                unit.aatroxPreviouslyDead = false;
+              }
+              const ad = carryCfg!.abilityData!;
+              const dt: DamageType = carryCfg!.damageTypeOverride ?? ad.damageType ?? 'physical';
+              aatroxCycleDamageType = dt;
+              const cycleIdx = unit.aatroxCycleCounter % 3;
+              if (cycleIdx === 0) {
+                // 타격 — single
+                config = { ...config, pattern: 'single' };
+                aatroxCycleDamage = ad.damage?.[unit.starLevel - 1] ?? ad.damage?.[0] ?? 0;
+              } else if (cycleIdx === 1) {
+                // 휩쓸기 — cone radius 1 + armor 감소 debuff
+                config = {
+                  ...config,
+                  pattern: 'cone',
+                  radius: 1,
+                  debuff: { ...(config.debuff ?? {}), armorReduction: ad.armorReduction ?? 0 },
+                };
+                aatroxCycleDamage = ad.secondaryDamage?.[unit.starLevel - 1] ?? ad.secondaryDamage?.[0] ?? 0;
+              } else {
+                // 찍기 — aoe_circle radius 1 + knockup (stun)
+                config = {
+                  ...config,
+                  pattern: 'aoe_circle',
+                  radius: 1,
+                  stun: ad.slamStunDuration ?? 1.0,
+                };
+                aatroxCycleDamage = ad.slamDamage?.[unit.starLevel - 1] ?? ad.slamDamage?.[0] ?? 0;
+                aatroxIsSingleTargetSlam = true; // 단독 적중 검사 enable
+              }
+              // N.O.V.A. 타격은 cycle ability 와 **별개의 추가 효과** (사용자 정정 spec):
+              //   "기존 스킬은 그대로 유지 + 6초 NOVA 각성 시 특수 효과 추가"
+              //   Aatrox: 모든 적에게 novaDamage 물리 + 1초 공중 띄움 (별도 추가 발동).
+              //   cycle (single 타격 / cone 휩쓸기 / aoe_circle radius 1 찍기) 은 변경 없음.
+              //   별도 N.O.V.A. 추가 발동 로직은 cast loop 끝난 후 처리 (post-cast pipeline 직전).
+            }
+
             const carryForDamage = config.pattern !== 'self_buff' ? carryCfg : null;
-            const { damage: rawAbilityDmgBase, type: dmgType } = resolveAbilityDamage(
-              unit.champion, unit.starLevel, unit.stats.ap, carryForDamage, config.damageVar
-            );
+            // PR7-C: Aatrox cycle damage 직접 사용 (resolveAbilityDamage 우회) — cycle 별 다른 damage.
+            let rawAbilityDmgBase: number;
+            let dmgType: DamageType;
+            if (isAatroxCarry && aatroxCycleDamage !== null && aatroxCycleDamageType !== null) {
+              const cycleType = aatroxCycleDamageType;
+              rawAbilityDmgBase = cycleType === 'magic'
+                ? aatroxCycleDamage * (1 + unit.stats.ap / 100)
+                : aatroxCycleDamage;
+              dmgType = cycleType;
+            } else {
+              const result = resolveAbilityDamage(
+                unit.champion, unit.starLevel, unit.stats.ap, carryForDamage, config.damageVar
+              );
+              rawAbilityDmgBase = result.damage;
+              dmgType = result.type;
+            }
             // SharpshooterModule (위력 프레임) — 스킬 피해 +5% 가산.
             const rawAbilityDmg = rawAbilityDmgBase * (1 + (unit.gravesAbilityDamageBonus ?? 0));
 
@@ -5173,6 +5279,14 @@ export function simulateCombat(
                 //   tankBonusMultiplier: primary target 이 탱커 일 때만 +N% (사용자 결정 PR4 동일 — role==='Tank' 만)
                 let baseDmg = abilityDmg;
                 const isPrimaryTarget = t === abilityTarget;
+                // PR7-C (17.2b): Aatrox 찍기 단독 적중 ×2.5 — 찍기 cycle (cycleIdx=2)
+                // + abilityTargets 단일 (대상 본인만, radius 1 안에 다른 적 없음).
+                // N.O.V.A. 변환 (global pattern) 시에는 abilityTargets 다수라 자연스럽게 미적용.
+                if (aatroxIsSingleTargetSlam
+                    && aliveTargets.length === 1
+                    && carryCfg?.abilityData?.singleTargetMultiplier) {
+                  baseDmg *= carryCfg.abilityData.singleTargetMultiplier;
+                }
                 if (carryCfg?.abilityData?.secondaryDamage && !isPrimaryTarget) {
                   const secArr = carryCfg.abilityData.secondaryDamage;
                   const secBase = secArr[unit.starLevel - 1] ?? secArr[0];
@@ -5387,6 +5501,77 @@ export function simulateCombat(
                   // primary recast target 처치 못했으면 cascade 종료
                   if (recastTarget.state !== 'dead') break;
                 }
+              }
+
+              // === PR7-C (17.2b): N.O.V.A. 타격 — 추가 발동 (cycle 과 별개) ===
+              // 사용자 정정 spec: "기존 스킬 그대로 + 6초 NOVA 각성 시 특수 효과 추가".
+              // Aatrox 추가 효과: 모든 적에게 novaDamage 물리 + 1초 공중 띄움.
+              // 일반 ability mitigation (resistance + DR + non-target reduction + shield + invulnerable)
+              // 동일 적용. damage 는 totalAbilityDmg / Raw 누적 (omnivamp / Fountain / on_cast 정합).
+              //
+              // codex P1 (PR #73): DRX surge 활성 검사 — selector flag 만으로는 불충분.
+              // tickDrxNova 가 6초 (TeamAttackDelay) 도달 시 state.triggered = true 설정.
+              // DRX trait 비활성 (state === null) 또는 surge 미발동 (triggered === false) 시
+              // N.O.V.A. 효과 미발동 — tickDrxNova 의 timing/trait gating 동일 적용.
+              const ownDrxState = unit.team === 'player' ? playerDrxState : enemyDrxState;
+              const novaSurgeActive = !!(ownDrxState && ownDrxState.triggered);
+              if (isAatroxCarry && unit.aatroxNovaStrikeSelector && novaSurgeActive
+                  && carryCfg?.abilityData?.novaDamage) {
+                const novaArr = carryCfg.abilityData.novaDamage;
+                const novaBase = novaArr[unit.starLevel - 1] ?? novaArr[0];
+                // novaDamage 는 도메인상 AD 표기 → physical, 0% bonusAdPercent default.
+                // mitigation 패턴: physical 이라 armor / armorPen 직접 사용 (DamageType 비교 없이 단순화).
+                const novaStunTicks = TICKS_PER_SECOND;
+                const ownArbiterState = unit.team === 'player' ? playerArbiterState : enemyArbiterState;
+                for (const t of opposingTeam) {
+                  if (t.state === 'dead') continue;
+                  const resistance = t.stats.armor;
+                  const pen = unit.stats.armorPen;
+                  let novaEffective = applyResistance(novaBase, resistance, pen);
+                  if (t.damageReduction > 0) novaEffective *= (1 - t.damageReduction);
+                  if ((t.role === 'Fighter' || t.role === 'Assassin') && t.target !== unit.id) {
+                    novaEffective *= (1 - NON_TARGET_DAMAGE_REDUCTION);
+                  }
+                  novaEffective = applyShield(t, novaEffective, eventBus, tick);
+                  if (t.statusEffects.some(e => e.type === 'invulnerable')) novaEffective = 0;
+
+                  t.currentHp -= novaEffective;
+                  t.totalDamageTaken += novaEffective;
+                  unit.totalDamageDealt += novaEffective;
+                  totalAbilityDmg += novaEffective;
+                  totalRawAbilityDmg += novaBase;
+
+                  triggerSerpentPoison(unit, t, novaEffective);
+
+                  // N.O.V.A. knockup — 1초 stun (전장 가르고 모든 적 공중 띄움)
+                  t.statusEffects.push({ type: 'stun', sourceId: unit.id, remainingTicks: novaStunTicks });
+                  t.state = 'idle';
+                  t.attackCooldown = 0;
+
+                  const novaLog: CombatLog = {
+                    tick, time, type: 'ability',
+                    sourceId: unit.id, targetId: t.id,
+                    value: Math.round(novaEffective),
+                    message: `${unit.champion.name} N.O.V.A. 타격! ${t.champion.name}에게 ${Math.round(novaEffective)} 물리 피해 + 공중 띄움`,
+                  };
+                  logs.push(novaLog);
+                  tickLogs.push(novaLog);
+
+                  if (t.currentHp <= 0) {
+                    t.currentHp = 0;
+                    t.state = 'dead';
+                    unit.killCount++;
+                    ownArbiterState.enemyDeathCount++;
+                    eventBus.emit('on_kill', { sourceId: unit.id, targetId: t.id, tick });
+                    eventBus.emit('on_death', { sourceId: t.id, targetId: unit.id, tick });
+                  }
+                }
+              }
+
+              // PR7-C (17.2b): Aatrox carry cycle counter +1 — cast 완료 후 다음 cast cycle 진입 준비.
+              // 사용자 결정: 사망 시 reset (aatroxPreviouslyDead 검사 — cast 진입 시점에 이미 처리).
+              if (isAatroxCarry) {
+                unit.aatroxCycleCounter++;
               }
 
               // 최신상 Phase 3C-2 — ability AOE (BlastRadius / SympatheticDetonation).
