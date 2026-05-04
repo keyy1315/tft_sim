@@ -770,6 +770,39 @@ describe('PR7-C — 아트록스 carry 3-skill cycle + N.O.V.A. 추가 발동', 
     expect(file).toMatch(/triggeredSet\.add\(e\.id\)/);
   });
 
+  // refactor: cast-post-processing-helper — applyCarryPostCastEffects helper 추출.
+  // 꼬마정령 multi-stun + Akali burn refresh 통합. in-range / OOR 둘 다 helper 호출.
+  // codex P2 (PR #83) 회귀 가드 — helper 호출 위치가 splash AOE 후.
+  // 기존: splash 전 호출 → splash 로 죽을 적이 multi-stun 3 슬롯 차지 → 살아남는 적 stun 부족.
+  // 정정: splash 후 호출 → alive 적만 stun 슬롯.
+  it('applyCarryPostCastEffects 호출 위치가 splash AOE 직후 (codex P2 PR #83)', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const file = fs.readFileSync(
+      path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+      'utf8',
+    );
+    // 호출 위치 fingerprint — splash AOE (triggerAbilitySympatheticDetonation 또는 BlastRadius) 후
+    // 같은 if 블록 안에서 helper 호출되어야 함.
+    // 두 사이트 사이 ~1100자 (codex P2 코멘트 + 누적 코드 포함).
+    expect(file).toMatch(/triggerAbilitySympatheticDetonation\([\s\S]{0,1500}?applyCarryPostCastEffects\(unit, abilityTargets, carryCfg\)/);
+  });
+
+  it('applyCarryPostCastEffects helper 정의 + 2 메커니즘 통합 (refactor)', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const file = fs.readFileSync(
+      path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+      'utf8',
+    );
+    // helper 시그니처
+    expect(file).toMatch(/function applyCarryPostCastEffects\(/);
+    // 1. 꼬마정령 multi-stun (helper 안)
+    expect(file).toMatch(/carryCfg\.augmentApiName === 'TFT17_Augment_IvernMinionCarry'[\s\S]+?IVERN_STUN_TARGETS\s*=\s*3/);
+    // 2. Akali burn refresh (helper 안)
+    expect(file).toMatch(/unit\.champion\.apiName === 'TFT17_Akali'[\s\S]+?akaliBurn\.value \*= 1\.10/);
+  });
+
   // PR7-C.7 (17.2b 후속) — Akali 단검 출혈 +10% 메커니즘.
   // 사용자 spec: "단검은 출혈 피해량을 10% 증가". Akali raw ability hit 적의 burn value × 1.10.
   it('Akali 단검 burn refresh 코드 fingerprint (PR7-C.7)', async () => {
@@ -788,22 +821,23 @@ describe('PR7-C — 아트록스 carry 3-skill cycle + N.O.V.A. 추가 발동', 
   });
 
   // codex P1 (PR #82) 회귀 가드 — Akali 단검 burn refresh OOR cast 동기화.
-  // in-range cast 와 OOR cast 모두 적용되도록 두 site 호출 검증.
-  it('Akali 단검 burn refresh in-range + OOR 둘 다 적용 (codex P1 PR #82)', async () => {
+  // refactor (cast-post-processing-helper): applyCarryPostCastEffects helper 로 통합.
+  // in-range / OOR 둘 다 helper 호출 → 신규 메커니즘 추가 시 helper 한 곳만 수정.
+  it('cast post-cast effects helper 호출 in-range + OOR 둘 다 (refactor + codex P1 PR #82)', async () => {
     const fs = await import('node:fs');
     const path = await import('node:path');
     const file = fs.readFileSync(
       path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
       'utf8',
     );
-    // unit.champion.apiName === 'TFT17_Akali' 매치 횟수 >= 2 (in-range + OOR)
-    const akaliMatches = file.match(/unit\.champion\.apiName === 'TFT17_Akali'/g);
-    expect(akaliMatches).toBeDefined();
-    expect(akaliMatches!.length).toBeGreaterThanOrEqual(2);
-    // akali-nova-selector burn 검색 매치 횟수 >= 2
-    const burnMatches = file.match(/se\.type === 'burn' && se\.sourceId === 'akali-nova-selector'/g);
-    expect(burnMatches).toBeDefined();
-    expect(burnMatches!.length).toBeGreaterThanOrEqual(2);
+    // applyCarryPostCastEffects 호출 count >= 2 (in-range + OOR cast loop)
+    const callMatches = file.match(/applyCarryPostCastEffects\(unit, abilityTargets/g);
+    expect(callMatches).toBeDefined();
+    expect(callMatches!.length).toBeGreaterThanOrEqual(2);
+    // helper 안 Akali burn refresh + 꼬마정령 multi-stun 모두 정의
+    expect(file).toMatch(/function applyCarryPostCastEffects\(/);
+    expect(file).toMatch(/unit\.champion\.apiName === 'TFT17_Akali'/);
+    expect(file).toMatch(/se\.type === 'burn' && se\.sourceId === 'akali-nova-selector'/);
   });
 
   it('Akali N.O.V.A. selector 효과 코드 fingerprint (PR7-C.6)', async () => {
@@ -1074,6 +1108,7 @@ describe('PR7-E — 미프 시너지 + carry onAttack 패시브', () => {
         'utf8',
       );
       // 꼬마정령 multi-stun + caster 위치 기준 정렬 + IVERN_STUN_TARGETS=3
+      // refactor (cast-post-processing-helper): applyCarryPostCastEffects helper 안으로 이동.
       expect(file).toMatch(/IVERN_STUN_TARGETS\s*=\s*3/);
       expect(file).toMatch(/hexDistance\(unit\.position, a\.position\) - hexDistance\(unit\.position, b\.position\)/);
     });
@@ -1198,9 +1233,9 @@ describe('PR7-E — 미프 시너지 + carry onAttack 패시브', () => {
       // OOR cast loop 안 carry damage modifier — refactor (carry-damage-modifier) 후
       // helper 호출로 통합 (oorBaseDmg = applyCarryDamageModifiers(...)). hexReduction 포함.
       expect(file).toMatch(/oorBaseDmg = applyCarryDamageModifiers\(abilityDmg, unit, t, oorCarryCfg/);
-      // OOR cast 끝 multi-stun (oorCarryCfg + IvernMinionCarry + IVERN_STUN_TARGETS_OOR=3)
-      expect(file).toMatch(/IVERN_STUN_TARGETS_OOR\s*=\s*3/);
-      expect(file).toMatch(/oorCarryCfg\?\.abilityData\?\.stunDuration[\s\S]+?TFT17_Augment_IvernMinionCarry/);
+      // OOR cast 끝 multi-stun + Akali burn refresh — refactor (cast-post-processing-helper)
+      // 후 applyCarryPostCastEffects helper 호출로 통합 (oorCarryCfg 인자).
+      expect(file).toMatch(/applyCarryPostCastEffects\(unit, abilityTargets, oorCarryCfg\)/);
     });
 
     it('꼬마정령 carry 활성 시 시뮬 정상 작동 (sanity)', () => {
