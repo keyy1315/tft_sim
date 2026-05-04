@@ -5508,7 +5508,14 @@ export function simulateCombat(
               // Aatrox 추가 효과: 모든 적에게 novaDamage 물리 + 1초 공중 띄움.
               // 일반 ability mitigation (resistance + DR + non-target reduction + shield + invulnerable)
               // 동일 적용. damage 는 totalAbilityDmg / Raw 누적 (omnivamp / Fountain / on_cast 정합).
-              if (isAatroxCarry && unit.aatroxNovaStrikeSelector
+              //
+              // codex P1 (PR #73): DRX surge 활성 검사 — selector flag 만으로는 불충분.
+              // tickDrxNova 가 6초 (TeamAttackDelay) 도달 시 state.triggered = true 설정.
+              // DRX trait 비활성 (state === null) 또는 surge 미발동 (triggered === false) 시
+              // N.O.V.A. 효과 미발동 — tickDrxNova 의 timing/trait gating 동일 적용.
+              const ownDrxState = unit.team === 'player' ? playerDrxState : enemyDrxState;
+              const novaSurgeActive = !!(ownDrxState && ownDrxState.triggered);
+              if (isAatroxCarry && unit.aatroxNovaStrikeSelector && novaSurgeActive
                   && carryCfg?.abilityData?.novaDamage) {
                 const novaArr = carryCfg.abilityData.novaDamage;
                 const novaBase = novaArr[unit.starLevel - 1] ?? novaArr[0];

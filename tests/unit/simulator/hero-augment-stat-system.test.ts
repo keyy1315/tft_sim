@@ -644,6 +644,22 @@ describe('PR7-C — 아트록스 carry 3-skill cycle + N.O.V.A. 추가 발동', 
     expect(a.aatroxCycleCounter).toBeGreaterThanOrEqual(0);
   });
 
+  // codex P1 (PR #73) 회귀 가드 — N.O.V.A. 추가 발동은 DRX surge 활성 시 만 적용.
+  // selector flag 만으로 매 cast 발동되면 6초 surge 전 / DRX trait 없는 경우에도 발동되어
+  // inflated damage / CC. tickDrxNova 의 timing/trait gating 패턴 동일 적용 검증.
+  it('N.O.V.A. 추가 발동이 DRX state.triggered 검사 포함 (codex P1 PR #73)', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const file = fs.readFileSync(
+      path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+      'utf8',
+    );
+    // novaSurgeActive 변수 + ownDrxState.triggered 패턴 검증
+    expect(file).toMatch(/novaSurgeActive\s*=\s*!!\(ownDrxState && ownDrxState\.triggered\)/);
+    // N.O.V.A. 발동 조건에 novaSurgeActive 포함
+    expect(file).toMatch(/isAatroxCarry && unit\.aatroxNovaStrikeSelector && novaSurgeActive/);
+  });
+
   it('N.O.V.A. selector 지정 시 selector flag = true (sanity)', () => {
     const aatrox = champions.find(c => c.apiName === 'TFT17_Aatrox');
     const enemy = champions.find(c => c.apiName === 'TFT17_Briar');
