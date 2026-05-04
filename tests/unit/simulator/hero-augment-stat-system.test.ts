@@ -975,6 +975,31 @@ describe('PR7-E — 미프 시너지 + carry onAttack 패시브', () => {
       expect(file).toMatch(/ad\.hexReduction !== undefined[\s\S]+?TFT17_Augment_IvernMinionCarry/);
     });
 
+    // refactor: oor-cast-mitigation — OOR cast loop 가 applyAbilityMitigation helper 사용.
+    // in-range 와 완전 일관 (non-target reduction OOR 정정 + true damage helper 자연 처리).
+    it('OOR cast loop applyAbilityMitigation 호출 (refactor: oor-cast-mitigation)', async () => {
+      const fs = await import('node:fs');
+      const path = await import('node:path');
+      const file = fs.readFileSync(
+        path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+        'utf8',
+      );
+      // OOR cast loop helper 호출 (rawDmg, dmgType 기반)
+      expect(file).toMatch(/const dmg = applyAbilityMitigation\(unit, t, rawDmg, dmgType, eventBus, tick\)/);
+    });
+
+    it('OOR cast loop markTargetDead 호출 (refactor: oor-cast-mitigation)', async () => {
+      const fs = await import('node:fs');
+      const path = await import('node:path');
+      const file = fs.readFileSync(
+        path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+        'utf8',
+      );
+      // OOR cast loop ownArbOOR + markTargetDead 호출
+      expect(file).toMatch(/ownArbOOR\s*=\s*unit\.team === 'player'/);
+      expect(file).toMatch(/markTargetDead\(unit, t, ownArbOOR/);
+    });
+
     it('cast loop main + OOR cast loop 모두 applyCarryDamageModifiers 호출 (refactor)', async () => {
       const fs = await import('node:fs');
       const path = await import('node:path');
