@@ -3,7 +3,7 @@
     "set": 17,
     "source": "CommunityDragon TFT ko_kr.json",
     "extractedAt": "2026-04-29T00:27:54.652Z",
-    "totalAugments": 435
+    "totalAugments": 436
   },
   "augments": [
     {
@@ -8371,6 +8371,23 @@
       "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/ConstructaCompanion_III.TFT_Set16.tex",
       "associatedTraits": [],
       "tags": [],
+      "disable": false
+    },
+    {
+      "name": "신병",
+      "apiName": "TFT6_Augment_ForceOfNature",
+      "desc": "최대 팀 규모가 +@MaxArmySizeIncrease@ 증가하고 4단계 챔피언 @NumUnits@명을 획득합니다.",
+      "effects": {
+        "MaxArmySizeIncrease": 1,
+        "NumUnits": 3
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/NewRecruit3.tex",
+      "associatedTraits": [],
+      "tags": [
+        "{cf1fd3af}",
+        "{b72bd3bf}",
+        "{d02ae323}"
+      ],
       "disable": false
     }
   ]
