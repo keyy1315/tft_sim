@@ -660,6 +660,54 @@ describe('PR7-C — 아트록스 carry 3-skill cycle + N.O.V.A. 추가 발동', 
     expect(file).toMatch(/isAatroxCarry && unit\.aatroxNovaStrikeSelector && novaSurgeActive/);
   });
 
+  // PR7-C.5 (17.2b 후속) — 다른 NOVA 유닛 (Maokai/Kindred) 타격 선택기 추가 효과.
+  // 사용자 spec:
+  //   - Maokai: surge 시 적군 광역 stun (starLevel 1/2/3 = 1.5/1.5/1.75초) + 기존 회복 12% 유지
+  //   - Kindred: surge 시 본인 damageAmp +5% (영구) + 모든 적 표식, 5초 주기 표식 갱신
+  it('Maokai N.O.V.A. selector 효과 코드 fingerprint (PR7-C.5)', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const file = fs.readFileSync(
+      path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+      'utf8',
+    );
+    // tickDrxNova 안 maokaiSelector 검사 (TFT17_Maokai + aatroxNovaStrikeSelector)
+    expect(file).toMatch(/maokaiSelector\s*=\s*state\.teamUnits\.find\([\s\S]+?'TFT17_Maokai'[\s\S]+?aatroxNovaStrikeSelector/);
+    // starLevel 기반 stun 시간 [1.5, 1.5, 1.75]
+    expect(file).toMatch(/maokaiStunArr\s*=\s*\[1\.5, 1\.5, 1\.75\]/);
+    // 적군 stun statusEffect 추가 (sourceId='maokai-nova-selector')
+    expect(file).toMatch(/sourceId: 'maokai-nova-selector'/);
+  });
+
+  it('Kindred N.O.V.A. selector 효과 코드 fingerprint (PR7-C.5)', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const file = fs.readFileSync(
+      path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+      'utf8',
+    );
+    // tickDrxNova 안 kindredSelector 검사 (TFT17_Kindred + aatroxNovaStrikeSelector)
+    expect(file).toMatch(/kindredSelector\s*=\s*state\.teamUnits\.find\([\s\S]+?'TFT17_Kindred'[\s\S]+?aatroxNovaStrikeSelector/);
+    // damageAmp +5%
+    expect(file).toMatch(/kindredSelector\.damageAmp \+= 0\.05/);
+    // mark statusEffect (sourceId='kindred-nova-selector')
+    expect(file).toMatch(/sourceId: 'kindred-nova-selector'/);
+  });
+
+  it('Kindred 5초 주기 mark 갱신 코드 fingerprint (PR7-C.5)', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const file = fs.readFileSync(
+      path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+      'utf8',
+    );
+    // tickKindredNovaMark helper + 5초 주기 (5 × TICKS_PER_SECOND)
+    expect(file).toMatch(/tickKindredNovaMark/);
+    expect(file).toMatch(/periodTicks\s*=\s*5\s*\*\s*TICKS_PER_SECOND/);
+    // surge triggered 후만 발동
+    expect(file).toMatch(/drxState\.triggered/);
+  });
+
   it('N.O.V.A. selector 지정 시 selector flag = true (sanity)', () => {
     const aatrox = champions.find(c => c.apiName === 'TFT17_Aatrox');
     const enemy = champions.find(c => c.apiName === 'TFT17_Briar');
