@@ -35,3 +35,25 @@ export function getRiotIdAliases(canonicalApiName: string): string[] {
 
   return aliases;
 }
+
+/**
+ * Riot raw ID → canonical apiName 역방향 조회표.
+ * `RIOT_RENAME_ALIASES` 의 정방향 매핑(canonical → [aliases]) 을 모듈 로드 시점에 1회 뒤집어 캐시.
+ */
+const RIOT_RAW_ID_TO_CANONICAL: Record<string, string> = (() => {
+  const reverse: Record<string, string> = {};
+  for (const [canonical, aliases] of Object.entries(RIOT_RENAME_ALIASES)) {
+    for (const alias of aliases) reverse[alias] = canonical;
+  }
+  return reverse;
+})();
+
+/**
+ * Riot 매치 API 가 내려보낸 raw 아이템 ID 가 명시 rename 매핑에 있으면 canonical apiName 을 반환.
+ *
+ * 매핑이 없으면 null. `coverageChecker.resolveItemId` 같은 시뮬/coverage 경로에서 패턴 기반 fallback
+ * 보다 먼저 시도하여 영문명 변경된 아이템(예: Leviathan→Nashor's Tooth) 도 시뮬 입력으로 인정되도록 한다.
+ */
+export function resolveRenameAlias(rawItemId: string): string | null {
+  return RIOT_RAW_ID_TO_CANONICAL[rawItemId] ?? null;
+}
