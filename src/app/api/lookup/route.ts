@@ -11,6 +11,7 @@ import {
 import type { ParsedMatch } from '@/lib/riot';
 import { resolveDescription } from '@/lib/utils/text';
 import { getRiotIdAliases } from '@/lib/analysis/itemIdAliases';
+import { getRiotChampionRawIds } from '@/lib/analysis/championIdAliases';
 
 /**
  * 아이템/특성 desc 를 사용자에게 보여주기 전 정리.
@@ -85,7 +86,13 @@ function loadChampsFromFile(filePath: string, result: Record<string, ChampionMet
     Array.isArray(raw) ? raw : raw.champions ?? [];
   for (const c of champs) {
     if (result[c.apiName]) continue;
-    result[c.apiName] = { name: c.name, cost: c.cost, traits: c.traits ?? [] };
+    const meta: ChampionMeta = { name: c.name, cost: c.cost, traits: c.traits ?? [] };
+    result[c.apiName] = meta;
+    // Riot match API 가 다른 raw ID(예: TFT17_RekSai) 를 내려보낼 수 있는 챔피언은
+    // alias 키에도 동일 메타 미러 등록 — 미지원 표시(`?`) 방지.
+    for (const rawAlias of getRiotChampionRawIds(c.apiName)) {
+      if (!result[rawAlias]) result[rawAlias] = meta;
+    }
   }
 }
 
