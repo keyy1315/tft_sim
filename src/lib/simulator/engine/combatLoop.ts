@@ -623,10 +623,29 @@ function findBacklineEnemy(unit: CombatUnit, enemies: CombatUnit[]): CombatUnit 
   return findFarthestEnemy(unit, backline);
 }
 
+/**
+ * PR7-B (17.2b) — dash to_largest_cluster: 가장 큰 적 무리 식별.
+ * 사용자 결정: 각 alive 적 위치 중심으로 radius 2 내 타 적 개수 카운트 → max count 적 반환.
+ * tie 시 첫 번째 적 (정렬 stable). 꼬마정령 carry 전용.
+ */
+function findLargestClusterTarget(enemies: CombatUnit[]): CombatUnit {
+  let best = enemies[0];
+  let bestCount = -1;
+  for (const center of enemies) {
+    let count = 0;
+    for (const other of enemies) {
+      if (other === center) continue;
+      if (hexDistance(center.position, other.position) <= 2) count++;
+    }
+    if (count > bestCount) { bestCount = count; best = center; }
+  }
+  return best;
+}
+
 /** 스킬 시전 시 대쉬 이동 — 대상 인접 빈 칸으로 이동 */
 function applyAbilityDash(
   unit: CombatUnit,
-  dashType: 'to_target' | 'to_farthest' | 'to_lowest_hp' | 'to_backline',
+  dashType: 'to_target' | 'to_farthest' | 'to_lowest_hp' | 'to_backline' | 'to_largest_cluster',
   currentTarget: CombatUnit,
   enemyTeam: CombatUnit[],
   occupiedPositions: Set<string>,
@@ -644,6 +663,7 @@ function applyAbilityDash(
     case 'to_farthest': dashTarget = findFarthestEnemy(unit, aliveEnemies); break;
     case 'to_lowest_hp': dashTarget = findLowestHpEnemy(aliveEnemies); break;
     case 'to_backline': dashTarget = findBacklineEnemy(unit, aliveEnemies); break;
+    case 'to_largest_cluster': dashTarget = findLargestClusterTarget(aliveEnemies); break;
   }
 
   const neighbors = getNeighbors(dashTarget.position);
@@ -5381,6 +5401,15 @@ export function simulateCombat(
                 if (carryCfg?.abilityData?.armorScale) {
                   baseDmg += t.stats.armor * carryCfg.abilityData.armorScale;
                 }
+                // PR7-B (17.2b): 꼬마정령 carry hexReduction — abilityTarget 위치 기준 distance 기반
+                // multiplicative falloff (PR4 자폭 패턴 일관). 1칸당 -45%.
+                // (1 - hexReduction) ^ distance. 꼬마정령 carry 한정 (다른 carry 는 hexReduction
+                // 정의 안 됨). 자폭 그라가스는 selfDamage 분기 별도 처리라 본 분기 영향 없음.
+                if (carryCfg?.abilityData?.hexReduction !== undefined
+                    && carryCfg.augmentApiName === 'TFT17_Augment_IvernMinionCarry') {
+                  const distFromCenter = hexDistance(abilityTarget.position, t.position);
+                  baseDmg *= Math.pow(1 - carryCfg.abilityData.hexReduction, distFromCenter);
+                }
                 // 초가스: % 최대체력 피해 추가
                 if (unit.champion.apiName === 'TFT17_Chogath') {
                   const pctVar = unit.champion.ability.variables?.find(v => v.name === 'PercentMaximumHealthDamage');
@@ -5795,6 +5824,32 @@ export function simulateCombat(
               }
             }
 
+            // === PR7-B (17.2b) — 꼬마정령 carry multi-stun ===
+            // abilityData.stunDuration[star] 정의 시 가장 가까운 N명 (default 3) 에 stun.
+            // 사용자 결정: caster (unit) 위치 기준 가장 가까운 3명 (radius 3 AOE 안 alive 적).
+            // 도메인 line 105: "가장 가까운 3명 1.25/1.5/1.75초 공중 띄움 (stun + knockup)"
+            if (carryCfg?.abilityData?.stunDuration
+                && carryCfg.augmentApiName === 'TFT17_Augment_IvernMinionCarry') {
+              const stunArr = carryCfg.abilityData.stunDuration;
+              const ivernStunDur = stunArr[unit.starLevel - 1] ?? stunArr[0];
+              if (ivernStunDur > 0) {
+                const ivernStunTicks = Math.round(ivernStunDur * TICKS_PER_SECOND);
+                const IVERN_STUN_TARGETS = 3;
+                const sortedClose = abilityTargets
+                  .filter(t => t.state !== 'dead')
+                  .slice()
+                  .sort((a, b) =>
+                    hexDistance(unit.position, a.position) - hexDistance(unit.position, b.position)
+                  )
+                  .slice(0, IVERN_STUN_TARGETS);
+                for (const t of sortedClose) {
+                  t.statusEffects.push({ type: 'stun', sourceId: unit.id, remainingTicks: ivernStunTicks });
+                  t.state = 'idle';
+                  t.attackCooldown = 0;
+                }
+              }
+            }
+
             // === 적 디버프 적용 ===
             if (config.debuff) {
               for (const t of abilityTargets) {
@@ -5975,7 +6030,15 @@ export function simulateCombat(
               const pen = dmgType === 'magic' ? unit.stats.magicPen : unit.stats.armorPen;
               // 저격수 (Sniper) — 거리 기반 추가 damage amp
               const sniperAmp = computeSniperDamageAmp(unit, t);
-              let rawDmg = abilityDmg * (1 + unit.damageAmp + sniperAmp);
+              // codex P1 (PR #76): PR7-B 꼬마정령 hexReduction OOR 동기화 — in-range cast 와
+              // 동일 multiplicative falloff. 일반 cast loop (line ~5378) 와 같은 패턴.
+              let oorBaseDmg = abilityDmg;
+              if (oorCarryCfg?.abilityData?.hexReduction !== undefined
+                  && oorCarryCfg.augmentApiName === 'TFT17_Augment_IvernMinionCarry') {
+                const distFromCenter = hexDistance(abilityTarget.position, t.position);
+                oorBaseDmg *= Math.pow(1 - oorCarryCfg.abilityData.hexReduction, distFromCenter);
+              }
+              let rawDmg = oorBaseDmg * (1 + unit.damageAmp + sniperAmp);
               if (unit.spellCanCrit && rng.next() < unit.stats.critChance) {
                 rawDmg *= unit.stats.critMultiplier;
               }
@@ -6012,6 +6075,30 @@ export function simulateCombat(
                 t.state = 'idle';
                 t.attackCooldown = 0;
                 oorStunApplied = true;
+              }
+            }
+          }
+
+          // codex P1 (PR #76): PR7-B 꼬마정령 multi-stun OOR 동기화 — in-range cast (line ~5828)
+          // 와 동일 패턴. abilityData.stunDuration 정의 시 caster 위치 기준 가장 가까운 3명 stun.
+          if (oorCarryCfg?.abilityData?.stunDuration
+              && oorCarryCfg.augmentApiName === 'TFT17_Augment_IvernMinionCarry') {
+            const stunArr = oorCarryCfg.abilityData.stunDuration;
+            const ivernStunDur = stunArr[unit.starLevel - 1] ?? stunArr[0];
+            if (ivernStunDur > 0) {
+              const ivernStunTicks = Math.round(ivernStunDur * TICKS_PER_SECOND);
+              const IVERN_STUN_TARGETS_OOR = 3;
+              const sortedCloseOOR = abilityTargets
+                .filter(t => t.state !== 'dead')
+                .slice()
+                .sort((a, b) =>
+                  hexDistance(unit.position, a.position) - hexDistance(unit.position, b.position)
+                )
+                .slice(0, IVERN_STUN_TARGETS_OOR);
+              for (const t of sortedCloseOOR) {
+                t.statusEffects.push({ type: 'stun', sourceId: unit.id, remainingTicks: ivernStunTicks });
+                t.state = 'idle';
+                t.attackCooldown = 0;
               }
             }
           }

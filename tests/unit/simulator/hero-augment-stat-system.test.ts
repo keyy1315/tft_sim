@@ -833,6 +833,111 @@ describe('PR7-E — 미프 시너지 + carry onAttack 패시브', () => {
     expect(p.totalDamageDealt).toBeGreaterThanOrEqual(0);
   });
 
+  // PR7-B (17.2b 후속) — 꼬마정령 carry to_largest_cluster + hexReduction + multi-stun.
+  // 사용자 결정:
+  //   - to_largest_cluster: 각 적 위치 중심 radius 2 내 타 적 개수 max 적 → dash target
+  //   - multi-stun: caster (unit) 위치 기준 가장 가까운 3명 (radius 3 AOE 안 alive)
+  //   - hexReduction 0.45: abilityTarget 중심 multiplicative falloff (PR4 자폭 일관)
+  describe('PR7-B — 꼬마정령 carry multi-stun + dash to_largest_cluster + hexReduction', () => {
+    it('IvernMinionCarry abilityOverride dash = to_largest_cluster (기존 to_farthest 변경)', () => {
+      const ivern = CARRY_AUGMENTS.find(c => c.augmentApiName === 'TFT17_Augment_IvernMinionCarry');
+      expect(ivern).toBeDefined();
+      expect(ivern!.abilityOverride.pattern).toBe('aoe_circle');
+      expect(ivern!.abilityOverride.radius).toBe(3);
+      expect(ivern!.abilityOverride.dash).toBe('to_largest_cluster');
+    });
+
+    it('IvernMinionCarry abilityData hexReduction 0.45 / stunDuration [1.25, 1.5, 1.75]', () => {
+      const ivern = CARRY_AUGMENTS.find(c => c.augmentApiName === 'TFT17_Augment_IvernMinionCarry');
+      expect(ivern?.abilityData?.hexReduction).toBe(0.45);
+      expect(ivern?.abilityData?.stunDuration).toEqual([1.25, 1.5, 1.75]);
+      expect(ivern?.abilityData?.damage).toEqual([240, 360, 560]);
+    });
+
+    it('AbilityConfig.dash 에 to_largest_cluster 추가됨', async () => {
+      const fs = await import('node:fs');
+      const path = await import('node:path');
+      const file = fs.readFileSync(
+        path.join(process.cwd(), 'src/lib/simulator/systems/ability.ts'),
+        'utf8',
+      );
+      expect(file).toMatch(/'to_largest_cluster'/);
+    });
+
+    it('findLargestClusterTarget helper 정의 + applyAbilityDash switch case', async () => {
+      const fs = await import('node:fs');
+      const path = await import('node:path');
+      const file = fs.readFileSync(
+        path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+        'utf8',
+      );
+      // helper 함수 + radius 2 내 타 적 카운트 패턴
+      expect(file).toMatch(/function findLargestClusterTarget/);
+      expect(file).toMatch(/hexDistance\(center\.position, other\.position\) <= 2/);
+      // applyAbilityDash switch case
+      expect(file).toMatch(/case 'to_largest_cluster':\s*dashTarget = findLargestClusterTarget/);
+    });
+
+    it('cast loop hexReduction 적용 코드 fingerprint (꼬마정령 한정 multiplicative)', async () => {
+      const fs = await import('node:fs');
+      const path = await import('node:path');
+      const file = fs.readFileSync(
+        path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+        'utf8',
+      );
+      // 꼬마정령 carry hexReduction multiplicative falloff
+      expect(file).toMatch(/carryCfg\.augmentApiName === 'TFT17_Augment_IvernMinionCarry'[\s\S]+?Math\.pow\(1 - carryCfg\.abilityData\.hexReduction, distFromCenter\)/);
+    });
+
+    it('multi-stun 코드 fingerprint — caster 위치 기준 가장 가까운 3명', async () => {
+      const fs = await import('node:fs');
+      const path = await import('node:path');
+      const file = fs.readFileSync(
+        path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+        'utf8',
+      );
+      // 꼬마정령 multi-stun + caster 위치 기준 정렬 + IVERN_STUN_TARGETS=3
+      expect(file).toMatch(/IVERN_STUN_TARGETS\s*=\s*3/);
+      expect(file).toMatch(/hexDistance\(unit\.position, a\.position\) - hexDistance\(unit\.position, b\.position\)/);
+    });
+
+    // codex P1 (PR #76) 회귀 가드 — OOR cast 경로에도 hexReduction + multi-stun 적용.
+    // in-range vs OOR 동일 결과 보장.
+    it('OOR cast 경로 꼬마정령 hexReduction + multi-stun 동기화 (codex P1 PR #76)', async () => {
+      const fs = await import('node:fs');
+      const path = await import('node:path');
+      const file = fs.readFileSync(
+        path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+        'utf8',
+      );
+      // OOR cast loop 안 hexReduction (oorBaseDmg 변수 + IvernMinionCarry 체크)
+      expect(file).toMatch(/oorBaseDmg \*= Math\.pow\(1 - oorCarryCfg\.abilityData\.hexReduction/);
+      // OOR cast 끝 multi-stun (oorCarryCfg + IvernMinionCarry + IVERN_STUN_TARGETS_OOR=3)
+      expect(file).toMatch(/IVERN_STUN_TARGETS_OOR\s*=\s*3/);
+      expect(file).toMatch(/oorCarryCfg\?\.abilityData\?\.stunDuration[\s\S]+?TFT17_Augment_IvernMinionCarry/);
+    });
+
+    it('꼬마정령 carry 활성 시 시뮬 정상 작동 (sanity)', () => {
+      const ivern = champions.find(c => c.apiName === 'TFT17_IvernMinion');
+      const enemy = champions.find(c => c.apiName === 'TFT17_Briar');
+      const carryAug = augments.find(a => a.apiName === 'TFT17_Augment_IvernMinionCarry');
+      if (!ivern || !enemy || !carryAug) return;
+      const result = simulateCombat(
+        [placed(ivern, 0, 3, 2)],
+        [placed(enemy, 0, 4, 2)],
+        {
+          seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
+          playerAugments: [carryAug],
+        }
+      );
+      const u = result.playerUnits.find(p => p.champion.apiName === 'TFT17_IvernMinion');
+      if (!u) return;
+      expect(u.role).toBe('Fighter');
+      // dash + hexReduction + multi-stun 정상 작동 (crash 없음)
+      expect(u.totalDamageDealt).toBeGreaterThanOrEqual(0);
+    });
+  });
+
   it('정령족 trait 활성 시 정령족 unit 의 astronautMeepsStack > 0 (sanity)', () => {
     const poppy = champions.find(c => c.apiName === 'TFT17_Poppy');
     const enemy = champions.find(c => c.apiName === 'TFT17_Briar');

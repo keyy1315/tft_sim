@@ -184,7 +184,8 @@ export const CARRY_AUGMENTS: CarryAugmentConfig[] = [
   {
     augmentApiName: 'TFT17_Augment_IvernMinionCarry',
     targetChampionApiName: 'TFT17_IvernMinion',
-    abilityOverride: { pattern: 'aoe_circle', radius: 3, dash: 'to_farthest' },
+    // PR7-B (17.2b): dash to_largest_cluster (2칸 내 가장 큰 적 무리). aoe_circle radius 3.
+    abilityOverride: { pattern: 'aoe_circle', radius: 3, dash: 'to_largest_cluster' },
     abilityData: {
       name: '빅뱅',
       desc: '주문력 전사로 변환. 패시브: 기본 공격당 추가 magic damage (미프 시너지 잠재력 스케일). 사용: 2칸 내 가장 큰 적 무리에 도약, 반경 3칸 magic damage (1칸당 45% 감소), 가장 가까운 3명 1.25/1.5/1.75초 공중 띄움.',

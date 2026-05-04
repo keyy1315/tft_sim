@@ -16,7 +16,7 @@ export interface AbilityConfig {
   maxTargets?: number;
   damageDecay?: number;
   /** 스킬 시전 시 이동 유형 */
-  dash?: 'to_target' | 'to_farthest' | 'to_lowest_hp' | 'to_backline';
+  dash?: 'to_target' | 'to_farthest' | 'to_lowest_hp' | 'to_backline' | 'to_largest_cluster';
   /** CC 기절 지속시간 (초). 데미지 대상에 적용 */
   stun?: number;
   /** 기절 대상 수 제한 (기본: 데미지 대상 전원) */
