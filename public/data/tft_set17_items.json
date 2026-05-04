@@ -7905,6 +7905,14 @@
       "effects": {},
       "desc": "전투 시작: 시간을 풀어헤쳐 X자 범위 내 모든 유닛 처치 (장착 유닛 포함!)",
       "icon": "tft16_carouselofchaos_timeundiltor.png"
+    },
+    {
+      "name": "타격 선택기",
+      "apiName": "TFT17_DRXSelector",
+      "composition": [],
+      "effects": {},
+      "desc": "N.O.V.A. 챔피언에게 이 아이템을 사용해 힘의 고조 발생 시 타격 효과 활성화",
+      "icon": "tft17_drxselector.tft_set17.png"
     }
   ]
 }
