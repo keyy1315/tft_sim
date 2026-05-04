@@ -796,6 +796,23 @@ describe('PR7-E — 미프 시너지 + carry onAttack 패시브', () => {
     expect(file).toMatch(/hexDistance\(lastDeadTarget\.position[\s\S]+?hexDistance\(lastDeadTarget\.position/);
   });
 
+  // codex P1 (PR #75) 회귀 가드 — primary target 처치 시 currentHp clamp 전 overkill 캡처.
+  // clamp 후 캡처하면 항상 0 → bouncing while loop dead-code.
+  it('spiritBounceOnKill primary overkill 캡처 코드 fingerprint (codex P1 PR #75)', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const file = fs.readFileSync(
+      path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+      'utf8',
+    );
+    // 변수 선언 (cast loop 위)
+    expect(file).toMatch(/let primaryOverkillForBounce = 0/);
+    // cast loop 사망 처리 안에서 primary target 한정 캡처
+    expect(file).toMatch(/t === abilityTarget && carryCfg\?\.abilityData\?\.spiritBounceOnKill[\s\S]+?primaryOverkillForBounce\s*=\s*-t\.currentHp/);
+    // bouncing 분기에서 캡처된 값 사용
+    expect(file).toMatch(/let overkill = primaryOverkillForBounce/);
+  });
+
   it('뽀삐 carry 활성 시 시뮬 정상 작동 (sanity)', () => {
     const poppy = champions.find(c => c.apiName === 'TFT17_Poppy');
     const enemy = champions.find(c => c.apiName === 'TFT17_Briar');

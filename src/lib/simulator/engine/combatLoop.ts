@@ -5295,6 +5295,10 @@ export function simulateCombat(
             // resistance/shield/DR/invulnerable 적용 전. on_cast.rawValue 로 emit 되어
             // SympatheticImplant TrueDamageConversion 등 raw 기반 follow-up effect 가 사용.
             let totalRawAbilityDmg = 0;
+            // codex P1 (PR #75): PR7-D 뽀삐 spiritBounceOnKill — primary target 처치 시 overkill
+            // 캡처용. cast loop 의 사망 처리에서 currentHp clamp (=0) 하기 전에 음수 절댓값
+            // 저장. bouncing 분기에서 이 값 사용 (clamp 후엔 0 → bouncing dead-code 회귀).
+            let primaryOverkillForBounce = 0;
             const aliveTargets = abilityTargets.filter(t => t.state !== 'dead');
             const abilityDmg = isSplitDamage && aliveTargets.length > 0
               ? hitCountTotal / aliveTargets.length
@@ -5451,6 +5455,12 @@ export function simulateCombat(
 
                 // 타겟 사망 처리
                 if (t.currentHp <= 0) {
+                  // codex P1 (PR #75): PR7-D 뽀삐 spiritBounceOnKill — primary target 처치 시
+                  // currentHp clamp (=0) 이전에 overkill 캡처. clamp 후 캡처하면 항상 0 →
+                  // bouncing while loop 진입 안 함 → 메커니즘 dead-code.
+                  if (t === abilityTarget && carryCfg?.abilityData?.spiritBounceOnKill) {
+                    primaryOverkillForBounce = -t.currentHp;
+                  }
                   t.currentHp = 0;
                   t.state = 'dead';
                   unit.killCount++;
@@ -5593,7 +5603,10 @@ export function simulateCombat(
                 const MAX_BOUNCE_HARD_LIMIT = 50;
                 let bounceCount = 0;
                 let lastDeadTarget: CombatUnit = abilityTarget;
-                let overkill = Math.max(0, -lastDeadTarget.currentHp);
+                // codex P1 (PR #75): primaryOverkillForBounce 사용 — cast loop 사망 처리에서
+                // clamp (currentHp=0) 전 캡처된 overkill 음수 절댓값. clamp 후 currentHp 직접
+                // 참조 시 항상 0 → bouncing dead-code 회귀 방지.
+                let overkill = primaryOverkillForBounce;
 
                 while (overkill > 0 && bounceCount < MAX_BOUNCE_HARD_LIMIT) {
                   bounceCount++;
