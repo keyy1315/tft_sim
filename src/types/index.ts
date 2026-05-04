@@ -751,6 +751,26 @@ export interface CombatUnit {
    * 레오나 ability 가 적 가로질러 dash (line 패턴) + 첫 적중 대상 기절 (CC) 로 변환.
    */
   leonaCarryActive: boolean;
+  /**
+   * 별빛 연계(TFT17_Augment_AatroxCarry) 3-skill cycle counter — PR7-C.
+   * cast 마다 +1, (counter % 3) 으로 분기:
+   *   0 = 타격 (single AD)
+   *   1 = 휩쓸기 (cone AD + armor 감소 10)
+   *   2 = 찍기 (aoe_circle radius 1 + 공중 띄움 + 단독 적중 ×2.5)
+   * 사용자 결정: unit 사망 후 resurrect 시 counter 0 reset.
+   */
+  aatroxCycleCounter: number;
+  /**
+   * Aatrox carry resurrect 검사용 — 이전 tick state 가 'dead' 였는지 추적. PR7-C.
+   * dead → alive 전환 시 aatroxCycleCounter 0 reset (사용자 결정).
+   */
+  aatroxPreviouslyDead: boolean;
+  /**
+   * N.O.V.A. 타격 선택기 적용 unit 표시 — PR7-C.
+   * SimulateOptions.novaStrikeSelectorUnit (apiName) 와 일치하는 NOVA unit 만 true.
+   * carry Aatrox + true 시 cycle 패턴이 global 로 확장 + 모든 적 knockup.
+   */
+  aatroxNovaStrikeSelector: boolean;
   /** MF 특성 선택 등으로 치환된 실제 트레이트 목록 */
   resolvedTraits?: string[];
   /** 스킬 치명타 가능 여부. 전투 시작 시 보건/무대 착용 또는 정밀 계열 시너지로 결정. */

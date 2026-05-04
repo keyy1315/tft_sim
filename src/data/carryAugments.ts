@@ -87,7 +87,11 @@ export interface CarryAbilityData {
   spiritBounceOnKill?: boolean;
   /** Aatrox 휩쓸기 armor 감소 (AP 스케일). */
   armorReduction?: number;
-  /** Aatrox N.O.V.A. 타격 damage [1성, 2성, 3성] (4-NOVA 시너지 활성 시). */
+  /** Aatrox 찍기 damage [1성, 2성, 3성] (cycle counter % 3 == 2). PR7-C 추가. */
+  slamDamage?: [number, number, number];
+  /** Aatrox 찍기 stun 지속시간 (공중 띄움). PR7-C 추가. */
+  slamStunDuration?: number;
+  /** Aatrox N.O.V.A. 타격 damage [1성, 2성, 3성] (5-NOVA 시너지 + 타격 선택기 활성 시). */
   novaDamage?: [number, number, number];
   /** Aatrox 3-skill cycle 패턴 라벨 — 후속 PR 에서 cycle counter 분기. */
   skillCycleLabels?: readonly string[];
@@ -130,8 +134,10 @@ export const CARRY_AUGMENTS: CarryAugmentConfig[] = [
       name: '별빛 연계',
       desc: '세 가지 스킬을 번갈아 사용합니다.\n타격: 물리 피해\n휩쓸기: 원뿔 범위 물리 피해 + 방어력 감소\n찍기: 반경 1칸 피해 + 공중 띄움 (단독 적중 시 250%)\nN.O.V.A. 활성 시: 전장 가르고 모든 적 공중 띄움 + 추가 타격',
       mana: '30/90',
-      damage: [140, 210, 315], // 타격
-      secondaryDamage: [100, 150, 225], // 휩쓸기
+      damage: [140, 210, 315], // 타격 (cycle 0)
+      secondaryDamage: [100, 150, 225], // 휩쓸기 (cycle 1)
+      slamDamage: [160, 240, 360], // 찍기 (cycle 2) — PR7-C 추가
+      slamStunDuration: 1.0, // 찍기 공중 띄움 (knockup → stun) — PR7-C 추가
       armorReduction: 10, // 휩쓸기 armor 감소 (AP 스케일)
       novaDamage: [120, 180, 270], // N.O.V.A. 타격
       singleTargetMultiplier: 2.5, // 찍기 단독 적중 시 250%
