@@ -1,5 +1,6 @@
 import type { PlacedChampion, RawChampion, RawItem } from '@/types';
 import { VOYAGER_SUMMON_CHAMPION, TIBBERS_CHAMPION, AZIR_SOLDIER_CHAMPION, FRELJORD_TURRET, SHEN_ARTIFACT_CHAMPION } from '@/data/specialUnits';
+import { normalizeChampionId } from '@/lib/analysis/championIdAliases';
 import type { PlacedUnit } from './types';
 
 /**
@@ -16,12 +17,14 @@ const SPECIAL_CHAMPIONS: Record<string, RawChampion> = {
 
 const SUMMON_API_NAMES = new Set(Object.keys(SPECIAL_CHAMPIONS));
 
-/** actual-data championId → RawChampion. special units(소환체) fallback 포함. */
+/** actual-data championId → RawChampion. special units(소환체) fallback 포함.
+ * Riot raw ID(예: TFT17_RekSai) 는 canonical(예: TFT17_Reksai) 로 정규화 후 조회한다. */
 export function resolveChampion(
   championId: string,
   championCatalog: Map<string, RawChampion>,
 ): RawChampion | null {
-  return championCatalog.get(championId) ?? SPECIAL_CHAMPIONS[championId] ?? null;
+  const id = normalizeChampionId(championId);
+  return championCatalog.get(id) ?? SPECIAL_CHAMPIONS[id] ?? null;
 }
 
 /**
@@ -38,7 +41,8 @@ export function toPlacedChampion(
   championCatalog: Map<string, RawChampion>,
   itemCatalog: Map<string, RawItem>,
 ): PlacedChampion | null {
-  const champion = championCatalog.get(u.championId) ?? SPECIAL_CHAMPIONS[u.championId];
+  const championApiName = normalizeChampionId(u.championId);
+  const champion = championCatalog.get(championApiName) ?? SPECIAL_CHAMPIONS[championApiName];
   if (!champion) return null;
   const itemSlots: Array<RawItem | null> = [null, null, null];
   const items: RawItem[] = [];
@@ -60,7 +64,7 @@ export function toPlacedChampion(
     mfMode: null,
     permanentStacks: null,
     isDummy: false,
-    isSummon: SUMMON_API_NAMES.has(u.championId),
+    isSummon: SUMMON_API_NAMES.has(championApiName),
   };
 }
 

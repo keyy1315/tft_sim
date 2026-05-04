@@ -7,14 +7,31 @@
  *
  * 찬란/타락이 아닌 일반 아이템은 빈 배열을 반환한다.
  */
+
+/**
+ * Riot 이 TFT5 시절 raw ID 를 유지한 채 표시 영문명만 변경한 아이템 매핑.
+ * 예: Leviathan → Nashor's Tooth (raw 그대로, 한국어 "내셔의 이빨").
+ * suffix 자동 변환만으로는 base 가 달라 매칭 실패하므로 명시 매핑이 필요하다.
+ */
+const RIOT_RENAME_ALIASES: Record<string, readonly string[]> = {
+  'TFT_Item_Radiant_NashorsBloodrazor': ['TFT5_Item_LeviathanRadiant', 'TFT_Item_LeviathanRadiant'],
+  'TFT_Item_Radiant_Evenshroud':        ['TFT5_Item_SpectralGauntletRadiant', 'TFT_Item_SpectralGauntletRadiant'],
+  'TFT_Item_Radiant_VoidStaff':         ['TFT5_Item_StatikkShivRadiant', 'TFT_Item_StatikkShivRadiant'],
+  'TFT_Item_Radiant_KrakenSlayer':      ['TFT5_Item_RunaansHurricaneRadiant', 'TFT_Item_RunaansHurricaneRadiant'],
+  'TFT_Item_Radiant_RedBuff':           ['TFT5_Item_RapidFirecannonRadiant', 'TFT_Item_RapidFirecannonRadiant'],
+};
+
 export function getRiotIdAliases(canonicalApiName: string): string[] {
   const radiantMatch = canonicalApiName.match(/^TFT_Item_Radiant_(.+)$/);
   const corruptedMatch = canonicalApiName.match(/^TFT_Item_Corrupted(.+)$/);
   const base = radiantMatch?.[1] ?? corruptedMatch?.[1];
-  if (!base) return [];
 
-  return [
-    `TFT5_Item_${base}Radiant`,
-    `TFT_Item_${base}Radiant`,
-  ];
+  const aliases: string[] = [];
+  if (base) {
+    aliases.push(`TFT5_Item_${base}Radiant`, `TFT_Item_${base}Radiant`);
+  }
+  const renames = RIOT_RENAME_ALIASES[canonicalApiName];
+  if (renames) aliases.push(...renames);
+
+  return aliases;
 }
