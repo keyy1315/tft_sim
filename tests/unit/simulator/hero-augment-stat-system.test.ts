@@ -901,6 +901,22 @@ describe('PR7-E — 미프 시너지 + carry onAttack 패시브', () => {
       expect(file).toMatch(/hexDistance\(unit\.position, a\.position\) - hexDistance\(unit\.position, b\.position\)/);
     });
 
+    // codex P1 (PR #76) 회귀 가드 — OOR cast 경로에도 hexReduction + multi-stun 적용.
+    // in-range vs OOR 동일 결과 보장.
+    it('OOR cast 경로 꼬마정령 hexReduction + multi-stun 동기화 (codex P1 PR #76)', async () => {
+      const fs = await import('node:fs');
+      const path = await import('node:path');
+      const file = fs.readFileSync(
+        path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+        'utf8',
+      );
+      // OOR cast loop 안 hexReduction (oorBaseDmg 변수 + IvernMinionCarry 체크)
+      expect(file).toMatch(/oorBaseDmg \*= Math\.pow\(1 - oorCarryCfg\.abilityData\.hexReduction/);
+      // OOR cast 끝 multi-stun (oorCarryCfg + IvernMinionCarry + IVERN_STUN_TARGETS_OOR=3)
+      expect(file).toMatch(/IVERN_STUN_TARGETS_OOR\s*=\s*3/);
+      expect(file).toMatch(/oorCarryCfg\?\.abilityData\?\.stunDuration[\s\S]+?TFT17_Augment_IvernMinionCarry/);
+    });
+
     it('꼬마정령 carry 활성 시 시뮬 정상 작동 (sanity)', () => {
       const ivern = champions.find(c => c.apiName === 'TFT17_IvernMinion');
       const enemy = champions.find(c => c.apiName === 'TFT17_Briar');

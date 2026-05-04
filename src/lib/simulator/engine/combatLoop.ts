@@ -6030,7 +6030,15 @@ export function simulateCombat(
               const pen = dmgType === 'magic' ? unit.stats.magicPen : unit.stats.armorPen;
               // 저격수 (Sniper) — 거리 기반 추가 damage amp
               const sniperAmp = computeSniperDamageAmp(unit, t);
-              let rawDmg = abilityDmg * (1 + unit.damageAmp + sniperAmp);
+              // codex P1 (PR #76): PR7-B 꼬마정령 hexReduction OOR 동기화 — in-range cast 와
+              // 동일 multiplicative falloff. 일반 cast loop (line ~5378) 와 같은 패턴.
+              let oorBaseDmg = abilityDmg;
+              if (oorCarryCfg?.abilityData?.hexReduction !== undefined
+                  && oorCarryCfg.augmentApiName === 'TFT17_Augment_IvernMinionCarry') {
+                const distFromCenter = hexDistance(abilityTarget.position, t.position);
+                oorBaseDmg *= Math.pow(1 - oorCarryCfg.abilityData.hexReduction, distFromCenter);
+              }
+              let rawDmg = oorBaseDmg * (1 + unit.damageAmp + sniperAmp);
               if (unit.spellCanCrit && rng.next() < unit.stats.critChance) {
                 rawDmg *= unit.stats.critMultiplier;
               }
@@ -6067,6 +6075,30 @@ export function simulateCombat(
                 t.state = 'idle';
                 t.attackCooldown = 0;
                 oorStunApplied = true;
+              }
+            }
+          }
+
+          // codex P1 (PR #76): PR7-B 꼬마정령 multi-stun OOR 동기화 — in-range cast (line ~5828)
+          // 와 동일 패턴. abilityData.stunDuration 정의 시 caster 위치 기준 가장 가까운 3명 stun.
+          if (oorCarryCfg?.abilityData?.stunDuration
+              && oorCarryCfg.augmentApiName === 'TFT17_Augment_IvernMinionCarry') {
+            const stunArr = oorCarryCfg.abilityData.stunDuration;
+            const ivernStunDur = stunArr[unit.starLevel - 1] ?? stunArr[0];
+            if (ivernStunDur > 0) {
+              const ivernStunTicks = Math.round(ivernStunDur * TICKS_PER_SECOND);
+              const IVERN_STUN_TARGETS_OOR = 3;
+              const sortedCloseOOR = abilityTargets
+                .filter(t => t.state !== 'dead')
+                .slice()
+                .sort((a, b) =>
+                  hexDistance(unit.position, a.position) - hexDistance(unit.position, b.position)
+                )
+                .slice(0, IVERN_STUN_TARGETS_OOR);
+              for (const t of sortedCloseOOR) {
+                t.statusEffects.push({ type: 'stun', sourceId: unit.id, remainingTicks: ivernStunTicks });
+                t.state = 'idle';
+                t.attackCooldown = 0;
               }
             }
           }
