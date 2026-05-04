@@ -4199,17 +4199,25 @@ export function simulateCombat(
     if (akaliSelector) {
       const akaliBleedPerSec = [10, 14, 18];
       const akaliBleedSec = akaliBleedPerSec[akaliSelector.starLevel - 1] ?? akaliBleedPerSec[0];
-      const akaliBleedPerTick = akaliBleedSec / TICKS_PER_SECOND;
+      const akaliBleedRawPerTick = akaliBleedSec / TICKS_PER_SECOND;
       for (const e of state.opposingTeam) {
         if (e.state === 'dead') continue;
+        // codex P1 (PR #81): burn statusEffect 는 tickStatusEffects 에서 raw HP 차감 (mitigation 없음).
+        // 사용자 spec "물리 피해" → armor + pen 미리 적용 후 mitigated value 저장.
+        // DR 도 적용 (DOT snapshot 패턴 — 적용 시점 mitigation, armor 변동 시 추적 안 함).
+        // shield/invulnerable 은 매 tick 검사 어려워 단순화 (DOT 일반 패턴).
+        const mitigatedPerTick = applyResistance(akaliBleedRawPerTick, e.stats.armor, akaliSelector.stats.armorPen);
+        const finalPerTick = e.damageReduction > 0
+          ? mitigatedPerTick * (1 - e.damageReduction)
+          : mitigatedPerTick;
         e.statusEffects.push({
           type: 'burn', sourceId: 'akali-nova-selector',
-          remainingTicks: 9999, value: akaliBleedPerTick,
+          remainingTicks: 9999, value: finalPerTick,
         });
       }
       logs.push({
         tick, time, type: 'ability', sourceId: 'akali-nova-selector',
-        message: `Akali N.O.V.A. 선택기! 모든 적 출혈 (매초 ${akaliBleedSec} 물리)`,
+        message: `Akali N.O.V.A. 선택기! 모든 적 출혈 (매초 ${akaliBleedSec} 물리, mitigation 적용)`,
       });
     }
 
@@ -4997,6 +5005,15 @@ export function simulateCombat(
 
           if (target.statusEffects.some(e => e.type === 'invulnerable')) {
             finalDamage = 0;
+          }
+
+          // codex P1 (PR #81): Caitlyn N.O.V.A. selector mark — basic attack 도 +10% incoming amp.
+          // applyAbilityMitigation 안에만 적용하면 ability 만 amp → basic attack 누락.
+          // 사용자 spec "표식이 남은 대상이 받는 피해를 10% 증가" 모든 damage path 일관.
+          for (const mark of target.statusEffects) {
+            if (mark.type === 'mark' && mark.sourceId === 'caitlyn-nova-selector' && mark.value) {
+              finalDamage *= (1 + mark.value);
+            }
           }
 
           target.currentHp -= finalDamage;
