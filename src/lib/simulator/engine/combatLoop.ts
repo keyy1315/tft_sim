@@ -5640,6 +5640,11 @@ export function simulateCombat(
               rawAbilityDmgBase = result.damage;
               dmgType = result.type;
             }
+            // codex P1 (PR #98): self_buff pattern 은 caster 가 findAbilityTargets 의 self-target.
+            // resolveAbilityDamage 의 damageVar fallback (Poppy ★3 'Shield'=575 등) 으로 인해
+            // cast loop 가 caster 본인을 self-hit → 방금 얻은 shield 즉시 소모 회귀.
+            // raw ability damage 0 강제 — selfBuff/shield 효과는 별도 분기에서 처리.
+            if (config.pattern === 'self_buff') rawAbilityDmgBase = 0;
             // PR7-E (17.2b): 뽀삐 carry spiritEffectPerStack — 미프 정령족 잠재력 stack 당
             // damage amp. 사용자 결정: damage × (1 + Meeps × 0.15) multiplicative.
             // 정령족 trait 활성 시 unit.astronautMeepsStack > 0 (applyAstronautEffects).
@@ -6243,13 +6248,27 @@ export function simulateCombat(
 
             // === 시전자 체력 회복 ===
             if (config.heal) {
-              const healVar = unit.champion.ability.variables.find(v => v.name === 'Heal' || v.name === 'APHeal' || v.name === 'PercentMaximumHealthHealing');
+              // PR98: Illaoi 의 HealthDrain (drain × NumEnemies) 도 self-heal 로 인식.
+              // Illaoi ability '영혼의 시험': 가까운 NumEnemies 명에게서 HealthDrain 흡수.
+              // 단순화 — 실제 메커닉은 3s 동안 drain over time, sim 은 cast 순간 lump-sum heal.
+              const healVar = unit.champion.ability.variables.find(v => v.name === 'Heal' || v.name === 'APHeal' || v.name === 'PercentMaximumHealthHealing' || v.name === 'HealthDrain');
               if (healVar) {
                 const starIdx = Math.min(unit.starLevel, healVar.value.length - 1);
                 const healVal = healVar.value[starIdx] ?? healVar.value[0] ?? 0;
-                const healAmount = typeof healVal === 'number'
+                let healAmount = typeof healVal === 'number'
                   ? (healVal < 1 ? Math.round(unit.maxHp * healVal) : Math.round(healVal * (1 + unit.stats.ap / 100)))
                   : 0;
+                // HealthDrain 은 NumEnemies 명에게서 흡수 — total = per_enemy × NumEnemies (cap to alive abilityTargets).
+                // codex P2 (PR #98): cast 시점의 alive count (line 5810 의 aliveTargets) 재사용 —
+                // damage resolution 후 abilityTargets.filter 면 cast 로 죽은 적 제외돼 under-heal.
+                if (healVar.name === 'HealthDrain') {
+                  const numEnemiesVar = unit.champion.ability.variables.find(v => v.name === 'NumEnemies');
+                  const numCap = numEnemiesVar
+                    ? (numEnemiesVar.value[Math.min(unit.starLevel, numEnemiesVar.value.length - 1)] ?? 1)
+                    : 1;
+                  const numEnemies = Math.min(numCap, Math.max(1, aliveTargets.length));
+                  healAmount *= numEnemies;
+                }
                 if (healAmount > 0) {
                   // healAmp 곱셈 적용 — ability self-heal 도 회복량 증폭 효과 대상.
                   const finalHeal = healAmount * (1 + (unit.healAmp ?? 0));
@@ -6345,9 +6364,11 @@ export function simulateCombat(
           // codex P1 (PR #71): self_buff pattern 은 self-hit 회귀 방지로 raw 사용 (일반 cast 와 동일).
           const oorCarryCfg = findCarryAugment(unit.champion.apiName, augNames);
           const oorCarryForDamage = outOfRangeConfig.pattern !== 'self_buff' ? oorCarryCfg : null;
-          const { damage: rawOORDmg, type: dmgType } = resolveAbilityDamage(
+          const { damage: rawOORDmgResolved, type: dmgType } = resolveAbilityDamage(
             unit.champion, unit.starLevel, unit.stats.ap, oorCarryForDamage, outOfRangeConfig.damageVar
           );
+          // codex P1 (PR #98): self_buff OOR 경로도 self-hit 회귀 방지 — damage 0 강제.
+          const rawOORDmg = outOfRangeConfig.pattern === 'self_buff' ? 0 : rawOORDmgResolved;
           const oorHitTotal = outOfRangeConfig.hitCount ? rawOORDmg * outOfRangeConfig.hitCount : rawOORDmg;
           const oorIsSplit = outOfRangeConfig.hitCount && outOfRangeConfig.pattern !== 'single';
           const opposingTeam = unit.team === 'player' ? enemies : playerUnits;
