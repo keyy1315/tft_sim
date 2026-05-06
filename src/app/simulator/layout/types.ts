@@ -5,7 +5,7 @@ import { useReplayControls } from '@/hooks/useReplayControls';
 import { useDndHandlers } from '@/hooks/useDndHandlers';
 import type { BottomSheetState } from '@/components/ui/bottomSheetLogic';
 
-export type ItemFilterTab = 'all' | 'component' | 'combined' | 'artifact' | 'emblem' | 'radiant';
+export type ItemFilterTab = 'all' | 'component' | 'combined' | 'artifact' | 'emblem' | 'radiant' | 'animasquad' | 'psyops';
 export type PoolTab = 'champions' | 'items' | 'bilgewater';
 
 export interface HexBuffState {

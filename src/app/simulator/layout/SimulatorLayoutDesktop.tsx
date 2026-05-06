@@ -430,6 +430,8 @@ export default function SimulatorLayoutDesktop(props: SimulatorLayoutProps) {
                     {([
                       { key: 'all' as ItemFilterTab, label: '전체' },
                       { key: 'combined' as ItemFilterTab, label: '완성' },
+                      { key: 'animasquad' as ItemFilterTab, label: '동물특공대' },
+                      { key: 'psyops' as ItemFilterTab, label: '초능력' },
                       { key: 'artifact' as ItemFilterTab, label: '유물' },
                       { key: 'radiant' as ItemFilterTab, label: '찬란' },
                       { key: 'emblem' as ItemFilterTab, label: '상징' },
@@ -455,7 +457,10 @@ export default function SimulatorLayoutDesktop(props: SimulatorLayoutProps) {
                       }
                       if (itemSearch && !item.name.toLowerCase().includes(itemSearch.toLowerCase())) return false;
                       if (itemCategoryFilter !== 'all') {
-                        if (cat === 'void' || cat === 'darkin' || cat === 'animasquad' || cat === 'psyops') {
+                        // 동물특공대/초능력은 본인 탭 또는 '완성' 통합 탭 둘 다 노출
+                        if (cat === 'animasquad' || cat === 'psyops') {
+                          if (itemCategoryFilter !== 'combined' && itemCategoryFilter !== cat) return false;
+                        } else if (cat === 'void' || cat === 'darkin') {
                           if (itemCategoryFilter !== 'combined') return false;
                         } else if (cat !== itemCategoryFilter) return false;
                       }

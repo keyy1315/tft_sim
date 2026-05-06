@@ -9,6 +9,8 @@ import type { ItemFilterTab, SimulatorLayoutProps } from '../types';
 const FILTERS: { key: ItemFilterTab; label: string }[] = [
   { key: 'all', label: '전체' },
   { key: 'combined', label: '완성' },
+  { key: 'animasquad', label: '동물특공대' },
+  { key: 'psyops', label: '초능력' },
   { key: 'artifact', label: '유물' },
   { key: 'radiant', label: '찬란' },
   { key: 'emblem', label: '상징' },
@@ -45,7 +47,10 @@ export default function ItemPoolContent({ data, poolFilters, tm }: SimulatorLayo
           }
           if (itemSearch && !item.name.toLowerCase().includes(itemSearch.toLowerCase())) return false;
           if (itemCategoryFilter !== 'all') {
-            if (cat === 'void' || cat === 'darkin' || cat === 'animasquad' || cat === 'psyops') {
+            // 동물특공대/초능력은 본인 탭 또는 '완성' 통합 탭 둘 다 노출
+            if (cat === 'animasquad' || cat === 'psyops') {
+              if (itemCategoryFilter !== 'combined' && itemCategoryFilter !== cat) return false;
+            } else if (cat === 'void' || cat === 'darkin') {
               if (itemCategoryFilter !== 'combined') return false;
             } else if (cat !== itemCategoryFilter) return false;
           }

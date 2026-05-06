@@ -11,7 +11,7 @@ import DraggableNovaSelectorTool from './DraggableNovaSelectorTool';
 
 type Tab = 'champions' | 'items' | 'tools';
 type CostFilter = null | 1 | 2 | 3 | 4 | 5;
-type ItemTab = 'combined' | 'artifact' | 'radiant' | 'emblem' | 'all';
+type ItemTab = 'combined' | 'animasquad' | 'psyops' | 'artifact' | 'radiant' | 'emblem' | 'all';
 
 interface Props {
   champions: RawChampion[];
@@ -143,6 +143,8 @@ function ItemSection({ items, onItemClick }: { items: RawItem[]; onItemClick?: (
   const tabs: { key: ItemTab; label: string }[] = [
     { key: 'all', label: '전체' },
     { key: 'combined', label: '완성템' },
+    { key: 'animasquad', label: '동물특공대' },
+    { key: 'psyops', label: '초능력' },
     { key: 'artifact', label: '유물' },
     { key: 'radiant', label: '찬란' },
     { key: 'emblem', label: '상징' },
