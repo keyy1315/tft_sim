@@ -145,3 +145,44 @@ pnpm vitest run tests/calibration/compute-diff-cache.test.ts
 **작성일**: 2026-05-06
 **baseline engineSha**: `3d94dceabd23dae8090b10550433656be75e9b34` (PR #89 amend 전 시점)
 **다음 baseline**: 위 작업 (Tier 1) 머지 후 재측정
+
+---
+
+## 2026-05-06 후속 진행 — Tier 1 결과 + 추가 발견
+
+### Tier 1 #1 (BoonOfStars) — PR #91 머지 완료 ✅
+
+| 메트릭 | Before | After | Δ |
+|--------|--------|-------|---|
+| winnerMatchRate | 45.5% | **50.0%** | **+4.5pt** ✅ trigger 도달 |
+| avgPlayerDamageErrorPct | -52.2% | -49.7% | +2.5pt 개선 |
+| avgSurvivorHpErrorPts | 5.77 | 8.47 | over-correction (후속 진단) |
+
+### Tier 1 #2 (GiantAndMighty) — 이미 동작 중 ✅
+
+`augment.ts` 의 generic key handler (`FlatHealth` line 284, `PercentHealth` line 470) 가
+GiantAndMighty 의 effects 를 자동 매칭. apiName-specific 분기 없이 동작.
+
+**원인**: PR #90 분석 시 `apiName` 만 grep 해서 false negative — 실제로는 effect-key 매칭으로
+sim 자동 적용. **본 PR**은 회귀 가드만 추가.
+
+### Tier 1 #3 (EvelynnArtifact) — 별도 PR 필요
+
+- **Basic stats** (AD/AP/AS) 는 generic 매칭으로 일부 적용 가능성
+- **Unique mechanics** (target switch teleport / 12% execute / kill DecayingAS) 는 별도 구현 필요
+- **다른 artifacts** (AegisOfDusk, SeekersArmguard) 도 비슷 — 일괄 인프라 PR 권장
+
+### 회귀: 분석 시 false negative 회피 가이드
+
+augment/item 미구현 진단 시 다음 두 단계로 확인:
+1. `apiName` grep — 명시 분기 존재 여부
+2. `effects` key 들 grep — generic handler 매칭 여부 (FlatHealth/PercentHealth/AD/AP/HP/etc.)
+
+둘 다 0 hits 일 때만 진짜 미구현. 본 분석은 #1 만 했으나 augment.ts 의 generic 처리로 일부
+auto-implemented 였음.
+
+### 다음 작업 후보 (재정리)
+
+1. **EvelynnArtifact 등 set 17 artifacts 일괄 처리 인프라** — Talon 6-2 carry 등 직접 영향
+2. **TwistedFate +40% 과대평가 진단** — mana / Mountain count 의심
+3. **SeraphimsStaff + ArchangelsStaff 상호작용** — opponent ×2 보유, 90% AP threshold 마나 추가
