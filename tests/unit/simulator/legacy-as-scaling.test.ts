@@ -64,6 +64,30 @@ describe('PR94 — legacy AS scaling 정규화', () => {
     expect(itemFx.as).toBeCloseTo(0.40, 5);
   });
 
+  it('CritChance 정규화: NightHarvester CritChance=20 → itemFx.critChance = 0.20 (PR95)', () => {
+    const nh = requireItem('TFT_Item_NightHarvester');
+    expect(nh.effects.CritChance).toBe(20);
+    const fx = getItemEffects([nh]);
+    // fix 후: 0.20. fix 전: 20 (하지만 stat.ts cap=Math.min(1, ...) 로 +100% 로 잘림 → 부분 정확).
+    expect(fx.critChance).toBeCloseTo(0.20, 5);
+  });
+
+  it('AD 정규화: FreeBFSword AD=15 → itemFx.ad = 0.15 (PR95 — integer outlier)', () => {
+    const fbf = requireItem('TFT_Item_FreeBFSword');
+    expect(fbf.effects.AD).toBe(15);
+    const fx = getItemEffects([fbf]);
+    // fix 후: 0.15 (= +15% AD). fix 전: 15 (+1500% AD 잘못).
+    expect(fx.ad).toBeCloseTo(0.15, 5);
+  });
+
+  it('AD 정규화: SilvermereDawn AD=1.4 → itemFx.ad = 1.4 보존 (fraction <2 threshold)', () => {
+    const sd = requireItem('TFT_Item_Artifact_SilvermereDawn');
+    expect(sd.effects.AD).toBeCloseTo(1.4, 5);
+    const fx = getItemEffects([sd]);
+    // SilvermereDawn AD=1.4 는 fraction 으로 추정 (=+140% AD), 보존.
+    expect(fx.ad).toBeCloseTo(1.4, 5);
+  });
+
   it('simulateCombat: EvelynnArtifact 보유 unit AS 가 합리적 범위 (×1.40 정도)', () => {
     const evelynn = requireItem('TFT17_Item_Artifact_EvelynnArtifact');
     const aatrox = champions.find((c) => c.apiName === 'TFT17_Aatrox')!;
