@@ -29,6 +29,7 @@ export default function PvPRoundEditor({ index, round }: { index: number; round:
   const updatePlayerTeam = useActualDataStore(s => s.updatePlayerTeam);
   const updateOpponent = useActualDataStore(s => s.updateOpponent);
   const gameId = useActualDataStore(s => s.currentGame?.gameId);
+  const stargazerConstellation = useActualDataStore(s => s.currentGame?.stargazerConstellation ?? null);
   const { champions, items, traits, loading } = useGameData();
 
   // NOVA(5) 시너지 활성 검사 — 어느 한 팀이라도 활성이면 ToolsSection 의 NOVA 도구 노출.
@@ -194,6 +195,8 @@ export default function PvPRoundEditor({ index, round }: { index: number; round:
                 roundIndex={index}
                 champions={champions}
                 items={items}
+                traits={traits}
+                stargazerConstellation={stargazerConstellation ?? null}
               />
             )}
           </div>
