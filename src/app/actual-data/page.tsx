@@ -3,8 +3,17 @@ import { useEffect, useState } from 'react';
 import { useActualDataStore } from '@/store/actualDataSlice';
 import GameListTable from '@/components/actual-data/GameListTable';
 import NewGameDialog from '@/components/actual-data/NewGameDialog';
+import AdminGuard from '@/components/AdminGuard';
 
 export default function ActualDataListPage() {
+  return (
+    <AdminGuard>
+      <ActualDataListContent />
+    </AdminGuard>
+  );
+}
+
+function ActualDataListContent() {
   const games = useActualDataStore(s => s.gameListCache);
   const refresh = useActualDataStore(s => s.refreshGameList);
   const [dialogOpen, setDialogOpen] = useState(false);

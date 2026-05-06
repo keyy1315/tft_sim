@@ -4,6 +4,7 @@ import { Suspense } from 'react';
 import Link from 'next/link';
 import { useActiveSet } from '@/hooks/useActiveSet';
 import { SET_CONFIGS } from '@/data/setConfig';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
 
 export default function HomePage() {
   return (
@@ -17,6 +18,7 @@ function HomeContent() {
   const activeSet = useActiveSet();
   const cfg = SET_CONFIGS[activeSet];
   const isPbe = cfg.status === 'pbe';
+  const isAdmin = useIsAdmin();
 
   const features = isPbe
     ? [
@@ -58,15 +60,18 @@ function HomeContent() {
           borderColor: 'border-emerald-500/30',
           disabled: false,
         },
-        {
-          title: '실측 데이터',
-          desc: 'PvP 라운드별 팀·아이템 기록 → 시뮬 정확도 비교 (별돌보미·중재자 등 게임 메타 편집)',
-          href: '/actual-data',
-          icon: '📊',
-          color: 'from-rose-600/20 to-pink-600/20',
-          borderColor: 'border-rose-500/30',
-          disabled: false,
-        },
+        // 관리자 전용 — useIsAdmin() 결과에 따라 노출. 비-관리자에게는 미노출.
+        ...(isAdmin
+          ? [{
+              title: '실측 데이터',
+              desc: 'PvP 라운드별 팀·아이템 기록 → 시뮬 정확도 비교 (별돌보미·중재자 등 게임 메타 편집)',
+              href: '/actual-data',
+              icon: '📊',
+              color: 'from-rose-600/20 to-pink-600/20',
+              borderColor: 'border-rose-500/30',
+              disabled: false,
+            }]
+          : []),
       ];
 
   return (
