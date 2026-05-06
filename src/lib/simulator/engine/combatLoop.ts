@@ -5517,6 +5517,9 @@ export function simulateCombat(
           //   - 본체 평타 AD 그대로 + 추가 5 missile 가산 (Caitlyn 패시브 패턴 따름).
           //   - 미사일별 mitigation 분리 (physical: armor, magic: magicResist).
           //   - damageAmp / sniper / 별돌보미 등 carry-modifier 는 본 패스에 미적용 (per-target loop 외).
+          //
+          // codex P1 (PR #100): applyAbilityMitigation 통합 — shield/invulnerable/DR/non-target
+          // mitigation pipeline 전체 적용 (단순 applyResistance 회피). 사망 시 markTargetDead.
           if (unit.champion.apiName === 'TFT17_Corki' && target.state !== 'dead') {
             const vars = unit.champion.ability.variables;
             const numMissiles = readVarByStar(vars?.find(v => v.name === 'MissilesPerLaunchAttack')?.value, unit.starLevel, 5);
@@ -5525,17 +5528,27 @@ export function simulateCombat(
             const missileAd = readVarByStar(vars?.find(v => v.name === 'MissileAD')?.value, unit.starLevel, 25);
             const missileAp = readVarByStar(vars?.find(v => v.name === 'MissileAP')?.value, unit.starLevel, 6);
             const apFactor = 1 + unit.stats.ap / 100;
-            const dmgAmpFactor = 1 + unit.damageAmp;
             let totalMissileDmg = 0;
+            let missileLethal = false;
             for (let m = 0; m < numMissiles; m++) {
+              if (missileLethal) break;
               const procFactor = rng.next() < procChance ? procMult : 1;
-              const physRaw = missileAd * procFactor * dmgAmpFactor;
-              const magRaw = missileAp * apFactor * procFactor * dmgAmpFactor;
-              const physDmg = applyResistance(physRaw, target.stats.armor, unit.stats.armorPen);
-              const magDmg = applyResistance(magRaw, target.stats.magicResist, unit.stats.magicPen);
-              totalMissileDmg += physDmg + magDmg;
+              // damageAmp 는 applyAbilityMitigation 의 일부가 아니므로 raw 단계에서 적용.
+              const physRaw = missileAd * procFactor * (1 + unit.damageAmp);
+              const magRaw = missileAp * apFactor * procFactor * (1 + unit.damageAmp);
+              const physDmg = applyAbilityMitigation(unit, target, physRaw, 'physical', eventBus, tick);
+              const magDmg = applyAbilityMitigation(unit, target, magRaw, 'magic', eventBus, tick);
+              const missileDmg = physDmg + magDmg;
+              target.currentHp -= missileDmg;
+              totalMissileDmg += missileDmg;
+              // 미사일 lethal 시 즉시 사망 처리 — 후속 미사일은 break.
+              if (target.currentHp <= 0) {
+                const ownArbiterStateMissile = unit.team === 'player' ? playerArbiterState : enemyArbiterState;
+                logs.push({ tick, time, type: 'death', sourceId: target.id, message: `${target.champion.name} 사망! (${unit.champion.name}의 미사일)` });
+                markTargetDead(unit, target, ownArbiterStateMissile, eventBus, tick);
+                missileLethal = true;
+              }
             }
-            target.currentHp -= totalMissileDmg;
             target.totalDamageTaken += totalMissileDmg;
             unit.totalDamageDealt += totalMissileDmg;
           }
