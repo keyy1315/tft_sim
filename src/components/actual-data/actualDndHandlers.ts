@@ -178,7 +178,12 @@ export function createActualDragEndHandler(ctx: () => ActualDndContext | null) {
       if (srcTeam !== destTeam) {
         if (existingDestIdx >= 0) return; // no cross-team swap
         const nextSrc = srcUnits.filter((_, i) => i !== srcIdx);
-        const nextDest = [...destUnits, { ...dragged, hex: destHex }];
+        // 팀 이동 시 NOVA 타격 선택기 flag 는 자동 해제 — 양 팀에서 모두 단일성 invariant
+        // 보존 (PR #86 codex P2). 사용자가 dest 팀에서 다시 토글해야 함.
+        const movedUnit: PlacedUnit = dragged.novaStrikeSelector
+          ? { ...dragged, hex: destHex, novaStrikeSelector: false }
+          : { ...dragged, hex: destHex };
+        const nextDest = [...destUnits, movedUnit];
         if (srcTeam === 'player') {
           updatePlayerTeam(roundIndex, { units: nextSrc });
           updateOpponent(roundIndex, { units: nextDest });

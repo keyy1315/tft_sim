@@ -285,6 +285,42 @@ describe("PR8 3/4 — 'nova-selector' drop 핸들러", () => {
     expect(player[0].novaStrikeSelector).toBeUndefined();
   });
 
+  it('cross-team placed-unit move 시 novaStrikeSelector 자동 해제 (codex P2)', () => {
+    // player 팀에 selector 보유한 NOVA(Aatrox), opponent 팀에 다른 NOVA(Akali) 가
+    // selector 보유. player Aatrox 를 opponent 팀으로 이동 → Aatrox flag 해제되어
+    // opponent 팀에 selector 보유자가 1명(Akali) 으로 유지되어야 함.
+    const playerAatrox: PlacedUnit = {
+      championId: 'TFT17_Aatrox', hex: { q: 0, r: 3 }, starLevel: 2,
+      items: [undefined, undefined, undefined],
+      novaStrikeSelector: true,
+    };
+    const oppAkali: PlacedUnit = {
+      championId: 'TFT17_Akali', hex: { q: 0, r: 1 }, starLevel: 2,
+      items: [undefined, undefined, undefined],
+      novaStrikeSelector: true,
+    };
+    let player: PlacedUnit[] = [playerAatrox];
+    let opponent: PlacedUnit[] = [oppAkali];
+    const ctx: ActualDndContext = {
+      round: makeRound(player, opponent), roundIndex: 0,
+      updatePlayerTeam: (_i, p) => { player = p.units; },
+      updateOpponent: (_i, p) => { opponent = p.units; },
+    };
+    const handler = createActualDragEndHandler(() => ctx);
+    // player Aatrox(q=0,r=3 → cell-7-1) 를 opponent 팀의 빈 hex(q=2,r=2 → cell-2-3) 로 이동
+    handler(makeEvent(
+      { type: 'placed-unit', team: 'player', position: { q: 0, r: 3 } },
+      'cell-2-3',
+    ));
+    // Aatrox 가 opponent 로 이동 + novaStrikeSelector 해제됨
+    const movedAatrox = opponent.find(u => u.championId === 'TFT17_Aatrox');
+    expect(movedAatrox).toBeDefined();
+    expect(movedAatrox?.novaStrikeSelector).toBeFalsy();
+    // Akali 는 그대로 selector 보유
+    const akali = opponent.find(u => u.championId === 'TFT17_Akali');
+    expect(akali?.novaStrikeSelector).toBe(true);
+  });
+
   it('같은 팀 단일성: 기존 보유자 false + 신규 target true', () => {
     const aatrox: PlacedUnit = {
       championId: 'TFT17_Aatrox', hex: { q: 0, r: 3 }, starLevel: 2,
