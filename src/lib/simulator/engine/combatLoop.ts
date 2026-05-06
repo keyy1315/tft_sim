@@ -12,7 +12,8 @@ import { getAbilityDamage, getAbilityShield, findAbilityTargets, CHAMPION_ABILIT
 import type { AbilityConfig } from '@/lib/simulator/systems/ability';
 import { canAttack, getMoveTicks, findBestMoveToward, coordKey, getNeighbors, hexDistance } from '@/lib/simulator/systems/movement';
 import { getHexesInRadius } from '@/lib/simulator/models/hex';
-import { TICK_DURATION, MAX_TICKS, TICKS_PER_SECOND, CAST_TICKS, SELF_BUFF_CAST_TICKS, INITIAL_ATTACK_DELAY } from '@/lib/simulator/models/constants';
+import { TICK_DURATION, MAX_TICKS, TICKS_PER_SECOND, CAST_TICKS, SELF_BUFF_CAST_TICKS, INITIAL_ATTACK_DELAY, BOARD_COLS } from '@/lib/simulator/models/constants';
+import { axialToOffset } from '@/types';
 import { createRNG, SeededRNG } from '@/lib/simulator/engine/rng';
 import { captureSnapshot } from '@/lib/simulator/engine/replayEngine';
 import { findTarget } from '@/lib/simulator/systems/targeting';
@@ -2666,6 +2667,7 @@ function applyStargazerEffects(
   units: CombatUnit[],
   opposingUnits: CombatUnit[],
   constellation: StargazerConstellationId | undefined,
+  isPlayerTeam: boolean,
 ): void {
   const stargazer = traits.find((t) => t.trait.name === '별돌보미');
   if (!stargazer || !stargazer.activeEffect || stargazer.style === 0) return;
@@ -2676,13 +2678,30 @@ function applyStargazerEffects(
 
   const eff = stargazer.activeEffect.variables;
   const empoweredTiles = CONSTELLATION_TILE_PATTERN[constellation];
+  // 패턴 좌표(offset) 의 lookup set 을 미리 구축. 빠른 매칭.
+  const patternOffsetSet = new Set<string>(
+    empoweredTiles.map((t) => {
+      const off = axialToOffset(t);
+      return `${off.row}-${off.col}`;
+    }),
+  );
   const isStargazerUnit = (u: CombatUnit): boolean => unitHasTrait(u, '별돌보미');
-  // CONSTELLATION_TILE_PATTERN 은 player half (r=0..3) 만 정의. enemy 팀이
-  // mirror 된 보드 (r=4..7) 에 있을 때 (skipMirror=false 또는 simulator 직접 호출)
-  // 단순 좌표 비교는 항상 false → enemy 측이 효과 없음. mirror back 해서 검사.
+  // 매핑 (PR10 — display 와 일관, 사용자 명시 spec):
+  //  - A팀 (player): pattern.row = own-frame.row, pattern.col = own-frame.col (직접 매칭)
+  //  - B팀 (enemy):  pattern.row = 3 - own-frame.row, pattern.col = BOARD_COLS-1 - own-frame.col (보드 중심 180° 회전)
+  // own-frame 복원 (combat row → 0..3 own-frame row):
+  //  - simulator path: player toEightRowCoords 후 r=4..7 → own=combat-4. enemy r=0..3 → own=combat.
+  //  - default path A (skipMirror=false): player r=0..3 → own=combat. enemy mirrored r=4..7 → own=7-combat.
+  //  - gameDiffer path (skipMirror=true, no pre-shift): 둘 다 r=0..3 → own=combat.
   const isOnTile = (u: CombatUnit): boolean => {
-    const checkPos = u.position.r >= 4 ? mirrorPosition(u.position) : u.position;
-    return empoweredTiles.some((t) => t.q === checkPos.q && t.r === checkPos.r);
+    const off = axialToOffset(u.position);
+    const ownRow = isPlayerTeam
+      ? (off.row >= 4 ? off.row - 4 : off.row)
+      : (off.row >= 4 ? 7 - off.row : off.row);
+    const ownCol = off.col;
+    const patternRow = isPlayerTeam ? ownRow : 3 - ownRow;
+    const patternCol = isPlayerTeam ? ownCol : BOARD_COLS - 1 - ownCol;
+    return patternOffsetSet.has(`${patternRow}-${patternCol}`);
   };
 
   // 한 변종에 두 패스 — 강화 칸 모든 아군 + 강화 칸 별돌보미.
@@ -4041,8 +4060,8 @@ export function simulateCombat(
   // 정령족+싸움꾼 동시 보유 챔프 없어 corner case 영향 없음.
   applyBrawlerEffects(playerActiveTraits, playerUnits);
   applyBrawlerEffects(enemyActiveTraits, enemies);
-  applyStargazerEffects(playerActiveTraits, playerUnits, enemies, options.playerStargazerConstellation);
-  applyStargazerEffects(enemyActiveTraits, enemies, playerUnits, options.enemyStargazerConstellation);
+  applyStargazerEffects(playerActiveTraits, playerUnits, enemies, options.playerStargazerConstellation, true);
+  applyStargazerEffects(enemyActiveTraits, enemies, playerUnits, options.enemyStargazerConstellation, false);
   applyMorganaDarklight(playerActiveTraits, playerUnits);
   applyMorganaDarklight(enemyActiveTraits, enemies);
   applyFateweaverEffects(playerActiveTraits, playerUnits);

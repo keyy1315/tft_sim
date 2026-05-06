@@ -130,19 +130,18 @@ describe.skip('Fountain 변종 — Teamwide ManaRegen + 별돌보미 추가 (17.
 });
 
 describe('Enemy 팀 (mirror r=4..7) 도 강화 칸 효과 받음', () => {
-  it('skipMirror=false 패턴에서 enemy 별돌보미 unit 도 buff 적용 (codex P1 회귀 가드)', () => {
-    // enemy 팀 별돌보미 6명 — Mountain pattern 의 player-half 좌표를 mirror 해서 배치.
-    // mirrorPosition: r → 7-r, q 도 col 보존하며 재계산.
-    // Mountain 첫 6 tile: (2,0)(3,0)(4,0)(5,0)(1,1)(5,1) → mirrored:
-    //   (2,7) (3,7) (4,7) (5,7) (1,6) (5,6) (q=col-floor(r/2) 재계산 후)
-    // simulator 직접 호출 (skipMirror=false 시 enemy 가 placed 시점에 mirror 적용)
+  it('skipMirror=false 패턴에서 enemy 별돌보미 unit 도 buff 적용 (PR10 spec — 180° 회전)', () => {
+    // PR10 spec: B팀 own-frame 의 Mountain 강화 칸 = A팀 패턴의 180° 회전 (3-r, 6-c).
+    // Mountain pattern.r=3 cols {0,1,5,6} → B own-frame r=0 cols {6,5,1,0} (B 등록 4칸).
+    // Mountain pattern.r=2 cols {1,6}      → B own-frame r=1 cols {5,0}        (B 등록 2칸).
+    // 별돌보미 6명 배치 — q = offset col - floor(r/2). enemy own-frame r=0..1 → q=col.
     const enemyAlly: PlacedChampion[] = [
-      placed(apTwistedFate, 2, 0),
-      placed(apTalon, 3, 0),
-      placed(apJax, 4, 0),
-      placed(apAatrox, 5, 0, [STARGAZER_EMBLEM]),
-      placed(apMilio, 1, 1, [STARGAZER_EMBLEM]),
-      placed(apCorki, 5, 1, [STARGAZER_EMBLEM]),
+      placed(apTwistedFate, 0, 0),  // own (0, 0) → pattern (3, 6) ✓ Mountain r=3 col=6
+      placed(apTalon, 1, 0),         // own (0, 1) → pattern (3, 5) ✓
+      placed(apJax, 5, 0),           // own (0, 5) → pattern (3, 1) ✓
+      placed(apAatrox, 6, 0, [STARGAZER_EMBLEM]),  // own (0, 6) → pattern (3, 0) ✓
+      placed(apMilio, 0, 1, [STARGAZER_EMBLEM]),   // own (1, 0) → pattern (2, 6) ✓ Mountain r=2 col=6
+      placed(apCorki, 5, 1, [STARGAZER_EMBLEM]),   // own (1, 5) → pattern (2, 1) ✓
     ];
     const playerDummy: PlacedChampion[] = [placed(dummyEnemy, 0, 3)];
     // skipMirror 미지정 → 기본 false → enemy 자동 mirror 됨 (r=4..7 위치)

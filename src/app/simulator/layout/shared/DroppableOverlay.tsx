@@ -3,6 +3,10 @@
 import { MouseEvent, useState } from 'react';
 import { BOARD_COLS } from '@/lib/simulator/models/constants';
 import { axialToOffset, offsetToAxial, HexCoord } from '@/types';
+// 강화 칸 표시 매핑 (PR10):
+//  - A팀 (player, 화면 아래): display.row = 4 + pattern.row, display.col = pattern.col
+//  - B팀 (enemy,  화면 위):    display = 보드 중심 180° 회전 = (3 - pattern.row, BOARD_COLS-1 - pattern.col)
+// 사용자 입력 좌표(예: 산 A팀 7.0, 7.1, ..., 4.5) 기준 명시적 매핑.
 import DroppableHexCell from '@/components/battle/DroppableHexCell';
 import { createHexLayout, DEFAULT_HEX_R } from '@/components/battle/HexBoard';
 import { formatStargazerEffectSummary } from '@/lib/actualData/stargazerMapping';
@@ -41,16 +45,16 @@ export default function DroppableOverlay({
   const { playerTeam, enemyTeam } = tm;
   const { player: playerHexBuffs, enemy: enemyHexBuffs, moving, setMoving, setOverrides } = hexBuffs;
 
-  // 강화 칸 zoneKey 별 팀 매핑 (player tiles 는 보드 r=7-data_r mirror).
+  // 강화 칸 zoneKey 별 팀 매핑 (PR10 — display 매핑 변경, 위 주석 참조).
   const playerStargazerTileSet = new Set<string>();
   const enemyStargazerTileSet = new Set<string>();
   for (const t of playerStargazerTiles) {
     const off = axialToOffset(t);
-    playerStargazerTileSet.add(`${7 - off.row}-${off.col}`);
+    playerStargazerTileSet.add(`${4 + off.row}-${off.col}`);
   }
   for (const t of enemyStargazerTiles) {
     const off = axialToOffset(t);
-    enemyStargazerTileSet.add(`${off.row}-${off.col}`);
+    enemyStargazerTileSet.add(`${3 - off.row}-${BOARD_COLS - 1 - off.col}`);
   }
 
   // hover 강화 칸 — tooltip 표시용. cell pixel center (cx, cy) + team 보관.

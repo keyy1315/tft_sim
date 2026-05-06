@@ -181,22 +181,22 @@ export default function SetupBoardCore({
   }
 
   // 강화 칸 (별돌보미 별자리) — 보라색 테두리.
-  // CONSTELLATION_TILE_PATTERN 은 player half (data row 0-3) 만 정의.
-  // combat 의 applyStargazerEffects 는 r>=4 unit 을 mirrorPosition 으로 r=0..3 변환 후
-  // 패턴 체크 (mirrorPosition: r → 7-r, offset col 보존).
-  // 따라서 player tiles 는 보드 r=7-data_r 위치에 표시해야 실제 효과 적용 위치와 일치.
-  // (예: 패턴 data r=0 → 보드 r=7 표시 → unit 이 r=7 에 있으면 mirror back r=0 → 패턴 r=0 매칭).
-  // enemy 는 mirror 안 거치므로 data row 그대로 표시.
+  // CONSTELLATION_TILE_PATTERN 은 axial r=0..3 의 player half pattern.
+  // 표시 매핑 (PR10 — 사용자 명시 spec):
+  //  - A팀 (player, 화면 아래): display = (4 + pattern.row, pattern.col)
+  //  - B팀 (enemy,  화면 위):    display = (3 - pattern.row, BOARD_COLS-1 - pattern.col) — 보드 중심 180° 회전
+  // 예: 산(Mountain) 별자리 + A팀이면 패턴 r=0 (··XXXX·) 가 display row 4,
+  //     B팀이면 동일 패턴 r=0 가 display row 3 에 좌우 flip 되어 표시.
   // hover tooltip 위해 player/enemy 별 분리 — 클릭/hover 시 어느 별자리 효과인지 식별.
   const playerStargazerTileSet = new Set<string>();
   const enemyStargazerTileSet = new Set<string>();
   for (const t of playerStargazerTiles) {
     const off = axialToOffset(t);
-    playerStargazerTileSet.add(`${7 - off.row}-${off.col}`);
+    playerStargazerTileSet.add(`${4 + off.row}-${off.col}`);
   }
   for (const t of enemyStargazerTiles) {
     const off = axialToOffset(t);
-    enemyStargazerTileSet.add(`${off.row}-${off.col}`);
+    enemyStargazerTileSet.add(`${3 - off.row}-${BOARD_COLS - 1 - off.col}`);
   }
   const stargazerTileSet = new Set([...playerStargazerTileSet, ...enemyStargazerTileSet]);
 
