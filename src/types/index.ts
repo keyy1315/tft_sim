@@ -509,6 +509,12 @@ export interface CombatUnit {
   /** 발명품 탱커 대상 추가 피해증폭 (ArmorNullifier) */
   inventionTankDamageAmp: number;
   /**
+   * 매드레드의 검 (TFT_Item_MadredsBloodrazor) 탱커 대상 +DamageAmp (PR101).
+   * TFT17 메커닉: 탱커를 상대로 +15% 피해 증폭. 본 unit 의 평타+스킬 모두 적용.
+   * 아이템 1개당 0.15 누적 (다중 부착 시 누적). target.role === 'Tank' 일 때 damageAmp 가산.
+   */
+  madredsTankDamageAmp: number;
+  /**
    * 회복량 증폭 (additive bonus). 0 = base 1.0, 0.22 = 회복량 +22%.
    * primitive execHeal / heal site 에서 (1 + healAmp) 곱셈으로 적용.
    * GrenadeMod_Radiant IncreasedHealing 등 누적.
