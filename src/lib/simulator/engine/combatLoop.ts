@@ -323,6 +323,28 @@ function applyPermanentStacks(unit: CombatUnit, placed: PlacedChampion): void {
   }
 }
 
+/**
+ * 아이템에서 비-stat per-unit 필드 (execute threshold 등) 를 추출해 unit 에 적용.
+ * StatPatch (AD/AP/HP/AS) 는 이미 getItemEffects 에서 처리됨. 본 헬퍼는 trigger / threshold 류만.
+ *
+ * 현재 처리 대상:
+ *   - EvelynnArtifact (TFT17_Item_Artifact_EvelynnArtifact): ExecuteThresholdForTarget=0.12
+ *     장착 unit 의 기본 공격/스킬이 체력 12% 이하 적 처형. 기존 augmentExecuteThreshold 필드
+ *     재활용 (per-unit execute 임계값 합집합).
+ *
+ * 향후 다른 artifact / item 의 per-unit threshold 추가 시 본 함수에 분기 추가.
+ */
+function applyItemStaticEffects(unit: CombatUnit, placed: PlacedChampion): void {
+  for (const item of placed.items) {
+    if (item.apiName === 'TFT17_Item_Artifact_EvelynnArtifact') {
+      const threshold = item.effects['ExecuteThresholdForTarget'];
+      if (typeof threshold === 'number' && threshold > 0) {
+        unit.augmentExecuteThreshold = Math.max(unit.augmentExecuteThreshold, threshold);
+      }
+    }
+  }
+}
+
 /** 전투 시작 패시브 적용 (진 AS→AD 등) */
 function applyStartPassives(unit: CombatUnit): void {
   const sc = getChampionScaling(unit.champion.apiName);
@@ -3950,6 +3972,7 @@ export function simulateCombat(
     applyPermanentStacks(unit, swapped);
     applyCarryAugmentRange(unit, playerAugApiNames);
     applyStartPassives(unit);
+    applyItemStaticEffects(unit, swapped);
     return unit;
   });
   const enemies = enemyTeamFiltered.map((p, i) => {
@@ -3963,6 +3986,7 @@ export function simulateCombat(
     applyPermanentStacks(unit, swapped);
     applyCarryAugmentRange(unit, enemyAugApiNames);
     applyStartPassives(unit);
+    applyItemStaticEffects(unit, swapped);
     return unit;
   });
 
