@@ -79,4 +79,25 @@ describe('PR101 — Vex audit', () => {
     // 본체 평타 (40 AD × 21) ~840 → 총합 1100+ (대략, 변동 가능)
     expect(r.playerUnits[0].totalDamageDealt).toBeGreaterThan(800);
   });
+
+  it('Vex 패시브 spread (옵션 c) — 평타 target 외 alive 한 적에게도 그림자 hit', () => {
+    // PR101 codex P1 후속 — 평타 target 우선 + Vex 본인 기준 가장 가까운 다른 alive 적 추가.
+    // ★3 Vex vs 2명의 적 — Aatrox (가까운 자리) + Caitlyn (멀리). Vex 가 평타 target=Aatrox
+    // 일 때 그림자 spread 가 다른 적 (Caitlyn) 에게도 적용 → Caitlyn totalDamageTaken > 0.
+    const vex = champions.find(c => c.apiName === 'TFT17_Vex')!;
+    const aatrox = champions.find(c => c.apiName === 'TFT17_Aatrox')!;
+    const cait = champions.find(c => c.apiName === 'TFT17_Caitlyn')!;
+    // Vex 본인 (0,0) 으로부터 Aatrox(2,1) ★3 가까이, Caitlyn(3,2) 멀리 — Vex 평타는 가까운 Aatrox.
+    const r = simulateCombat(
+      [placed(vex, 0, 0, 3)],
+      [placed(aatrox, 2, 1, 3), placed(cait, 3, 2, 1)],
+      { seed: 0, allTraits: traits, skipMirror: true },
+    );
+    // Vex 가 살아있는 동안 그림자 spread → Caitlyn 도 일부 데미지 받음.
+    // 정확한 양은 sim flow 의존이지만 spread 작동 fingerprint level 검증.
+    const enemyCaitlyn = r.enemyUnits.find(u => u.champion.apiName === 'TFT17_Caitlyn');
+    if (enemyCaitlyn) {
+      expect(enemyCaitlyn.totalDamageTaken).toBeGreaterThan(0);
+    }
+  });
 });

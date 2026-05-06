@@ -5493,25 +5493,43 @@ export function simulateCombat(
           //
           // codex P2 (PR #101): target-conditional amp 통합 — Madreds (Tank), Invention,
           // Graves Tankbuster, Sniper 거리 amp 모두 평타와 동일하게 적용.
-          if (unit.champion.apiName === 'TFT17_Vex' && target.state !== 'dead') {
+          // codex P1 (PR #101 후속, 사용자 결정): "주변 적" spread 해석 (옵션 c) —
+          //   평타 target 우선 + alive 한 다른 적 있으면 Vex 본인 기준 가장 가까운 적 추가 hit.
+          //   raw "주변 적" 명시적 반경 변수 없어 가장 가까운 1명에 spread 한정 (보수).
+          if (unit.champion.apiName === 'TFT17_Vex') {
             const shadowVar = unit.champion.ability.variables?.find(v => v.name === 'ShadowHandDamage');
             const shadowBase = readVarByStar(shadowVar?.value, unit.starLevel, 30);
-            let shadowAmp = unit.damageAmp;
-            if (unit.inventionTankDamageAmp > 0 && target.role === 'Tank') shadowAmp += unit.inventionTankDamageAmp;
-            if (unit.madredsTankDamageAmp > 0 && target.role === 'Tank') shadowAmp += unit.madredsTankDamageAmp;
-            if (unit.gravesTankDamageAmp > 0 && target.role === 'Tank') shadowAmp += unit.gravesTankDamageAmp;
-            shadowAmp += computeSniperDamageAmp(unit, target);
-            const shadowRaw = shadowBase * (1 + unit.stats.ap / 100) * (1 + shadowAmp);
-            const shadowDmg = applyAbilityMitigation(unit, target, shadowRaw, 'magic', eventBus, tick);
-            target.currentHp -= shadowDmg;
-            target.totalDamageTaken += shadowDmg;
-            unit.totalDamageDealt += shadowDmg;
-            // lethal 검사 (Corki 미사일 패턴 따름)
-            if (target.currentHp <= 0) {
-              const ownArbiterStateVex = unit.team === 'player' ? playerArbiterState : enemyArbiterState;
-              logs.push({ tick, time, type: 'death', sourceId: target.id, message: `${target.champion.name} 사망! (${unit.champion.name}의 그림자)` });
-              markTargetDead(unit, target, ownArbiterStateVex, eventBus, tick);
+            const apFactor = 1 + unit.stats.ap / 100;
+            const ownArbiterStateVex = unit.team === 'player' ? playerArbiterState : enemyArbiterState;
+            // helper: shadow hit 1 victim — target-conditional amp + mitigation + lethal mark.
+            const applyShadow = (victim: CombatUnit) => {
+              if (victim.state === 'dead') return;
+              let amp = unit.damageAmp;
+              if (unit.inventionTankDamageAmp > 0 && victim.role === 'Tank') amp += unit.inventionTankDamageAmp;
+              if (unit.madredsTankDamageAmp > 0 && victim.role === 'Tank') amp += unit.madredsTankDamageAmp;
+              if (unit.gravesTankDamageAmp > 0 && victim.role === 'Tank') amp += unit.gravesTankDamageAmp;
+              amp += computeSniperDamageAmp(unit, victim);
+              const raw = shadowBase * apFactor * (1 + amp);
+              const dealt = applyAbilityMitigation(unit, victim, raw, 'magic', eventBus, tick);
+              victim.currentHp -= dealt;
+              victim.totalDamageTaken += dealt;
+              unit.totalDamageDealt += dealt;
+              if (victim.currentHp <= 0) {
+                logs.push({ tick, time, type: 'death', sourceId: victim.id, message: `${victim.champion.name} 사망! (${unit.champion.name}의 그림자)` });
+                markTargetDead(unit, victim, ownArbiterStateVex, eventBus, tick);
+              }
+            };
+            applyShadow(target);
+            // 추가 spread: alive 한 다른 적 중 Vex 본인 기준 가장 가까운 1명.
+            const enemyTeamForShadow = unit.team === 'player' ? enemies : playerUnits;
+            let nearestOther: CombatUnit | null = null;
+            let nearestDist = Infinity;
+            for (const e of enemyTeamForShadow) {
+              if (e.state === 'dead' || e.id === target.id) continue;
+              const d = hexDistance(unit.position, e.position);
+              if (d < nearestDist) { nearestDist = d; nearestOther = e; }
             }
+            if (nearestOther) applyShadow(nearestOther);
           }
 
           // === 케이틀린: 15% 확률 헤드샷 추가 물리 피해 ===
