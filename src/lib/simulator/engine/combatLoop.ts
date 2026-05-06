@@ -3878,9 +3878,16 @@ export function simulateCombat(
     stackCount: options.enemyAugmentStacks?.[aug.apiName] ?? 1,
   }));
 
+  // 갈리오는 필드에 배치되지만 전투 시작 시 보드에 없음 (데마시아 결집 시 소환).
+  // BoonOfStars star sum 에 포함되면 over-buff 발생 (codex P2 PR #91) → 미리 제외 필터.
+  const isGalioPlaceholder = (p: PlacedChampion) => p.champion.apiName === 'TFT16_Galio';
+  const playerCombatRoster = allyTeam.filter(p => !isGalioPlaceholder(p));
+  const enemyCombatRoster = enemyTeam.filter(p => !isGalioPlaceholder(p));
+
   // 팀별 starLevel 합 — 바루스의 은총(BoonOfStars) 등 별 레벨 합 기반 augment 입력.
-  const playerStarLevelSum = allyTeam.reduce((s, p) => s + (p.starLevel ?? 0), 0);
-  const enemyStarLevelSum = enemyTeam.reduce((s, p) => s + (p.starLevel ?? 0), 0);
+  // Galio placeholder 는 전투 시작 시 보드에 없으므로 제외 (combat roster 기준).
+  const playerStarLevelSum = playerCombatRoster.reduce((s, p) => s + (p.starLevel ?? 0), 0);
+  const enemyStarLevelSum = enemyCombatRoster.reduce((s, p) => s + (p.starLevel ?? 0), 0);
 
   const playerAugmentEffects = resolveAugmentEffects(playerAugsWithStacks, playerStarLevelSum);
   const enemyAugmentEffects = resolveAugmentEffects(enemyAugsWithStacks, enemyStarLevelSum);
@@ -3912,12 +3919,13 @@ export function simulateCombat(
   const rng: SeededRNG = createRNG(seed);
   const eventBus = new EventBus();
 
-  // 갈리오는 필드에 배치되지만 전투 시작 시 제외 → 데마시아 결집 시 소환
-  const isGalio = (p: PlacedChampion) => p.champion.apiName === 'TFT16_Galio';
+  // 갈리오는 필드에 배치되지만 전투 시작 시 제외 → 데마시아 결집 시 소환.
+  // (위에서 이미 필터링한 playerCombatRoster/enemyCombatRoster 와 동일 — 이름만 다른 alias.)
+  const isGalio = isGalioPlaceholder;
   const playerGalioPlaced = allyTeam.find(isGalio);
   const enemyGalioPlaced = enemyTeam.find(isGalio);
-  const playerTeamFiltered = allyTeam.filter(p => !isGalio(p));
-  const enemyTeamFiltered = enemyTeam.filter(p => !isGalio(p));
+  const playerTeamFiltered = playerCombatRoster;
+  const enemyTeamFiltered = enemyCombatRoster;
 
   // options에서 전달된 갈리오보다 필드 배치된 갈리오 우선
   const effectivePlayerGalio = playerGalioPlaced
