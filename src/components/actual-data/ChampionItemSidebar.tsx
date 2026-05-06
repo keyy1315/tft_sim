@@ -7,6 +7,7 @@ import DraggableChampionCard from '@/components/builder/DraggableChampionCard';
 import DraggableItemIcon from '@/components/builder/DraggableItemIcon';
 import SearchBar from '@/components/ui/SearchBar';
 import DraggableItemRemoverTool from './DraggableItemRemoverTool';
+import DraggableNovaSelectorTool from './DraggableNovaSelectorTool';
 
 type Tab = 'champions' | 'items' | 'tools';
 type CostFilter = null | 1 | 2 | 3 | 4 | 5;
@@ -176,6 +177,7 @@ function ToolsSection() {
       </p>
       <div className="grid grid-cols-5 gap-1.5">
         <DraggableItemRemoverTool size={44} />
+        <DraggableNovaSelectorTool size={44} />
       </div>
     </div>
   );

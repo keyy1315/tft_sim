@@ -65,6 +65,33 @@ export function clearUnitItems(u: PlacedUnit): PlacedUnit {
   return { ...u, items: [undefined, undefined, undefined] as PlacedUnit['items'] };
 }
 
+/**
+ * N.O.V.A. (DRX) "타격 선택기" 가 적용 가능한 NOVA 5종 챔피언 apiName.
+ * combatLoop 의 NOVA_APIS 와 일치 — 다섯 명 중 한 명에게만 동시 적용 (팀 단일성).
+ */
+const NOVA_SELECTOR_TARGETS: ReadonlySet<string> = new Set([
+  'TFT17_Aatrox',
+  'TFT17_Caitlyn',
+  'TFT17_Akali',
+  'TFT17_Maokai',
+  'TFT17_Kindred',
+]);
+
+/**
+ * 같은 팀 내에서 NOVA 타격 선택기는 단일 unit 에만 부여 가능.
+ * 기존 보유자가 있으면 false 로 해제하고 target 에 true 를 부여한 새 배열을 반환한다.
+ * target 이 NOVA 5종이 아니면 null 반환 (호출 측에서 무시).
+ */
+function applyNovaStrikeSelector(units: PlacedUnit[], targetIdx: number): PlacedUnit[] | null {
+  const target = units[targetIdx];
+  if (!target || !NOVA_SELECTOR_TARGETS.has(target.championId)) return null;
+  return units.map((u, i) => {
+    if (i === targetIdx) return { ...u, novaStrikeSelector: true };
+    if (u.novaStrikeSelector) return { ...u, novaStrikeSelector: false };
+    return u;
+  });
+}
+
 export interface ActualDndContext {
   round: PvPRound;
   roundIndex: number;
@@ -124,6 +151,16 @@ export function createActualDragEndHandler(ctx: () => ActualDndContext | null) {
       if (existingDestIdx < 0) return;
       const cleared = clearUnitItems(destUnits[existingDestIdx]);
       setDest(destUnits.map((u, i) => (i === existingDestIdx ? cleared : u)));
+      return;
+    }
+
+    // Tool: nova-selector — assign the NOVA 타격 선택기 flag to the target NOVA unit.
+    // Non-NOVA targets are ignored. Same-team single-instance enforced.
+    if (dragData.type === 'tool' && dragData.toolKind === 'nova-selector') {
+      if (existingDestIdx < 0) return;
+      const next = applyNovaStrikeSelector(destUnits, existingDestIdx);
+      if (!next) return;
+      setDest(next);
       return;
     }
 

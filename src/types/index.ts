@@ -922,7 +922,7 @@ export type DragData =
   | { type: 'champion'; champion: RawChampion }
   | { type: 'placed-unit'; team: 'player' | 'enemy'; position: HexCoord }
   | { type: 'item'; item: RawItem }
-  | { type: 'tool'; toolKind: 'remove-all' };
+  | { type: 'tool'; toolKind: 'remove-all' | 'nova-selector' };
 
 export const STAR_SCALING: Record<number, number> = {
   1: 1,
