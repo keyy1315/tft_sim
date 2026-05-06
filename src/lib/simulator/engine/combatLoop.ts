@@ -192,6 +192,8 @@ function createCombatUnit(
   // 아이템 기반 omnivamp / manaRegen — ItemEffect 확장 (Set 17 StatOmnivamp / ManaRegen)
   const itemFx = getItemEffects(allItems);
   const role = mapGameRole(placed.champion.role);
+  // PR101: 매드레드의 검 — 탱커 상대 +15% damageAmp. 다중 부착 시 누적.
+  const madredsCount = allItems.filter(i => i?.apiName === 'TFT_Item_MadredsBloodrazor').length;
   const unit: CombatUnit = {
     id: `${team}-${index}`,
     champion: placed.champion,
@@ -223,6 +225,7 @@ function createCombatUnit(
     augmentBurnPercent: 0,
     itemFlatManaPerAttack: 0,
     inventionTankDamageAmp: 0,
+    madredsTankDamageAmp: madredsCount * 0.15,
     healAmp: itemFx.healAmp ?? 0,
     darkStarExecuteThreshold: 0,
     darkStarSupermassive: false,
@@ -3152,6 +3155,7 @@ function spawnFreljordTurrets(
             augmentBurnPercent: 0,
             itemFlatManaPerAttack: 0,
             inventionTankDamageAmp: 0,
+            madredsTankDamageAmp: 0,
             healAmp: 0,
             darkStarExecuteThreshold: 0,
             darkStarSupermassive: false,
@@ -3353,6 +3357,7 @@ function trySpawnGalio(
     augmentBurnPercent: 0,
     itemFlatManaPerAttack: 0,
     inventionTankDamageAmp: 0,
+    madredsTankDamageAmp: 0,
     healAmp: 0,
     darkStarExecuteThreshold: 0,
     darkStarSupermassive: false,
@@ -5157,6 +5162,10 @@ export function simulateCombat(
           if (unit.gravesTankDamageAmp > 0 && target.role === 'Tank') {
             totalDamageAmp += unit.gravesTankDamageAmp;
           }
+          // PR101: 매드레드의 검 — 탱커 상대 +15% damageAmp
+          if (unit.madredsTankDamageAmp > 0 && target.role === 'Tank') {
+            totalDamageAmp += unit.madredsTankDamageAmp;
+          }
           // 저격수 (Sniper) — 거리 기반 추가 damage amp
           totalDamageAmp += computeSniperDamageAmp(unit, target);
           // 최신상 AimAssistant — distance 1 hex 당 +N% damage amp.
@@ -5474,6 +5483,28 @@ export function simulateCombat(
             const arbState = unit.team === 'player' ? playerArbiterState : enemyArbiterState;
             arbState.hitCount++;
             arbState.attackCount++;
+          }
+
+          // === 벡스: 평타마다 그림자 추가 magic 피해 (PR101 — Vex 패시브) ===
+          // raw 메커닉: "기본 공격을 가할 때마다 그림자가 주변 적을 타격해 ShadowHandDamage 마법 피해"
+          //   ★1=30, ★2=45, ★3=250 (sentinel filler 컨벤션 — readVarByStar 자동).
+          //   AP scale (scaleAP). NumStrikesForPassive=5 — 적 5회 누적 시 그림자 재타격
+          //   (별도 메커닉, 본 PR 범위 외).
+          if (unit.champion.apiName === 'TFT17_Vex' && target.state !== 'dead') {
+            const shadowVar = unit.champion.ability.variables?.find(v => v.name === 'ShadowHandDamage');
+            const shadowBase = readVarByStar(shadowVar?.value, unit.starLevel, 30);
+            // AP scale + damageAmp 적용. mitigation 은 magicResist 기반.
+            const shadowRaw = shadowBase * (1 + unit.stats.ap / 100) * (1 + unit.damageAmp);
+            const shadowDmg = applyAbilityMitigation(unit, target, shadowRaw, 'magic', eventBus, tick);
+            target.currentHp -= shadowDmg;
+            target.totalDamageTaken += shadowDmg;
+            unit.totalDamageDealt += shadowDmg;
+            // lethal 검사 (Corki 미사일 패턴 따름)
+            if (target.currentHp <= 0) {
+              const ownArbiterStateVex = unit.team === 'player' ? playerArbiterState : enemyArbiterState;
+              logs.push({ tick, time, type: 'death', sourceId: target.id, message: `${target.champion.name} 사망! (${unit.champion.name}의 그림자)` });
+              markTargetDead(unit, target, ownArbiterStateVex, eventBus, tick);
+            }
           }
 
           // === 케이틀린: 15% 확률 헤드샷 추가 물리 피해 ===
@@ -5932,6 +5963,10 @@ export function simulateCombat(
                 if (unit.inventionTankDamageAmp > 0 && t.role === 'Tank') {
                   abilityDamageAmp += unit.inventionTankDamageAmp;
                 }
+                // PR101: 매드레드의 검 — 탱커 상대 +15% damageAmp (ability cast 도 적용)
+                if (unit.madredsTankDamageAmp > 0 && t.role === 'Tank') {
+                  abilityDamageAmp += unit.madredsTankDamageAmp;
+                }
                 // 최신상 Tankbuster — 탱커 상대 추가 damage amp (per target)
                 if (unit.gravesTankDamageAmp > 0 && t.role === 'Tank') {
                   abilityDamageAmp += unit.gravesTankDamageAmp;
@@ -6090,6 +6125,10 @@ export function simulateCombat(
                     }
                     if (unit.gravesTankDamageAmp > 0 && t.role === 'Tank') {
                       recastDamageAmp += unit.gravesTankDamageAmp;
+                    }
+                    // PR101: 매드레드의 검 — 탱커 상대 +15% damageAmp (recast path)
+                    if (unit.madredsTankDamageAmp > 0 && t.role === 'Tank') {
+                      recastDamageAmp += unit.madredsTankDamageAmp;
                     }
                     recastDamageAmp += computeSniperDamageAmp(unit, t);
                     if (unit.mfReplicatorEffectiveness > 0) {
