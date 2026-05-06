@@ -313,6 +313,7 @@ export default function SimulatorLayoutDesktop(props: SimulatorLayoutProps) {
                   onRemoveUnit={() => tm.handleRemoveUnit(tm.selectedUnit!.team, tm.selectedUnit!.index)}
                   onMfModeChange={(mode) => tm.handleMfModeChange(tm.selectedUnit!.team, tm.selectedUnit!.index, mode)}
                   onPermanentStackChange={(value) => tm.handlePermanentStackChange(tm.selectedUnit!.team, tm.selectedUnit!.index, value)}
+                  onNovaStrikeSelectorToggle={(next) => tm.handleNovaStrikeSelectorChange(tm.selectedUnit!.team, tm.selectedUnit!.index, next)}
                   onEditGravesWeapons={onEditGravesWeapons ? () => onEditGravesWeapons(tm.selectedUnit!.team) : undefined}
                   teamGravesPicks={tm.selectedUnit!.team === 'player' ? tm.playerGravesPicks : tm.enemyGravesPicks}
                 />
@@ -351,7 +352,8 @@ export default function SimulatorLayoutDesktop(props: SimulatorLayoutProps) {
                     onRemoveUnit={() => tm.handleRemoveUnit(tm.selectedUnit!.team, tm.selectedUnit!.index)}
                     onMfModeChange={(mode) => tm.handleMfModeChange(tm.selectedUnit!.team, tm.selectedUnit!.index, mode)}
                     onPermanentStackChange={(value) => tm.handlePermanentStackChange(tm.selectedUnit!.team, tm.selectedUnit!.index, value)}
-                  onEditGravesWeapons={onEditGravesWeapons ? () => onEditGravesWeapons(tm.selectedUnit!.team) : undefined}
+                    onNovaStrikeSelectorToggle={(next) => tm.handleNovaStrikeSelectorChange(tm.selectedUnit!.team, tm.selectedUnit!.index, next)}
+                    onEditGravesWeapons={onEditGravesWeapons ? () => onEditGravesWeapons(tm.selectedUnit!.team) : undefined}
                   />
                 </div>
               )}

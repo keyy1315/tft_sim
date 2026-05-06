@@ -11,6 +11,7 @@ import { useState, useMemo } from 'react';
 import { getItemCategory } from '@/lib/simulator/systems/item';
 import { resolveDescription } from '@/lib/utils/text';
 import { FACTORY_NEW_TREE, suffixToApiName } from '@/data/factoryNewTree';
+import { isNovaSelectorTarget } from '@/lib/simulator/novaSelector';
 
 interface SelectedUnitPanelProps {
   placed: PlacedChampion;
@@ -24,6 +25,11 @@ interface SelectedUnitPanelProps {
   onRemoveUnit: () => void;
   onMfModeChange?: (mode: MfMode) => void;
   onPermanentStackChange?: (value: number) => void;
+  /**
+   * NOVA 5종(Aatrox/Caitlyn/Akali/Maokai/Kindred) 일 때만 노출되는 타격 선택기 토글.
+   * useTeamManagement.handleNovaStrikeSelectorChange 가 같은 팀 단일성을 강제한다.
+   */
+  onNovaStrikeSelectorToggle?: (next: boolean) => void;
   /** 그레이브즈일 때만 활성화 — 무기고 편집 모달 open 콜백. */
   onEditGravesWeapons?: () => void;
   /**
@@ -46,6 +52,7 @@ export default function SelectedUnitPanel({
   onRemoveUnit,
   onMfModeChange,
   onPermanentStackChange,
+  onNovaStrikeSelectorToggle,
   onEditGravesWeapons,
   teamGravesPicks,
 }: SelectedUnitPanelProps) {
@@ -94,6 +101,24 @@ export default function SelectedUnitPanel({
       </div>
 
       <StarSelector starLevel={placed.starLevel} onChange={onStarChange} />
+
+      {isNovaSelectorTarget(placed.champion.apiName) && onNovaStrikeSelectorToggle && (
+        <div>
+          <div className="text-xs text-gray-400 mb-1.5">N.O.V.A. 타격 선택기</div>
+          <button
+            onClick={() => onNovaStrikeSelectorToggle(!placed.novaStrikeSelector)}
+            className={`w-full flex items-center justify-center gap-2 px-2 py-1.5 rounded border text-[11px] transition-colors ${
+              placed.novaStrikeSelector
+                ? 'border-cyan-500 bg-cyan-500/20 text-cyan-300'
+                : 'border-gray-700 bg-gray-800/50 text-gray-400 hover:border-gray-500'
+            }`}
+            title="NOVA 5종 중 한 명에게만 적용 가능 — 같은 팀의 다른 NOVA 유닛은 자동 해제"
+          >
+            <Image src="/data/images/items/tft17_drxselector.tft_set17.png" alt="타격 선택기" width={16} height={16} unoptimized />
+            {placed.novaStrikeSelector ? '적용 중 (해제)' : '적용'}
+          </button>
+        </div>
+      )}
 
       {placed.champion.apiName === 'TFT17_MissFortune' && onMfModeChange && (
         <div>

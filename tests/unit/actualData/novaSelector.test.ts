@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { getItemCategory } from '@/lib/simulator/systems/item';
 import { PlacedUnitSchema } from '@/lib/actualData/schema';
+import { NOVA_SELECTOR_APIS, isNovaSelectorTarget } from '@/lib/simulator/novaSelector';
 import {
   toPlacedChampion as actualToPlaced,
   fromPlacedChampion,
@@ -16,6 +17,27 @@ import type {
 } from '@/lib/actualData/types';
 import type { RawItem, RawChampion, DragData, PlacedChampion } from '@/types';
 import type { DragEndEvent } from '@dnd-kit/core';
+
+// ─── PR8 5/5: 공유 NOVA selector 모듈 (actual-data + simulator 공용) ─────────
+
+describe('PR8 5/5 — novaSelector 공유 모듈', () => {
+  it('NOVA_SELECTOR_APIS 가 NOVA 5종을 정확히 포함', () => {
+    expect(NOVA_SELECTOR_APIS.size).toBe(5);
+    for (const api of [
+      'TFT17_Aatrox', 'TFT17_Caitlyn', 'TFT17_Akali', 'TFT17_Maokai', 'TFT17_Kindred',
+    ]) {
+      expect(NOVA_SELECTOR_APIS.has(api)).toBe(true);
+    }
+  });
+
+  it('isNovaSelectorTarget: NOVA 5종 true / 그 외 false', () => {
+    expect(isNovaSelectorTarget('TFT17_Aatrox')).toBe(true);
+    expect(isNovaSelectorTarget('TFT17_Kindred')).toBe(true);
+    expect(isNovaSelectorTarget('TFT17_Ahri')).toBe(false);
+    expect(isNovaSelectorTarget('TFT17_MissFortune')).toBe(false);
+    expect(isNovaSelectorTarget('')).toBe(false);
+  });
+});
 
 // ─── PR8 1/4: getItemCategory split ──────────────────────────────────────────
 

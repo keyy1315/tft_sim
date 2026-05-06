@@ -93,6 +93,7 @@ export default function SimulatorLayoutMobile(props: SimulatorLayoutProps) {
           onRemoveUnit={() => tm.handleRemoveUnit(tm.selectedUnit!.team, tm.selectedUnit!.index)}
           onMfModeChange={(m) => tm.handleMfModeChange(tm.selectedUnit!.team, tm.selectedUnit!.index, m)}
           onPermanentStackChange={(v) => tm.handlePermanentStackChange(tm.selectedUnit!.team, tm.selectedUnit!.index, v)}
+          onNovaStrikeSelectorToggle={(next) => tm.handleNovaStrikeSelectorChange(tm.selectedUnit!.team, tm.selectedUnit!.index, next)}
           onEditGravesWeapons={props.onEditGravesWeapons ? () => props.onEditGravesWeapons!(tm.selectedUnit!.team) : undefined}
           teamGravesPicks={tm.selectedUnit!.team === 'player' ? tm.playerGravesPicks : tm.enemyGravesPicks}
         />
