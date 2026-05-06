@@ -98,6 +98,8 @@ export type ItemCategory =
   | 'bilgewater'   // 빌지워터 아이템
   | 'void'         // 공허 돌연변이
   | 'darkin'       // 다르킨
+  | 'animasquad'   // 동물특공대 전용 아이템 (TFT17_AnimaSquadItem_*)
+  | 'psyops'       // 초능력 전용 아이템 (TFT17_Item_PsyOps_*)
   | 'special';     // 특수 (비전투)
 
 export interface EquipValidation {

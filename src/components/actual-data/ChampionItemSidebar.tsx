@@ -128,7 +128,7 @@ function ItemSection({ items, onItemClick }: { items: RawItem[]; onItemClick?: (
       if (cat === 'bilgewater') return false;
       if (cat === 'void') return false;
       if (tab === 'all') return true;
-      if (tab === 'combined' && (cat === 'darkin')) return true;
+      if (tab === 'combined' && (cat === 'darkin' || cat === 'animasquad' || cat === 'psyops')) return true;
       return cat === tab;
     });
   }, [items, search, tab]);

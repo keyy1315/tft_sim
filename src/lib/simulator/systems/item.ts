@@ -131,8 +131,11 @@ export function getItemCategory(item: RawItem): ItemCategory {
   if (item.apiName.includes('Consumable_Void')) return 'void';
   if (item.apiName.includes('TheDarkin')) return 'darkin';
   // Set 17 실제 장착 가능한 특수 세트 아이템 (composition이 비어도 조합 완성품 취급)
-  if (item.apiName.startsWith('TFT17_Item_PsyOps_')) return 'combined';
-  if (item.apiName.startsWith('TFT17_AnimaSquadItem_')) return 'combined';
+  // 동물특공대/초능력은 별도 카테고리로 분기 — ItemGrid 전용 탭 필터링용.
+  // 다른 "완성템" 필터(itemRecommender, ChampionItemSidebar, SimulatorLayoutDesktop, ItemPoolContent)는
+  // 'combined' 동작을 유지하기 위해 'animasquad'/'psyops'를 명시적으로 함께 포함시켜 호환성을 보존한다.
+  if (item.apiName.startsWith('TFT17_Item_PsyOps_')) return 'psyops';
+  if (item.apiName.startsWith('TFT17_AnimaSquadItem_')) return 'animasquad';
   // 에코 이상현상 아이템 (실제 장착 가능, 효과 복원 불가 — 기록 용도)
   if (item.apiName.includes('Anomaly')) return 'combined';
   if (isBaseComponent(item)) return 'component';
