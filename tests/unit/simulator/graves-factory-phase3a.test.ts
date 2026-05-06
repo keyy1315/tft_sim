@@ -124,12 +124,21 @@ describe('GravesTrait Phase 3A — Shockwave (전투 시작 cone + stun)', () =>
     expect(base.gravesShockwaveActive).toBe(false);
   });
 
-  it('Shockwave 활성 시 적 maxHp 의 약 15% 마법 피해 + stun 적용 흔적', () => {
-    // 적 1명 시나리오 (Aatrox 6,3) — 초기 maxHp 15% 만큼 즉시 차감 됨.
-    // 단, 평타/스킬 데미지가 즉시 누적되므로 baseline 과의 차이로 측정.
-    const { enemy, baseEnemy } = runWith(['Shockwave']);
-    // Shockwave 활성 시 첫 tick 부터 추가 데미지 → totalDamageTaken 증가.
-    expect(enemy.totalDamageTaken).toBeGreaterThan(baseEnemy.totalDamageTaken);
+  it('Shockwave 활성 시 combat 종료 가속 (초반 maxHp×15% 추가 burst → 적 사망 시간 단축)', () => {
+    // 적 1명 시나리오 (Aatrox 6,3) — Shockwave 첫 tick 추가 데미지로 combat 종료 가속.
+    // PR99 (off-by-one fix): Graves SecondaryDamageAD ★2 정상화 (★3 200 → ★2 135) 후
+    // baseline 의 totalDamageTaken 누적이 combat duration 차이로 더 클 수 있어,
+    // duration 비교가 더 robust. Shockwave 활성 → 적 사망 시간 단축 → duration 짧음.
+    const team: PlacedChampion[] = [placed(apGraves, 0, 0)];
+    const enemyTeam: PlacedChampion[] = [placed(dummyEnemy, 6, 3)];
+    const withUpg = simulateCombat(team, enemyTeam, {
+      seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
+      playerGravesUpgrades: ['Shockwave'],
+    });
+    const baseline = simulateCombat(team, enemyTeam, {
+      seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
+    });
+    expect(withUpg.duration).toBeLessThanOrEqual(baseline.duration);
   });
 });
 

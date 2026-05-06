@@ -148,6 +148,38 @@ export interface SimulateOptions {
   enemyGravesUpgrades?: string[];
 }
 
+/**
+ * 챔피언 ability variable 의 starLevel 별 값 읽기 — 데이터 컨벤션 자동 감지 (PR99).
+ *
+ * CommunityDragon TFT17 데이터의 컨벤션이 챔피언별로 혼재:
+ *   - **filler** (대부분): `[dummy, ★1, ★2, ★3, ★4]` — index = starLevel
+ *     예: Lissandra SecondaryDamage [100, 50, 75, 115, 195],
+ *         Kindred SpellDamage [0, 75, 115, ...], Karma SecondaryDamage [0, 150, 225, ...],
+ *         Sona SlamDamage [2.5, 680, 1050, ...] (작은 sentinel),
+ *         Vex ShadowHandDamage [2.5, 30, 45, ...], Talon ADBleedDamage [2.5, 430, 645, ...]
+ *   - **no-filler** (일부): `[★1, ★2, ★3, ★4, ★5]` — index = starLevel - 1
+ *     예: Caitlyn Damage [145, 170, 255, 510, 875], Graves SecondaryDamageAD [120, 135, 200, ...],
+ *         TF DamageMin [180, 190, 285, 430, 730]
+ *
+ * 자동 감지 규칙 (filler 판정 — codex P1 PR #99 후속):
+ *   1. `value[0] === 0` (Kindred, Karma 등 zero filler)
+ *   2. `value[0] > value[1]` (Lissandra 같은 dummy-larger pattern)
+ *   3. `value[1] / value[0] > 5` (Sona/Talon/Vex 처럼 작은 sentinel — 2.5/3 등이 ★1 직전에)
+ * 그 외 monotonic increase 면 no-filler.
+ * 상수 배열 (ProcChance [15, 15, 15]) 은 ratio = 1, no-filler 처리되지만 모두 동일 값이라 안전.
+ */
+function readVarByStar(value: number[] | undefined, starLevel: number, fallback = 0): number {
+  if (!value || value.length === 0) return fallback;
+  if (value.length === 1) return value[0];
+  const v0 = value[0];
+  const v1 = value[1];
+  // codex P1 (PR #99): 작은 sentinel (2.5 등) 도 filler 로 분류. v0 > 0 일 때 ratio 검사.
+  const sentinelRatio = v0 > 0 && v1 / v0 > 5;
+  const isFiller = v0 === 0 || v0 > v1 || sentinelRatio;
+  const idx = isFiller ? starLevel : starLevel - 1;
+  return value[idx] ?? value[isFiller ? 1 : 0] ?? fallback;
+}
+
 function createCombatUnit(
   placed: PlacedChampion,
   team: 'player' | 'enemy',
@@ -5446,10 +5478,13 @@ export function simulateCombat(
 
           // === 케이틀린: 15% 확률 헤드샷 추가 물리 피해 ===
           if (unit.champion.apiName === 'TFT17_Caitlyn' && target.state !== 'dead') {
-            const procChance = (unit.champion.ability.variables?.find(v => v.name === 'ProcChance')?.value?.[unit.starLevel] ?? 15) / 100;
+            // PR99: readVarByStar 로 데이터 컨벤션 자동 감지 (Caitlyn 은 no-filler).
+            const procChance = readVarByStar(
+              unit.champion.ability.variables?.find(v => v.name === 'ProcChance')?.value, unit.starLevel, 15
+            ) / 100;
             if (rng.next() < procChance) {
               const hsVar = unit.champion.ability.variables?.find(v => v.name === 'Damage');
-              const hsDmg = hsVar?.value?.[unit.starLevel] ?? 170;
+              const hsDmg = readVarByStar(hsVar?.value, unit.starLevel, 170);
               const hsFinal = applyResistance(hsDmg * (1 + unit.damageAmp), target.stats.armor, unit.stats.armorPen);
               target.currentHp -= hsFinal;
               target.totalDamageTaken += hsFinal;
@@ -5464,7 +5499,8 @@ export function simulateCombat(
             if (marks >= 3) {
               (target as CombatUnit & { _kindredMarks?: number })._kindredMarks = 0;
               const markDmgVar = unit.champion.ability.variables?.find(v => v.name === 'SpellDamage');
-              const markDmg = markDmgVar?.value?.[unit.starLevel] ?? 60;
+              // PR99: Kindred SpellDamage [0, 75, 115] = filler — readVarByStar 자동.
+              const markDmg = readVarByStar(markDmgVar?.value, unit.starLevel, 60);
               const markFinal = applyResistance(markDmg * (1 + unit.damageAmp), target.stats.armor, unit.stats.armorPen);
               target.currentHp -= markFinal;
               target.totalDamageTaken += markFinal;
@@ -5876,26 +5912,30 @@ export function simulateCombat(
                 // 초가스: % 최대체력 피해 추가
                 if (unit.champion.apiName === 'TFT17_Chogath') {
                   const pctVar = unit.champion.ability.variables?.find(v => v.name === 'PercentMaximumHealthDamage');
-                  const pctHp = pctVar?.value?.[unit.starLevel] ?? 0.08;
+                  const pctHp = readVarByStar(pctVar?.value, unit.starLevel, 0.08);
                   baseDmg += t.maxHp * pctHp;
                 }
                 // 트위스티드 페이트: 랜덤 범위 피해 (DamageMin ~ DamageMax)
                 if (unit.champion.apiName === 'TFT17_TwistedFate') {
                   const minVar = unit.champion.ability.variables?.find(v => v.name === 'DamageMin');
                   const maxVar = unit.champion.ability.variables?.find(v => v.name === 'DamageMax');
-                  const minDmg = minVar?.value?.[unit.starLevel] ?? baseDmg;
-                  const maxDmg = maxVar?.value?.[unit.starLevel] ?? baseDmg;
+                  // PR99: TF DamageMin [180, 190, 285] = no-filler — readVarByStar 자동.
+                  const minDmg = readVarByStar(minVar?.value, unit.starLevel, baseDmg);
+                  const maxDmg = readVarByStar(maxVar?.value, unit.starLevel, baseDmg);
                   baseDmg = minDmg + rng.next() * (maxDmg - minDmg);
                 }
                 // 브라이어: 탱커 대상 50% 추가 피해
                 if (unit.champion.apiName === 'TFT17_Briar' && t.role === 'Tank') {
-                  const bonusPct = unit.champion.ability.variables?.find(v => v.name === 'PercentBonusDamage')?.value?.[unit.starLevel] ?? 0.5;
+                  const bonusPct = readVarByStar(
+                    unit.champion.ability.variables?.find(v => v.name === 'PercentBonusDamage')?.value, unit.starLevel, 0.5
+                  );
                   baseDmg *= (1 + bonusPct);
                 }
                 // secondaryDamageVar: 2차 피해 합산 (리산드라 폭발, 베이가 미니유성 등)
+                // PR99: Lissandra/Veigar/Karma 는 filler, Graves SecondaryDamageAD 는 no-filler — readVarByStar 자동.
                 if (config.secondaryDamageVar) {
                   const secVar = unit.champion.ability.variables?.find(v => v.name === config.secondaryDamageVar);
-                  const secVal = secVar?.value?.[unit.starLevel] ?? 0;
+                  const secVal = readVarByStar(secVar?.value, unit.starLevel, 0);
                   baseDmg += secVal;
                 }
                 let dmg = baseDmg * (1 + abilityDamageAmp);
@@ -6297,7 +6337,9 @@ export function simulateCombat(
             // === 이즈리얼 드론: 스킬 사용 시 타겟에게 추가 물리 피해 ===
             const ezDrones = (unit as CombatUnit & { _ezrealDrones?: number })._ezrealDrones ?? 0;
             if (ezDrones > 0 && abilityTarget.state !== 'dead') {
-              const droneDmgBase = unit.champion.ability.variables?.find(v => v.name === 'DroneDamage')?.value?.[unit.starLevel] ?? 8;
+              const droneDmgBase = readVarByStar(
+                unit.champion.ability.variables?.find(v => v.name === 'DroneDamage')?.value, unit.starLevel, 8
+              );
               const droneTotalRaw = ezDrones * droneDmgBase * (1 + unit.damageAmp);
               const droneDmg = applyResistance(droneTotalRaw, abilityTarget.stats.armor, unit.stats.armorPen);
               abilityTarget.currentHp -= droneDmg;
@@ -6488,7 +6530,9 @@ export function simulateCombat(
           // === 이즈리얼 드론: 스킬 사용 시 타겟에게 추가 물리 피해 ===
           const ezDronesOOR = (unit as CombatUnit & { _ezrealDrones?: number })._ezrealDrones ?? 0;
           if (ezDronesOOR > 0 && abilityTarget.state !== 'dead') {
-            const droneDmgBase = unit.champion.ability.variables?.find(v => v.name === 'DroneDamage')?.value?.[unit.starLevel] ?? 8;
+            const droneDmgBase = readVarByStar(
+              unit.champion.ability.variables?.find(v => v.name === 'DroneDamage')?.value, unit.starLevel, 8
+            );
             const droneTotalRaw = ezDronesOOR * droneDmgBase * (1 + unit.damageAmp);
             const droneDmg = applyResistance(droneTotalRaw, abilityTarget.stats.armor, unit.stats.armorPen);
             abilityTarget.currentHp -= droneDmg;

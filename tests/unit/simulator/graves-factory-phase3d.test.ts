@@ -100,12 +100,16 @@ describe('GravesTrait Phase 3D — AimAssistant (거리당 +5% damage)', () => {
     expect(grav.gravesAimAssistBonusPerHex).toBe(0);
   });
 
-  it('AimAssistant 활성 + 멀리 있는 적 → totalDamageDealt 증가 (거리 비례)', () => {
+  it('AimAssistant 활성 + 멀리 있는 적 → DPS 증가 (거리 비례 amp)', () => {
     // graves(0,0) → enemy(6,3) ~9 hex. 거리당 5% 시 총 ~45% damage amp.
-    // 적이 점점 가까워지지만 초반 평타는 거리가 있어 bonus.
-    const baseDmg = gravesOf(runWith([])).totalDamageDealt;
-    const aimDmg = gravesOf(runWith(['AimAssistant'])).totalDamageDealt;
-    expect(aimDmg).toBeGreaterThan(baseDmg);
+    // PR99 (off-by-one fix): Graves 데미지 정상화 후 amped scenario 가 적을 더 빨리 죽이고
+    // combat 종료 → totalDamageDealt 누적이 baseline 보다 작아질 수 있음.
+    // 더 robust 한 metric: DPS (totalDmg / duration) — amp 효과 확실히 증가.
+    const baseRes = runWith([]);
+    const aimRes = runWith(['AimAssistant']);
+    const baseDps = gravesOf(baseRes).totalDamageDealt / Math.max(baseRes.duration, 0.1);
+    const aimDps = gravesOf(aimRes).totalDamageDealt / Math.max(aimRes.duration, 0.1);
+    expect(aimDps).toBeGreaterThan(baseDps);
   });
 });
 
