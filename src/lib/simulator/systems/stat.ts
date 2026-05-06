@@ -67,23 +67,35 @@ function mergeStatPatch(target: ItemEffect, patch: Partial<ItemEffect>): void {
  * data 가 integer percentage points 로 저장하는 키 (e.g., AS=40 = +40%) — sim 은 fraction
  * (1.0 = +100%) 사용. legacy fallback 경로에서 변환 필요.
  *
- * 진단 (PR #93 follow-up): set 17 데이터 53 AS 보유 items 모두 integer pts (10~100 범위).
- * 5 items 는 registry 에 등록되어 explicit fraction (예: as: 0.45) 사용 — 정상. 나머지
- * 48 items 는 legacy fallback 으로 흐르면서 raw integer 가 fraction 으로 잘못 적용 → +4000% AS 등
- * 광범위 over-buff. EvelynnArtifact 의 +30.75 AS (probe) 가 대표 사례.
+ * 키별 threshold (key=값, threshold 이상이면 /100 정규화):
+ *   - AS family (모두 integer pts): threshold=1
+ *   - CritChance / CritDamageBonusPercent (모두 integer pts): threshold=1
+ *   - AD family (mixed: 대부분 fraction<1, integer outliers ≥15): threshold=2
+ *     → 1.0/1.4 같은 fraction 보존, 15/30 같은 integer pts 정규화
  *
- * 정규화: legacy 경로에서 'AS' / 'BonusAS' / 'AttackSpeed' 키 값이 1 이상이면 /100 (fraction 으로).
+ * 진단 (PR #94 + 후속): set 17 데이터 ~70+ items 가 legacy fallback 으로 over-buff.
+ *   - AS: 48 items (+1000~10000% AS)
+ *   - CritChance: 19 items (cap=1 로 부분 완화되지만 정확도 손상)
+ *   - AD outliers: 4 items (FreeDeathblade=30, FreeBFSword=15 등 → +1500~3000% AD)
  */
-const LEGACY_AS_KEYS = new Set(['AS', 'BonusAS', 'AttackSpeed']);
+const LEGACY_PCT_NORM_THRESHOLDS: Record<string, number> = {
+  AS: 1, BonusAS: 1, AttackSpeed: 1,
+  CritChance: 1, CritDamageBonusPercent: 1,
+  AD: 2, BonusAD: 2,
+};
+
+function normalizeLegacyPct(key: string, value: number): number {
+  const threshold = LEGACY_PCT_NORM_THRESHOLDS[key];
+  if (threshold !== undefined && value >= threshold) return value / 100;
+  return value;
+}
 
 function mergeLegacy(target: ItemEffect, effects: Record<string, number>): void {
   const t = target as Record<string, number>;
   for (const [key, value] of Object.entries(effects)) {
     const mapped = ITEM_EFFECT_KEYS[key];
     if (mapped && typeof value === 'number') {
-      // AS family: data integer pts → sim fraction. value < 1 (이미 fraction) 인 경우 그대로.
-      const normalized = (LEGACY_AS_KEYS.has(key) && value >= 1) ? value / 100 : value;
-      t[mapped] = (t[mapped] ?? 0) + normalized;
+      t[mapped] = (t[mapped] ?? 0) + normalizeLegacyPct(key, value);
     }
   }
 }
