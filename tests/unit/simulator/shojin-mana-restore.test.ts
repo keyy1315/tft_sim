@@ -55,6 +55,21 @@ describe('PR97 — 쇼진의 창 FlatManaRestore', () => {
     expect(lissWith.totalDamageDealt).toBeGreaterThanOrEqual(lissWithout.totalDamageDealt);
   });
 
+  it('Corrupted Shojin 도 FlatManaRestore=5 동일 처리 (codex P2 PR #97 회귀 가드)', () => {
+    // apiName-specific 분기는 변종 누락 위험 — effect key (FlatManaRestore) 기반 generic 처리.
+    const corrupted = requireItem('TFT_Item_CorruptedSpearOfShojin');
+    expect(corrupted.effects.FlatManaRestore).toBe(5);
+    const liss = champions.find((c) => c.apiName === 'TFT17_Lissandra')!;
+    const aatrox = champions.find((c) => c.apiName === 'TFT17_Aatrox')!;
+    const r = simulateCombat(
+      [placed(liss, 0, 0, 3, [corrupted])],
+      [placed(aatrox, 6, 3, 3)],
+      { seed: 0, allTraits: traits, skipMirror: true },
+    );
+    // 정상 Shojin 과 동일하게 +5 mana per attack 적용되어 itemFlatManaPerAttack 누적.
+    expect(r.playerUnits[0].itemFlatManaPerAttack).toBe(5);
+  });
+
   it('itemFlatManaPerAttack 필드: Shojin × 2 = 10 (누적 stack)', () => {
     // 같은 unit 이 Shojin 2개 (real game 가능) → mana per attack +10.
     const liss = champions.find((c) => c.apiName === 'TFT17_Lissandra')!;

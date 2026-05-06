@@ -343,15 +343,14 @@ function applyItemStaticEffects(unit: CombatUnit, placed: PlacedChampion): void 
         unit.augmentExecuteThreshold = Math.max(unit.augmentExecuteThreshold, threshold);
       }
     }
-    // 쇼진의 창 (TFT_Item_SpearOfShojin): 기본 공격당 +FlatManaRestore mana.
-    // set 17 데이터 FlatManaRestore=5 → role 기본 manaPerAttack 위에 +5 가산.
+    // FlatManaRestore: 기본 공격당 추가 마나 (쇼진의 창 + 변종 / 향후 신규 아이템).
+    // apiName 분기 대신 effect key 기반 generic 처리 — 'TFT_Item_SpearOfShojin' +
+    // 'TFT_Item_CorruptedSpearOfShojin' (찬란한 변종) 모두 FlatManaRestore=5 보유 (set 17.1).
     // gainManaOnAttack 에서 unit.itemFlatManaPerAttack 합산 사용.
-    // 같은 unit 이 Shojin 여러 개 보유 시 누적 (real game stack 동작).
-    if (item.apiName === 'TFT_Item_SpearOfShojin') {
-      const fmr = item.effects['FlatManaRestore'];
-      if (typeof fmr === 'number' && fmr > 0) {
-        unit.itemFlatManaPerAttack += fmr;
-      }
+    // 같은 unit 이 여러 Shojin/Corrupted Shojin 보유 시 누적 (real game stack 동작).
+    const fmr = item.effects['FlatManaRestore'];
+    if (typeof fmr === 'number' && fmr > 0) {
+      unit.itemFlatManaPerAttack += fmr;
     }
   }
 }
