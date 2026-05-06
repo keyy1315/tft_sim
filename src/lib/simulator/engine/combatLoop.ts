@@ -189,6 +189,7 @@ function createCombatUnit(
     augmentGrievousWounds: 0,
     augmentExecuteThreshold: 0,
     augmentBurnPercent: 0,
+    itemFlatManaPerAttack: 0,
     inventionTankDamageAmp: 0,
     healAmp: itemFx.healAmp ?? 0,
     darkStarExecuteThreshold: 0,
@@ -341,6 +342,15 @@ function applyItemStaticEffects(unit: CombatUnit, placed: PlacedChampion): void 
       if (typeof threshold === 'number' && threshold > 0) {
         unit.augmentExecuteThreshold = Math.max(unit.augmentExecuteThreshold, threshold);
       }
+    }
+    // FlatManaRestore: 기본 공격당 추가 마나 (쇼진의 창 + 변종 / 향후 신규 아이템).
+    // apiName 분기 대신 effect key 기반 generic 처리 — 'TFT_Item_SpearOfShojin' +
+    // 'TFT_Item_CorruptedSpearOfShojin' (찬란한 변종) 모두 FlatManaRestore=5 보유 (set 17.1).
+    // gainManaOnAttack 에서 unit.itemFlatManaPerAttack 합산 사용.
+    // 같은 unit 이 여러 Shojin/Corrupted Shojin 보유 시 누적 (real game stack 동작).
+    const fmr = item.effects['FlatManaRestore'];
+    if (typeof fmr === 'number' && fmr > 0) {
+      unit.itemFlatManaPerAttack += fmr;
     }
   }
 }
@@ -3108,6 +3118,7 @@ function spawnFreljordTurrets(
             augmentGrievousWounds: 0,
             augmentExecuteThreshold: 0,
             augmentBurnPercent: 0,
+            itemFlatManaPerAttack: 0,
             inventionTankDamageAmp: 0,
             healAmp: 0,
             darkStarExecuteThreshold: 0,
@@ -3308,6 +3319,7 @@ function trySpawnGalio(
     augmentGrievousWounds: 0,
     augmentExecuteThreshold: 0,
     augmentBurnPercent: 0,
+    itemFlatManaPerAttack: 0,
     inventionTankDamageAmp: 0,
     healAmp: 0,
     darkStarExecuteThreshold: 0,
