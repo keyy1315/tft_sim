@@ -3878,8 +3878,12 @@ export function simulateCombat(
     stackCount: options.enemyAugmentStacks?.[aug.apiName] ?? 1,
   }));
 
-  const playerAugmentEffects = resolveAugmentEffects(playerAugsWithStacks);
-  const enemyAugmentEffects = resolveAugmentEffects(enemyAugsWithStacks);
+  // 팀별 starLevel 합 — 바루스의 은총(BoonOfStars) 등 별 레벨 합 기반 augment 입력.
+  const playerStarLevelSum = allyTeam.reduce((s, p) => s + (p.starLevel ?? 0), 0);
+  const enemyStarLevelSum = enemyTeam.reduce((s, p) => s + (p.starLevel ?? 0), 0);
+
+  const playerAugmentEffects = resolveAugmentEffects(playerAugsWithStacks, playerStarLevelSum);
+  const enemyAugmentEffects = resolveAugmentEffects(enemyAugsWithStacks, enemyStarLevelSum);
 
   const playerInCombatEffects = resolveInCombatAugmentEffects(playerAugsWithStacks);
   const enemyInCombatEffects = resolveInCombatAugmentEffects(enemyAugsWithStacks);
