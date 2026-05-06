@@ -6243,13 +6243,26 @@ export function simulateCombat(
 
             // === 시전자 체력 회복 ===
             if (config.heal) {
-              const healVar = unit.champion.ability.variables.find(v => v.name === 'Heal' || v.name === 'APHeal' || v.name === 'PercentMaximumHealthHealing');
+              // PR98: Illaoi 의 HealthDrain (drain × NumEnemies) 도 self-heal 로 인식.
+              // Illaoi ability '영혼의 시험': 가까운 NumEnemies 명에게서 HealthDrain 흡수.
+              // 단순화 — 실제 메커닉은 3s 동안 drain over time, sim 은 cast 순간 lump-sum heal.
+              const healVar = unit.champion.ability.variables.find(v => v.name === 'Heal' || v.name === 'APHeal' || v.name === 'PercentMaximumHealthHealing' || v.name === 'HealthDrain');
               if (healVar) {
                 const starIdx = Math.min(unit.starLevel, healVar.value.length - 1);
                 const healVal = healVar.value[starIdx] ?? healVar.value[0] ?? 0;
-                const healAmount = typeof healVal === 'number'
+                let healAmount = typeof healVal === 'number'
                   ? (healVal < 1 ? Math.round(unit.maxHp * healVal) : Math.round(healVal * (1 + unit.stats.ap / 100)))
                   : 0;
+                // HealthDrain 은 NumEnemies 명에게서 흡수 — total = per_enemy × NumEnemies (cap to alive abilityTargets).
+                if (healVar.name === 'HealthDrain') {
+                  const numEnemiesVar = unit.champion.ability.variables.find(v => v.name === 'NumEnemies');
+                  const numCap = numEnemiesVar
+                    ? (numEnemiesVar.value[Math.min(unit.starLevel, numEnemiesVar.value.length - 1)] ?? 1)
+                    : 1;
+                  const aliveTargetCount = abilityTargets.filter(t => t.state !== 'dead').length;
+                  const numEnemies = Math.min(numCap, Math.max(1, aliveTargetCount));
+                  healAmount *= numEnemies;
+                }
                 if (healAmount > 0) {
                   // healAmp 곱셈 적용 — ability self-heal 도 회복량 증폭 효과 대상.
                   const finalHeal = healAmount * (1 + (unit.healAmp ?? 0));

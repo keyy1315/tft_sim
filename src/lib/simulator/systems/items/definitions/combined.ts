@@ -51,8 +51,17 @@ export const COMBINED_ITEMS: Record<string, ItemEffectDescriptor[]> = {
   // 쇼진의 창: AD 15%, AP 15, ManaRegen 1 (FlatManaRestore → 추후 별도 Trigger)
   'TFT_Item_SpearOfShojin': [statPatch({ ad: 0.15, ap: 15, manaRegen: 1 })],
 
-  // 대천사의 지팡이: AP 30, ManaRegen 1 (APPerInterval → Phase 5+ Timer)
-  'TFT_Item_ArchangelsStaff': [statPatch({ ap: 30, manaRegen: 1 })],
+  // 대천사의 지팡이: AP 30, ManaRegen 1 + 5초마다 AP +20 (APPerInterval=20, IntervalSeconds=5).
+  // PR98: caster economy fix — Set 17 데이터 IntervalSeconds=5 / APPerInterval=20 시뮬 적용.
+  // 시뮬 30 tps → 5s = 150 ticks. modifyStat permanent (no durationTicks) → 누적 stacking.
+  'TFT_Item_ArchangelsStaff': [
+    statPatch({ ap: 30, manaRegen: 1 }),
+    {
+      kind: 'timer',
+      intervalTicks: 150,
+      action: { kind: 'modifyStat', stat: 'ap', delta: 20 },
+    },
+  ],
 
   // 덤불 조끼: Armor 50 (AutoDamageReduction/PercentMaxHP/AoE reflect → Phase 4+)
   'TFT_Item_BrambleVest': [statPatch({ armor: 50 })],
