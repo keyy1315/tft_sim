@@ -5490,11 +5490,18 @@ export function simulateCombat(
           //   ★1=30, ★2=45, ★3=250 (sentinel filler 컨벤션 — readVarByStar 자동).
           //   AP scale (scaleAP). NumStrikesForPassive=5 — 적 5회 누적 시 그림자 재타격
           //   (별도 메커닉, 본 PR 범위 외).
+          //
+          // codex P2 (PR #101): target-conditional amp 통합 — Madreds (Tank), Invention,
+          // Graves Tankbuster, Sniper 거리 amp 모두 평타와 동일하게 적용.
           if (unit.champion.apiName === 'TFT17_Vex' && target.state !== 'dead') {
             const shadowVar = unit.champion.ability.variables?.find(v => v.name === 'ShadowHandDamage');
             const shadowBase = readVarByStar(shadowVar?.value, unit.starLevel, 30);
-            // AP scale + damageAmp 적용. mitigation 은 magicResist 기반.
-            const shadowRaw = shadowBase * (1 + unit.stats.ap / 100) * (1 + unit.damageAmp);
+            let shadowAmp = unit.damageAmp;
+            if (unit.inventionTankDamageAmp > 0 && target.role === 'Tank') shadowAmp += unit.inventionTankDamageAmp;
+            if (unit.madredsTankDamageAmp > 0 && target.role === 'Tank') shadowAmp += unit.madredsTankDamageAmp;
+            if (unit.gravesTankDamageAmp > 0 && target.role === 'Tank') shadowAmp += unit.gravesTankDamageAmp;
+            shadowAmp += computeSniperDamageAmp(unit, target);
+            const shadowRaw = shadowBase * (1 + unit.stats.ap / 100) * (1 + shadowAmp);
             const shadowDmg = applyAbilityMitigation(unit, target, shadowRaw, 'magic', eventBus, tick);
             target.currentHp -= shadowDmg;
             target.totalDamageTaken += shadowDmg;
