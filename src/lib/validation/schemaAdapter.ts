@@ -91,7 +91,14 @@ function toPlacedChampion(
     starLevel: unit.starLevel,
     position: unit.hex,
     items,
+    novaStrikeSelector: unit.novaStrikeSelector,
   };
+}
+
+/** N.O.V.A. 타격 선택기 수동 지정된 unit 의 챔피언 apiName 반환. 미지정 시 undefined. */
+function deriveNovaStrikeSelectorUnit(team: PlacedChampion[]): string | undefined {
+  const target = team.find((u) => u.novaStrikeSelector === true);
+  return target?.champion.apiName;
 }
 
 function countTraitUnits(units: PlacedChampion[], traitName: string): number {
@@ -195,6 +202,10 @@ export function toNRunInput(
         // game-level 단일 별자리 → 양 팀에 동일 전달 (실제 게임은 양 팀 동일 별자리).
         playerStargazerConstellation: options.stargazerConstellation,
         enemyStargazerConstellation: options.stargazerConstellation,
+        // 사용자가 actual-data board 에서 N.O.V.A. 타격 선택기를 수동 지정한 경우 전달.
+        // 미지정 시 undefined 로 두어 combatLoop 의 autoAssignNovaSelector fallback 이 동작.
+        playerNovaStrikeSelectorUnit: deriveNovaStrikeSelectorUnit(playerPlaced),
+        enemyNovaStrikeSelectorUnit: deriveNovaStrikeSelectorUnit(opponentPlaced),
         skipMirror: true,
         stageNumber,
       },

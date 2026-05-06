@@ -349,6 +349,13 @@ export interface PlacedChampion {
   permanentStacks?: PermanentStack | null;
   isDummy?: boolean;
   isSummon?: boolean;
+  /**
+   * N.O.V.A. (DRX 5+) "타격 선택기" 수동 지정 플래그.
+   * true 인 NOVA 유닛(Aatrox/Caitlyn/Akali/Maokai/Kindred) 1명만 팀당 허용.
+   * undefined/false 인 경우 combatLoop 의 autoAssignNovaSelector fallback 이 동작.
+   * 시뮬 옵션 변환 시 이 boolean 을 SimulateOptions.{player|enemy}NovaStrikeSelectorUnit 의 apiName 으로 매핑.
+   */
+  novaStrikeSelector?: boolean;
 }
 
 // === Arbiter Law (중재자 법률) ===

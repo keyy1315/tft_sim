@@ -43,6 +43,9 @@ export const PlacedUnitSchema = z.object({
   starLevel: z.union([z.literal(1), z.literal(2), z.literal(3)]),
   items: z.tuple([OptionalSlot, OptionalSlot, OptionalSlot]),
   grants: z.array(UnitGrantSchema).optional(),
+  // N.O.V.A. (DRX) 타격 선택기 수동 지정. NOVA 5종 중 1명에만 true; 미지정 시 자동 할당 fallback.
+  // optional 이므로 기존 저장 JSON 호환 (마이그레이션 불필요).
+  novaStrikeSelector: z.boolean().optional(),
 });
 
 export const SurvivorSchema = z.object({
