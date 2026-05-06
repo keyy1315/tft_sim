@@ -153,20 +153,29 @@ export interface SimulateOptions {
  *
  * CommunityDragon TFT17 데이터의 컨벤션이 챔피언별로 혼재:
  *   - **filler** (대부분): `[dummy, ★1, ★2, ★3, ★4]` — index = starLevel
- *     예: Lissandra SecondaryDamage [100, 50, 75, 115, 195], Vex [200, 130, 195, ...],
- *         Kindred SpellDamage [0, 75, 115, ...], Karma SecondaryDamage [0, 150, 225, ...]
+ *     예: Lissandra SecondaryDamage [100, 50, 75, 115, 195],
+ *         Kindred SpellDamage [0, 75, 115, ...], Karma SecondaryDamage [0, 150, 225, ...],
+ *         Sona SlamDamage [2.5, 680, 1050, ...] (작은 sentinel),
+ *         Vex ShadowHandDamage [2.5, 30, 45, ...], Talon ADBleedDamage [2.5, 430, 645, ...]
  *   - **no-filler** (일부): `[★1, ★2, ★3, ★4, ★5]` — index = starLevel - 1
  *     예: Caitlyn Damage [145, 170, 255, 510, 875], Graves SecondaryDamageAD [120, 135, 200, ...],
  *         TF DamageMin [180, 190, 285, 430, 730]
  *
- * 자동 감지 규칙: `value[0] === 0` 또는 `value[0] > value[1]` 면 filler — `value[starLevel]`,
- * 그 외 monotonic increasing → no-filler — `value[starLevel - 1]`.
- * 상수 배열 (ProcChance [15, 15, 15]) 은 모두 동일하므로 어느 쪽이든 안전.
+ * 자동 감지 규칙 (filler 판정 — codex P1 PR #99 후속):
+ *   1. `value[0] === 0` (Kindred, Karma 등 zero filler)
+ *   2. `value[0] > value[1]` (Lissandra 같은 dummy-larger pattern)
+ *   3. `value[1] / value[0] > 5` (Sona/Talon/Vex 처럼 작은 sentinel — 2.5/3 등이 ★1 직전에)
+ * 그 외 monotonic increase 면 no-filler.
+ * 상수 배열 (ProcChance [15, 15, 15]) 은 ratio = 1, no-filler 처리되지만 모두 동일 값이라 안전.
  */
 function readVarByStar(value: number[] | undefined, starLevel: number, fallback = 0): number {
   if (!value || value.length === 0) return fallback;
   if (value.length === 1) return value[0];
-  const isFiller = value[0] === 0 || value[0] > value[1];
+  const v0 = value[0];
+  const v1 = value[1];
+  // codex P1 (PR #99): 작은 sentinel (2.5 등) 도 filler 로 분류. v0 > 0 일 때 ratio 검사.
+  const sentinelRatio = v0 > 0 && v1 / v0 > 5;
+  const isFiller = v0 === 0 || v0 > v1 || sentinelRatio;
   const idx = isFiller ? starLevel : starLevel - 1;
   return value[idx] ?? value[isFiller ? 1 : 0] ?? fallback;
 }
