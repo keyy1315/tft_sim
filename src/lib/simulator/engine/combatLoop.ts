@@ -5508,6 +5508,38 @@ export function simulateCombat(
             }
           }
 
+          // === 코르키: 평타 시 MissilesPerLaunchAttack 개의 추가 미사일 발사 (PR100) ===
+          // raw 메커닉 (TFT17_Corki "소행성 발사기"):
+          //   MissilesPerLaunchAttack=5 — 평타당 5 미사일.
+          //   각 미사일: MissileAD physical + MissileAP magic.
+          //   ProcChance=20% — 미사일별 별개 proc 체크. proc 시 ProcDamageMult=3.5× crit.
+          // sim 단순화 (사용자 spec):
+          //   - 본체 평타 AD 그대로 + 추가 5 missile 가산 (Caitlyn 패시브 패턴 따름).
+          //   - 미사일별 mitigation 분리 (physical: armor, magic: magicResist).
+          //   - damageAmp / sniper / 별돌보미 등 carry-modifier 는 본 패스에 미적용 (per-target loop 외).
+          if (unit.champion.apiName === 'TFT17_Corki' && target.state !== 'dead') {
+            const vars = unit.champion.ability.variables;
+            const numMissiles = readVarByStar(vars?.find(v => v.name === 'MissilesPerLaunchAttack')?.value, unit.starLevel, 5);
+            const procChance = readVarByStar(vars?.find(v => v.name === 'ProcChance')?.value, unit.starLevel, 20) / 100;
+            const procMult = readVarByStar(vars?.find(v => v.name === 'ProcDamageMult')?.value, unit.starLevel, 3.5);
+            const missileAd = readVarByStar(vars?.find(v => v.name === 'MissileAD')?.value, unit.starLevel, 25);
+            const missileAp = readVarByStar(vars?.find(v => v.name === 'MissileAP')?.value, unit.starLevel, 6);
+            const apFactor = 1 + unit.stats.ap / 100;
+            const dmgAmpFactor = 1 + unit.damageAmp;
+            let totalMissileDmg = 0;
+            for (let m = 0; m < numMissiles; m++) {
+              const procFactor = rng.next() < procChance ? procMult : 1;
+              const physRaw = missileAd * procFactor * dmgAmpFactor;
+              const magRaw = missileAp * apFactor * procFactor * dmgAmpFactor;
+              const physDmg = applyResistance(physRaw, target.stats.armor, unit.stats.armorPen);
+              const magDmg = applyResistance(magRaw, target.stats.magicResist, unit.stats.magicPen);
+              totalMissileDmg += physDmg + magDmg;
+            }
+            target.currentHp -= totalMissileDmg;
+            target.totalDamageTaken += totalMissileDmg;
+            unit.totalDamageDealt += totalMissileDmg;
+          }
+
           // === 챔피언 전투 내 스케일링 (onAttack) — JSON 기반 ===
           const atkSc = getChampionScaling(unit.champion.apiName);
           if (atkSc?.trigger === 'onAttack' && target.state !== 'dead') {
