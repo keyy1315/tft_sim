@@ -50,7 +50,10 @@ export function gainManaOnAttack(unit: CombatUnit): void {
   if (isStunned) return;
 
   const config = getManaConfig(unit.role);
-  const gain = config.manaPerAttack * channelerMultiplier(unit);
+  // 쇼진의 창 등 아이템 보너스 (FlatManaRestore) 누적 — applyItemStaticEffects 에서
+  // 미리 unit.itemFlatManaPerAttack 으로 집계해둠. role 기본값 + item 보너스, channeler 곱셈자.
+  const baseGain = config.manaPerAttack + (unit.itemFlatManaPerAttack ?? 0);
+  const gain = baseGain * channelerMultiplier(unit);
   unit.currentMana = Math.min(unit.maxMana, unit.currentMana + gain);
 }
 

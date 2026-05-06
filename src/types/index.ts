@@ -501,6 +501,11 @@ export interface CombatUnit {
   augmentGrievousWounds: number;
   augmentExecuteThreshold: number;
   augmentBurnPercent: number;
+  /**
+   * 아이템에서 부여되는 공격당 추가 마나 (집계). 쇼진의 창 FlatManaRestore=5 등.
+   * gainManaOnAttack 에서 role 기본값에 더해진다. 기본 0.
+   */
+  itemFlatManaPerAttack: number;
   /** 발명품 탱커 대상 추가 피해증폭 (ArmorNullifier) */
   inventionTankDamageAmp: number;
   /**
