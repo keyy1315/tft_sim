@@ -12,8 +12,14 @@ import type { PlacedChampion, RawChampion, RawItem } from '@/types';
 
 const { champions, traits, items } = loadServerCatalogs();
 
-function findItem(api: string): RawItem | undefined {
-  return items.find((i) => i.apiName === api);
+/**
+ * 카탈로그에서 itemApiName 검색. 데이터에서 사라지거나 rename 되면 명시적으로 fail
+ * (silent skip 회피 — codex P2 PR #93 회귀 가드).
+ */
+function requireItem(api: string): RawItem {
+  const item = items.find((i) => i.apiName === api);
+  if (!item) throw new Error(`required item missing from catalog: ${api}`);
+  return item;
 }
 
 function placed(c: RawChampion, q: number, r: number, starLevel = 2, equips: RawItem[] = []): PlacedChampion {
@@ -24,11 +30,7 @@ describe('PR93 — Artifact 기본 스탯 적용 검증 (legacy fallback)', () =
   const aatrox = champions.find((c) => c.apiName === 'TFT17_Aatrox')!;
 
   it('EvelynnArtifact: AD/AP/AS/StatOmnivamp 기본 스탯이 mergeLegacy 로 적용', () => {
-    const evelynn = findItem('TFT17_Item_Artifact_EvelynnArtifact');
-    if (!evelynn) {
-      // Set 17 데이터에 없으면 skip — 본 테스트는 데이터 존재 시만 의미.
-      return;
-    }
+    const evelynn = requireItem('TFT17_Item_Artifact_EvelynnArtifact');
     expect(evelynn.effects.AD).toBeDefined();
     expect(evelynn.effects.AP).toBeDefined();
     expect(evelynn.effects.AS).toBeDefined();
@@ -53,8 +55,7 @@ describe('PR93 — Artifact 기본 스탯 적용 검증 (legacy fallback)', () =
   });
 
   it('AegisOfDusk: Health=400 + MagicResist=70 기본 스탯 적용', () => {
-    const aegis = findItem('TFT_Item_Artifact_AegisOfDusk');
-    if (!aegis) return;
+    const aegis = requireItem('TFT_Item_Artifact_AegisOfDusk');
     expect(aegis.effects.Health).toBe(400);
     expect(aegis.effects.MagicResist).toBe(70);
 
@@ -75,17 +76,15 @@ describe('PR93 — Artifact 기본 스탯 적용 검증 (legacy fallback)', () =
   });
 
   it('EvelynnArtifact: ExecuteThresholdForTarget=0.12 → 12% HP 이하 적 처형 (PR93 신규)', () => {
-    const evelynn = findItem('TFT17_Item_Artifact_EvelynnArtifact');
-    if (!evelynn) return;
+    const evelynn = requireItem('TFT17_Item_Artifact_EvelynnArtifact');
     expect(evelynn.effects.ExecuteThresholdForTarget).toBeCloseTo(0.12, 5);
 
-    // 처형 가능한 시나리오 — 적 1명에 high-base-HP unit 장착자 vs 약한 enemy.
-    // Talon ★3 + EvelynnArtifact 가 최약 적을 빠르게 처형하는지 비교.
+    // 처형 가능한 시나리오 — Talon ★3 + EvelynnArtifact 가 약한 ★1 enemy 를 처형.
     const talon = champions.find((c) => c.apiName === 'TFT17_Talon')!;
     const dummyEnemy = champions.find((c) => c.apiName === 'TFT17_Talon')!;
 
     const ally: PlacedChampion[] = [placed(talon, 0, 0, 3, [evelynn])];
-    const enemy: PlacedChampion[] = [placed(dummyEnemy, 6, 3, 1)]; // 약한 ★1 enemy
+    const enemy: PlacedChampion[] = [placed(dummyEnemy, 6, 3, 1)];
 
     const withItem = simulateCombat(ally, enemy, {
       seed: 0, allTraits: traits, skipMirror: true,
@@ -94,14 +93,16 @@ describe('PR93 — Artifact 기본 스탯 적용 검증 (legacy fallback)', () =
       seed: 0, allTraits: traits, skipMirror: true,
     });
 
-    // EvelynnArtifact 보유 시 enemy 가 12% HP 이하에서 처형 → 더 빨리 죽음 = 전투 더 짧음.
-    // duration 비교로 검증 (정확한 tick 차이는 시뮬 변동성 있어 부등호로).
-    expect(withItem.duration).toBeLessThanOrEqual(withoutItem.duration);
+    // 결정론적 시드 (seed: 0). EvelynnArtifact 보유 시 enemy 가 처형으로 더 빨리 죽음 →
+    // 전투 duration 이 strictly 더 짧아야 한다 (codex P2 — 'toBeLessThanOrEqual' 은
+    // 동일 duration 도 통과시켜 회귀를 못 잡음).
+    expect(withItem.duration).toBeLessThan(withoutItem.duration);
+    // 전투 player 측 승리 (Talon ★3 vs ★1) — 결과 일관성 확인.
+    expect(withItem.winner).toBe('player');
   });
 
   it("SeekersArmguard: AP=25 + Armor=10 + MagicResist=10 기본 스탯 적용", () => {
-    const sa = findItem('TFT_Item_Artifact_SeekersArmguard');
-    if (!sa) return;
+    const sa = requireItem('TFT_Item_Artifact_SeekersArmguard');
     expect(sa.effects.AP).toBe(25);
     expect(sa.effects.Armor).toBe(10);
     expect(sa.effects.MagicResist).toBe(10);
