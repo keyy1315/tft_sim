@@ -98,6 +98,8 @@ export type ItemCategory =
   | 'bilgewater'   // 빌지워터 아이템
   | 'void'         // 공허 돌연변이
   | 'darkin'       // 다르킨
+  | 'animasquad'   // 동물특공대 전용 아이템 (TFT17_AnimaSquadItem_*)
+  | 'psyops'       // 초능력 전용 아이템 (TFT17_Item_PsyOps_*)
   | 'special';     // 특수 (비전투)
 
 export interface EquipValidation {
@@ -347,6 +349,13 @@ export interface PlacedChampion {
   permanentStacks?: PermanentStack | null;
   isDummy?: boolean;
   isSummon?: boolean;
+  /**
+   * N.O.V.A. (DRX 5+) "타격 선택기" 수동 지정 플래그.
+   * true 인 NOVA 유닛(Aatrox/Caitlyn/Akali/Maokai/Kindred) 1명만 팀당 허용.
+   * undefined/false 인 경우 combatLoop 의 autoAssignNovaSelector fallback 이 동작.
+   * 시뮬 옵션 변환 시 이 boolean 을 SimulateOptions.{player|enemy}NovaStrikeSelectorUnit 의 apiName 으로 매핑.
+   */
+  novaStrikeSelector?: boolean;
 }
 
 // === Arbiter Law (중재자 법률) ===
@@ -913,7 +922,7 @@ export type DragData =
   | { type: 'champion'; champion: RawChampion }
   | { type: 'placed-unit'; team: 'player' | 'enemy'; position: HexCoord }
   | { type: 'item'; item: RawItem }
-  | { type: 'tool'; toolKind: 'remove-all' };
+  | { type: 'tool'; toolKind: 'remove-all' | 'nova-selector' };
 
 export const STAR_SCALING: Record<number, number> = {
   1: 1,

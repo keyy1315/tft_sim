@@ -45,7 +45,7 @@ export default function ItemPoolContent({ data, poolFilters, tm }: SimulatorLayo
           }
           if (itemSearch && !item.name.toLowerCase().includes(itemSearch.toLowerCase())) return false;
           if (itemCategoryFilter !== 'all') {
-            if (cat === 'void' || cat === 'darkin') {
+            if (cat === 'void' || cat === 'darkin' || cat === 'animasquad' || cat === 'psyops') {
               if (itemCategoryFilter !== 'combined') return false;
             } else if (cat !== itemCategoryFilter) return false;
           }

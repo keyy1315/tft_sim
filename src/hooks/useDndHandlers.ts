@@ -99,7 +99,12 @@ export function useDndHandlers({
         if (isAutoUnit(dragged.champion.apiName)) return;
         if (existingIdx >= 0) return;
         setSrcTeam(prev => prev.filter((_, i) => i !== srcIdx));
-        setTeam(prev => [...prev, { ...dragged, position: pos }]);
+        // 팀 이동 시 NOVA 타격 선택기 flag 는 자동 해제 — 양 팀에서 모두 단일성 invariant
+        // 보존 (PR #86 codex P2). 사용자가 dest 팀에서 다시 토글해야 함.
+        const movedChamp = dragged.novaStrikeSelector
+          ? { ...dragged, position: pos, novaStrikeSelector: false }
+          : { ...dragged, position: pos };
+        setTeam(prev => [...prev, movedChamp]);
         onTeamSwitched?.();
         return;
       }

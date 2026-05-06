@@ -65,6 +65,7 @@ export function toPlacedChampion(
     permanentStacks: null,
     isDummy: false,
     isSummon: SUMMON_API_NAMES.has(championApiName),
+    novaStrikeSelector: u.novaStrikeSelector,
   };
 }
 
@@ -84,5 +85,6 @@ export function fromPlacedChampion(p: PlacedChampion): PlacedUnit {
       p.items[1]?.apiName,
       p.items[2]?.apiName,
     ] as PlacedUnit['items'],
+    novaStrikeSelector: p.novaStrikeSelector,
   };
 }
