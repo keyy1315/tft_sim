@@ -63,12 +63,27 @@ function mergeStatPatch(target: ItemEffect, patch: Partial<ItemEffect>): void {
   }
 }
 
+/**
+ * data 가 integer percentage points 로 저장하는 키 (e.g., AS=40 = +40%) — sim 은 fraction
+ * (1.0 = +100%) 사용. legacy fallback 경로에서 변환 필요.
+ *
+ * 진단 (PR #93 follow-up): set 17 데이터 53 AS 보유 items 모두 integer pts (10~100 범위).
+ * 5 items 는 registry 에 등록되어 explicit fraction (예: as: 0.45) 사용 — 정상. 나머지
+ * 48 items 는 legacy fallback 으로 흐르면서 raw integer 가 fraction 으로 잘못 적용 → +4000% AS 등
+ * 광범위 over-buff. EvelynnArtifact 의 +30.75 AS (probe) 가 대표 사례.
+ *
+ * 정규화: legacy 경로에서 'AS' / 'BonusAS' / 'AttackSpeed' 키 값이 1 이상이면 /100 (fraction 으로).
+ */
+const LEGACY_AS_KEYS = new Set(['AS', 'BonusAS', 'AttackSpeed']);
+
 function mergeLegacy(target: ItemEffect, effects: Record<string, number>): void {
   const t = target as Record<string, number>;
   for (const [key, value] of Object.entries(effects)) {
     const mapped = ITEM_EFFECT_KEYS[key];
     if (mapped && typeof value === 'number') {
-      t[mapped] = (t[mapped] ?? 0) + value;
+      // AS family: data integer pts → sim fraction. value < 1 (이미 fraction) 인 경우 그대로.
+      const normalized = (LEGACY_AS_KEYS.has(key) && value >= 1) ? value / 100 : value;
+      t[mapped] = (t[mapped] ?? 0) + normalized;
     }
   }
 }
