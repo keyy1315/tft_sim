@@ -64,7 +64,19 @@ describe('PR94 — legacy AS scaling 정규화', () => {
     expect(itemFx.as).toBeCloseTo(0.40, 5);
   });
 
-  it('CritChance 정규화: NightHarvester CritChance=20 → itemFx.critChance = 0.20 (PR95)', () => {
+  it('HextechGunblade: Omnivamp=18 은 data redundancy — sim 은 StatOmnivamp=0.15 사용 (PR96 — Task 3 진단)', () => {
+    // PR #96 Task 3 점검: HextechGunblade 데이터에 Omnivamp=18 + StatOmnivamp=0.15 둘 다 존재.
+    // ITEM_EFFECT_KEYS 는 'StatOmnivamp' 만 'omnivamp' 로 매핑 (Omnivamp 키 미매핑).
+    // → sim 이 자동으로 StatOmnivamp 만 사용, Omnivamp=18 무시 → bug 없음.
+    const hex = requireItem('TFT_Item_HextechGunblade');
+    expect(hex.effects.Omnivamp).toBe(18);
+    expect(hex.effects.StatOmnivamp).toBeCloseTo(0.15, 5);
+    const fx = getItemEffects([hex]);
+    // 0.15 = StatOmnivamp 직접 사용 (Omnivamp=18 ignored — fingerprint).
+    expect((fx as Record<string, number>).omnivamp).toBeCloseTo(0.15, 5);
+  });
+
+it('CritChance 정규화: NightHarvester CritChance=20 → itemFx.critChance = 0.20 (PR95)', () => {
     const nh = requireItem('TFT_Item_NightHarvester');
     expect(nh.effects.CritChance).toBe(20);
     const fx = getItemEffects([nh]);
