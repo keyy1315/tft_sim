@@ -58,6 +58,15 @@ function HomeContent() {
           borderColor: 'border-emerald-500/30',
           disabled: false,
         },
+        {
+          title: '실측 데이터',
+          desc: 'PvP 라운드별 팀·아이템 기록 → 시뮬 정확도 비교 (별돌보미·중재자 등 게임 메타 편집)',
+          href: '/actual-data',
+          icon: '📊',
+          color: 'from-rose-600/20 to-pink-600/20',
+          borderColor: 'border-rose-500/30',
+          disabled: false,
+        },
       ];
 
   return (
