@@ -426,23 +426,31 @@ export default function SimulatorLayoutDesktop(props: SimulatorLayoutProps) {
                   <div className="shrink-0">
                     <SearchBar value={itemSearch} onChange={setItemSearch} placeholder="아이템 검색..." />
                   </div>
-                  <div className="flex gap-1 shrink-0">
+                  <div className="flex flex-col gap-1 shrink-0">
                     {([
-                      { key: 'all' as ItemFilterTab, label: '전체' },
-                      { key: 'combined' as ItemFilterTab, label: '완성' },
-                      { key: 'animasquad' as ItemFilterTab, label: '동물특공대' },
-                      { key: 'psyops' as ItemFilterTab, label: '초능력' },
-                      { key: 'artifact' as ItemFilterTab, label: '유물' },
-                      { key: 'radiant' as ItemFilterTab, label: '찬란' },
-                      { key: 'emblem' as ItemFilterTab, label: '상징' },
-                    ]).map(({ key, label }) => (
-                      <button
-                        key={key}
-                        className={`px-2 py-0.5 rounded text-[10px] font-medium ${itemCategoryFilter === key ? 'bg-[#8b5cf6] text-white' : 'bg-[#1f2937] text-gray-400'}`}
-                        onClick={() => setItemCategoryFilter(key)}
-                      >
-                        {label}
-                      </button>
+                      [
+                        { key: 'all' as ItemFilterTab, label: '전체' },
+                        { key: 'combined' as ItemFilterTab, label: '완성' },
+                        { key: 'animasquad' as ItemFilterTab, label: '동물특공대' },
+                        { key: 'psyops' as ItemFilterTab, label: '초능력' },
+                      ],
+                      [
+                        { key: 'artifact' as ItemFilterTab, label: '유물' },
+                        { key: 'radiant' as ItemFilterTab, label: '찬란' },
+                        { key: 'emblem' as ItemFilterTab, label: '상징' },
+                      ],
+                    ] as const).map((row, rowIdx) => (
+                      <div key={rowIdx} className="flex gap-1 flex-wrap">
+                        {row.map(({ key, label }) => (
+                          <button
+                            key={key}
+                            className={`px-2 py-0.5 rounded text-[10px] font-medium ${itemCategoryFilter === key ? 'bg-[#8b5cf6] text-white' : 'bg-[#1f2937] text-gray-400'}`}
+                            onClick={() => setItemCategoryFilter(key)}
+                          >
+                            {label}
+                          </button>
+                        ))}
+                      </div>
                     ))}
                   </div>
                   <div className="grid grid-cols-6 gap-1.5 overflow-y-auto min-h-0 p-1">
