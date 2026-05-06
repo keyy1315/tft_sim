@@ -1,7 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { getItemCategory } from '@/lib/simulator/systems/item';
 import { PlacedUnitSchema } from '@/lib/actualData/schema';
-import { NOVA_SELECTOR_APIS, isNovaSelectorTarget } from '@/lib/simulator/novaSelector';
+import {
+  NOVA_SELECTOR_APIS,
+  NOVA_TRAIT_API,
+  isNovaSelectorTarget,
+  isNovaTraitActive,
+} from '@/lib/simulator/novaSelector';
 import {
   toPlacedChampion as actualToPlaced,
   fromPlacedChampion,
@@ -36,6 +41,32 @@ describe('PR8 5/5 — novaSelector 공유 모듈', () => {
     expect(isNovaSelectorTarget('TFT17_Ahri')).toBe(false);
     expect(isNovaSelectorTarget('TFT17_MissFortune')).toBe(false);
     expect(isNovaSelectorTarget('')).toBe(false);
+  });
+
+  it('NOVA_TRAIT_API 가 TFT17_DRX 와 일치 (game data 기준)', () => {
+    expect(NOVA_TRAIT_API).toBe('TFT17_DRX');
+  });
+
+  it('isNovaTraitActive: TFT17_DRX trait 가 activeEffect 있으면 true', () => {
+    expect(isNovaTraitActive([
+      { trait: { apiName: 'TFT17_DRX' }, activeEffect: { variables: {} } },
+    ])).toBe(true);
+  });
+
+  it('isNovaTraitActive: TFT17_DRX 가 있어도 activeEffect 없으면 false', () => {
+    expect(isNovaTraitActive([
+      { trait: { apiName: 'TFT17_DRX' }, activeEffect: null },
+    ])).toBe(false);
+    expect(isNovaTraitActive([
+      { trait: { apiName: 'TFT17_DRX' } },
+    ])).toBe(false);
+  });
+
+  it('isNovaTraitActive: 빈 배열이거나 다른 trait 만 있으면 false', () => {
+    expect(isNovaTraitActive([])).toBe(false);
+    expect(isNovaTraitActive([
+      { trait: { apiName: 'TFT17_AnimaSquad' }, activeEffect: { variables: {} } },
+    ])).toBe(false);
   });
 });
 

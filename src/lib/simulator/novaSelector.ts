@@ -21,3 +21,20 @@ export const NOVA_SELECTOR_APIS: ReadonlySet<string> = new Set([
 export function isNovaSelectorTarget(apiName: string): boolean {
   return NOVA_SELECTOR_APIS.has(apiName);
 }
+
+/**
+ * N.O.V.A. trait apiName. 게임 데이터 (`tft_set17_traits.json` apiName='TFT17_DRX',
+ * 표시명 'N.O.V.A.', minUnits=5) 기준. 5+ 시너지 활성 시에만 "타격 선택기" 가
+ * 게임에서 부여되므로 UI 노출 조건으로 사용.
+ */
+export const NOVA_TRAIT_API = 'TFT17_DRX';
+
+/**
+ * 활성 trait 배열에서 NOVA(5) 시너지가 활성화되었는지 검사.
+ * `activeEffect` 가 truthy 면 minUnits >= 5 시너지가 동작 중.
+ */
+export function isNovaTraitActive(
+  activeTraits: ReadonlyArray<{ trait: { apiName: string }; activeEffect?: unknown }>,
+): boolean {
+  return activeTraits.some(t => t.trait.apiName === NOVA_TRAIT_API && !!t.activeEffect);
+}
