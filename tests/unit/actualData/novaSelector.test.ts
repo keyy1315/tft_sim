@@ -4,8 +4,9 @@ import { PlacedUnitSchema } from '@/lib/actualData/schema';
 import {
   NOVA_SELECTOR_APIS,
   NOVA_TRAIT_API,
+  NOVA_STRIKE_SELECTOR_MIN_UNITS,
   isNovaSelectorTarget,
-  isNovaTraitActive,
+  isNovaStrikeSelectorActive,
 } from '@/lib/simulator/novaSelector';
 import {
   toPlacedChampion as actualToPlaced,
@@ -47,25 +48,43 @@ describe('PR8 5/5 — novaSelector 공유 모듈', () => {
     expect(NOVA_TRAIT_API).toBe('TFT17_DRX');
   });
 
-  it('isNovaTraitActive: TFT17_DRX trait 가 activeEffect 있으면 true', () => {
-    expect(isNovaTraitActive([
-      { trait: { apiName: 'TFT17_DRX' }, activeEffect: { variables: {} } },
+  it('NOVA_STRIKE_SELECTOR_MIN_UNITS === 5 (타격 선택기 부여 tier)', () => {
+    expect(NOVA_STRIKE_SELECTOR_MIN_UNITS).toBe(5);
+  });
+
+  it('isNovaStrikeSelectorActive: minUnits >= 5 tier 활성 시 true', () => {
+    expect(isNovaStrikeSelectorActive([
+      { trait: { apiName: 'TFT17_DRX' }, activeEffect: { minUnits: 5 } },
+    ])).toBe(true);
+    // 6마리 (emblem 포함) — 같은 tier
+    expect(isNovaStrikeSelectorActive([
+      { trait: { apiName: 'TFT17_DRX' }, activeEffect: { minUnits: 5 } },
     ])).toBe(true);
   });
 
-  it('isNovaTraitActive: TFT17_DRX 가 있어도 activeEffect 없으면 false', () => {
-    expect(isNovaTraitActive([
+  it('isNovaStrikeSelectorActive: minUnits < 5 tier(2~4) 활성 시 false (회귀)', () => {
+    // NOVA(2~4) tier — 힘의 고조만 부여하고 타격 선택기는 미부여
+    expect(isNovaStrikeSelectorActive([
+      { trait: { apiName: 'TFT17_DRX' }, activeEffect: { minUnits: 2 } },
+    ])).toBe(false);
+    expect(isNovaStrikeSelectorActive([
+      { trait: { apiName: 'TFT17_DRX' }, activeEffect: { minUnits: 4 } },
+    ])).toBe(false);
+  });
+
+  it('isNovaStrikeSelectorActive: TFT17_DRX 있어도 activeEffect 없으면 false', () => {
+    expect(isNovaStrikeSelectorActive([
       { trait: { apiName: 'TFT17_DRX' }, activeEffect: null },
     ])).toBe(false);
-    expect(isNovaTraitActive([
+    expect(isNovaStrikeSelectorActive([
       { trait: { apiName: 'TFT17_DRX' } },
     ])).toBe(false);
   });
 
-  it('isNovaTraitActive: 빈 배열이거나 다른 trait 만 있으면 false', () => {
-    expect(isNovaTraitActive([])).toBe(false);
-    expect(isNovaTraitActive([
-      { trait: { apiName: 'TFT17_AnimaSquad' }, activeEffect: { variables: {} } },
+  it('isNovaStrikeSelectorActive: 빈 배열이거나 다른 trait 만 있으면 false', () => {
+    expect(isNovaStrikeSelectorActive([])).toBe(false);
+    expect(isNovaStrikeSelectorActive([
+      { trait: { apiName: 'TFT17_AnimaSquad' }, activeEffect: { minUnits: 5 } },
     ])).toBe(false);
   });
 });

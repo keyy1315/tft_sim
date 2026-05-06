@@ -11,7 +11,7 @@ import { useState, useMemo } from 'react';
 import { getItemCategory } from '@/lib/simulator/systems/item';
 import { resolveDescription } from '@/lib/utils/text';
 import { FACTORY_NEW_TREE, suffixToApiName } from '@/data/factoryNewTree';
-import { isNovaSelectorTarget, isNovaTraitActive } from '@/lib/simulator/novaSelector';
+import { isNovaSelectorTarget, isNovaStrikeSelectorActive } from '@/lib/simulator/novaSelector';
 
 interface SelectedUnitPanelProps {
   placed: PlacedChampion;
@@ -102,7 +102,7 @@ export default function SelectedUnitPanel({
 
       <StarSelector starLevel={placed.starLevel} onChange={onStarChange} />
 
-      {isNovaSelectorTarget(placed.champion.apiName) && isNovaTraitActive(activeTraits) && onNovaStrikeSelectorToggle && (
+      {isNovaSelectorTarget(placed.champion.apiName) && isNovaStrikeSelectorActive(activeTraits) && onNovaStrikeSelectorToggle && (
         <div>
           <div className="text-xs text-gray-400 mb-1.5">N.O.V.A. 타격 선택기</div>
           <button

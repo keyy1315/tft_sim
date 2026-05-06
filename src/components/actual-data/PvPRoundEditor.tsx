@@ -20,7 +20,7 @@ import ChampionItemSidebar from './ChampionItemSidebar';
 import { createActualDragEndHandler } from './actualDndHandlers';
 import RoundDiffInlineCard from '@/components/validation/RoundDiffInlineCard';
 import { resolveTraits } from '@/lib/simulator/systems/trait';
-import { isNovaTraitActive } from '@/lib/simulator/novaSelector';
+import { isNovaStrikeSelectorActive } from '@/lib/simulator/novaSelector';
 import { normalizeChampionId } from '@/lib/analysis/championIdAliases';
 
 export default function PvPRoundEditor({ index, round }: { index: number; round: PvPRound }) {
@@ -42,7 +42,7 @@ export default function PvPRoundEditor({ index, round }: { index: number; round:
         .filter((c): c is RawChampion => !!c)
         .map(c => ({ champion: c }));
       if (inputs.length === 0) return false;
-      return isNovaTraitActive(resolveTraits(inputs, traits));
+      return isNovaStrikeSelectorActive(resolveTraits(inputs, traits));
     };
     return teamHasActive(round.playerTeam.units) || teamHasActive(round.opponent.units);
   }, [round.playerTeam.units, round.opponent.units, championMap, traits]);

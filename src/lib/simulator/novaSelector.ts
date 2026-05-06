@@ -24,17 +24,25 @@ export function isNovaSelectorTarget(apiName: string): boolean {
 
 /**
  * N.O.V.A. trait apiName. 게임 데이터 (`tft_set17_traits.json` apiName='TFT17_DRX',
- * 표시명 'N.O.V.A.', minUnits=5) 기준. 5+ 시너지 활성 시에만 "타격 선택기" 가
- * 게임에서 부여되므로 UI 노출 조건으로 사용.
+ * 표시명 'N.O.V.A.') 기준. 트레잇은 두 tier 를 가짐:
+ *  - [0] minUnits=2~4, style=1 (힘의 고조만)
+ *  - [1] minUnits=5+,   style=5 (타격 선택기 부여 — UI 노출 조건)
  */
 export const NOVA_TRAIT_API = 'TFT17_DRX';
 
+/** 타격 선택기가 게임에서 부여되는 NOVA tier 의 minUnits 임계값. */
+export const NOVA_STRIKE_SELECTOR_MIN_UNITS = 5;
+
 /**
- * 활성 trait 배열에서 NOVA(5) 시너지가 활성화되었는지 검사.
- * `activeEffect` 가 truthy 면 minUnits >= 5 시너지가 동작 중.
+ * 활성 trait 배열에서 N.O.V.A. (5+) 시너지가 동작 중이고 따라서 "타격 선택기" 가
+ * 게임에서 부여된 상태인지 검사. (2~4) 하위 tier 는 false 를 반환한다.
  */
-export function isNovaTraitActive(
-  activeTraits: ReadonlyArray<{ trait: { apiName: string }; activeEffect?: unknown }>,
+export function isNovaStrikeSelectorActive(
+  activeTraits: ReadonlyArray<{ trait: { apiName: string }; activeEffect?: { minUnits?: number } | null }>,
 ): boolean {
-  return activeTraits.some(t => t.trait.apiName === NOVA_TRAIT_API && !!t.activeEffect);
+  return activeTraits.some(t =>
+    t.trait.apiName === NOVA_TRAIT_API
+    && !!t.activeEffect
+    && (t.activeEffect.minUnits ?? 0) >= NOVA_STRIKE_SELECTOR_MIN_UNITS,
+  );
 }
