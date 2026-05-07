@@ -5947,7 +5947,11 @@ export function simulateCombat(
             const abilityTargets = findAbilityTargets(unit, abilityTarget, opposingTeam, config);
 
             // 어빌리티 보호막 적용 (자기 자신에게)
-            const abilityShield = getAbilityShield(unit.champion, unit.starLevel, unit.stats.ap);
+            // Poppy: helper(applyPoppyShieldAndResists)가 readVarByStar 로 정확한 Shield 값 적용 →
+            // generic getAbilityShield 의 value[starLevel] shifted indexing 회피 (codex P1 PR #102)
+            const abilityShield = unit.champion.apiName === 'TFT17_Poppy'
+              ? 0
+              : getAbilityShield(unit.champion, unit.starLevel, unit.stats.ap);
             if (abilityShield > 0) {
               unit.shield += abilityShield;
               unit.statusEffects.push({ type: 'shield', sourceId: unit.id, remainingTicks: 300, value: abilityShield });
@@ -6554,7 +6558,11 @@ export function simulateCombat(
           const abilityTargets = findAbilityTargets(unit, abilityTarget, opposingTeam, outOfRangeConfig);
 
           // 보호막
-          const abilityShield = getAbilityShield(unit.champion, unit.starLevel, unit.stats.ap);
+          // Poppy: helper(applyPoppyShieldAndResists)가 readVarByStar 로 정확한 Shield 값 적용 →
+          // generic getAbilityShield 의 value[starLevel] shifted indexing 회피 (codex P1 PR #102)
+          const abilityShield = unit.champion.apiName === 'TFT17_Poppy'
+            ? 0
+            : getAbilityShield(unit.champion, unit.starLevel, unit.stats.ap);
           if (abilityShield > 0) {
             unit.shield += abilityShield;
             unit.statusEffects.push({ type: 'shield', sourceId: unit.id, remainingTicks: 300, value: abilityShield });
