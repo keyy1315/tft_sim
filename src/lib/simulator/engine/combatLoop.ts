@@ -60,6 +60,7 @@ const STATUS_EFFECT_LABELS: Record<StatusEffectType, string> = {
   invulnerable: '무적',
   mark: '표식',
   poison: '중독',
+  'resists-buff': '방어력+마법저항 버프',
 };
 
 function mergeEffects(a: ItemEffect, b: ItemEffect): ItemEffect {
@@ -843,6 +844,77 @@ const NON_TARGET_DAMAGE_REDUCTION = 0.15;
 function applyResistance(damage: number, resistance: number, penetration: number = 0): number {
   const effective = resistance * (1 - Math.min(penetration, 1));
   return damage * 100 / (100 + Math.max(0, effective));
+}
+
+/**
+ * 캐스트 사이드 이펙트에서 자주 쓰이는 ally team 분기 헬퍼.
+ * unit.team 기준 player/enemies 둘 중 하나를 반환.
+ */
+function getAllyTeam(
+  unit: CombatUnit,
+  playerUnits: CombatUnit[],
+  enemies: CombatUnit[],
+): CombatUnit[] {
+  return unit.team === 'player' ? playerUnits : enemies;
+}
+
+/**
+ * Poppy 스킬 효과 적용:
+ * - 본인: Shield 보호막 (AP scaling, ShieldDuration 만료)
+ * - 2칸 내 아군: 방어력+마법저항 +Resists (AP scaling, ShieldDuration 만료)
+ *
+ * sentinel filler (Resists [36, 15, 25, 60, ...] 등) 는 readVarByStar 로 자동 처리.
+ *
+ * 만료 처리: 직접 stat 수정 + statusEffect 추적 + tickStatusEffects expired loop 에서 revert
+ * (line 3014 shield cleanup 패턴 차용 — armor/MR read site 82개 변경 회피).
+ */
+export function applyPoppyShieldAndResists(
+  unit: CombatUnit,
+  allies: CombatUnit[],
+): void {
+  const vars = unit.champion.ability.variables;
+  if (!vars) return;
+  const shieldBase = readVarByStar(
+    vars.find(v => v.name === 'Shield')?.value, unit.starLevel, 0
+  );
+  const shieldDur = readVarByStar(
+    vars.find(v => v.name === 'ShieldDuration')?.value, unit.starLevel, 4
+  );
+  const resistsBase = readVarByStar(
+    vars.find(v => v.name === 'Resists')?.value, unit.starLevel, 0
+  );
+  const apMul = 1 + unit.stats.ap / 100;
+  const shieldValue = shieldBase * apMul;
+  const resistsValue = resistsBase * apMul;
+  const durTicks = Math.round(shieldDur * TICKS_PER_SECOND);
+
+  // Self shield (line 1080 warden / line 6477 OOR shield 패턴 차용)
+  if (shieldValue > 0) {
+    unit.shield += shieldValue;
+    unit.statusEffects.push({
+      type: 'shield',
+      sourceId: 'poppy-shield',
+      remainingTicks: durTicks,
+      value: shieldValue,
+    });
+  }
+
+  // Ally Resists buff (2칸 radius)
+  if (resistsValue > 0) {
+    for (const ally of allies) {
+      if (ally.id === unit.id) continue;
+      if (ally.state === 'dead') continue;
+      if (hexDistance(unit.position, ally.position) > 2) continue;
+      ally.stats.armor += resistsValue;
+      ally.stats.magicResist += resistsValue;
+      ally.statusEffects.push({
+        type: 'resists-buff',
+        sourceId: 'poppy-resists',
+        remainingTicks: durTicks,
+        value: resistsValue,
+      });
+    }
+  }
 }
 
 function applyShield(unit: CombatUnit, damage: number, eventBus: EventBus, tick: number): number {
@@ -3013,6 +3085,12 @@ function tickStatusEffects(
     // Math.max(0, ...) 로 over-subtract 방지 — broken 상태 (unit.shield=0) 시에도 안전.
     if (effect.type === 'shield' && effect.value) {
       unit.shield = Math.max(0, unit.shield - effect.value);
+    }
+    // Poppy ally Resists buff 만료 시 stats.armor / stats.magicResist 에서 차감.
+    // 직접 stat 수정 + 만료 시 revert 패턴 (line 3014 shield cleanup 차용).
+    if (effect.type === 'resists-buff' && effect.value) {
+      unit.stats.armor = Math.max(0, unit.stats.armor - effect.value);
+      unit.stats.magicResist = Math.max(0, unit.stats.magicResist - effect.value);
     }
     const label = STATUS_EFFECT_LABELS[effect.type as StatusEffectType];
     if (label) {
@@ -6379,6 +6457,11 @@ export function simulateCombat(
               }
             }
 
+            // === Set 17 Poppy: Shield + 2칸 내 아군 Resists ===
+            if (unit.champion.apiName === 'TFT17_Poppy') {
+              applyPoppyShieldAndResists(unit, getAllyTeam(unit, playerUnits, enemies));
+            }
+
             // === 이즈리얼 드론: 스킬 사용 시 타겟에게 추가 물리 피해 ===
             const ezDrones = (unit as CombatUnit & { _ezrealDrones?: number })._ezrealDrones ?? 0;
             if (ezDrones > 0 && abilityTarget.state !== 'dead') {
@@ -6485,6 +6568,11 @@ export function simulateCombat(
             if (outOfRangeConfig.selfBuff.ad) {
               unit.stats.damage += outOfRangeConfig.selfBuff.ad;
             }
+          }
+
+          // === Set 17 Poppy: Shield + 2칸 내 아군 Resists (OOR cast) ===
+          if (unit.champion.apiName === 'TFT17_Poppy') {
+            applyPoppyShieldAndResists(unit, getAllyTeam(unit, playerUnits, enemies));
           }
 
           // 피해 적용
