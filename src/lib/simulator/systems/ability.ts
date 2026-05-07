@@ -181,7 +181,7 @@ export const CHAMPION_ABILITY_PATTERNS: Record<string, AbilityConfig> = {
 
   // === 1코스트 ===
   TFT17_Briar:       { pattern: 'single', selfBuff: { attackSpeed: 0.5, duration: 999 } },  // 잃은 체력당 AS + 단일 물리
-  TFT17_Poppy:       { pattern: 'self_buff', selfBuff: { durability: 0.2, duration: 4 } },  // 보호막 + 아군 방어력 버프 (real ability 데미지 0; pattern: 'aoe_circle' 사용 시 Shield 변수가 damage 로 잘못 fallback — codex audit PR #97 후속)
+  TFT17_Poppy:       { pattern: 'self_buff' },  // 보호막 + 2칸 내 아군 방어력+마법저항 — combatLoop applyPoppyShieldAndResists 헬퍼에서 처리 (Shield/ShieldDuration/Resists 변수 + AP scaling + 만료)
   TFT17_Veigar:      { pattern: 'aoe_circle', radius: 1, secondaryDamageVar: 'MiniDamage' },  // 정령유성 Damage + 미니유성 MiniDamage
   TFT17_Aatrox:      { pattern: 'single', heal: true },  // 회복 + 단일 물리
   TFT17_Caitlyn:     { pattern: 'single' },  // 패시브 헤드샷 (확률)

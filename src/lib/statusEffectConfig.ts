@@ -21,6 +21,7 @@ export const STATUS_EFFECT_CONFIG: Record<StatusEffectType, StatusEffectStyle> =
   // Stargazer 별자리 변종 status effects (PR-5 옵션 B)
   mark:         { icon: '⌖', color: '#a855f7', bgColor: 'rgba(168,85,247,0.2)',  category: 'debuff-cc',  label: '표식' },
   poison:       { icon: '☠', color: '#10b981', bgColor: 'rgba(16,185,129,0.2)',  category: 'debuff-dot', label: '중독' },
+  'resists-buff': { icon: '◈', color: '#14b8a6', bgColor: 'rgba(20,184,166,0.2)', category: 'buff',       label: '방어력+마법저항 버프' },
 };
 
 export const CATEGORY_BORDER: Record<StatusCategory, string> = {

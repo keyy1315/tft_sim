@@ -414,7 +414,7 @@ export type AbilityPattern =
   | 'self_buff'   // 자기 버프
   | 'x_shape';    // X 모양 (대상 + 4 diagonal hex direction) — 파이크 carry
 
-export type StatusEffectType = 'stun' | 'slow' | 'burn' | 'shield' | 'invulnerable' | 'disarm' | 'taunt' | 'mark' | 'poison';
+export type StatusEffectType = 'stun' | 'slow' | 'burn' | 'shield' | 'invulnerable' | 'disarm' | 'taunt' | 'mark' | 'poison' | 'resists-buff';
 
 export interface StatusEffect {
   type: StatusEffectType;
