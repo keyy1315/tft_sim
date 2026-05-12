@@ -997,11 +997,19 @@ export function tickMordekaiserProc(
       vars.find(v => v.name === 'ShieldPerProc')?.value, unit.starLevel, 0
     );
 
-    // 적에게 마법 피해 (1칸 내) — applyAbilityMitigation 파이프라인 통과
-    const dmgRaw = damagePerProc * apMul * (1 + unit.damageAmp);
+    // 적에게 마법 피해 (1칸 내) — applyAbilityMitigation 파이프라인 통과.
+    // codex P2 PR #103: per-target amp 계산 (Vex/주공격 패턴 차용 — line 5378 / 5727).
+    //   탱커 amp 3종 (invention/madreds/graves) + sniper amp 모두 target-conditional.
+    //   pulse 마다 단일 dmgRaw 재사용은 tank under-damage 유발 → loop 안에서 amp 계산.
     for (const e of enemies) {
       if (e.state === 'dead') continue;
       if (hexDistance(unit.position, e.position) > 1) continue;
+      let amp = unit.damageAmp;
+      if (unit.inventionTankDamageAmp > 0 && e.role === 'Tank') amp += unit.inventionTankDamageAmp;
+      if (unit.madredsTankDamageAmp > 0 && e.role === 'Tank') amp += unit.madredsTankDamageAmp;
+      if (unit.gravesTankDamageAmp > 0 && e.role === 'Tank') amp += unit.gravesTankDamageAmp;
+      amp += computeSniperDamageAmp(unit, e);
+      const dmgRaw = damagePerProc * apMul * (1 + amp);
       const dmg = applyAbilityMitigation(unit, e, dmgRaw, 'magic', eventBus, tick);
       e.currentHp -= dmg;
       e.totalDamageTaken += dmg;

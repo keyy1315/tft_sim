@@ -101,6 +101,12 @@ function makeMordekaiser(opts: {
     mordekaiserProcEndTick: 0,
     mordekaiserNextProcTick: 0,
     mordekaiserShieldRemaining: 0,
+    // codex P2 PR #103: pulse 의 per-target amp 계산에 사용되는 필드 (0 default).
+    inventionTankDamageAmp: 0,
+    madredsTankDamageAmp: 0,
+    gravesTankDamageAmp: 0,
+    sniperBaseDA: 0,
+    sniperPerHexDA: 0,
   } as unknown as CombatUnit;
 }
 
@@ -250,5 +256,19 @@ describe('TFT17_Mordekaiser — tickMordekaiserProc (펄스 + 만료)', () => {
 
     expect(morde.mordekaiserShieldRemaining).toBeCloseTo(300, 0);
     expect(morde.shield).toBe(200);  // 별도 pool — 시너지/아이템 shield 무변화
+  });
+
+  it('C8: per-target tank amp — madredsTankDamageAmp 0.15 + enemy.role=Tank → dmg ×1.15 (codex P2 PR #103)', () => {
+    // codex P2 fix: pulse damage 가 target 별 tank amp 적용. Vex 그림자 / 주공격 패턴 동일.
+    // ★1 base DamagePerProc=45, madredsTankDamageAmp=0.15 → 45 × 1.15 = 51.75.
+    const morde = makeMordekaiser({ starLevel: 1, ap: 0, position: { q: 0, r: 0 } });
+    (morde as unknown as { madredsTankDamageAmp: number }).madredsTankDamageAmp = 0.15;
+    const tankEnemy = makeEnemy({ id: 'tank', position: { q: 1, r: 0 }, currentHp: 1000 });
+
+    applyMordekaiserProcCast(morde, 0);
+    tickMordekaiserProc(morde, TICKS_PER_SECOND, 1.0, [tankEnemy], NULL_EVENT_BUS, NULL_ARBITER, NO_LOGS, []);
+
+    // 45 × (1 + 0.15) = 51.75. enemy.role='Tank' 이므로 amp 적용.
+    expect(tankEnemy.currentHp).toBeCloseTo(1000 - 51.75, 1);
   });
 });
