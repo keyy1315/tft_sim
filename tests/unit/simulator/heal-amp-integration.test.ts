@@ -103,8 +103,10 @@ describe('healAmp 적용 사이트 코드 grep — 회귀 안전성', () => {
     //   추가 → 12 매치. 일반 ability omnivamp 와 동일 패턴, primary target 없어 grievousReduction 생략.
     // Mordekaiser proc (PR #N): HealRefund 만료 시 잔여 보호막 × 0.4 heal
     //   (`mordekaiserShieldRemaining * healRefund * (1 + (unit.healAmp ?? 0))`) 추가 → 13 매치.
+    // Illaoi NumEnemies drain heal (audit P3): total drain × (1 + healAmp)
+    //   (`totalDrain * (1 + (unit.healAmp ?? 0))`) 추가 → 14 매치.
     // 새 heal 사이트 추가 시 본 카운트도 갱신 필수.
-    expect(matches!.length).toBe(13);
+    expect(matches!.length).toBe(14);
   });
 
   it('각 heal 사이트별 fingerprint — 의미 단위 회귀 가드', async () => {
@@ -135,6 +137,8 @@ describe('healAmp 적용 사이트 코드 grep — 회귀 안전성', () => {
       { name: '자폭 (그라가스 carry) omnivamp heal', pattern: /totalSelfDestructDmg \* unit\.omnivamp \* \(1 \+ \(unit\.healAmp \?\? 0\)\)/ },
       // Mordekaiser proc 만료 시 HealRefund — 잔여 별도 pool 보호막 × 0.4 회복 (tickMordekaiserProc).
       { name: 'Mordekaiser proc HealRefund', pattern: /unit\.mordekaiserShieldRemaining \* healRefund \* \(1 \+ \(unit\.healAmp \?\? 0\)\)/ },
+      // Illaoi NumEnemies drain heal — total true damage drained × healAmp (applyIllaoiCast).
+      { name: 'Illaoi NumEnemies drain heal', pattern: /totalDrain \* \(1 \+ \(unit\.healAmp \?\? 0\)\)/ },
     ];
     for (const { name, pattern } of sites) {
       expect(file, `heal 사이트 missing: ${name}`).toMatch(pattern);

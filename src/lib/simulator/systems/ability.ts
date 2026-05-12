@@ -212,7 +212,7 @@ export const CHAMPION_ABILITY_PATTERNS: Record<string, AbilityConfig> = {
 
   // === 3코스트 ===
   TFT17_MissFortune: { pattern: 'multi', maxTargets: 3 },  // 모드에 따라 다름 (기본)
-  TFT17_Illaoi:      { pattern: 'aoe_circle', radius: 2, heal: true, dot: { duration: 3 } },  // 보호막 + 3초 체력흡수 DOT + AOE
+  TFT17_Illaoi:      { pattern: 'self_buff' },  // Shield (generic getAbilityShield) + NumEnemies(3) true drain + 3초 후 magic AOE — combatLoop applyIllaoiCast/tickIllaoiAfterShock 헬퍼
   TFT17_Aurora:      { pattern: 'aoe_circle', radius: 2 },  // 균열 해킹 + 저장 피해
   TFT17_Fizz:        { pattern: 'line', dash: 'to_target', secondaryDamageVar: 'BiteDamageAP' },  // 관통 돌진 DashDamage + 3회째 정령 BiteDamageAP
   TFT17_Maokai:      { pattern: 'aoe_circle', radius: 2, stun: 1.5 },  // X자 덩굴 + 기절
