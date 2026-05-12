@@ -227,6 +227,10 @@ function createCombatUnit(
     itemFlatManaPerAttack: 0,
     inventionTankDamageAmp: 0,
     madredsTankDamageAmp: madredsCount * 0.15,
+    // Mordekaiser proc 시스템 — 모든 unit 0 default. cast 시점에 applyMordekaiserProcCast 가 set.
+    mordekaiserProcEndTick: 0,
+    mordekaiserNextProcTick: 0,
+    mordekaiserShieldRemaining: 0,
     healAmp: itemFx.healAmp ?? 0,
     darkStarExecuteThreshold: 0,
     darkStarSupermassive: false,
@@ -921,15 +925,28 @@ export function applyPoppyShieldAndResists(
 }
 
 function applyShield(unit: CombatUnit, damage: number, eventBus: EventBus, tick: number): number {
-  if (unit.shield <= 0) return damage;
-  const absorbed = Math.min(unit.shield, damage);
-  unit.shield -= absorbed;
-  const remaining = damage - absorbed;
-  if (unit.shield <= 0) {
-    unit.shield = 0;
-    unit.statusEffects = unit.statusEffects.filter(e => e.type !== 'shield');
-    eventBus.emit('on_shield_break', { sourceId: unit.id, tick });
+  let remaining = damage;
+
+  // === Mordekaiser 스킬 보호막 (별도 pool, source별 분리) ===
+  // mordekaiserShieldRemaining 가 양수일 때 우선 흡수. 다른 챔프는 0 default → skip.
+  if (unit.mordekaiserShieldRemaining > 0 && remaining > 0) {
+    const absorbed = Math.min(unit.mordekaiserShieldRemaining, remaining);
+    unit.mordekaiserShieldRemaining -= absorbed;
+    remaining -= absorbed;
   }
+
+  // === General unit.shield (시너지/아이템) — 기존 로직 ===
+  if (unit.shield > 0 && remaining > 0) {
+    const absorbed = Math.min(unit.shield, remaining);
+    unit.shield -= absorbed;
+    remaining -= absorbed;
+    if (unit.shield <= 0) {
+      unit.shield = 0;
+      unit.statusEffects = unit.statusEffects.filter(e => e.type !== 'shield');
+      eventBus.emit('on_shield_break', { sourceId: unit.id, tick });
+    }
+  }
+
   return remaining;
 }
 
@@ -3234,6 +3251,9 @@ function spawnFreljordTurrets(
             itemFlatManaPerAttack: 0,
             inventionTankDamageAmp: 0,
             madredsTankDamageAmp: 0,
+            mordekaiserProcEndTick: 0,
+            mordekaiserNextProcTick: 0,
+            mordekaiserShieldRemaining: 0,
             healAmp: 0,
             darkStarExecuteThreshold: 0,
             darkStarSupermassive: false,
@@ -3436,6 +3456,9 @@ function trySpawnGalio(
     itemFlatManaPerAttack: 0,
     inventionTankDamageAmp: 0,
     madredsTankDamageAmp: 0,
+    mordekaiserProcEndTick: 0,
+    mordekaiserNextProcTick: 0,
+    mordekaiserShieldRemaining: 0,
     healAmp: 0,
     darkStarExecuteThreshold: 0,
     darkStarSupermassive: false,
@@ -6003,9 +6026,11 @@ export function simulateCombat(
             const abilityTargets = findAbilityTargets(unit, abilityTarget, opposingTeam, config);
 
             // 어빌리티 보호막 적용 (자기 자신에게)
-            // Poppy: helper(applyPoppyShieldAndResists)가 readVarByStar 로 정확한 Shield 값 적용 →
-            // generic getAbilityShield 의 value[starLevel] shifted indexing 회피 (codex P1 PR #102)
-            const abilityShield = unit.champion.apiName === 'TFT17_Poppy'
+            // Poppy: helper(applyPoppyShieldAndResists)가 readVarByStar 로 정확한 Shield 값 적용
+            //   (codex P1 PR #102 — getAbilityShield value[starLevel] shifted indexing 회피).
+            // Mordekaiser: applyMordekaiserProcCast 가 InitialShield 를 별도 pool 에 적용
+            //   (mordekaiserShieldRemaining — general unit.shield 와 분리, HealRefund 정확 계산).
+            const abilityShield = (unit.champion.apiName === 'TFT17_Poppy' || unit.champion.apiName === 'TFT17_Mordekaiser')
               ? 0
               : getAbilityShield(unit.champion, unit.starLevel, unit.stats.ap);
             if (abilityShield > 0) {
@@ -6622,9 +6647,11 @@ export function simulateCombat(
           const abilityTargets = findAbilityTargets(unit, abilityTarget, opposingTeam, outOfRangeConfig);
 
           // 보호막
-          // Poppy: helper(applyPoppyShieldAndResists)가 readVarByStar 로 정확한 Shield 값 적용 →
-          // generic getAbilityShield 의 value[starLevel] shifted indexing 회피 (codex P1 PR #102)
-          const abilityShield = unit.champion.apiName === 'TFT17_Poppy'
+          // Poppy: helper(applyPoppyShieldAndResists)가 readVarByStar 로 정확한 Shield 값 적용
+          //   (codex P1 PR #102 — getAbilityShield value[starLevel] shifted indexing 회피).
+          // Mordekaiser: applyMordekaiserProcCast 가 InitialShield 를 별도 pool 에 적용
+          //   (mordekaiserShieldRemaining — general unit.shield 와 분리, HealRefund 정확 계산).
+          const abilityShield = (unit.champion.apiName === 'TFT17_Poppy' || unit.champion.apiName === 'TFT17_Mordekaiser')
             ? 0
             : getAbilityShield(unit.champion, unit.starLevel, unit.stats.ap);
           if (abilityShield > 0) {
