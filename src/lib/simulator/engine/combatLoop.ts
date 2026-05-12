@@ -231,6 +231,8 @@ function createCombatUnit(
     mordekaiserProcEndTick: 0,
     mordekaiserNextProcTick: 0,
     mordekaiserShieldRemaining: 0,
+    illaoiAfterShockEndTick: 0,
+    illaoiAfterShockApSnapshot: 0,
     healAmp: itemFx.healAmp ?? 0,
     darkStarExecuteThreshold: 0,
     darkStarSupermassive: false,
@@ -1040,6 +1042,147 @@ export function tickMordekaiserProc(
     unit.mordekaiserProcEndTick = 0;
     unit.mordekaiserNextProcTick = 0;
   }
+}
+
+/**
+ * Illaoi 시험 (TFT17_Illaoi) cast 시점 호출:
+ * - 가장 가까운 NumEnemies(3) 명 alive 적 lock (distance ASC)
+ * - 각 target 에게 HealthDrain × AP true damage 즉시 적용 (사용자 결정: Duration 전체 총량 per-target — simplified instant)
+ * - Illaoi heal = total drain × (1 + healAmp)
+ * - AfterShock state 등록 (Duration 후 2칸 magic AOE — tickIllaoiAfterShock 에서 발동)
+ *
+ * Shield 적용은 getAbilityShield 가 처리 (PR #105 fix 후 정확).
+ * Damage AOE 는 만료 시 별도 발동 (tickIllaoiAfterShock).
+ */
+export function applyIllaoiCast(
+  unit: CombatUnit,
+  tick: number,
+  enemies: CombatUnit[],
+  eventBus: EventBus,
+  ownArbiterState: { enemyDeathCount: number },
+  logs: CombatLog[],
+): { totalDealt: number; totalRaw: number } {
+  const vars = unit.champion.ability.variables;
+  if (!vars) return { totalDealt: 0, totalRaw: 0 };
+
+  const healthDrain = readVarByStar(
+    vars.find(v => v.name === 'HealthDrain')?.value, unit.starLevel, 0
+  );
+  const numEnemies = readVarByStar(
+    vars.find(v => v.name === 'NumEnemies')?.value, unit.starLevel, 3
+  );
+  const duration = readVarByStar(
+    vars.find(v => v.name === 'Duration')?.value, unit.starLevel, 3
+  );
+  const apMul = 1 + unit.stats.ap / 100;
+  const drainPerTarget = healthDrain * apMul;
+
+  // 가장 가까운 NumEnemies 명 alive 적 lock (distance ASC)
+  const aliveByDistance = enemies
+    .filter(e => e.state !== 'dead')
+    .map(e => ({ e, d: hexDistance(unit.position, e.position) }))
+    .sort((a, b) => a.d - b.d)
+    .slice(0, numEnemies);
+
+  let totalDrain = 0;  // mitigated total (Illaoi heal source)
+  let totalRaw = 0;    // raw total (on_cast.rawValue 용)
+  for (const { e } of aliveByDistance) {
+    // codex P1 PR #106: true damage 도 applyAbilityMitigation 통과 (shield/invulnerable hooks 적용).
+    // dmgType='true' → resistance/pen=0 자동 처리. damageReduction/shield/invulnerable 만 적용.
+    const dmg = applyAbilityMitigation(unit, e, drainPerTarget, 'true', eventBus, tick);
+    e.currentHp -= dmg;
+    e.totalDamageTaken += dmg;
+    unit.totalDamageDealt += dmg;
+    totalDrain += dmg;
+    totalRaw += drainPerTarget;
+    // 사망 처리
+    if (e.currentHp <= 0) {
+      logs.push({ tick, time: tick / TICKS_PER_SECOND, type: 'death', sourceId: e.id, message: `${e.champion.name} 사망! (${unit.champion.name}의 흡수)` });
+      markTargetDead(unit, e, ownArbiterState, eventBus, tick);
+    }
+  }
+
+  // Illaoi 본인 회복 (healAmp 적용)
+  if (totalDrain > 0) {
+    const heal = totalDrain * (1 + (unit.healAmp ?? 0));
+    unit.currentHp = Math.min(unit.maxHp, unit.currentHp + heal);
+  }
+
+  // AfterShock state 등록 — Duration 후 magic AOE 발동
+  unit.illaoiAfterShockEndTick = tick + Math.round(duration * TICKS_PER_SECOND);
+  unit.illaoiAfterShockApSnapshot = unit.stats.ap;
+
+  // codex P2 PR #106: drain damage 를 cast 의 totalAbilityDmg accumulator 에 합산 → omnivamp/Fountain/on_cast 정합.
+  return { totalDealt: totalDrain, totalRaw };
+}
+
+/**
+ * Illaoi 매 tick 처리 (만료 체크 + AfterShock AOE):
+ * - 비활성: early return
+ * - 사망 cancel: state cleanup, AOE 미발동
+ * - 만료 (tick >= illaoiAfterShockEndTick): 2칸 내 모든 alive 적에게 Damage × AP snapshot magic AOE
+ *   - applyAbilityMitigation 통과 (Vex 그림자 / 주공격 패턴 차용)
+ *   - per-target amp: damageAmp + tank 3종 + sniper
+ * - state cleanup (2 필드 0 reset)
+ */
+export function tickIllaoiAfterShock(
+  unit: CombatUnit,
+  tick: number,
+  time: number,
+  enemies: CombatUnit[],
+  eventBus: EventBus,
+  ownArbiterState: { enemyDeathCount: number },
+  logs: CombatLog[],
+  _tickLogs: CombatLog[],
+): void {
+  if (unit.illaoiAfterShockEndTick === 0) return;
+
+  // 사망 cancel
+  if (unit.state === 'dead' || unit.currentHp <= 0) {
+    unit.illaoiAfterShockEndTick = 0;
+    unit.illaoiAfterShockApSnapshot = 0;
+    return;
+  }
+
+  // 만료 전: no-op
+  if (tick < unit.illaoiAfterShockEndTick) return;
+
+  // 만료: 2칸 내 alive 적에게 Damage × AP snapshot magic AOE
+  const vars = unit.champion.ability.variables;
+  if (!vars) {
+    unit.illaoiAfterShockEndTick = 0;
+    unit.illaoiAfterShockApSnapshot = 0;
+    return;
+  }
+
+  const damage = readVarByStar(
+    vars.find(v => v.name === 'Damage')?.value, unit.starLevel, 0
+  );
+  const apMul = 1 + unit.illaoiAfterShockApSnapshot / 100;
+
+  for (const e of enemies) {
+    if (e.state === 'dead') continue;
+    if (hexDistance(unit.position, e.position) > 2) continue;
+    // per-target amp (Vex 그림자 / 주공격 패턴)
+    let amp = unit.damageAmp;
+    if (unit.inventionTankDamageAmp > 0 && e.role === 'Tank') amp += unit.inventionTankDamageAmp;
+    if (unit.madredsTankDamageAmp > 0 && e.role === 'Tank') amp += unit.madredsTankDamageAmp;
+    if (unit.gravesTankDamageAmp > 0 && e.role === 'Tank') amp += unit.gravesTankDamageAmp;
+    amp += computeSniperDamageAmp(unit, e);
+    const dmgRaw = damage * apMul * (1 + amp);
+    const dmg = applyAbilityMitigation(unit, e, dmgRaw, 'magic', eventBus, tick);
+    e.currentHp -= dmg;
+    e.totalDamageTaken += dmg;
+    unit.totalDamageDealt += dmg;
+    if (e.currentHp <= 0) {
+      logs.push({ tick, time, type: 'death', sourceId: e.id, message: `${e.champion.name} 사망! (${unit.champion.name}의 시험)` });
+      markTargetDead(unit, e, ownArbiterState, eventBus, tick);
+    }
+  }
+
+  // state cleanup
+  unit.illaoiAfterShockEndTick = 0;
+  unit.illaoiAfterShockApSnapshot = 0;
 }
 
 function applyShield(unit: CombatUnit, damage: number, eventBus: EventBus, tick: number): number {
@@ -3372,6 +3515,8 @@ function spawnFreljordTurrets(
             mordekaiserProcEndTick: 0,
             mordekaiserNextProcTick: 0,
             mordekaiserShieldRemaining: 0,
+            illaoiAfterShockEndTick: 0,
+            illaoiAfterShockApSnapshot: 0,
             healAmp: 0,
             darkStarExecuteThreshold: 0,
             darkStarSupermassive: false,
@@ -3577,6 +3722,8 @@ function trySpawnGalio(
     mordekaiserProcEndTick: 0,
     mordekaiserNextProcTick: 0,
     mordekaiserShieldRemaining: 0,
+    illaoiAfterShockEndTick: 0,
+    illaoiAfterShockApSnapshot: 0,
     healAmp: 0,
     darkStarExecuteThreshold: 0,
     darkStarSupermassive: false,
@@ -5326,6 +5473,13 @@ export function simulateCombat(
         tickMordekaiserProc(unit, tick, time, enemyTeam, eventBus, ownArbiterStateMorde, logs, tickLogs);
       }
 
+      // Illaoi AfterShock 매 tick — 만료 시 2칸 magic AOE / 사망 시 cancel.
+      if (unit.illaoiAfterShockEndTick !== 0) {
+        const enemyTeam = unit.team === 'player' ? enemies : playerUnits;
+        const ownArbiterStateIllaoi = unit.team === 'player' ? playerArbiterState : enemyArbiterState;
+        tickIllaoiAfterShock(unit, tick, time, enemyTeam, eventBus, ownArbiterStateIllaoi, logs, tickLogs);
+      }
+
       gainManaPerTick(unit, TICK_DURATION);
 
       // Augment mana regen (per second, applied per tick)
@@ -6687,6 +6841,16 @@ export function simulateCombat(
               applyMordekaiserProcCast(unit, tick);
             }
 
+            // === Set 17 Illaoi: NumEnemies(3) 명 true drain + 3초 후 magic AOE ===
+            if (unit.champion.apiName === 'TFT17_Illaoi') {
+              const enemyTeamForIllaoi = unit.team === 'player' ? enemies : playerUnits;
+              const ownArbiterStateIllaoi = unit.team === 'player' ? playerArbiterState : enemyArbiterState;
+              const illaoiResult = applyIllaoiCast(unit, tick, enemyTeamForIllaoi, eventBus, ownArbiterStateIllaoi, logs);
+              // codex P2 PR #106: drain damage 를 on_cast accumulator 에 합산 (omnivamp/Fountain 정합).
+              totalAbilityDmg += illaoiResult.totalDealt;
+              totalRawAbilityDmg += illaoiResult.totalRaw;
+            }
+
             // === 이즈리얼 드론: 스킬 사용 시 타겟에게 추가 물리 피해 ===
             const ezDrones = (unit as CombatUnit & { _ezrealDrones?: number })._ezrealDrones ?? 0;
             if (ezDrones > 0 && abilityTarget.state !== 'dead') {
@@ -6811,11 +6975,24 @@ export function simulateCombat(
             applyMordekaiserProcCast(unit, tick);
           }
 
+          // === Set 17 Illaoi: NumEnemies(3) 명 true drain + 3초 후 magic AOE (OOR cast) ===
+          let illaoiOorResult: { totalDealt: number; totalRaw: number } | null = null;
+          if (unit.champion.apiName === 'TFT17_Illaoi') {
+            const enemyTeamForIllaoi = unit.team === 'player' ? enemies : playerUnits;
+            const ownArbiterStateIllaoi = unit.team === 'player' ? playerArbiterState : enemyArbiterState;
+            illaoiOorResult = applyIllaoiCast(unit, tick, enemyTeamForIllaoi, eventBus, ownArbiterStateIllaoi, logs);
+          }
+
           // 피해 적용
           let totalAbilityDmg = 0;
           // raw total — per-target modifier (damageAmp/sniper/crit) 적용 후, mitigation 전.
           // on_cast.rawValue 로 emit 되어 SympatheticImplant 등 raw 기반 effect 가 사용.
           let totalRawAbilityDmg = 0;
+          // codex P2 PR #106: Illaoi drain damage 를 on_cast accumulator 에 합산 (omnivamp/Fountain 정합).
+          if (illaoiOorResult) {
+            totalAbilityDmg += illaoiOorResult.totalDealt;
+            totalRawAbilityDmg += illaoiOorResult.totalRaw;
+          }
           const oorAlive = abilityTargets.filter(t => t.state !== 'dead');
           const abilityDmg = oorIsSplit && oorAlive.length > 0
             ? oorHitTotal / oorAlive.length

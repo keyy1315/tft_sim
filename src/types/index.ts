@@ -533,6 +533,19 @@ export interface CombatUnit {
    */
   mordekaiserShieldRemaining: number;
   /**
+   * Illaoi 시험 (TFT17_Illaoi) AfterShock — Duration(3초) 후 2칸 magic AOE 발동 tick.
+   * 0 = 비활성. applyIllaoiCast 가 (currentTick + Duration × TICKS_PER_SECOND) 로 set.
+   * 매 tick `tickIllaoiAfterShock` 이 만료 체크 (AOE 발동 후 0 reset).
+   * 사망 시 cancel (state cleanup, AOE 미발동).
+   */
+  illaoiAfterShockEndTick: number;
+  /**
+   * Illaoi AfterShock AP snapshot — cast 시점의 stats.ap 저장.
+   * 만료 시 Damage × (1 + apSnapshot/100) × healAmp 계산에 사용
+   * (cast 시 받은 AP buff 가 만료 시까지 유효, 중간 AP 변동 무관).
+   */
+  illaoiAfterShockApSnapshot: number;
+  /**
    * 회복량 증폭 (additive bonus). 0 = base 1.0, 0.22 = 회복량 +22%.
    * primitive execHeal / heal site 에서 (1 + healAmp) 곱셈으로 적용.
    * GrenadeMod_Radiant IncreasedHealing 등 누적.
