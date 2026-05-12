@@ -207,7 +207,7 @@ export const CHAMPION_ABILITY_PATTERNS: Record<string, AbilityConfig> = {
   TFT17_Milio:       { pattern: 'bounce', maxTargets: 4 },  // 공 튕기기
   TFT17_Zoe:         { pattern: 'line', maxTargets: 4 },  // 통통별 관통 + 방향전환
   TFT17_IvernMinion: { pattern: 'aoe_circle', radius: 1, stun: 1.0, heal: true },  // 회복 + 강타 + 열 피해
-  TFT17_Mordekaiser: { pattern: 'aoe_circle', radius: 1, heal: true, dot: { duration: 4 } },  // 보호막 + 주변 매초 피해 4초
+  TFT17_Mordekaiser: { pattern: 'self_buff' },  // 4초간 매초 펄스 (ShieldPerProc + DamagePerProc) + HealRefund — combatLoop applyMordekaiserProcCast/tickMordekaiserProc 헬퍼
   TFT17_Pantheon:    { pattern: 'cone', radius: 2, selfBuff: { durability: 0.15, duration: 4 }, dot: { duration: 4 } },  // 보호막+내구력 + 원뿔 매초 고정 피해 4초
 
   // === 3코스트 ===

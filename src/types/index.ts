@@ -515,6 +515,24 @@ export interface CombatUnit {
    */
   madredsTankDamageAmp: number;
   /**
+   * Mordekaiser proc 시스템 (TFT17_Mordekaiser) — proc 종료 tick.
+   * 0 = 비활성. cast 시점에 (currentTick + Duration × TICKS_PER_SECOND) 로 set.
+   * 매 tick `tickMordekaiserProc` 에서 만료 체크 (HealRefund 적용 후 0 reset).
+   */
+  mordekaiserProcEndTick: number;
+  /**
+   * Mordekaiser proc 다음 펄스 발동 tick.
+   * 0 = 비활성. cast 시 (currentTick + 1 × TICKS_PER_SECOND) — 첫 펄스 t=1.
+   * 펄스 발동 후 += TICKS_PER_SECOND (다음 1초 후).
+   */
+  mordekaiserNextProcTick: number;
+  /**
+   * Mordekaiser 스킬 보호막 별도 pool (general unit.shield 와 분리 추적).
+   * InitialShield + 매 펄스 ShieldPerProc 가산. damage 흡수 시 우선 차감.
+   * 만료 시 HealRefund (잔여 × 0.4) → currentHp 회복 후 0.
+   */
+  mordekaiserShieldRemaining: number;
+  /**
    * 회복량 증폭 (additive bonus). 0 = base 1.0, 0.22 = 회복량 +22%.
    * primitive execHeal / heal site 에서 (1 + healAmp) 곱셈으로 적용.
    * GrenadeMod_Radiant IncreasedHealing 등 누적.
