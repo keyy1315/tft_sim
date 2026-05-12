@@ -1061,9 +1061,9 @@ export function applyIllaoiCast(
   eventBus: EventBus,
   ownArbiterState: { enemyDeathCount: number },
   logs: CombatLog[],
-): void {
+): { totalDealt: number; totalRaw: number } {
   const vars = unit.champion.ability.variables;
-  if (!vars) return;
+  if (!vars) return { totalDealt: 0, totalRaw: 0 };
 
   const healthDrain = readVarByStar(
     vars.find(v => v.name === 'HealthDrain')?.value, unit.starLevel, 0
@@ -1084,15 +1084,17 @@ export function applyIllaoiCast(
     .sort((a, b) => a.d - b.d)
     .slice(0, numEnemies);
 
-  let totalDrain = 0;
+  let totalDrain = 0;  // mitigated total (Illaoi heal source)
+  let totalRaw = 0;    // raw total (on_cast.rawValue 용)
   for (const { e } of aliveByDistance) {
-    // true damage — mitigation skip. Illaoi heal 정확 추적 위해 actual hp 차감량 측정.
-    const before = e.currentHp;
-    e.currentHp -= drainPerTarget;
-    const dealt = before - e.currentHp;  // overkill 보정 없음 — heal 은 raw drain
-    e.totalDamageTaken += dealt;
-    unit.totalDamageDealt += dealt;
-    totalDrain += dealt;
+    // codex P1 PR #106: true damage 도 applyAbilityMitigation 통과 (shield/invulnerable hooks 적용).
+    // dmgType='true' → resistance/pen=0 자동 처리. damageReduction/shield/invulnerable 만 적용.
+    const dmg = applyAbilityMitigation(unit, e, drainPerTarget, 'true', eventBus, tick);
+    e.currentHp -= dmg;
+    e.totalDamageTaken += dmg;
+    unit.totalDamageDealt += dmg;
+    totalDrain += dmg;
+    totalRaw += drainPerTarget;
     // 사망 처리
     if (e.currentHp <= 0) {
       logs.push({ tick, time: tick / TICKS_PER_SECOND, type: 'death', sourceId: e.id, message: `${e.champion.name} 사망! (${unit.champion.name}의 흡수)` });
@@ -1109,6 +1111,9 @@ export function applyIllaoiCast(
   // AfterShock state 등록 — Duration 후 magic AOE 발동
   unit.illaoiAfterShockEndTick = tick + Math.round(duration * TICKS_PER_SECOND);
   unit.illaoiAfterShockApSnapshot = unit.stats.ap;
+
+  // codex P2 PR #106: drain damage 를 cast 의 totalAbilityDmg accumulator 에 합산 → omnivamp/Fountain/on_cast 정합.
+  return { totalDealt: totalDrain, totalRaw };
 }
 
 /**
@@ -6840,7 +6845,10 @@ export function simulateCombat(
             if (unit.champion.apiName === 'TFT17_Illaoi') {
               const enemyTeamForIllaoi = unit.team === 'player' ? enemies : playerUnits;
               const ownArbiterStateIllaoi = unit.team === 'player' ? playerArbiterState : enemyArbiterState;
-              applyIllaoiCast(unit, tick, enemyTeamForIllaoi, eventBus, ownArbiterStateIllaoi, logs);
+              const illaoiResult = applyIllaoiCast(unit, tick, enemyTeamForIllaoi, eventBus, ownArbiterStateIllaoi, logs);
+              // codex P2 PR #106: drain damage 를 on_cast accumulator 에 합산 (omnivamp/Fountain 정합).
+              totalAbilityDmg += illaoiResult.totalDealt;
+              totalRawAbilityDmg += illaoiResult.totalRaw;
             }
 
             // === 이즈리얼 드론: 스킬 사용 시 타겟에게 추가 물리 피해 ===
@@ -6968,10 +6976,11 @@ export function simulateCombat(
           }
 
           // === Set 17 Illaoi: NumEnemies(3) 명 true drain + 3초 후 magic AOE (OOR cast) ===
+          let illaoiOorResult: { totalDealt: number; totalRaw: number } | null = null;
           if (unit.champion.apiName === 'TFT17_Illaoi') {
             const enemyTeamForIllaoi = unit.team === 'player' ? enemies : playerUnits;
             const ownArbiterStateIllaoi = unit.team === 'player' ? playerArbiterState : enemyArbiterState;
-            applyIllaoiCast(unit, tick, enemyTeamForIllaoi, eventBus, ownArbiterStateIllaoi, logs);
+            illaoiOorResult = applyIllaoiCast(unit, tick, enemyTeamForIllaoi, eventBus, ownArbiterStateIllaoi, logs);
           }
 
           // 피해 적용
@@ -6979,6 +6988,11 @@ export function simulateCombat(
           // raw total — per-target modifier (damageAmp/sniper/crit) 적용 후, mitigation 전.
           // on_cast.rawValue 로 emit 되어 SympatheticImplant 등 raw 기반 effect 가 사용.
           let totalRawAbilityDmg = 0;
+          // codex P2 PR #106: Illaoi drain damage 를 on_cast accumulator 에 합산 (omnivamp/Fountain 정합).
+          if (illaoiOorResult) {
+            totalAbilityDmg += illaoiOorResult.totalDealt;
+            totalRawAbilityDmg += illaoiOorResult.totalRaw;
+          }
           const oorAlive = abilityTargets.filter(t => t.state !== 'dead');
           const abilityDmg = oorIsSplit && oorAlive.length > 0
             ? oorHitTotal / oorAlive.length
