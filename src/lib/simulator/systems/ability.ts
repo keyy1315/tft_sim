@@ -490,7 +490,25 @@ export function getAbilityShield(
   }
   if (!shieldVar || !shieldVar.value) return 0;
 
-  const baseValue = shieldVar.value[starLevel] ?? shieldVar.value[1] ?? 0;
+  // audit P2 후속: shifted indexing fix — `readVarByStar` (combatLoop.ts:172) 와
+  //   동일 sentinel filler 판별 logic 차용 (getAbilityDamage 패턴, PR #104).
+  //   non-filler raw [250, 450, 525] (Illaoi) → ★1=raw[0]=250 (정확)
+  //   filler raw [0, 300, 375] (Mordekaiser) → ★1=raw[1]=300 (정확)
+  //   이전 `shieldVar.value[starLevel]` 는 non-filler 에서 ★+1 over-scaled.
+  const values = shieldVar.value;
+  let baseValue: number;
+  if (values.length === 0) {
+    baseValue = 0;
+  } else if (values.length === 1) {
+    baseValue = values[0];
+  } else {
+    const v0 = values[0];
+    const v1 = values[1];
+    const sentinelRatio = v0 > 0 && v1 / v0 > 5;
+    const isFiller = v0 === 0 || v0 > v1 || sentinelRatio;
+    const idx = isFiller ? starLevel : starLevel - 1;
+    baseValue = values[idx] ?? values[isFiller ? 1 : 0] ?? 0;
+  }
   if (baseValue <= 0) return 0;
 
   const scalesWithAp = desc.includes('scaleAP');
