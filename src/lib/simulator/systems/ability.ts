@@ -440,7 +440,27 @@ export function getAbilityDamage(
   damageVarOverride?: string,
 ): { damage: number; type: DamageType } {
   const parsed = parseAbility(champion, damageVarOverride);
-  const baseValue = parsed.damageValues[starLevel] ?? parsed.damageValues[1] ?? 0;
+
+  // codex P2 (audit 2026-05-07): shifted indexing fix — `readVarByStar`
+  //   (combatLoop.ts:172) 동일 sentinel filler 판별 logic.
+  //   non-filler raw [200, 250, 375] → ★1=raw[0]=200 (정확)
+  //   filler raw [0, 300, 375] → ★1=raw[1]=300 (정확)
+  //   이전 로직 `damageValues[starLevel]` 는 non-filler 에서 ★+1 over-scaled.
+  const values = parsed.damageValues;
+  let baseValue: number;
+  if (!values || values.length === 0) {
+    baseValue = 0;
+  } else if (values.length === 1) {
+    baseValue = values[0];
+  } else {
+    const v0 = values[0];
+    const v1 = values[1];
+    // codex P1 (PR #99): 작은 sentinel (2.5 등) 도 filler 로 분류.
+    const sentinelRatio = v0 > 0 && v1 / v0 > 5;
+    const isFiller = v0 === 0 || v0 > v1 || sentinelRatio;
+    const idx = isFiller ? starLevel : starLevel - 1;
+    baseValue = values[idx] ?? values[isFiller ? 1 : 0] ?? 0;
+  }
 
   let damage = baseValue;
   if (parsed.scalingType === 'ap') {
