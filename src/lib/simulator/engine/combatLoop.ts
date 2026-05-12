@@ -924,6 +924,116 @@ export function applyPoppyShieldAndResists(
   }
 }
 
+/**
+ * Mordekaiser 캐스트 시점 호출:
+ * - InitialShield 를 mordekaiserShieldRemaining 별도 pool 에 추가 (general unit.shield 안 건드림)
+ * - 4초간 매초 펄스 state 등록 (mordekaiserProcEndTick, mordekaiserNextProcTick)
+ *
+ * sentinel filler (InitialShield [0, 300, 375, 500, ...]) 는 readVarByStar 로 자동 처리.
+ *
+ * getAbilityShield 의 InitialShield 적용은 Mordekaiser 일 때 short-circuit 됨 (line 6031/6650).
+ */
+export function applyMordekaiserProcCast(unit: CombatUnit, tick: number): void {
+  const vars = unit.champion.ability.variables;
+  if (!vars) return;
+
+  const initialShield = readVarByStar(
+    vars.find(v => v.name === 'InitialShield')?.value, unit.starLevel, 0
+  );
+  const duration = readVarByStar(
+    vars.find(v => v.name === 'Duration')?.value, unit.starLevel, 4
+  );
+  const apMul = 1 + unit.stats.ap / 100;
+
+  unit.mordekaiserShieldRemaining += initialShield * apMul;
+  unit.mordekaiserProcEndTick = tick + Math.round(duration * TICKS_PER_SECOND);
+  unit.mordekaiserNextProcTick = tick + TICKS_PER_SECOND;  // 첫 펄스 t=1
+}
+
+/**
+ * Mordekaiser 매 tick 처리:
+ * - 사망 시 cancel + state cleanup (잔여 무효화)
+ * - 펄스 발동 (tick >= mordekaiserNextProcTick && tick <= mordekaiserProcEndTick):
+ *     1칸 적 → DamagePerProc × AP 마법 피해 (applyAbilityMitigation 통과)
+ *     본인 → mordekaiserShieldRemaining += ShieldPerProc × AP (별도 pool)
+ *     mordekaiserNextProcTick += TICKS_PER_SECOND
+ * - 만료 (tick >= mordekaiserProcEndTick):
+ *     HealRefund = 잔여 × 0.4 × (1 + healAmp) → currentHp 회복
+ *     state 3 필드 0 reset (잔여 보호막 소모됨 — desc "남은 보호막을 소모하고")
+ *
+ * 펄스 카운트 4 (t=1/2/3/4): `tick <= mordekaiserProcEndTick` (≤) 로 t=4 펄스 + 만료 동시 처리.
+ */
+export function tickMordekaiserProc(
+  unit: CombatUnit,
+  tick: number,
+  time: number,
+  enemies: CombatUnit[],
+  eventBus: EventBus,
+  ownArbiterState: { enemyDeathCount: number },
+  logs: CombatLog[],
+  _tickLogs: CombatLog[],
+): void {
+  // 비활성: early return
+  if (unit.mordekaiserProcEndTick === 0) return;
+
+  // 사망 시 cancel + state cleanup (잔여 무효)
+  if (unit.state === 'dead' || unit.currentHp <= 0) {
+    unit.mordekaiserProcEndTick = 0;
+    unit.mordekaiserNextProcTick = 0;
+    unit.mordekaiserShieldRemaining = 0;
+    return;
+  }
+
+  const vars = unit.champion.ability.variables;
+  if (!vars) return;
+  const apMul = 1 + unit.stats.ap / 100;
+
+  // 펄스 발동 — 4 펄스 (t=1/2/3/4): "<=" 로 endTick 동시 펄스 + 만료 처리
+  if (tick >= unit.mordekaiserNextProcTick && tick <= unit.mordekaiserProcEndTick) {
+    const damagePerProc = readVarByStar(
+      vars.find(v => v.name === 'DamagePerProc')?.value, unit.starLevel, 0
+    );
+    const shieldPerProc = readVarByStar(
+      vars.find(v => v.name === 'ShieldPerProc')?.value, unit.starLevel, 0
+    );
+
+    // 적에게 마법 피해 (1칸 내) — applyAbilityMitigation 파이프라인 통과
+    const dmgRaw = damagePerProc * apMul * (1 + unit.damageAmp);
+    for (const e of enemies) {
+      if (e.state === 'dead') continue;
+      if (hexDistance(unit.position, e.position) > 1) continue;
+      const dmg = applyAbilityMitigation(unit, e, dmgRaw, 'magic', eventBus, tick);
+      e.currentHp -= dmg;
+      e.totalDamageTaken += dmg;
+      unit.totalDamageDealt += dmg;
+      // 사망 처리: Corki 패턴 차용 (위 `state === 'dead'` 가드로 narrowing 되어 state 비교 불필요)
+      if (e.currentHp <= 0) {
+        logs.push({ tick, time, type: 'death', sourceId: e.id, message: `${e.champion.name} 사망! (${unit.champion.name}의 펄스)` });
+        markTargetDead(unit, e, ownArbiterState, eventBus, tick);
+      }
+    }
+
+    // 본인 보호막 추가 (별도 pool)
+    unit.mordekaiserShieldRemaining += shieldPerProc * apMul;
+
+    unit.mordekaiserNextProcTick += TICKS_PER_SECOND;
+  }
+
+  // 만료
+  if (tick >= unit.mordekaiserProcEndTick) {
+    const healRefund = readVarByStar(
+      vars.find(v => v.name === 'HealRefund')?.value, unit.starLevel, 0
+    );
+    const heal = unit.mordekaiserShieldRemaining * healRefund * (1 + (unit.healAmp ?? 0));
+    if (heal > 0) {
+      unit.currentHp = Math.min(unit.maxHp, unit.currentHp + heal);
+    }
+    unit.mordekaiserShieldRemaining = 0;
+    unit.mordekaiserProcEndTick = 0;
+    unit.mordekaiserNextProcTick = 0;
+  }
+}
+
 function applyShield(unit: CombatUnit, damage: number, eventBus: EventBus, tick: number): number {
   let remaining = damage;
 
@@ -5199,6 +5309,15 @@ export function simulateCombat(
       if (unit.state === 'dead') continue;
 
       tickStatusEffects(unit, tick, time, logs, tickLogs);
+
+      // Mordekaiser proc 매 tick — 펄스 발동 / 만료 시 HealRefund / 사망 시 cancel.
+      // 가드: 0 (비활성) 일 때 호출 skip → 다른 챔프 perf 손실 없음.
+      if (unit.mordekaiserProcEndTick !== 0) {
+        const enemyTeam = unit.team === 'player' ? enemies : playerUnits;
+        const ownArbiterStateMorde = unit.team === 'player' ? playerArbiterState : enemyArbiterState;
+        tickMordekaiserProc(unit, tick, time, enemyTeam, eventBus, ownArbiterStateMorde, logs, tickLogs);
+      }
+
       gainManaPerTick(unit, TICK_DURATION);
 
       // Augment mana regen (per second, applied per tick)
@@ -6555,6 +6674,11 @@ export function simulateCombat(
               applyPoppyShieldAndResists(unit, getAllyTeam(unit, playerUnits, enemies));
             }
 
+            // === Set 17 Mordekaiser: 4초간 매초 펄스 + HealRefund ===
+            if (unit.champion.apiName === 'TFT17_Mordekaiser') {
+              applyMordekaiserProcCast(unit, tick);
+            }
+
             // === 이즈리얼 드론: 스킬 사용 시 타겟에게 추가 물리 피해 ===
             const ezDrones = (unit as CombatUnit & { _ezrealDrones?: number })._ezrealDrones ?? 0;
             if (ezDrones > 0 && abilityTarget.state !== 'dead') {
@@ -6672,6 +6796,11 @@ export function simulateCombat(
           // === Set 17 Poppy: Shield + 2칸 내 아군 Resists (OOR cast) ===
           if (unit.champion.apiName === 'TFT17_Poppy') {
             applyPoppyShieldAndResists(unit, getAllyTeam(unit, playerUnits, enemies));
+          }
+
+          // === Set 17 Mordekaiser: 4초간 매초 펄스 + HealRefund (OOR cast) ===
+          if (unit.champion.apiName === 'TFT17_Mordekaiser') {
+            applyMordekaiserProcCast(unit, tick);
           }
 
           // 피해 적용
