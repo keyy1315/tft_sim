@@ -232,4 +232,15 @@ describe('Set 17.3 — 5코스트', () => {
     const v = findVar('TFT17_Shen', 'ShieldHP');
     expect(v[1]).toBeCloseTo(0.15, 5);
   });
+
+  it('쉔 BonusDamageOnAttack ★1=20 / ★2=30 (45/75 → 너프, PR 2 적용)', () => {
+    const v = findVar('TFT17_Shen', 'BonusDamageOnAttack');
+    expect(v[1]).toBe(20);
+    expect(v[2]).toBe(30);
+  });
+
+  it('쉔 DamageHP=0.01 유지 (lolchess.gg "최대 체력 1%")', () => {
+    const v = findVar('TFT17_Shen', 'DamageHP');
+    expect(v[1]).toBeCloseTo(0.01, 5);
+  });
 });

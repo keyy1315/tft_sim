@@ -305,6 +305,7 @@ function createCombatUnit(
     stargazerHuntressHealPercent: 0,
     stargazerSerpentPoisonPercent: 0,
     stargazerSerpentDurationSec: 0,
+    shenPassiveStack: 0,
     stargazerShieldCashoutHpFrac: 0,
     stargazerShieldCashoutAsFrac: 0,
     bastionDoubleEndTick: 0,
@@ -3589,6 +3590,7 @@ function spawnFreljordTurrets(
             stargazerHuntressHealPercent: 0,
             stargazerSerpentPoisonPercent: 0,
             stargazerSerpentDurationSec: 0,
+            shenPassiveStack: 0,
             stargazerShieldCashoutHpFrac: 0,
             stargazerShieldCashoutAsFrac: 0,
             bastionDoubleEndTick: 0,
@@ -3796,6 +3798,7 @@ function trySpawnGalio(
     stargazerHuntressHealPercent: 0,
     stargazerSerpentPoisonPercent: 0,
     stargazerSerpentDurationSec: 0,
+    shenPassiveStack: 0,
     stargazerShieldCashoutHpFrac: 0,
     stargazerShieldCashoutAsFrac: 0,
     bastionDoubleEndTick: 0,
@@ -5645,6 +5648,47 @@ export function simulateCombat(
             }
           }
 
+          // 쉔 (TFT17_Shen) passive — cast 당 1 stack + 평타마다 stack × bonus 추가 (3+ true).
+          // desc: "스킬 사용 시 기본 공격에 BonusDamage(scaleHealth+scaleAP) 의 중첩되는 추가 마법 피해.
+          //        세 번째 스킬 사용부터 대신 고정 피해."
+          // 17.3 LIVE: BonusDamageOnAttack ★1=20 / ★2=30 (이전 45/75 너프). DamageHP=0.01 유지.
+          // 메커니즘 (사용자 결정): cast 당 1 stack 누적, 평타 시 stack × (BonusDamage + DamageHP×maxHp) × (1+AP/100).
+          if (unit.champion.apiName === 'TFT17_Shen' && unit.shenPassiveStack > 0
+              && target.state !== 'dead' && target.currentHp > 0) {
+            const bonusVar = unit.champion.ability.variables?.find(v => v.name === 'BonusDamageOnAttack');
+            const damageHpVar = unit.champion.ability.variables?.find(v => v.name === 'DamageHP');
+            if (bonusVar) {
+              const bonusBase = readVarByStar(bonusVar.value, unit.starLevel);
+              const damageHpRatio = damageHpVar ? readVarByStar(damageHpVar.value, unit.starLevel) : 0;
+              const bonusPerStack = (bonusBase + damageHpRatio * unit.maxHp) * (1 + unit.stats.ap / 100);
+              const totalBonus = bonusPerStack * unit.shenPassiveStack;
+              if (totalBonus > 0) {
+                const isTrueDmg = unit.shenPassiveStack >= 3;
+                // codex P1 (PR #108): true damage 도 표준 mitigation pipeline 통과 — shield 흡수 + DR + non-target +
+                // invul 일관 적용. applyAbilityMitigation 의 dmgType='true' 분기는 resist/pen 만 0 자동 처리.
+                const shenDmgType: DamageType = isTrueDmg ? 'true' : 'magic';
+                const shenDmg = applyAbilityMitigation(unit, target, totalBonus, shenDmgType, eventBus, tick);
+                if (shenDmg > 0) {
+                  target.currentHp -= shenDmg;
+                  target.totalDamageTaken += shenDmg;
+                  unit.totalDamageDealt += shenDmg;
+                  const shenLog: CombatLog = {
+                    tick, time, type: 'attack',
+                    sourceId: unit.id, targetId: target.id,
+                    value: Math.round(shenDmg),
+                    message: `${unit.champion.name} 패시브 ${unit.shenPassiveStack}중첩! ${target.champion.name}에게 추가 ${Math.round(shenDmg)} ${isTrueDmg ? '고정' : '마법'} 피해`,
+                  };
+                  logs.push(shenLog);
+                  tickLogs.push(shenLog);
+                  if (target.currentHp <= 0) {
+                    const ownArbiterStateShen = unit.team === 'player' ? playerArbiterState : enemyArbiterState;
+                    markTargetDead(unit, target, ownArbiterStateShen, eventBus, tick);
+                  }
+                }
+              }
+            }
+          }
+
           // 최신상 RevUp/2 — sticky target 매칭 시 stack++, 다른 대상 시 reset.
           // 한 공격 = 1 stack (DoubleTap/TripleTap extra hit 은 별도 카운트 안 함).
           // codex P2: sticky target 을 잡는 hit 도 자체로 1 stack — raw "AttackSpeedPerAttack"
@@ -6061,6 +6105,10 @@ export function simulateCombat(
             unit.currentMana = 0;
             unit.state = 'casting';
             unit.castCount++;
+            // 쉔 (TFT17_Shen) passive — cast 당 1 stack 누적. 평타 hook 에서 사용.
+            if (unit.champion.apiName === 'TFT17_Shen') {
+              unit.shenPassiveStack++;
+            }
             if (unitHasTrait(unit, '중재자')) {
               (unit.team === 'player' ? playerArbiterState : enemyArbiterState).manaSpent += unit.maxMana;
             }
@@ -6914,6 +6962,10 @@ export function simulateCombat(
           unit.currentMana = 0;
           unit.state = 'casting';
           unit.castCount++;
+          // 쉔 (TFT17_Shen) passive — OOR cast 경로에서도 stack 누적.
+          if (unit.champion.apiName === 'TFT17_Shen') {
+            unit.shenPassiveStack++;
+          }
           unit.attackCooldown = outOfRangeConfig.pattern === 'self_buff' ? SELF_BUFF_CAST_TICKS : CAST_TICKS;
           // 마나 소모 시점 (사거리 밖 dash cast 경로)
           eventBus.emit('on_mana_spent', { sourceId: unit.id, value: spentManaOOR, tick });
