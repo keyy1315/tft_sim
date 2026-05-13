@@ -618,9 +618,11 @@
           "minUnits": 3,
           "style": 1,
           "variables": {
-            "Fountain_HealPercent": 0.18000000715255737,
-            "Fountain_ManaRegen": 1.0,
-            "Fountain_ManaRegen_Teamwide": 1.0
+            "MaxStacks": null,
+            "{13a2a786}": 4.0,
+            "{8d19f5db}": 2.0,
+            "{d7e6d620}": 0.009999999776482582,
+            "{f2840aed}": 0.02500000037252903
           }
         },
         {
@@ -628,9 +630,11 @@
           "minUnits": 5,
           "style": 5,
           "variables": {
-            "Fountain_HealPercent": 0.25,
-            "Fountain_ManaRegen": 5.0,
-            "Fountain_ManaRegen_Teamwide": 1.0
+            "MaxStacks": null,
+            "{13a2a786}": 7.0,
+            "{8d19f5db}": 2.0,
+            "{d7e6d620}": 0.009999999776482582,
+            "{f2840aed}": 0.02500000037252903
           }
         }
       ]
@@ -1309,12 +1313,10 @@
             "Family_BaseSharePercent": 0.10000000149011612,
             "Family_HexesToReveal_TOOLTIPONLY": 3,
             "Family_Stats": 10.0,
-            "Fountain_HealPercent": 0.18000000715255737,
-            "Fountain_ManaRegen": 3.0,
-            "Fountain_ManaRegen_Teamwide": 1.0,
             "Huntress_AS": 0.30000001192092896,
             "Huntress_AS_Teamwide": 0.15000000596046448,
             "Huntress_Heal": 0.05000000074505806,
+            "MaxStacks": null,
             "Medallion_DA": 0.20000000298023224,
             "Medallion_IncreasePer3Star": 20.0,
             "Mountain_Health": 0.20000000298023224,
@@ -1334,6 +1336,7 @@
             "Wolf_Gold": 1,
             "Wolf_Health": 0.019999999552965164,
             "Wolf_Health_Teamwide": 0.07999999821186066,
+            "{13a2a786}": 2.0,
             "{326db998}": 0.15000000596046448,
             "{37204635}": 10.0,
             "{3b1fef00}": 1,
@@ -1347,8 +1350,10 @@
             "{abed8603}": 1.2999999523162842,
             "{b44d11c3}": 0.10000000149011612,
             "{c32af02f}": 0.05000000074505806,
+            "{d7e6d620}": 0.019999999552965164,
             "{e5275a69}": 0.019999999552965164,
-            "{e8338a44}": 0.15000000596046448
+            "{e8338a44}": 0.15000000596046448,
+            "{f2840aed}": 0.03999999910593033
           }
         },
         {
@@ -1359,12 +1364,10 @@
             "Family_BaseSharePercent": 0.10000000149011612,
             "Family_HexesToReveal_TOOLTIPONLY": 2,
             "Family_Stats": 35.0,
-            "Fountain_HealPercent": 0.25,
-            "Fountain_ManaRegen": 4.0,
-            "Fountain_ManaRegen_Teamwide": 1.0,
             "Huntress_AS": 0.44999998807907104,
             "Huntress_AS_Teamwide": 0.15000000596046448,
             "Huntress_Heal": 0.07999999821186066,
+            "MaxStacks": null,
             "Medallion_DA": 0.30000001192092896,
             "Medallion_IncreasePer3Star": 20.0,
             "Mountain_ADAP": 0.11999999731779099,
@@ -1383,6 +1386,7 @@
             "Wolf_Gold": 2,
             "Wolf_Health": 0.07999999821186066,
             "Wolf_Health_Teamwide": 0.07999999821186066,
+            "{13a2a786}": 4.0,
             "{326db998}": 0.25,
             "{37204635}": 10.0,
             "{3b1fef00}": 1,
@@ -1396,8 +1400,10 @@
             "{abed8603}": 1.5,
             "{b44d11c3}": 0.10000000149011612,
             "{c32af02f}": 0.05000000074505806,
+            "{d7e6d620}": 0.019999999552965164,
             "{e5275a69}": 0.029999999329447746,
-            "{e8338a44}": 0.15000000596046448
+            "{e8338a44}": 0.15000000596046448,
+            "{f2840aed}": 0.03999999910593033
           }
         },
         {
@@ -1408,12 +1414,10 @@
             "Family_BaseSharePercent": 0.10000000149011612,
             "Family_EmpoweredSharePercent": 0.30000001192092896,
             "Family_Stats": 35.0,
-            "Fountain_HealPercent": 0.20000000298023224,
-            "Fountain_ManaRegen": 5.0,
-            "Fountain_ManaRegen_Teamwide": 1.0,
             "Huntress_AS": 0.6000000238418579,
             "Huntress_AS_Teamwide": 0.15000000596046448,
             "Huntress_Heal": 0.10000000149011612,
+            "MaxStacks": null,
             "Medallion_DA": 0.4000000059604645,
             "Medallion_IncreasePer3Star": 20.0,
             "Mountain_AS": null,
@@ -1435,6 +1439,7 @@
             "Wolf_Gold": 4,
             "Wolf_Health": 0.15000000596046448,
             "Wolf_Health_Teamwide": 0.07999999821186066,
+            "{13a2a786}": 4.0,
             "{326db998}": 0.3499999940395355,
             "{37204635}": 10.0,
             "{3b1fef00}": 1,
@@ -1450,8 +1455,10 @@
             "{b44d11c3}": 0.10000000149011612,
             "{c32af02f}": 0.05000000074505806,
             "{c4d51662}": 2,
+            "{d7e6d620}": 0.019999999552965164,
             "{e5275a69}": 0.03999999910593033,
-            "{e8338a44}": 0.15000000596046448
+            "{e8338a44}": 0.15000000596046448,
+            "{f2840aed}": 0.03999999910593033
           }
         },
         {
@@ -1460,8 +1467,8 @@
           "style": 5,
           "variables": {
             "Family_BaseSharePercent": 0.10000000149011612,
-            "Fountain_ManaRegen_Teamwide": 1.0,
             "Huntress_AS_Teamwide": 0.15000000596046448,
+            "MaxStacks": null,
             "Medallion_IncreasePer3Star": 20.0,
             "Mountain_ADAP": null,
             "Mountain_AS": null,
@@ -1490,7 +1497,9 @@
             "{aa686d69}": 10.0,
             "{b44d11c3}": 0.10000000149011612,
             "{c32af02f}": 0.05000000074505806,
-            "{e8338a44}": 0.15000000596046448
+            "{d7e6d620}": 0.019999999552965164,
+            "{e8338a44}": 0.15000000596046448,
+            "{f2840aed}": 0.03999999910593033
           }
         },
         {
@@ -1499,8 +1508,8 @@
           "style": 5,
           "variables": {
             "Family_BaseSharePercent": 0.10000000149011612,
-            "Fountain_ManaRegen_Teamwide": 1.0,
             "Huntress_AS_Teamwide": 0.15000000596046448,
+            "MaxStacks": null,
             "Medallion_IncreasePer3Star": 20.0,
             "Mountain_ADAP": 0.11999999731779099,
             "Mountain_AS": 0.11999999731779099,
@@ -1524,7 +1533,9 @@
             "{aa686d69}": 10.0,
             "{b44d11c3}": 0.10000000149011612,
             "{c32af02f}": 0.05000000074505806,
-            "{e8338a44}": 0.15000000596046448
+            "{d7e6d620}": 0.019999999552965164,
+            "{e8338a44}": 0.15000000596046448,
+            "{f2840aed}": 0.03999999910593033
           }
         },
         {
@@ -1533,8 +1544,8 @@
           "style": 5,
           "variables": {
             "Family_BaseSharePercent": 0.10000000149011612,
-            "Fountain_ManaRegen_Teamwide": 1.0,
             "Huntress_AS_Teamwide": 0.15000000596046448,
+            "MaxStacks": null,
             "Medallion_IncreasePer3Star": 20.0,
             "Mountain_ADAP": 0.11999999731779099,
             "Mountain_AS": 0.11999999731779099,
@@ -1558,7 +1569,9 @@
             "{aa686d69}": 10.0,
             "{b44d11c3}": 0.10000000149011612,
             "{c32af02f}": 0.05000000074505806,
-            "{e8338a44}": 0.15000000596046448
+            "{d7e6d620}": 0.019999999552965164,
+            "{e8338a44}": 0.15000000596046448,
+            "{f2840aed}": 0.03999999910593033
           }
         }
       ]
