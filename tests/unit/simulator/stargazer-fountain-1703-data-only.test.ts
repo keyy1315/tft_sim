@@ -1,18 +1,17 @@
 /**
- * 별돌보미 우물(Fountain) 변종 17.2 회귀 가드.
+ * 별돌보미 우물(Fountain) 변종 17.3 데이터 가드 (sim 핸들러 비활성).
  *
- * 17.2 LIVE 패치노트 명시:
- *   "별돌보미 룰루와 자야 효과 찾는 중 — 우물 비활성화"
+ * 17.3 LIVE 패치 (2026-05-13):
+ *   - Fountain hash 변수가 정식 이름(Fountain_HealPercent / Fountain_ManaRegen / Fountain_ManaRegen_Teamwide) 으로 풀림
+ *   - 데이터 측면 정상 노출, sim 핸들러 활성화는 PR 3
  *
- * raw data 에 hash 변수 + 값 정의되어 있지만 인게임 효과 미발동.
- * 시뮬도 동일하게 no-op (codex P1 가드) — 사용자가 well 별자리 선택해도
- * fountainHealPctPerTick / fountainStackingAdapPerTick = 0 (효과 없음).
+ * 본 테스트의 역할:
+ *   - 데이터 자동 매핑(stargazerFountainHealPercent 등) 가드만 유지
+ *   - 매초 효과(fountainHealPctPerTick, fountainStackingAdapPerTick) 는 PR 3 까지 0
  *
- * 다음 patch 에서 reenable 시 applyStargazerEffects 의 commented 매핑 코드
- * 활성화 + 본 테스트의 expected 값 갱신.
- *
- * raw hash ↔ desc 매핑 (reenable 시 사용):
- *   {8d19f5db}=2초 / {d7e6d620}=2% teamwide / {f2840aed}=4% 별돌보미 / {13a2a786}=2/4% StackingADAP
+ * PR 3 (Stargazer Fountain helper) 머지 시:
+ *   - applyStargazerFountainBuffs() 활성화 → tick 효과 검증으로 가드 갱신
+ *   - 본 파일명 stargazer-fountain-1703-active.test.ts 로 재변경
  */
 import { describe, it, expect } from 'vitest';
 import { simulateCombat } from '@/lib/simulator/engine/combatLoop';
@@ -46,8 +45,8 @@ function buildFountainTeam(): PlacedChampion[] {
   ];
 }
 
-describe('Fountain 17.2 — Riot 우물 비활성화 (시뮬 no-op)', () => {
-  it('(3) 별돌보미 4명 + well 별자리 → fountain 효과 0 (17.2 비활성 spec)', () => {
+describe('Fountain 17.3 — sim 핸들러 미구현 (PR 3 의존)', () => {
+  it('(3) 별돌보미 4명 + well 별자리 → 매초 효과 0 (핸들러 비활성)', () => {
     const tiles = CONSTELLATION_TILE_PATTERN.well;
     const team = [
       placed(apTwistedFate, tiles[0].q, tiles[0].r),
@@ -61,13 +60,12 @@ describe('Fountain 17.2 — Riot 우물 비활성화 (시뮬 no-op)', () => {
       playerStargazerConstellation: 'well',
     });
     const tf = result.playerUnits.find(u => u.champion.apiName === 'TFT17_TwistedFate')!;
-    // 17.2 LIVE: 우물 비활성 → 모든 fountain 필드 0
+    // 17.3 데이터 자동 매핑은 발생하나 매초 효과 핸들러는 PR 3 까지 비활성
     expect(tf.fountainHealPctPerTick).toBe(0);
     expect(tf.fountainStackingAdapPerTick).toBe(0);
-    expect(tf.stargazerFountainHealPercent).toBe(0);
   });
 
-  it('(5) 별돌보미 6명 + well 별자리 → fountain 효과 0', () => {
+  it('(5) 별돌보미 6명 + well 별자리 → 매초 효과 0', () => {
     const team = buildFountainTeam();
     const enemy = [placed(dummyEnemy, 6, 3)];
     const result = simulateCombat(team, enemy, {

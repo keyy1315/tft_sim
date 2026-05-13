@@ -1,14 +1,16 @@
 {
   "meta": {
     "set": 17,
-    "source": "CommunityDragon TFT ko_kr.json",
-    "extractedAt": "2026-04-29T00:27:54.652Z",
-    "totalItems": 714,
+    "source": "CommunityDragon TFT ko_kr.json (PBE 5/12)",
+    "extractedAt": "2026-05-13T00:30:00.000Z",
+    "totalItems": 710,
     "baseComponents": 132,
     "combinedItems": 51,
     "tft17Special": 44,
     "artifacts": 53,
-    "supportItems": 0
+    "supportItems": 0,
+    "patch_version": "17.3 LIVE",
+    "fetched_at": "2026-05-13"
   },
   "items": [
     {
@@ -556,18 +558,6 @@
       },
       "desc": "즉시 및 패배할 때까지 각 플레이어 대상 전투 후 무작위 @Tier@단계 유닛 1명을 획득합니다.",
       "icon": "doubleup_assistarmory_champ_2c.png"
-    },
-    {
-      "name": "축복: 부",
-      "apiName": "TFT17_MarketOffering_BlessingWealth",
-      "composition": [],
-      "effects": {
-        "ADAP": 8,
-        "Gold": 1,
-        "GoldChance": 12
-      },
-      "desc": "챔피언에게 영구적으로 공격력 및 주문력 @ADAP@%, 처치 관여 시 @Gold@골드 생성 확률 @GoldChance@%를 부여합니다.",
-      "icon": "tft17_carouselmarket_splitgold.tft_17_2.png"
     },
     {
       "name": "퀘스트 새로고침",
@@ -5117,40 +5107,6 @@
       "icon": "tft_item_bansheesveil.tft_set13.png"
     },
     {
-      "name": "축복: 부",
-      "apiName": "TFT17_Consumable_BlessingWealth",
-      "composition": [],
-      "effects": {
-        "ADAP": 8,
-        "Gold": 1,
-        "GoldChance": 12
-      },
-      "desc": "챔피언에게 영구적으로 공격력 및 주문력 @ADAP@%, 처치 관여 시 @Gold@골드 생성 확률 @GoldChance@%를 부여합니다.",
-      "icon": "tft17_carouselmarket_blessingwealth.tft_17_3.png"
-    },
-    {
-      "name": "축복: 번영 +",
-      "apiName": "TFT17_Consumable_BlessingProsperityPlus",
-      "composition": [],
-      "effects": {
-        "BaseHealth": 100,
-        "{30221825}": 8
-      },
-      "desc": "챔피언에게 영구적으로 체력을 @BaseHealth@ 부여합니다. 이 효과는 이자로 획득한 골드당 @InterestHealth@ 증가합니다.",
-      "icon": "tft17_carouselmarket_blessingprosperity.tft_17_3.png"
-    },
-    {
-      "name": "축복: 번영",
-      "apiName": "TFT17_Consumable_BlessingProsperity",
-      "composition": [],
-      "effects": {
-        "BaseHealth": 100,
-        "{30221825}": 5
-      },
-      "desc": "챔피언에게 영구적으로 체력을 @BaseHealth@ 부여합니다. 이 효과는 이자로 획득한 골드당 @InterestHealth@ 증가합니다.",
-      "icon": "tft17_carouselmarket_blessingprosperity.tft_17_3.png"
-    },
-    {
       "name": "그림자 꼭두각시",
       "apiName": "TFT_Item_Artifact_ShadowPuppet",
       "composition": [],
@@ -6323,7 +6279,7 @@
         "Armor": 20,
         "DamageReduction": 100,
         "HealthThreshold": 60,
-        "MissingHealthRestore": 0.30000001192092896,
+        "MissingHealthRestore": 0.2,
         "StealthDuration": 1
       },
       "desc": "체력이 @HealthThreshold@%일 때 잠시 대상으로 지정할 수 없게 되며 해로운 효과 제거 및 잃은 체력의 @MissingHealthRestore*100@% 회복",

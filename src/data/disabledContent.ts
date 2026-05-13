@@ -50,6 +50,9 @@ export const DISABLED_AUGMENT_API_NAMES: ReadonlySet<string> = new Set([
  * - TFT17_Item_Artifact_KayleArtifact (케일의 승천) +
  *   TFT17_Item_Artifact_KayleArtifact_Radiant (케일의 찬란한 승천) —
  *     17.2 패치에서 삭제. 데이터 보존, 차단만 (다음 패치 부활 가능).
+ *
+ * - TFT_Item_Artifact_HorizonFocus (지평선의 초점) — 17.3 패치에서 비활성화.
+ *     데이터 보존, 차단만.
  */
 export const DISABLED_ITEM_API_NAMES: ReadonlySet<string> = new Set([
   'TFT17_MarketOffering_PandorasSeat',
@@ -62,6 +65,7 @@ export const DISABLED_ITEM_API_NAMES: ReadonlySet<string> = new Set([
   'TFT17_Item_PsyOps_SemiconductorMod',
   'TFT17_Item_Artifact_KayleArtifact',
   'TFT17_Item_Artifact_KayleArtifact_Radiant',
+  'TFT_Item_Artifact_HorizonFocus',
 ]);
 
 export function isDisabledAugment(apiName: string): boolean {

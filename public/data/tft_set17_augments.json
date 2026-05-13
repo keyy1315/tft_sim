@@ -1,9 +1,12 @@
 {
   "meta": {
     "set": 17,
-    "source": "CommunityDragon TFT ko_kr.json",
-    "extractedAt": "2026-04-29T00:27:54.652Z",
-    "totalAugments": 436
+    "source": "CommunityDragon TFT ko_kr.json (PBE 5/12)",
+    "extractedAt": "2026-05-13T00:30:00.000Z",
+    "totalAugments": 437,
+    "patch_version": "17.3 LIVE",
+    "fetched_at": "2026-05-13",
+    "set17_active_pool_size": 35
   },
   "augments": [
     {
@@ -8387,6 +8390,29 @@
         "{cf1fd3af}",
         "{b72bd3bf}",
         "{d02ae323}"
+      ],
+      "disable": false
+    },
+    {
+      "apiName": "TFT17_Augment_DarkStar_WhiteHole",
+      "name": "전리품 특이점",
+      "desc": "블랙홀이 적을 집어삼키면 해당 적이 우주 물질로 변합니다. 충분한 양을 모으면 블랙홀이 우주 물질을 전리품으로 바꿉니다! 초가스와 리산드라를 획득합니다.<br><ShowIf.TFT17_Augment_DarkStar_WhiteHole_IsActive><rules>매번 우주 물질 양과 전리품 품질이 증가합니다. 암흑의 별 특성 구간에 따라 우주 물질 @TwoPiecePoints@/@FourPiecePoints@/@SixPiecePoints@개를 획득합니다.</rules><br>우주 물질: @TFTUnitProperty.item:TFT17_Augment_DarkStar_WhiteHole_CurrentStacks@ / @TFTUnitProperty.item:TFT17_Augment_DarkStar_WhiteHole_StacksToNextCashout@</ShowIf.TFT17_Augment_DarkStar_WhiteHole_IsActive>",
+      "icon": "whitehole_ii.tft_17_3.png",
+      "effects": {
+        "{98d937e6}": 3,
+        "{b7d58b40}": 4,
+        "{de7067ca}": 2
+      },
+      "associatedTraits": [
+        "TFT17_DarkStar"
+      ],
+      "tags": [
+        "{ce1fd21c}",
+        "{b72bd3bf}",
+        "{3754d0ae}",
+        "{d12ae4b6}",
+        "{d22ae649}",
+        "{84a6d904}"
       ],
       "disable": false
     }
