@@ -204,18 +204,26 @@ describe('Set 17.3 — 4코스트', () => {
     expect(v[4]).toBe(10);
   });
 
-  it('모르가나 4코 유지 + APHealthGain ★1~2 너프', () => {
+  it('모르가나 4코 유지 + ability 재설계 (lolchess.gg 17.3 LIVE)', () => {
     const morgana = champions.find(c => c.apiName === 'TFT17_Morgana');
-    expect(morgana?.cost).toBe(4); // 4코 유지 (Latest 5/9의 5코 리메이크는 폐기)
-    const v = findVar('TFT17_Morgana', 'APHealthGain');
-    expect(v[1]).toBe(525);
-    expect(v[2]).toBe(625);
+    expect(morgana?.cost).toBe(4); // 4코 승격 + 4코 유지
+    expect(morgana?.stats.hp).toBe(1300);
+    expect(morgana?.stats.armor).toBe(70);
+    expect(morgana?.stats.magicResist).toBe(70);
+    expect(morgana?.stats.damage).toBe(60);
+    expect(morgana?.stats.initialMana).toBe(30);
+    expect(morgana?.stats.mana).toBe(90);
   });
 
-  it('모르가나 PercentHPHealthGain ★1~2 너프', () => {
-    const v = findVar('TFT17_Morgana', 'PercentHPHealthGain');
-    expect(v[1]).toBeCloseTo(0.10, 5);
-    expect(v[2]).toBeCloseTo(0.10, 5);
+  it('모르가나 ability 재설계 — Damage tether mage 변수 (Latest 5/9 구조)', () => {
+    const tether = findVar('TFT17_Morgana', 'TetherDamagePerSecond');
+    expect(tether[1]).toBe(50);  // ★1 매초 피해
+    expect(tether[2]).toBe(75);  // ★2 매초 피해
+    const finalDmg = findVar('TFT17_Morgana', 'FinalDamage');
+    expect(finalDmg[1]).toBe(240);
+    expect(finalDmg[2]).toBe(360);
+    const omnivamp = findVar('TFT17_Morgana', 'OmnivampPercent');
+    expect(omnivamp[1]).toBeCloseTo(0.20, 5);
   });
 });
 
