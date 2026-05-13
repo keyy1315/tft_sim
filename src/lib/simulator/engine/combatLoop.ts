@@ -5664,14 +5664,10 @@ export function simulateCombat(
               const totalBonus = bonusPerStack * unit.shenPassiveStack;
               if (totalBonus > 0) {
                 const isTrueDmg = unit.shenPassiveStack >= 3;
-                // magic: 표준 mitigation (resist/magicPen/DR/non-target/shield/invul). true: invul 만 체크.
-                let shenDmg: number;
-                if (isTrueDmg) {
-                  const isInvul = target.statusEffects.some(s => s.type === 'invulnerable');
-                  shenDmg = isInvul ? 0 : totalBonus;
-                } else {
-                  shenDmg = applyAbilityMitigation(unit, target, totalBonus, 'magic', eventBus, tick);
-                }
+                // codex P1 (PR #108): true damage 도 표준 mitigation pipeline 통과 — shield 흡수 + DR + non-target +
+                // invul 일관 적용. applyAbilityMitigation 의 dmgType='true' 분기는 resist/pen 만 0 자동 처리.
+                const shenDmgType: DamageType = isTrueDmg ? 'true' : 'magic';
+                const shenDmg = applyAbilityMitigation(unit, target, totalBonus, shenDmgType, eventBus, tick);
                 if (shenDmg > 0) {
                   target.currentHp -= shenDmg;
                   target.totalDamageTaken += shenDmg;
