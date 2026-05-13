@@ -3291,53 +3291,49 @@ function applyStargazerEffects(
     return;
   }
 
-  // === Fountain (우물) — 17.2 LIVE 비활성 (Riot patch note: "룰루와 자야 효과 찾는 중") ===
+  // === Fountain (우물) — 17.3 LIVE active (재활성화) ===
   //
-  // 17.2 LIVE 패치노트에 "우물 비활성화" 명시. raw data 에는 hash 변수 + 값 정의되어 있지만
-  // 인게임에서는 효과 미발동 상태. 시뮬도 동일하게 no-op 처리 (codex P1 정확성 가드).
-  // 활성화하면 인게임에서 불가능한 combat power 발생 → 시뮬 결과 inflated.
+  // 17.3 LIVE 패치 (2026-05-13) 에서 Fountain 변종 효과 재설계 후 정식 활성화.
+  // CDragon Latest 5/9 부터 hash 변수 → 정식 이름 (Fountain_HealPercent /
+  // Fountain_ManaRegen / Fountain_ManaRegen_Teamwide) 으로 풀림.
   //
-  // 매핑 보존 — 다음 patch 에서 reenable 시 즉시 활성화 가능.
-  // legacy (pre-17.2) 경로는 유지: set 전환 / PBE rollback 시 자동 호환.
+  // 메커니즘 (lolchess.gg 17.3 LIVE 명시 + desc 기반):
+  //   - 강화된 칸 아군 → augmentManaRegen += Fountain_ManaRegen_Teamwide (1.0/s)
+  //   - 강화된 칸 별돌보미 → 추가 augmentManaRegen += Fountain_ManaRegen (3.0~5.0/s)
+  //   - 강화된 칸 별돌보미 → ability 시전 시 가장 낮은 체력 아군 회복
+  //                          (totalAbilityDmg × Fountain_HealPercent, 18~25%)
+  //                          → triggerFountainHeal 헬퍼가 cast pipeline 에서 호출
   //
-  // raw hash 키 ↔ desc 변수 매핑 (minify 추정, 다음 reenable 시 사용):
-  //   {8d19f5db} = Fountain_Interval = 2 (초)
-  //   {d7e6d620} = Fountain_HealthRegen_Teamwide = 0.02 (2%)
-  //   {f2840aed} = Fountain_HealthRegen = 0.04 (4%, 별돌보미 추가)
-  //   {13a2a786} = Fountain_StackingADAP = 2 / 4 ((3)/(5) tier, % 단위)
+  // 변수 값 (Latest 5/9 정식 이름):
+  //   - TFT17_Stargazer_Fountain (변종):
+  //       (3-4) HealPct=0.18 / ManaRegen=1.0 / Teamwide=1.0
+  //       (5+)  HealPct=0.25 / ManaRegen=5.0 / Teamwide=1.0
+  //   - TFT17_Stargazer (전체 trait, 모든 변종 공통):
+  //       (3-4) HealPct=0.18 / ManaRegen=3.0 / Teamwide=1.0
+  //       (5-6) HealPct=0.25 / ManaRegen=4.0 / Teamwide=1.0
+  //       (7+)  HealPct=0.20 / ManaRegen=5.0 / Teamwide=1.0
   //
-  // 17.2 메커니즘 (활성화 시):
-  //   "강화된 칸 아군 N초마다 max HP × Teamwide% heal.
-  //    강화된 칸 별돌보미 추가로 +HealthRegen% heal + StackingADAP% AD/AP 누적."
+  // 17.2 LIVE 까지 비활성 → 17.3 LIVE 에서 재활성화 (PR #109 / 본 PR 3).
+  //
+  // 보류 (17.3 LIVE 명시 but 데이터 미노출):
+  //   - lolchess.gg "(3) 공격력/주문력 4%, (5) 공격력/주문력 7%" — 별도 변수 미노출
+  //   - 17.2 PBE 의 매초 효과 (fountainHealPctPerTick / fountainStackingAdapPerTick)
+  //     — 17.3 LIVE 메커니즘과 다른 PBE spec, 활성화 안 함. raw hash 변수
+  //     ({8d19f5db} / {d7e6d620} / {f2840aed} / {13a2a786}) 는 보존만.
   if (apiName === 'TFT17_Stargazer_Fountain') {
-    // legacy (16.x / pre-17.2) 경로 — Fountain_HealPercent 기반 ability 힐. set 전환 호환.
-    const legacyHealPct = (eff.Fountain_HealPercent ?? 0) as number;
-    const legacyTeamwideMana = (eff.Fountain_ManaRegen_Teamwide ?? 0) as number;
-    const legacyOwnerMana = (eff.Fountain_ManaRegen ?? 0) as number;
-    if (legacyHealPct > 0 || legacyTeamwideMana > 0 || legacyOwnerMana > 0) {
+    const healPct = (eff.Fountain_HealPercent ?? 0) as number;
+    const teamwideMana = (eff.Fountain_ManaRegen_Teamwide ?? 0) as number;
+    const ownerMana = (eff.Fountain_ManaRegen ?? 0) as number;
+    if (healPct > 0 || teamwideMana > 0 || ownerMana > 0) {
       for (const u of units) {
         if (!isOnTile(u)) continue;
-        if (legacyTeamwideMana > 0) u.augmentManaRegen += legacyTeamwideMana;
+        if (teamwideMana > 0) u.augmentManaRegen += teamwideMana;
         if (isStargazerUnit(u)) {
-          if (legacyOwnerMana > 0) u.augmentManaRegen += legacyOwnerMana;
-          if (legacyHealPct > 0) u.stargazerFountainHealPercent = legacyHealPct;
+          if (ownerMana > 0) u.augmentManaRegen += ownerMana;
+          if (healPct > 0) u.stargazerFountainHealPercent = healPct;
         }
       }
-      return;
     }
-    // 17.2 LIVE — Riot 비활성화 상태. 시뮬도 no-op.
-    // 활성화 reenable 시 아래 매핑 코드 활성화:
-    //   const teamRegenPct = (eff['{d7e6d620}'] ?? 0) as number;
-    //   const selfRegenBonusPct = (eff['{f2840aed}'] ?? 0) as number;
-    //   const stackingAdapPct = ((eff['{13a2a786}'] ?? 0) as number) / 100;
-    //   for (const u of units) {
-    //     if (!isOnTile(u)) continue;
-    //     u.fountainHealPctPerTick = teamRegenPct;
-    //     if (isStargazerUnit(u)) {
-    //       u.fountainHealPctPerTick = teamRegenPct + selfRegenBonusPct;
-    //       u.fountainStackingAdapPerTick = stackingAdapPct;
-    //     }
-    //   }
     return;
   }
 }
