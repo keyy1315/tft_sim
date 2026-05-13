@@ -1,8 +1,8 @@
 {
   "gameId": "game-20260424-001",
-  "computedAt": "2026-05-13T01:22:51.447Z",
+  "computedAt": "2026-05-13T01:38:45.877Z",
   "sourceGameMtime": 1777278310429,
-  "engineSha": "3dca72f7437e88ca26eaaa6497543d4cf5ba48d0",
+  "engineSha": "797eeae4e16a60bb07d82755e01cf51a28e895d0",
   "nRuns": 10,
   "seedBase": 0,
   "rounds": [
@@ -2592,9 +2592,9 @@
           "actualAlive": false,
           "actualHp": 0,
           "simAliveRate": 1,
-          "simMeanHp": 40.56814076174201,
+          "simMeanHp": 40.16419958394609,
           "aliveMismatch": true,
-          "hpDiffPoints": 40.56814076174201
+          "hpDiffPoints": 40.16419958394609
         },
         {
           "hex": {
