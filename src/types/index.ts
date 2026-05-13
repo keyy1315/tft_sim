@@ -866,6 +866,13 @@ export interface CombatUnit {
   /** Serpent 의 중독 지속시간 (초). poison statusEffect 의 remainingTicks 계산용. */
   stargazerSerpentDurationSec: number;
   /**
+   * 쉔(TFT17_Shen) passive — cast 누적 stack.
+   * 매 cast 시 +1. 평타 시점에 stack × (BonusDamageOnAttack[★] + DamageHP × maxHp) × (1 + AP/100) 추가.
+   * stack < 3: magic damage. stack >= 3: true damage 전환.
+   * 0 = passive 미발동 (cast 0회).
+   */
+  shenPassiveStack: number;
+  /**
    * 요새 (Bastion/ResistTank) — 첫 N초 doubled BonusArmor.
    * 0 = 비활성. 양수면 그 tick 에 도달 시 doubled 부분 (bastionDoubleArmorBonus)
    * 을 stats.armor 에서 차감. tick 마다 main loop 가 체크.
