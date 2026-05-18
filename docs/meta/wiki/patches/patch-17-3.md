@@ -130,17 +130,17 @@ related:
 
 ### Champion augments (carry augment 그룹)
 
-⚠️ 다수 carry augment 가 17.3 에서 조정됐으나 **`carryAugments.ts` 코드는 17.2b 값 유지** — sim drift 발생 (아래 Lint 섹션):
+✅ **PR #115 머지 완료 (2026-05-18, commit `39cbce2`)** — 5건 sim 정합 적용. Poppy/Nasus 2건은 적용 위치 모호로 TODO 코멘트 (인게임 verify 후 후속 PR).
 
-| Augment | 17.2b (sim 코드) | 17.3 LIVE 공식 |
-|---------|-----------------|----------------|
-| Shieldmaiden (Leona) | `baseDamageHpFrac: 0.28`, secondary `[180,270,405]` | **24%**, **`[200,300,480]`** |
-| Heat Death (Mordekaiser) | shield `[225,250,300]`, mana `40/100` | **`[175,200,400]`**, **`10/40`** |
-| Reach for the Stars (Jax) | damage `[155,230,375]` | **`[170,250,450]`** |
-| Stellar Combo (Aatrox) | 2nd `[100,150,225]`, 3rd `[160,240,360]`, isolation `2.5` | **`[110,165,275]`**, **`[200,300,475]`**, **`2.0`** |
-| Termeepnal Velocity (Poppy) | AS `0.7` (별도 코드) | **`0.75`** |
-| The Big Bang (Meepsie/IvernMinion) | `hexReduction: 0.45` | **0.35** |
-| Bonk! (Nasus) | resists 미설정 | resists **40 → 45** |
+| Augment | 17.2b | 17.3 LIVE | sim 정합 |
+|---------|-------|----------|:--------:|
+| Shieldmaiden (Leona) | `baseDamageHpFrac: 0.28`, secondary `[180,270,405]` | `0.24`, `[200,300,480]` | ✅ |
+| Heat Death (Mordekaiser) | shield `[225,250,300]`, mana `40/100` | `[175,200,400]`, `10/40` | ✅ |
+| Reach for the Stars (Jax) | damage `[155,230,375]` | `[170,250,450]` | ✅ |
+| Stellar Combo (Aatrox) | 2nd `[100,150,225]`, 3rd `[160,240,360]`, isolation `2.5` | `[110,165,275]`, `[200,300,475]`, `2.0` | ✅ |
+| The Big Bang (Meepsie/IvernMinion) | `hexReduction: 0.45` | `0.35` | ✅ |
+| Termeepnal Velocity (Poppy) | AS `0.7` (별도 코드) | `0.75` | 🔍 TODO (`carryAugments.ts:PoppyCarry` 위 TODO 주석 — augment grant vs statOverride 모호, 인게임 verify) |
+| Bonk! (Nasus) | resists 미설정 | resists `40 → 45` | 🔍 TODO (`carryAugments.ts:NasusCarry` 위 TODO 주석 — statOverrides 채움 정책, 인게임 측정 후) |
 
 ### Economy augments
 - Buried Treasures Rounds: 5 → **4**
@@ -190,19 +190,23 @@ related:
 - PR #107 — 17.3 trait/champion 데이터 갱신 (champions.json, traits.json)
 - PR #108 — Shen passive fix (BonusDamageOnAttack 45/75 → 20/30) ✓
 - PR #109 — Stargazer Fountain active (PR-3, dev 머지) ✓
-- 후속 PR 후보 — carryAugments.ts 17.3 정합 (아래 Lint 섹션)
+- PR #115 (`39cbce2`) — carryAugments.ts 17.3 정합 ✅ 머지 완료
 
-## ⚠️ Lint findings — sim 정확도 갭
+## ✅ Lint findings — sim 정확도 갭 (resolved)
 
-### 1. `carryAugments.ts` 17.3 drift (위키 lint 5번째 사례)
-위 "조정 Augments — Champion augments" 표 참조. 5+ entry 가 17.2b 값 유지. **별도 sim 정확도 PR 필요**:
+### 1. `carryAugments.ts` 17.3 drift (위키 lint 5번째 사례) — **PR #115 (`39cbce2`) 머지 완료, 2026-05-18**
 
-- LeonaCarry: `baseDamageHpFrac` 0.28 → 0.24, `secondaryDamage` `[180,270,405]` → `[200,300,480]`
-- MordekaiserCarry: `shield` `[225,250,300]` → `[175,200,400]`, mana `40/100` → `10/40`
-- JaxCarry: `damage` `[155,230,375]` → `[170,250,450]`
-- AatroxCarry: `secondaryDamage` `[100,150,225]` → `[110,165,275]`, `slamDamage` `[160,240,360]` → `[200,300,475]`, `singleTargetMultiplier` 2.5 → 2.0
-- IvernMinionCarry: `hexReduction` 0.45 → 0.35
-- PoppyCarry (Termeepnal): AS 0.7 → 0.75 (해당 변수 위치 별도 verify)
+위 "조정 Augments — Champion augments" 표 참조. 5건 코드 정합 적용 + 2건 TODO 코멘트 (인게임 verify 대기):
+
+- LeonaCarry: `baseDamageHpFrac` 0.28 → 0.24, `secondaryDamage` `[180,270,405]` → `[200,300,480]` ✅
+- MordekaiserCarry: `shield` `[225,250,300]` → `[175,200,400]`, mana `40/100` → `10/40` ✅
+- JaxCarry: `damage` `[155,230,375]` → `[170,250,450]` ✅
+- AatroxCarry: `secondaryDamage` `[100,150,225]` → `[110,165,275]`, `slamDamage` `[160,240,360]` → `[200,300,475]`, `singleTargetMultiplier` 2.5 → 2.0 ✅
+- IvernMinionCarry: `hexReduction` 0.45 → 0.35 ✅
+- PoppyCarry (Termeepnal): AS 0.7 → 0.75 — 🔍 TODO (`carryAugments.ts:PoppyCarry` 코멘트, 인게임 verify 후 후속 PR)
+- NasusCarry (Bonk!): resists 40 → 45 — 🔍 TODO (`carryAugments.ts:NasusCarry` 코멘트, statOverrides 채움 정책)
+
+검증: pnpm lint/typecheck/build 통과 + `pnpm vitest run tests/unit/simulator/` 449 passed.
 
 ### 2. champion stat 검증 미완 항목
 17.3 변경됐다고 명시되었으나 코드 verify 안 된 항목 — 추가 grep 필요:
