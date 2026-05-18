@@ -413,24 +413,6 @@ export interface StatusEffect {
   value?: number;
 }
 
-// === Ability Types (Structured) ===
-export type EffectType = 'damage' | 'heal' | 'shield' | 'stun' | 'slow' | 'burn' | 'knockup';
-
-export interface AbilityEffect {
-  type: EffectType;
-  value: number;
-  durationTicks?: number;
-  damageType?: 'physical' | 'magic' | 'true';
-}
-
-export interface Ability {
-  name: string;
-  type: 'active' | 'passive';
-  damageType: 'physical' | 'magic' | 'true';
-  effects: AbilityEffect[];
-  castTimeTicks: number;
-}
-
 // === Augment Types (Structured) ===
 export type AugmentEffectType = 'stat_modifier' | 'trait_bonus' | 'on_event' | 'unique';
 
