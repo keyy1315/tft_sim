@@ -1408,4 +1408,31 @@ describe('CarryAugmentConfig.statOverrides — 슬롯 추후 채움 가드', () 
     expect(gragas?.abilityOverride.radius).toBe(3);
     expect(gragas?.abilityOverride.selfDamage).toBe(true);
   });
+
+  it('Lint #9 해소 — main pipeline 의 stun 분기가 carry abilityData.stunDuration starLevel별 우선 (PR #129 회귀 가드)', async () => {
+    // PR #128 Codex P2 검출 Lint #9: combatLoop.ts:6819-6820 main pipeline 이 config.stun
+    // (fixed) 만 read 했었음. carry abilityData.stunDuration starLevel별 의도 sim 미반영.
+    // PR #129 fix — `starLevelStun = carryCfg?.abilityData?.stunDuration?.[unit.starLevel - 1]
+    // ?? config.stun` 분기 추가.
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const combatLoopSrc = fs.readFileSync(
+      path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+      'utf8',
+    );
+
+    // 코드 fingerprint — carry abilityData.stunDuration 우선 read 분기 존재 (main pipeline)
+    expect(combatLoopSrc).toMatch(/carryCfg\?\.abilityData\?\.stunDuration\?\.\[unit\.starLevel\s*-\s*1\]/);
+    expect(combatLoopSrc).toMatch(/const\s+stunDuration\s*=\s*starLevelStun\s*\?\?\s*config\.stun/);
+
+    // PR #129 Codex P2 amend: OOR (out-of-range) dash cast path 에도 동일 fix 적용
+    expect(combatLoopSrc).toMatch(/oorCarryCfg\?\.abilityData\?\.stunDuration\?\.\[unit\.starLevel\s*-\s*1\]/);
+    expect(combatLoopSrc).toMatch(/oorStunDuration\s*=\s*oorStarLevelStun\s*\?\?\s*outOfRangeConfig\.stun/);
+
+    // entry fact — LeonaCarry stunDuration starLevel별 정의 보존 (PR #129 효과 의도 베이스)
+    const leona = CARRY_AUGMENTS.find(c => c.augmentApiName === 'TFT17_Augment_LeonaCarry');
+    expect(leona?.abilityData?.stunDuration?.[0]).toBe(1.0); // 1성
+    expect(leona?.abilityData?.stunDuration?.[1]).toBe(1.25); // 2성
+    expect(leona?.abilityData?.stunDuration?.[2]).toBe(1.5); // 3성
+  });
 });
