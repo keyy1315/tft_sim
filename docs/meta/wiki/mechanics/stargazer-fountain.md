@@ -59,7 +59,7 @@ Tier별 (lolchess.gg 17.3):
 |------|------|------|
 | 17.2 PBE | data-only | hash 변수로 추출 (`F1` `ebf3fcf`). PBE 의 매초 효과 (`fountainHealPctPerTick` / `fountainStackingAdapPerTick`) 시도 |
 | 17.2 LIVE | **inactive** | Fountain 17.2 LIVE no-op 확정 (`059547c`). PBE 매초 효과는 LIVE 에서 빠짐 |
-| 17.2b | inactive | 비활성 표기 유지 (`08b5615`) |
+| 17.2b ([[patch-17-2b]]) | inactive | 비활성 표기 유지 (`08b5615`) |
 | 17.3 LIVE (2026-05-13) | **active** | CDragon Latest 5/9 부터 hash → 정식 이름 변수. lolchess.gg 17.3 패치노트 "별돌보미 우물 강화된 칸 효과 완전 재설계" 명시. sim 재활성화 (PR #109) |
 
 ## 17.2 vs 17.3 — 메커니즘 자체가 다름

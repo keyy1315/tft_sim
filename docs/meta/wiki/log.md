@@ -8,6 +8,20 @@ format: newest first
 
 ## 2026-05-18
 
+### Ingest: patches/17-2b.md
+- **Source**: `docs/meta/set17-patch-17-2b-plan.md` (2026-04-30 plan doc)
+- **합성 범위**:
+  - 17.2b 실제 변경 내역 (증강 5건, 챔프 3건, 시너지 1건, 버그픽스)
+  - sim 적용 PR 매핑 (#67, #68, PR2 신병)
+  - 17.3 와의 차이 (Fountain 재활성화 등)
+  - Hero Augment Carry 시스템 개요 (후속 ingest 후보로 명시)
+  - 미완 항목 (사용자 인게임 측정 대기)
+  - 데이터 수정 원칙 (`feedback_data_edit` 메모리)
+- **제외**: PR 세션 핸드오프, cheat sheet, 작업 순서 등 plan-time noise
+- **Cross-ref 추가**: `[[index]]` Patches 섹션, "작성 우선순위" 1번을 hero-augment-carry 로 갱신, `mechanics/stargazer-fountain.md` 17.2b row 에 `[[patch-17-2b]]` 링크
+- **Verify**: 코드 grep 으로 5개 augment + 3개 챔프 변경 모두 실제 반영 확인 (`carryAugments.ts`, `disabledContent.ts`, `tft_set17_champions.json`, `tft_set17_augments.json` 신병 line 8380)
+- **Archive 결정 대기**: plan doc `set17-patch-17-2b-plan.md` 삭제 여부는 사용자 컨펌 후
+
 ### Raw layer 도입: 5 파일 wiki/raw/ 이전
 - **Rationale**: Karpathy 패턴 정합 — raw가 위키 내부에 self-contained.
 - **Decision (사용자 합의)**: set17-* 9개 중 진짜 raw 5개만 이전. 나머지 4개(plan/audit/guide/gods-system)는 docs/meta/ 유지 후 점진 ingest.

@@ -19,6 +19,7 @@ updated: 2026-05-18
 ## Patches
 
 - [[patch-17-3]] — 2026-05-13 LIVE. Stargazer Fountain 재활성화 등
+- [[patch-17-2b]] — 2026-04-29 mid-patch. Hero Augment carry 시스템 도입 + 군체의 심장 disabled (17.3 로 부분 obsoleted)
 
 ## Champions
 
@@ -43,8 +44,8 @@ _미작성_
 ## 작성 우선순위 (다음 후보)
 
 위키화 가치 높은 순:
-1. **`patch-17-2b`** — 17.2 → 17.2b 차이 (Fountain 비활성 표기 등)
-2. **`patches/17-2`** — Fountain inactive 시기 컨텍스트
+1. **`mechanics/hero-augment-carry`** — carryAugments.ts 시스템 (17.2b 도입, statOverrides + 27변수 abilityData + 8 영웅 증강)
+2. **`patches/17-2`** — Fountain inactive 시기 컨텍스트 (17.2b 부모 패치)
 3. **`mechanics/role-passive`** — 코드에 흩어진 Role별 마나/타게팅 규칙 합성
 4. **`mechanics/spell-crit`** — 현재 PDCA 진행 중 feature
 5. **챔피언별** — Annie, Galio, Shen, Yasuo (이미 plan 문서 존재)
