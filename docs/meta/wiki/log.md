@@ -8,6 +8,25 @@ format: newest first
 
 ## 2026-05-18
 
+### Lint resolved: AbilityTargetingType triad dead code (Lint finding 4 closed)
+- **Trigger**: PR #117 (`bab401b`) 머지 완료 — 직렬 워크플로우 적용
+- **위키 lint 사이클 완결 사례** (도입 후 2번째 full-cycle):
+  - PR #113 [[ability-targeting]] ingest 가 dead code triad 3건 검출 (`AbilityTargetingType`, `findAbilityTarget` 단수, `Ability.targeting` 필드)
+  - PR #117 (`bab401b`) — 3 식별자 sim 코드에서 제거 (-76 lines, 0 insertions)
+  - 본 cleanup PR — 위키 표기 dead → resolved 갱신
+- **위키 갱신 내역**:
+  - `mechanics/ability-targeting.md` "⚠️ Lint finding — Dead code triad" 섹션 → "✅ Lint finding resolved — Dead code triad 제거" + 커밋 hash `bab401b` 명시
+  - `mechanics/ability-targeting.md` 패치 히스토리 표에 "2026-05-18 (PR #117) — legacy triad 제거" row 추가
+  - `mechanics/ability-targeting.md` Lint 체크리스트 — triad 항목 [x] 처리 + `Ability` interface 자체 dead 검증 후속 후보 추가
+- **Scope strict (PR #117)**: `Ability` interface 자체도 dead 이지만 본 PR 범위 외 — 후속 정리 후보 (CLAUDE.md "Don't refactor beyond what task requires")
+- **검증**: pnpm lint/typecheck/build 통과 + `pnpm vitest run tests/unit/simulator/` 449 passed (변화 없음 — sim 정확도 영향 없음 입증)
+- **위키 lint 가치 검증 누적**:
+  1. Fountain stale memory (PR #109 이전)
+  2. plan doc "8 영웅 증강" vs 코드 10건
+  3. CLAUDE.md targeting weight/mana 표 stale 3건 (PR #112 로 해소)
+  4. **AbilityTargetingType triad dead code (PR #117 + 본 cleanup PR 로 해소 ✅)**
+  5. carryAugments.ts 17.3 drift (PR #115 + PR #116 로 해소 ✅)
+
 ### Lint resolved: carryAugments.ts 17.3 sim drift (Lint finding 5 closed)
 - **Trigger**: PR #115 (`39cbce2`) 머지 완료 — 사용자 직렬 워크플로우 적용
 - **위키 lint 사이클 완결 사례** (도입 후 첫 full-cycle):
