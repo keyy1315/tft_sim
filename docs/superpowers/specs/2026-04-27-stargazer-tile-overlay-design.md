@@ -381,7 +381,7 @@ pnpm lint && pnpm typecheck && pnpm test --run && pnpm build
 - 플레이어 레벨별 강화 칸 점진 공개 (현재는 풀 패턴 고정 — handoff doc 옵션 E)
 - 별돌보미 statusEffect / event-driven 효과 (handoff doc 옵션 A~D)
 - 강화 칸 hover tooltip — 별자리 효과 텍스트 표시
-- 별자리 7번째 / 8번째 미확인 사항 (`docs/meta/set17-stargazer-constellations.md` 참고)
+- 별자리 7번째 / 8번째 미확인 사항 (`docs/meta/wiki/raw/lolchess/set17-stargazer-constellations.md` 참고)
 
 ## 12. 작업 순서
 

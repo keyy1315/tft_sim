@@ -10,7 +10,7 @@
 ## 🚀 다음 세션 시작 가이드 (Session Handoff)
 
 > **마지막 작업일**: 2026-04-30
-> **새 세션 시작 시 첫 명령**: `docs/meta/set17-patch-17-2b-plan.md` + `docs/meta/set17-hero-augments.md` 읽고 컨텍스트 회복
+> **새 세션 시작 시 첫 명령**: `docs/meta/set17-patch-17-2b-plan.md` + `docs/meta/wiki/raw/in-game/set17-hero-augments.md` 읽고 컨텍스트 회복
 
 ### 현재 상태 스냅샷
 
@@ -74,7 +74,7 @@ pnpm exec vitest run
 ### 세션 컨텍스트 빨리 회복하기
 
 1. 본 문서 (PR 분리 전략 + 변경 내역 + 후속 작업)
-2. `docs/meta/set17-hero-augments.md` (8 영웅 증강 도메인 지식)
+2. `docs/meta/wiki/raw/in-game/set17-hero-augments.md` (8 영웅 증강 도메인 지식)
 3. 메모리 `feedback_data_edit.md` (데이터 수정 원칙 — **반드시 준수**)
 4. PR #67, #68 본문 (코드 변경 요약)
 

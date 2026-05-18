@@ -25,7 +25,7 @@ Phase 1 완료 시점에 actual-data JSON은 완성되지만, 시뮬 투입 시 
 
 ### 별자리별 능력치 표 (시뮬 엔진 입력)
 
-> 출처: `docs/meta/set17-stargazer-constellations.md`
+> 출처: `docs/meta/wiki/raw/lolchess/set17-stargazer-constellations.md`
 > 색 아이콘 누락된 스탯은 `?` — 영상/툴팁 확인으로 확정 필요
 
 #### 1. 제단 (altar)
@@ -99,7 +99,7 @@ Phase 1 완료 시점에 actual-data JSON은 완성되지만, 시뮬 투입 시 
 - [ ] `src/lib/simulator/systems/stargazer.ts` 신설
 - [ ] 전투 루프 시작 시 강화 칸 점유 아군 탐색 (hex 기준)
 - [ ] 각 별자리별 효과 스탯 적용 (AD/AP/HP/AS/내구력/MR/방어력 등)
-- [ ] `docs/meta/set17-stargazer-constellations.md` 데이터를 `src/data/stargazer_constellations.json`으로 변환
+- [ ] `docs/meta/wiki/raw/lolchess/set17-stargazer-constellations.md` 데이터를 `src/data/stargazer_constellations.json`으로 변환
 - [ ] 3/5/7 티어 조건 체크 (시너지 활성 단계)
 - [ ] 별돌보미 유닛 여부에 따라 기본/추가 효과 분리 적용
 - [ ] 누적 카운터(제물·표식)는 MVP 제외, 전투 시작 시점 이미 달성된 상태 가정
@@ -127,7 +127,7 @@ Phase 1 완료 시점에 actual-data JSON은 완성되지만, 시뮬 투입 시 
 
 ### 하위 업그레이드 효과
 
-> 정확한 트리 구조 + 전체 노드 효과: `docs/meta/set17-factory-new-arsenal.md` 참고
+> 정확한 트리 구조 + 전체 노드 효과: `docs/meta/wiki/raw/lolchess/set17-factory-new-arsenal.md` 참고
 
 **단순 스탯 버프 (엔진 구현 쉬움)**:
 - `LeechingImplants` / `LeechingImplants2` — 흡혈, AD
@@ -300,7 +300,7 @@ actual-data 툴에서는 기존 타입 그대로 재사용. 구현 작업 없음
 
 ## 참고
 
-- 별돌보미 세부: `docs/meta/set17-stargazer-constellations.md`
-- 최신상 세부: `docs/meta/set17-factory-new-arsenal.md`
+- 별돌보미 세부: `docs/meta/wiki/raw/lolchess/set17-stargazer-constellations.md`
+- 최신상 세부: `docs/meta/wiki/raw/lolchess/set17-factory-new-arsenal.md`
 - 중재자 기존 구현: `src/components/builder/ArbiterLawPanel.tsx`
 - 전체 Phase 경계: `docs/superpowers/specs/2026-04-23-actual-data-design.md` §12
