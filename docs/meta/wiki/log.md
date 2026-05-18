@@ -8,6 +8,59 @@ format: newest first
 
 ## 2026-05-18
 
+### Ingest: mechanics/role-passive.md
+- **Source**:
+  - `src/types/index.ts` (UnitRole 6종 type)
+  - `src/lib/simulator/systems/mana.ts` (ROLE_MANA_CONFIG + 3 gain helpers)
+  - `src/lib/simulator/systems/targeting.ts` (TARGETING_WEIGHT + findTarget)
+  - `src/lib/simulator/engine/combatLoop.ts` (FlatManaRestore aggregation, channelerInnateManaGain init)
+  - CLAUDE.md (마나 / 타게팅 룰 — *stale claim 검출 대조군*)
+- **합성 범위**:
+  - 6 Role 마나 표 (공격당 / 초당 / 피격 시) — 코드 ground truth
+  - 3 마나 gain 경로 흐름 (attack/tick/damage) + stun 차단 + 보너스 (FlatManaRestore, channelerInnateManaGain)
+  - 타게팅 4단계 (taunt → 거리 → role weight → seed RNG)
+  - role 변환 시 자동 따라오는 동작 ([[hero-augment-carry]] 와 cross-ref)
+- **⚠️ Lint findings (CLAUDE.md vs 코드 stale 3건)**:
+  1. **Targeting weight 5/6 role mismatch** — CLAUDE.md `Fighter/Marksman/Caster/Specialist=2, Assassin=1` vs 코드 `Fighter/Assassin=2, Marksman/Caster/Specialist=1`. 사용자 인지 필요 — Patch 15.1 spec 자체가 바뀐 건지 처음부터 잘못 적힌 건지 확인.
+  2. **Specialist 마나 "고유"** — CLAUDE.md 표기, 코드는 표준 (10/0/false). spec vs sim 차이.
+  3. **Caster CC-마나 차단** — CLAUDE.md "Caster 만", 코드는 모든 role 적용 (attack 자체가 stun 으로 막혀서).
+- **Cross-ref**:
+  - `index.md` Mechanics 섹션에 [[role-passive]] 추가
+  - `index.md` 우선순위: CLAUDE.md 갱신을 신규 후보로 추가, ability-targeting 신규 후보 추가
+- **Lint 가치 검증 (3번째)**: 위키 도입 후 stale 검출 사례 누적 — (1) Fountain inactive memory, (2) hero-augment-carry CARRY_AUGMENTS 8 vs 10건, (3) **본 ingest 의 CLAUDE.md weight/mana 표 3건**
+
+### Ingest: mechanics/hero-augment-carry.md
+- **Source**:
+  - `src/data/carryAugments.ts` (CarryAugmentConfig + CARRY_AUGMENTS 10건)
+  - `src/lib/simulator/engine/combatLoop.ts:applyHeroCarryTransforms` + `findStrongestUnitByApi`
+  - `wiki/raw/in-game/set17-hero-augments.md` (사용자 인게임 측정)
+  - `[[patch-17-2b]]` "Hero Augment Carry 시스템" 섹션
+- **합성 범위**:
+  - 변환 흐름 (role + statOverrides + ability override + flag)
+  - findStrongestUnitByApi tie-break (성급 → 아이템 수 → deterministic)
+  - CarryAugmentConfig 구조 (statOverrides 9 필드 + abilityData 27 변수)
+  - CARRY_AUGMENTS 표 (10건 — augment / 챔프 / pattern / abilityData / statOverrides / 핵심 변수)
+  - role 변환 시 자동 따라오는 것 (mana/AS baseline/타게팅 weight)
+  - 패치 히스토리 (17.2 LIVE → 17.2b 도입 → PR7-A/B/C → N.O.V.A.)
+  - 시뮬 적용 상태 (active/partial 분리)
+  - 미완 (사용자 측정 대기 statOverrides, onKill hook 분기 등)
+- **Cross-ref**:
+  - `patches/patch-17-2b.md` "Hero Augment Carry 시스템" 섹션을 [[hero-augment-carry]] 링크로 축약 (17.2b 한정 변경분 3건만 남김)
+  - `index.md` Mechanics 섹션에 [[hero-augment-carry]] 추가
+  - `index.md` "작성 우선순위" 1번 제거 (완료) → 다음 후보는 patches/patch-17-2 또는 mechanics/role-passive
+- **Lint 관찰**: CARRY_AUGMENTS 가 10건인데 plan doc 은 "8 영웅 증강"이라 표기 — 이 페이지에서 10건 (Nasus, 8 hero augment, Zed special) 명확화
+
+### Lint fix (PR #110 Codex P2): patches 파일명 prefix 통일
+- **Finding**: `patches/17-3.md` frontmatter `id: patch-17-3` 인데 파일명이 `17-3.md`. 다른 entity (traits/mechanics) 는 id와 파일명 일치. patches 만 prefix mismatch — `[[patch-17-3]]` Obsidian 링크 컨벤션 위반 (schema.md "id: 파일명과 일치" 규칙).
+- **Verify**: `[[patch-17-3]]` / `[[patch-17-2b]]` 가 9개 파일 27곳 사용 중. id/링크 통일 필요.
+- **Fix (옵션 A — 파일명 변경)**:
+  - `git mv patches/17-3.md  patches/patch-17-3.md`
+  - `git mv patches/17-2b.md patches/patch-17-2b.md`
+  - 기존 27개 `[[patch-17-*]]` 링크는 그대로 정합
+- **Schema 갱신**: `### patches/<id>.md` 섹션에 "파일명 `patch-` prefix 필수" 명시
+- **위 entries 의 path 참조 (예: "Ingest: patches/17-2b.md") 는 append-only 원칙 상 그대로 보존** (그 시점 기준 사실)
+- **Lint 가치 검증**: 위키 도입 후 첫 외부 review (Codex) 가 정확히 schema-implementation drift 를 잡음 — 향후 lint script 자동화 시 동일 패턴 검출 가능
+
 ### Ingest: patches/17-2b.md
 - **Source**: `docs/meta/set17-patch-17-2b-plan.md` (2026-04-30 plan doc)
 - **합성 범위**:
