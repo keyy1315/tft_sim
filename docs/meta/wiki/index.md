@@ -36,8 +36,9 @@ _미작성_
 
 ## Augments
 
-- [[leona-carry]] (방패 여전사) — 17.2 도입, 3회 연속 변경 carry augment. ⚠️ duplicate config lint (combatLoop `LEONA_CARRY_ABILITY` const vs carryAugments entry)
-- [[mordekaiser-carry]] (뜨거운 죽음) — 17.2 도입, 3회 연속 변경. 17.3 3성 shield `[175,200,400]` 대폭 buff. Mordekaiser passive 매초 오라 sim 미반영
+- [[leona-carry]] (방패 여전사) — 17.2 도입, 3회 연속 변경 carry augment. ⚠️ Lint #6: duplicate config (`LEONA_CARRY_ABILITY` const vs carryAugments entry)
+- [[mordekaiser-carry]] (뜨거운 죽음) — 17.2 도입, 3회 연속 변경. ✅ Lint #7 resolved (PR #124 source drift fix). Mordekaiser passive 매초 오라 N 확장 sim 미반영
+- [[gragas-carry]] (자폭) — 17.2 도입. ⚠️ **Lint #8**: duplicate config + **radius shadow bug** (`GRAGAS_CARRY_ABILITY.radius=0` 이 entry `radius=3` shadow → 적군 AOE 무력화)
 
 ## Raw Sources (Layer 1)
 
@@ -50,8 +51,8 @@ _미작성_
 ## 작성 우선순위 (다음 후보)
 
 위키화 가치 높은 순:
-1. **augments 나머지 8개** — Gragas/Aatrox/Ivern/Jax/Pyke/Nasus/Poppy/Zed Carry. 특히 Gragas 는 LeonaCarry 와 동일 duplicate config 패턴 (`GRAGAS_CARRY_ABILITY` const + `gragasCarryActive` flag) verify 후 lint finding 보강
-2. **챔피언별** — Annie, Galio, Shen, Yasuo (이미 plan 문서 존재)
-3. **Poppy/Nasus 인게임 verify 후 statOverrides 적용** (Lint #5 잔존 TODO — 사용자 측정 필요)
-4. **`mechanics/ability-pattern-internals`** — `findAbilityTargets` 9 패턴 알고리즘 깊이 (line/bounce 알고리즘 디테일, getHexesInLine/Cone 헬퍼)
-5. **`patches/patch-17-1`** — Set 17 출시 시점 (더 thin, 도메인 가치 낮음)
+1. **Lint #6 + #8 통합 sim 클린업 PR** — LeonaCarry/GragasCarry duplicate const 둘 다 제거 + flag 경로 우회 → carryAugments entry 단일 source. **Gragas radius shadow bug (적군 AOE 무력화) 동시 해소** — sim 정확도 큰 갭
+2. **augments 나머지 7개** — Aatrox/Ivern/Jax/Pyke/Nasus/Poppy/Zed Carry
+3. **챔피언별** — Annie, Galio, Shen, Yasuo (이미 plan 문서 존재)
+4. **Poppy/Nasus 인게임 verify 후 statOverrides 적용** (Lint #5 잔존 TODO — 사용자 측정 필요)
+5. **`mechanics/ability-pattern-internals`** — `findAbilityTargets` 9 패턴 알고리즘 깊이 (line/bounce 알고리즘 디테일, getHexesInLine/Cone 헬퍼)
