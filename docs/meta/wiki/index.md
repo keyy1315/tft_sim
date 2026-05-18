@@ -36,9 +36,9 @@ _미작성_
 
 ## Augments
 
-- [[leona-carry]] (방패 여전사) — 17.2 도입, 3회 연속 변경 carry augment. ⚠️ Lint #6: duplicate config (`LEONA_CARRY_ABILITY` const vs carryAugments entry)
+- [[leona-carry]] (방패 여전사) — 17.2 도입, 3회 연속 변경. ✅ Lint #6 resolved (PR #127, stun 1.0 fixed). ⚠️ Lint #9 신규 (PR #128 검출): stunDuration starLevel별 main pipeline 미반영
 - [[mordekaiser-carry]] (뜨거운 죽음) — 17.2 도입, 3회 연속 변경. ✅ Lint #7 resolved (PR #124 source drift fix). Mordekaiser passive 매초 오라 N 확장 sim 미반영
-- [[gragas-carry]] (자폭) — 17.2 도입. ⚠️ **Lint #8**: duplicate config + **radius shadow bug** (`GRAGAS_CARRY_ABILITY.radius=0` 이 entry `radius=3` shadow → 적군 AOE 무력화)
+- [[gragas-carry]] (자폭) — 17.2 도입. ✅ Lint #8 resolved (PR #127) — 적군 AOE 반경 3칸 정상 작동 (이전 무력화)
 
 ## Raw Sources (Layer 1)
 
@@ -51,8 +51,8 @@ _미작성_
 ## 작성 우선순위 (다음 후보)
 
 위키화 가치 높은 순:
-1. **Lint #6 + #8 통합 sim 클린업 PR** — LeonaCarry/GragasCarry duplicate const 둘 다 제거 + flag 경로 우회 → carryAugments entry 단일 source. **Gragas radius shadow bug (적군 AOE 무력화) 동시 해소** — sim 정확도 큰 갭
-2. **augments 나머지 7개** — Aatrox/Ivern/Jax/Pyke/Nasus/Poppy/Zed Carry
+1. **augments 나머지 7개** — Aatrox/Ivern/Jax/Pyke/Nasus/Poppy/Zed Carry. entity-wide grep 으로 추가 lint 검출 가능성 (Aatrox 3-skill cycle / Pyke X-shape onKill 등 복잡 메커니즘)
+2. **flag 자체 dead 정리** (`gragasCarryActive` / `leonaCarryActive`) — sim 코드 사용처 0, 테스트 assertion 만 — 별도 PR 필요 (Lint #6/#8 후속)
 3. **챔피언별** — Annie, Galio, Shen, Yasuo (이미 plan 문서 존재)
 4. **Poppy/Nasus 인게임 verify 후 statOverrides 적용** (Lint #5 잔존 TODO — 사용자 측정 필요)
 5. **`mechanics/ability-pattern-internals`** — `findAbilityTargets` 9 패턴 알고리즘 깊이 (line/bounce 알고리즘 디테일, getHexesInLine/Cone 헬퍼)
