@@ -91,7 +91,7 @@ augment 전용: `shield, shieldDuration, onAttackBonus, passiveDamage, empowered
 `role` 만 변경하면 다음이 자동 적용 (별도 코드 없이):
 - **마나 재생** — `mana.ts:ROLE_MANA_CONFIG` 가 role 별로 분기
 - **공격 속도 baseline** — role 별 기본값
-- **타게팅 tiebreaker weight** — Tank(3) > Fighter/Marksman/Caster(2) > Assassin(1) (CLAUDE.md `targeting.ts` 룰)
+- **타게팅 tiebreaker weight** — Tank(3) > Fighter/Assassin(2) > Marksman/Caster/Specialist(1) (`targeting.ts:TARGETING_WEIGHT` ground truth, [[role-passive]] 참조)
 
 → 사용자 명세 "주문력 전사" / "공격력 전사" 구분은 시뮬 내부 단일 `'Fighter'` 로 단순화. 차별화는 `damageType` + ability 로직으로.
 
