@@ -8,6 +8,29 @@ format: newest first
 
 ## 2026-05-18
 
+### Ingest: mechanics/spell-crit.md
+- **Source** (`feedback_wiki_ingest_verify` 워크플로우 — 코드 직접 grep 우선):
+  - `src/lib/combat/spellCrit.ts` (computeSpellCanCrit / SPELL_CRIT_ITEMS / expectedSpellCritMultiplier / SPELL_CRIT_UNLOCK_BONUS)
+  - `src/lib/simulator/engine/combatLoop.ts` (3 cast crit roll + 운명술사/Akali/Graves unit-level 분기)
+  - `src/lib/analysis/itemOptimizer.ts:268-273` (estimateDps AP 분기 spellCritMul)
+  - `src/lib/analysis/itemRecommender.ts:140` (flatStatBonus +400 프리미엄)
+  - PDCA `docs/01-plan/features/spell-crit-mechanic.plan.md` (도입 시점/동기 기록용)
+  - PDCA `docs/02-design/features/spell-crit-mechanic.design.md` (구조 참고)
+- **합성 범위**:
+  - 활성 조건 3 카테고리 (아이템 6종 / 시너지 / unit-level effect)
+  - sim 3 cast 경로 crit roll 코드 위치 (line 6482/6595/7080)
+  - 운명술사 Innate + (4) tier / Akali Precision (모든 아군) / Graves SharpshooterModule (위력)
+  - DPS 추정 적용 (AP 분기 `expectedSpellCritMultiplier`)
+  - 추천 적용 (`flatStatBonus` +400 + pickTopCombo / tagReason)
+- **PDCA 상태 기록**: spell-crit-mechanic feature Phase: check, Match Rate 97% (세션 reminder 시점). 본 ingest 로 도메인 지식 위키 file back
+- **Cross-ref**:
+  - `index.md` Mechanics 섹션에 [[spell-crit]] 추가
+  - `index.md` 작성 우선순위 갱신 (spell-crit 완료 제거, ability-pattern-internals 신규 후보 추가)
+- **검증 / 미확인 항목** (페이지 내 명시):
+  - `pickTopCombo` 조합 평가 + `tagReason` "스킬 치명타 언락" — design doc 명시 but 코드 직접 verify 안 함 → Lint 체크리스트 등록
+  - Multi-hit 스킬 crit roll 횟수 — hitCount 마다 roll 인지 single roll 인지 미verify
+  - non-damaging ability (실드/힐만) — crit roll 무시 분기 검증 필요
+
 ### Sim cleanup: Ability interface family 제거 (PR #117 후속, lint #4 보강)
 - **Trigger**: PR #119 (`dc7137e`) 머지 완료 — 직렬 워크플로우
 - **배경**: PR #117 는 위키 검출 triad 만 제거 (scope strict). PR #119 가 남은 `Ability` interface + 인접 type 까지 정리.
