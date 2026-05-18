@@ -393,16 +393,6 @@ export interface TeamComp {
 // === Role & Status Types ===
 export type UnitRole = 'Tank' | 'Fighter' | 'Marksman' | 'Caster' | 'Assassin' | 'Specialist';
 
-export type AbilityTargetingType =
-  | 'current_target'
-  | 'farthest'
-  | 'nearest'
-  | 'lowest_hp'
-  | 'lowest_hp_ally'
-  | 'random'
-  | 'self'
-  | 'aoe_center';
-
 export type AbilityPattern =
   | 'single'      // 타겟 1명
   | 'line'        // 직선 관통
@@ -436,7 +426,6 @@ export interface AbilityEffect {
 export interface Ability {
   name: string;
   type: 'active' | 'passive';
-  targeting: AbilityTargetingType;
   damageType: 'physical' | 'magic' | 'true';
   effects: AbilityEffect[];
   castTimeTicks: number;
