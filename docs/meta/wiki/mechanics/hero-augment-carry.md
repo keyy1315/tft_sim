@@ -74,12 +74,12 @@ augment 전용: `shield, shieldDuration, onAttackBonus, passiveDamage, empowered
 | augment | 챔프 | pattern | abilityData | statOverrides | 핵심 변수 |
 |---------|------|---------|:-----------:|:-------------:|----------|
 | `NasusCarry` (꽁!) | TFT17_Nasus | single | ✅ | ❌ | `bonusPerKill` |
-| `AatroxCarry` (별빛 연계) | TFT17_Aatrox | cone r=1 | ✅ | ❌ | 3-skill cycle (`skillCycleLabels`) + `novaDamage` + `slamDamage` |
+| [[aatrox-carry]] (별빛 연계) | TFT17_Aatrox | cone r=1, cycle | ✅ | ❌ | 3-skill cycle (`cycleIdx % 3`: 타격/휩쓸기/찍기) + N.O.V.A. 별도 발동 + isolation `2.0` (17.3). 17.3 변경 3건 정합 (PR #115) |
 | `PoppyCarry` (정령단 속도) | TFT17_Poppy | single r=4 | ✅ | ❌ | `armorScale 1.0` + `spiritBounceOnKill` |
 | [[leona-carry]] (방패 여전사) | TFT17_Leona | line maxT=4, dash | ✅ | ❌ | `shield` + `baseDamageHpFrac 0.24` (17.3) + `secondaryDamage`. ✅ Lint #6 resolved (PR #127) + ✅ **Lint #9 resolved (PR #129)**: starLevel별 stun `[1.0, 1.25, 1.5]` sim 적용 (main + OOR cast path 양쪽) |
 | `IvernMinionCarry` (빅뱅) | TFT17_IvernMinion | aoe_circle r=3, dash to_largest_cluster | ✅ | ❌ | `hexReduction 0.45` + `stunDuration` |
 | `JaxCarry` (저 별을 향해) | TFT17_Jax | self_buff AS+0.15 | ✅ | ❌ | `asGain` 영구 누적 + `onAttackBonus` |
-| `PykeCarry` (청부 살인마) | TFT17_Pyke | x_shape, dash to_lowest_hp | ✅ | ❌ | `tankBonusMultiplier 0.60` + `onKillRecastMultiplier 0.70` |
+| [[pyke-carry]] (청부 살인마) | TFT17_Pyke | x_shape, dash to_lowest_hp | ✅ | ❌ | tankBonus `0.60` + onKillRecast `0.70` cascade (max 5 chain — Lint #10 stale 정정). 17.3 변경 없음 |
 | [[mordekaiser-carry]] (뜨거운 죽음) | TFT17_Mordekaiser | aoe_circle r=1 | ✅ | ✅ (PR #124: `initialMana: 10, mana: 40`) | `shield [175,200,400]` 17.3 sim 정합 (PR #124 `mordekaiserCarryShield` 필드) + mana item delta 보존 + `passiveDamage`/`empoweredAuraDamage` (passive hook 일부 미구현) |
 | [[gragas-carry]] (자폭) | TFT17_Gragas | aoe_circle r=3, selfDamage | ✅ | ❌ | `healthCost 0.20` + `hexReduction 0.45` + `tankBonusMultiplier 0.60`. ✅ **Lint #8 resolved (PR #127)**: const 제거 + entry 단일 source → **적군 AOE 반경 3칸 정상 작동** (이전 무력화) |
 | `InvaderZed` (침략자 제드) | TFT17_Zed | self_buff (5단계) | ✅ | ❌ | stage 4-2 획득 전용 |
@@ -135,7 +135,7 @@ augment 전용: `shield, shieldDuration, onAttackBonus, passiveDamage, empowered
 - 자폭(Gragas) 적군 damage path (현재 적군 damage flow skip 구조 — 적군 magic damage 분리 필요)
 - Mordekaiser passive 매초 tick (시작 1, 6초마다 +1) — 패시브 hook 미구현
 - Aatrox 3-skill cycle counter (현재 모든 cast가 첫 cycle '타격' 으로 적용)
-- Pyke X-shape onKill 재시전 (`onKillRecastMultiplier 0.70`) — onKill hook 분기 필요
+- ~~Pyke X-shape onKill 재시전 (`onKillRecastMultiplier 0.70`) — onKill hook 분기 필요~~ **이미 구현됨 (PR7-A, `combatLoop.ts:6544-6580`)** — entity-wide grep `Pyke` (PR #131 [[pyke-carry]] ingest) 으로 stale 검출. Lint #10 등록 후 본 줄 obsoleted 표기. cascade max 5 chain + tankBonus + secondaryDamage 정합
 - Poppy `spiritBounceOnKill` — onKill hook 분기 필요
 - 정령족 잠재력 (미프) `spiritEffectPerStack` 시너지 스케일
 

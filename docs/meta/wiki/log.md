@@ -8,6 +8,33 @@ format: newest first
 
 ## 2026-05-18
 
+### Ingest: augments/aatrox-carry.md + augments/pyke-carry.md — 5단계 워크플로우 누적 적용 + Lint #10 검출
+- **Source** (5단계 워크플로우 적용):
+  - `src/data/carryAugments.ts:129` (AatroxCarry) / `:216` (PykeCarry)
+  - `src/lib/simulator/engine/combatLoop.ts:6173` (Aatrox cycleIdx % 3 분기)
+  - `combatLoop.ts:6195` (slamDamage cycle 2), `:6713-6727` (novaDamage 추가 발동), `:1306` (singleTargetMultiplier 적용), `:4553-4593` (aatroxNovaStrikeSelector setup)
+  - `combatLoop.ts:6544-6580` (Pyke onKillRecast cascade max 5 chain)
+  - `combatLoop.ts:1275` (Pyke tankBonusMultiplier)
+  - `src/lib/simulator/systems/ability.ts:339` (x_shape pattern algorithm)
+  - entity-wide grep `Aatrox` / `Pyke` 로 multi-source drift 부재 확인
+- **5단계 워크플로우 누적 적용 (메모리 룰)**:
+  1. 좁은 grep: AatroxCarry / PykeCarry → entry lookup
+  2. 함수 컨텍스트 read: cycle 분기 함수 + cascade loop 함수
+  3. **entity-wide grep**: `Aatrox` / `Pyke` 이름 자체 → cycle/cascade specific 처리 발견. multi-source drift 없음 확인
+  4. 호출 순서/영향 trace: cycle/onKill 처리가 main pipeline 내부 inline (Mordekaiser proc 같은 separate helper 없음)
+  5. actual sim integration verify: novaDamage / slamDamage / singleTargetMultiplier / onKillRecast 모두 main pipeline read 위치 확인
+- **⚠️ Lint finding #10 검출 (위키 검출 10번째 사례)**:
+  - `mechanics/hero-augment-carry.md` "❌ 미완" 섹션의 "Pyke X-shape onKill 재시전 — onKill hook 분기 필요" 표기가 **stale**
+  - 실제: PR7-A (17.2b 후속) 이 이미 `combatLoop.ts:6544-6580` cascade 구현 완료. max 5 chain + tankBonus + secondaryDamage 정합
+  - 본 PR 에서 부분 정정 (해당 줄에 obsoleted + 실제 위치 명시). 더 깊은 cleanup 은 후속 PR 후보
+- **cast path 3종 후속 verify 항목 등록** (PR #129 sub-rule 적용):
+  - Aatrox cycle 분기가 OOR cast path 에 일관 적용되는지
+  - Pyke x_shape + onKillRecast 가 OOR cast path 에 일관 적용되는지
+  - **확정 검출 아님** — 본 페이지의 "Cast path 전수 확인" 표에 후속 verify 항목으로 등록
+- **위키 lint 누적 (10건, 6건 full-cycle)**:
+  1~9: 기존
+  10. **`hero-augment-carry.md` "Pyke onKill 미구현" stale 표기** — 본 PR 부분 정정, 후속 cleanup PR 후보
+
 ### Lint resolved: stunDuration starLevel별 main pipeline 반영 (Lint finding 9 closed)
 - **Trigger**: PR #129 (`8abbba0`) 머지 완료 — 직렬 워크플로우
 - **위키 lint 사이클 완결 사례 (6번째 full-cycle)**:
