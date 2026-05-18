@@ -8,6 +8,32 @@ format: newest first
 
 ## 2026-05-18
 
+### Ingest: mechanics/ability-targeting.md
+- **Source** (`feedback_wiki_ingest_verify` 워크플로우 — 코드 직접 grep, doc 인용 없음):
+  - `src/lib/simulator/systems/ability.ts:findAbilityTargets` + `AbilityConfig` 정의
+  - `src/types/index.ts:AbilityPattern` (9종 union)
+  - `src/types/index.ts:AbilityTargetingType` (8종 — dead 검출 대상)
+  - `src/lib/simulator/systems/targeting.ts:findAbilityTarget` (singular — dead 검출 대상)
+  - `src/lib/simulator/engine/combatLoop.ts` findAbilityTargets 3 호출 위치
+- **합성 범위**:
+  - 9 패턴 알고리즘 표 (single/line/aoe_circle/cone/multi/bounce/global/self_buff/x_shape)
+  - 시스템 흐름 (findTarget → AbilityConfig → findAbilityTargets pattern 분기)
+  - AbilityConfig 핵심 필드 (radius/maxTargets/dash/stun/heal/buff/debuff/hitCount/dot 등)
+  - 패턴별 알고리즘 노트 (line 거리순 cap, multi primary 무시, bounce 누적 hit, x_shape diagonal)
+- **⚠️ Lint finding (4번째 사례) — Dead code triad**:
+  1. `AbilityTargetingType` (types/index.ts:396) — 8 string union, 어떤 코드/데이터도 set/read 안 함
+  2. `findAbilityTarget` (singular, targeting.ts:71) — switch 8 케이스 구현되어 있으나 호출처 0
+  3. `Ability.targeting` 필드 (types/index.ts:439) — `.targeting` 으로 읽히는 곳 없음
+  → sim 정확도 영향 없음 (architecture transition 잔재). 별도 클린업 PR 후보 — index.md 우선순위 3번 등록.
+- **Cross-ref**:
+  - `index.md` Mechanics 섹션에 [[ability-targeting]] 추가
+  - `index.md` 우선순위 갱신: 완료된 항목 (ability-targeting, CLAUDE.md) 제거, dead code 클린업 신규 후보 추가
+- **위키 도입 후 lint 누적 (4건)**:
+  1. 메모리 `stargazer_fountain_inactive` stale claim
+  2. plan doc "8 영웅 증강" vs 코드 10건
+  3. CLAUDE.md targeting weight/mana 표 stale 3건
+  4. **본 ingest — AbilityTargetingType 트라이어드 dead code**
+
 ### Ingest: mechanics/role-passive.md
 - **Source**:
   - `src/types/index.ts` (UnitRole 6종 type)
