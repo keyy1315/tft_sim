@@ -774,6 +774,13 @@ export interface CombatUnit {
    */
   leonaCarryActive: boolean;
   /**
+   * 뜨거운 죽음(TFT17_Augment_MordekaiserCarry) 활성 시 carry abilityData.shield override.
+   * null = 비활성, 배열 = augment 활성 (starLevel 별 [1성, 2성, 3성]).
+   * applyMordekaiserProcCast 가 raw InitialShield 대신 본 override 우선 read.
+   * 위키 lint #7 (PR #123 검출): 17.3 patch note Heat Death shield 175/200/400 sim 정합.
+   */
+  mordekaiserCarryShield: readonly number[] | null;
+  /**
    * 별빛 연계(TFT17_Augment_AatroxCarry) 3-skill cycle counter — PR7-C.
    * cast 마다 +1, (counter % 3) 으로 분기:
    *   0 = 타격 (single AD)

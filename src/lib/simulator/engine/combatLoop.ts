@@ -291,6 +291,7 @@ function createCombatUnit(
     blitzBoltSpeedMult: 1,
     gragasCarryActive: false,
     leonaCarryActive: false,
+    mordekaiserCarryShield: null,
     aatroxCycleCounter: 0,
     aatroxPreviouslyDead: false,
     aatroxNovaStrikeSelector: false,
@@ -940,15 +941,20 @@ export function applyMordekaiserProcCast(unit: CombatUnit, tick: number): void {
   const vars = unit.champion.ability.variables;
   if (!vars) return;
 
-  const initialShield = readVarByStar(
-    vars.find(v => v.name === 'InitialShield')?.value, unit.starLevel, 0
-  );
+  // 위키 lint #7 (PR #123 검출, fix #124): MordekaiserCarry (Heat Death) 활성 시 carry
+  // abilityData.shield override 우선 read. 비활성 시 raw InitialShield var 사용 (base
+  // Mordekaiser cast). 17.3 patch note Heat Death shield 175/200/400 정합 적용.
+  const baseInitialShield = unit.mordekaiserCarryShield !== null
+    ? (unit.mordekaiserCarryShield[unit.starLevel - 1] ?? 0)
+    : readVarByStar(
+      vars.find(v => v.name === 'InitialShield')?.value, unit.starLevel, 0
+    );
   const duration = readVarByStar(
     vars.find(v => v.name === 'Duration')?.value, unit.starLevel, 4
   );
   const apMul = 1 + unit.stats.ap / 100;
 
-  unit.mordekaiserShieldRemaining += initialShield * apMul;
+  unit.mordekaiserShieldRemaining += baseInitialShield * apMul;
   unit.mordekaiserProcEndTick = tick + Math.round(duration * TICKS_PER_SECOND);
   unit.mordekaiserNextProcTick = tick + TICKS_PER_SECOND;  // 첫 펄스 t=1
 }
@@ -2240,14 +2246,31 @@ function applyHeroCarryTransforms(augmentApiNames: string[], units: CombatUnit[]
       if (so.damage !== undefined) target.stats.damage = so.damage;
       if (so.attackSpeed !== undefined) target.stats.attackSpeed = so.attackSpeed;
       if (so.range !== undefined) target.stats.range = so.range;
-      if (so.mana !== undefined) target.maxMana = so.mana;
-      if (so.initialMana !== undefined) target.currentMana = so.initialMana;
+      // mana/initialMana 는 calculateStats 가 이미 item bonus (Tear/Blue Buff 등) 적용 후
+      // 호출되므로, 절대값 덮어쓰기 대신 base champion stats 와의 delta 를 보존해
+      // item bonus 가 augment-mana 위에 누적되도록 한다. (PR #124 Codex P2)
+      if (so.mana !== undefined) {
+        const baseChampMana = target.champion.stats.mana;
+        const itemDelta = target.maxMana - baseChampMana;
+        target.maxMana = so.mana + itemDelta;
+      }
+      if (so.initialMana !== undefined) {
+        const baseChampInitial = target.champion.stats.initialMana;
+        const itemDelta = target.currentMana - baseChampInitial;
+        target.currentMana = so.initialMana + itemDelta;
+      }
     }
     // ability 분기용 flag (기존 호출 경로 호환)
     if (cfg.augmentApiName === 'TFT17_Augment_GragasCarry') {
       target.gragasCarryActive = true;
     } else if (cfg.augmentApiName === 'TFT17_Augment_LeonaCarry') {
       target.leonaCarryActive = true;
+    } else if (cfg.augmentApiName === 'TFT17_Augment_MordekaiserCarry') {
+      // 위키 lint #7 (PR #123 Codex P2 검출): applyMordekaiserProcCast 가 raw
+      // unit.champion.ability.variables.InitialShield 만 read 했음 (PR #115 의 17.3
+      // shield/mana sim 미반영). carry abilityData.shield override 를 unit 에 저장
+      // → applyMordekaiserProcCast 가 우선 read.
+      target.mordekaiserCarryShield = cfg.abilityData?.shield ?? null;
     }
   }
 }
@@ -3572,6 +3595,7 @@ function spawnFreljordTurrets(
             blitzBoltSpeedMult: 1,
             gragasCarryActive: false,
             leonaCarryActive: false,
+            mordekaiserCarryShield: null,
             aatroxCycleCounter: 0,
             aatroxPreviouslyDead: false,
             aatroxNovaStrikeSelector: false,
@@ -3780,6 +3804,7 @@ function trySpawnGalio(
     blitzBoltSpeedMult: 1,
     gragasCarryActive: false,
     leonaCarryActive: false,
+    mordekaiserCarryShield: null,
     aatroxCycleCounter: 0,
     aatroxPreviouslyDead: false,
     aatroxNovaStrikeSelector: false,
