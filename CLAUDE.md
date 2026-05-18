@@ -138,8 +138,10 @@ React Compiler의 자동 메모이제이션과 충돌하여 의도치 않은 동
 
 **2단계 — Role 타이브레이커** (동거리 유닛이 여러 명일 때):
 ```
-Tank (weight=3) > Fighter/Marksman/Caster/Specialist (weight=2) > Assassin (weight=1)
+Tank (weight=3) > Fighter/Assassin (weight=2) > Marksman/Caster/Specialist (weight=1)
 ```
+
+> 위 가중치는 `src/lib/simulator/systems/targeting.ts:TARGETING_WEIGHT` ground truth 기준. 자세한 흐름은 위키 `docs/meta/wiki/mechanics/role-passive.md` 참조.
 
 **타게팅 오버라이드 조건** (우선순위 높은 순):
 1. 도발(Taunt) 효과 → 강제 어그로 전환
@@ -160,9 +162,13 @@ Tank (weight=3) > Fighter/Marksman/Caster/Specialist (weight=2) > Assassin (weig
 | Marksman | 10 | 0 | ❌ |
 | Caster | 7 | 2 | ❌ |
 | Assassin | 10 | 0 | ❌ |
-| Specialist | 고유 | 고유 | 고유 |
+| Specialist | 10 | 0 | ❌ |
 
-Caster는 CC(스턴 등)로 공격이 막히면 마나 획득이 완전 중단됨에 주의.
+> Specialist는 위 표준값 (Fighter/Marksman/Assassin 와 동일) 으로 분기되며, 챔프별 고유 메커니즘은 ability 레벨에서 처리한다. ground truth: `src/lib/simulator/systems/mana.ts:ROLE_MANA_CONFIG`.
+
+**CC 상태 시 마나 차단** — 스턴 등 CC 가 적용되면 **모든 role**이 공격 마나 획득 중단 (`gainManaOnAttack` 의 `isStunned` 가드). Caster는 추가로 초당 마나(`gainManaPerTick`)도 차단되어 영향이 가장 큼.
+
+> 마나/타게팅 시스템 전체 흐름·아이템·trait 보너스는 위키 `docs/meta/wiki/mechanics/role-passive.md` 참조.
 
 ---
 
