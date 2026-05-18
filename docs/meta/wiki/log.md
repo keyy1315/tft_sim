@@ -8,6 +8,31 @@ format: newest first
 
 ## 2026-05-18
 
+### Lint resolved: LeonaCarry duplicate config + GragasCarry duplicate/radius shadow (Lint #6 + #8 동시 closed)
+- **Trigger**: PR #127 (`9e6ddb3`) 머지 완료 — 직렬 워크플로우
+- **위키 lint 사이클 완결 사례 — 4번째/5번째 full-cycle (동시 해소)**:
+  - PR #123 → Lint #6 검출 (LeonaCarry duplicate const)
+  - PR #126 → Lint #8 검출 (GragasCarry duplicate + radius shadow bug — 적군 AOE 무력화)
+  - PR #127 → Option B 채택. `LEONA_CARRY_ABILITY` + `GRAGAS_CARRY_ABILITY` const 둘 다 제거 + `getAbilityConfigForUnit` flag 우선 분기 우회 → `carryAugments.ts` entry 단일 source. **동시 해소**.
+  - 본 cleanup PR — 두 페이지 (leona-carry.md + gragas-carry.md) drift → resolved 표기
+- **위키 갱신 내역**:
+  - `augments/leona-carry.md` — Lint #6 → resolved + 패치 히스토리 PR #127 row + sim 적용 상태 `partial → active` + Lint 체크리스트 [x]
+  - `augments/gragas-carry.md` — Lint #8 (sub-A + sub-B) → resolved + 패치 히스토리 PR #127 row + sim 적용 상태 `partial → active` (적군 AOE 정상 작동) + Lint 체크리스트 [x][x][x]
+  - `mechanics/hero-augment-carry.md` 표 Leona/Gragas row 갱신 (Lint resolved 표기)
+  - `index.md` Augments 섹션 갱신 + 우선순위 갱신 (augments 나머지 7개 + flag dead 정리)
+- **scope strict 보존 (CLAUDE.md)**: `gragasCarryActive` / `leonaCarryActive` flag 자체는 보존 — 테스트 assertion 8건 호환. flag 자체 dead 정리 (sim 코드 사용처 0) 는 별도 PR 후보 → 우선순위 2번 등록
+- **sim 정확도 개선 (positive impact)**:
+  - LeonaCarry: stun 1.5 (const) → 1.0 (entry config fixed). ⚠️ **PR #128 Codex P2 catch**: 본 entry 의 "starLevel별 stun 정합" 표기 부정확 — main pipeline 이 `config.stun` fixed 만 read, `abilityData.stunDuration` 은 IvernMinion 분기에서만 사용. **starLevel별 stunDuration 미반영 → Lint #9 신규 등록 (별도 sim 정확도 PR 후보)**
+  - GragasCarry: 적군 AOE 반경 3칸 정상 작동 (이전 무력화) — hexReduction 0.45 + tankBonus 0.60 정확 적용
+- **위키 lint 누적 (9건, 본 PR 후 5건 full-cycle + 1건 신규)**:
+  1~3: documented/resolved
+  4. Ability dead code triad — full-cycle ✅
+  5. carryAugments 17.3 drift — full-cycle ✅ (단 Mordekaiser 실제 미반영은 #7 에서 발견)
+  6. **LeonaCarry duplicate config — full-cycle ✅ (PR #127 + 본 PR). 단 stunDuration starLevel별 적용은 후속 Lint #9 로 분리**
+  7. Mordekaiser carry source drift — full-cycle ✅ (PR #124 + #125)
+  8. **GragasCarry duplicate + radius shadow — full-cycle ✅ (PR #127 + 본 PR)**
+  9. **stunDuration starLevel별 main pipeline 미반영 (PR #128 Codex P2 검출)** — config.stun fixed read, abilityData.stunDuration 은 IvernMinion 분기 전용. LeonaCarry 의 starLevel별 stun [1.0/1.25/1.5] 의도 미반영. **별도 sim 정확도 PR 후보**
+
 ### Ingest: augments/gragas-carry.md — 2 lint findings 동시 검출 (Lint #8 sub-A + sub-B)
 - **Source** (`feedback_wiki_ingest_verify` 4단계 워크플로우 적용 — entity-wide grep 핵심):
   - `src/data/carryAugments.ts:254` (GragasCarry entry — abilityOverride radius 3)

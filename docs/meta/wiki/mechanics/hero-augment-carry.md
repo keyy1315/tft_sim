@@ -76,12 +76,12 @@ augment 전용: `shield, shieldDuration, onAttackBonus, passiveDamage, empowered
 | `NasusCarry` (꽁!) | TFT17_Nasus | single | ✅ | ❌ | `bonusPerKill` |
 | `AatroxCarry` (별빛 연계) | TFT17_Aatrox | cone r=1 | ✅ | ❌ | 3-skill cycle (`skillCycleLabels`) + `novaDamage` + `slamDamage` |
 | `PoppyCarry` (정령단 속도) | TFT17_Poppy | single r=4 | ✅ | ❌ | `armorScale 1.0` + `spiritBounceOnKill` |
-| [[leona-carry]] (방패 여전사) | TFT17_Leona | line maxT=4, dash | ✅ | ❌ | `shield` + `baseDamageHpFrac 0.24` (17.3) + `secondaryDamage`. ⚠️ **duplicate config**: combatLoop `LEONA_CARRY_ABILITY` (stun 1.5) 가 carryAugments entry (stun 1.0 + stunDuration starLevel별) 를 shadow — 위키 lint #6 |
+| [[leona-carry]] (방패 여전사) | TFT17_Leona | line maxT=4, dash | ✅ | ❌ | `shield` + `baseDamageHpFrac 0.24` (17.3) + `secondaryDamage`. ✅ Lint #6 resolved (PR #127): const 제거 → stun 1.0 fixed. ⚠️ **Lint #9 (PR #128 검출)**: `abilityData.stunDuration [1.0,1.25,1.5]` starLevel별 의도 main pipeline 미반영 (config.stun fixed read) — 별도 sim PR 후보 |
 | `IvernMinionCarry` (빅뱅) | TFT17_IvernMinion | aoe_circle r=3, dash to_largest_cluster | ✅ | ❌ | `hexReduction 0.45` + `stunDuration` |
 | `JaxCarry` (저 별을 향해) | TFT17_Jax | self_buff AS+0.15 | ✅ | ❌ | `asGain` 영구 누적 + `onAttackBonus` |
 | `PykeCarry` (청부 살인마) | TFT17_Pyke | x_shape, dash to_lowest_hp | ✅ | ❌ | `tankBonusMultiplier 0.60` + `onKillRecastMultiplier 0.70` |
 | [[mordekaiser-carry]] (뜨거운 죽음) | TFT17_Mordekaiser | aoe_circle r=1 | ✅ | ✅ (PR #124: `initialMana: 10, mana: 40`) | `shield [175,200,400]` 17.3 sim 정합 (PR #124 `mordekaiserCarryShield` 필드) + mana item delta 보존 + `passiveDamage`/`empoweredAuraDamage` (passive hook 일부 미구현) |
-| [[gragas-carry]] (자폭) | TFT17_Gragas | aoe_circle r=3, selfDamage | ✅ | ❌ | `healthCost 0.20` + `hexReduction 0.45` + `tankBonusMultiplier 0.60`. ⚠️ **Lint #8 duplicate config + radius shadow bug**: `GRAGAS_CARRY_ABILITY` const `radius=0` 이 entry `radius=3` 을 shadow → **적군 AOE 거의 무력화** |
+| [[gragas-carry]] (자폭) | TFT17_Gragas | aoe_circle r=3, selfDamage | ✅ | ❌ | `healthCost 0.20` + `hexReduction 0.45` + `tankBonusMultiplier 0.60`. ✅ **Lint #8 resolved (PR #127)**: const 제거 + entry 단일 source → **적군 AOE 반경 3칸 정상 작동** (이전 무력화) |
 | `InvaderZed` (침략자 제드) | TFT17_Zed | self_buff (5단계) | ✅ | ❌ | stage 4-2 획득 전용 |
 
 > **statOverrides 채움 정책**: 사용자가 게임에서 augment 활성 후 stat 측정한 데이터로만 채움. 단 17.3 patch note 명시 값 (e.g., MordekaiserCarry mana 10/40) 은 PR #124 부터 적용 (item delta 보존 로직 추가). 대부분 augment 의 HP/armor/range/AS 등 stat 측정은 여전히 미완.
