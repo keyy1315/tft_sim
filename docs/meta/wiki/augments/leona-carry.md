@@ -7,7 +7,7 @@ target_champion: TFT17_Leona
 tier: Gold
 stage: 2 only
 current_patch_status: active
-sim_active: active   # Lint #6 resolved (PR #127, 9e6ddb3) — entry 단일 source. statOverrides 인게임 측정만 남음
+sim_active: active   # Lint #6 resolved (PR #127) + Lint #9 resolved (PR #129, main + OOR fix). statOverrides 인게임 측정만 남음
 last_verified: 2026-05-18
 sources:
   - src/data/carryAugments.ts:171 (LeonaCarry entry — abilityOverride/abilityData)
@@ -83,9 +83,10 @@ LeonaCarry 가 2개 config 로 정의되어 있었음. `getAbilityConfigForUnit`
 | [[patch-17-2]] LIVE | **게임 도입** — Heat Death/Self-Destruct 와 함께 carry augment 3종 신규. 초기 값: damage `[110,165,250]`, baseDamageHpFrac 0.28 (추정 — 17.2 패치노트 명시 없음, 17.2b plan doc 가 17.2b 시점 값 기록) |
 | [[patch-17-2b]] (2026-04-29) | damage `[110,165,250]` → **`[90,135,225]`** (큰 nerf). carry augment sim 정식화 (CarryAugmentConfig + abilityData + statOverrides) |
 | [[patch-17-3]] (2026-05-13) | baseDamageHpFrac 0.28 → **0.24** (HP scale nerf) + secondaryDamage `[180,270,405]` → **`[200,300,480]`** (line buff). PR #115 (`39cbce2`) sim 정합 |
-| 2026-05-18 (PR #127, `9e6ddb3`) | **Lint #6 sim 해소** — `LEONA_CARRY_ABILITY` const 제거 (`GRAGAS_CARRY_ABILITY` 동시) + flag 우선 분기 우회 → carryAugments entry 단일 source. **stun 1.0 fixed 적용** (이전 1.5 → 1.0 fixed). starLevel별 stunDuration `[1.0, 1.25, 1.5]` 활용은 별도 — Lint #9 (아래) 참조. [[gragas-carry]] Lint #8 과 같은 사이클 |
+| 2026-05-18 (PR #127, `9e6ddb3`) | **Lint #6 sim 해소** — `LEONA_CARRY_ABILITY` const 제거 (`GRAGAS_CARRY_ABILITY` 동시) + flag 우선 분기 우회 → carryAugments entry 단일 source. **stun 1.0 fixed 적용** (이전 1.5 → 1.0 fixed). [[gragas-carry]] Lint #8 과 같은 사이클 |
+| 2026-05-18 (PR #129, `8abbba0`) | **Lint #9 sim 해소** — main pipeline (line 6819-6831) + OOR fallback (line 7129-7140) 양쪽 분기 확장: `carryCfg?.abilityData?.stunDuration?.[starLevel-1] ?? config.stun`. **starLevel별 stun [1.0, 1.25, 1.5] sim 적용** (1성 변경 없음, 2★ 1.0→1.25, 3★ 1.0→1.5). Codex P2 amend 로 OOR 누락 catch — 위키 [[ability-targeting]] cast path 3종 정보가 워크플로우 룰 도입 배경 |
 
-## sim 적용 상태 — `partial` (Lint #6 resolved, Lint #9 신규 검출)
+## sim 적용 상태 — `active` (Lint #6 + #9 모두 resolved)
 
 ✅ **활성**:
 - role 변환 `Fighter` (default)
@@ -93,37 +94,39 @@ LeonaCarry 가 2개 config 로 정의되어 있었음. `getAbilityConfigForUnit`
 - primary damage (carryAugments entry) + secondaryDamage (line 추가 대상)
 - baseDamageHpFrac maxHP 24% 가산 (17.3 sim 정합)
 - shield + duration
-- **`stun: 1.0` fixed (entry abilityOverride.stun, PR #127)** — 이전 const 1.5 → 1.0. 모든 starLevel 1초 적용
+- **starLevel별 stun `[1.0, 1.25, 1.5]` sim 적용 (PR #129)** — main pipeline + OOR fallback 양쪽 분기. 1★ 1.0초 / 2★ 1.25초 / 3★ 1.5초
 
-❌ **미반영 — Lint #9 (PR #128 Codex P2 review 검출)**:
-- **starLevel별 stunDuration `[1.0, 1.25, 1.5]` 활용 안 됨** — `combatLoop.ts:6819-6820` main pipeline 이 `config.stun` (fixed 1.0) 만 read. `abilityData.stunDuration` 의 main pipeline read 0건. **IvernMinion-specific 분기 (line 1232-1234) 만 `carryCfg.abilityData.stunDuration` 사용**. → 2성/3성 stun 도 1.0초 (의도 1.25/1.5 미적용)
+🔍 **검증 필요 / 미완**:
 - statOverrides (HP/AS/range/etc) — 사용자 인게임 측정 대기
+- integration test (실제 simulateCombat 으로 starLevel별 stun 측정) — 후속 후보 (PR #129 는 code fingerprint + entry fact 가드)
 
-## ⚠️ Lint finding #9 — stunDuration starLevel별 main pipeline 미반영 (PR #128 Codex P2 검출)
+## ✅ Lint finding #9 — RESOLVED (PR #129, `8abbba0`, 2026-05-18)
 
-### 검출
-PR #128 Codex P2 review 가 PR #127 의 "starLevel별 stun sim 정합" 표기 부정확 catch:
-- `combatLoop.ts:6819-6820` main cast pipeline: `if (config.stun && config.stun > 0) { const stunTicks = Math.round(config.stun * TICKS_PER_SECOND); }` — **config.stun fixed 만 read**
-- `combatLoop.ts:1234`: `const stunArr = carryCfg.abilityData.stunDuration;` — IvernMinion-specific 분기에만 존재 (line 1232-1234 컨텍스트)
-- LeonaCarry abilityOverride.stun = 1.0 (fixed) → 모든 starLevel 1.0초
+PR #128 검출 → PR #129 (옵션 A 채택 — 옵션 C와 사실상 동일) 해소. Codex P2 amend 로 OOR cast path 누락 catch 후 main + OOR 양쪽 fix 완결.
 
-### 결과
-PR #127 가 한 일 = stun 1.5 (const) → 1.0 (entry config). **starLevel별 stunDuration 적용은 여전히 미반영**. abilityData.stunDuration `[1.0, 1.25, 1.5]` 의 의도 (3성 1.5초 stun) sim 미반영.
+### 검출 시점 (PR #128) — 기록 보존
+- `combatLoop.ts:6819-6820` main pipeline: `if (config.stun && config.stun > 0) { stunTicks = config.stun * TICKS_PER_SECOND; }` — **config.stun fixed 만 read**
+- `combatLoop.ts:1234`: `carryCfg.abilityData.stunDuration` read 는 IvernMinion-specific 분기 전용
+- LeonaCarry abilityData.stunDuration `[1.0, 1.25, 1.5]` 정의되어 있으나 main pipeline 미read → 모든 starLevel 1.0초
 
-### 조치 후보 (별도 sim 정확도 PR)
-- 옵션 A: main pipeline `config.stun` 분기를 `abilityData.stunDuration[unit.starLevel - 1] ?? config.stun` 로 확장
-- 옵션 B: LeonaCarry abilityOverride.stun 제거 + IvernMinion-style 별도 분기 (LeonaCarry-specific) 추가
-- 옵션 C: IvernMinion 분기를 generic 화 — 모든 carry augment 가 abilityData.stunDuration 있으면 우선 사용
+### Fix (PR #129, Option A + Codex P2 amend)
+1. **main pipeline (line 6819-6831)**: `starLevelStun = carryCfg?.abilityData?.stunDuration?.[starLevel-1] ?? config.stun` 분기 추가
+2. **OOR (out-of-range dash) fallback (line 7129-7140)**: 동일 패턴 추가 (`oorCarryCfg?.abilityData?.stunDuration?.[starLevel-1] ?? outOfRangeConfig.stun`)
+3. fallback: 다른 carry (`abilityData.stunDuration` 미정의) / non-carry → 기존 `config.stun` fixed 동작 보존
 
-### 영향 범위
-- LeonaCarry: 2성/3성 stun 너프 잠재 (1.0 → 1.25/1.5)
-- IvernMinion (`abilityData.stunDuration: [1.25, 1.5, 1.75]`) 는 이미 line 1232-1234 분기로 정확 적용 — 영향 없음
-- 기타 carry: abilityData.stunDuration 정의 없음 (LeonaCarry/IvernMinion 만)
+### 워크플로우 메모리 도입 배경
+PR #129 의 Codex P2 amend (OOR 누락) 가 `feedback_wiki_ingest_verify` 메모리의 **"cast path 3종 전수 확인"** sub-rule 도입 배경. 위키 [[ability-targeting]] 페이지의 "3 cast 호출처 (main / recast / OOR fallback)" 정보가 sim fix workflow 의 도우미 역할.
+
+### 회귀 가드 (PR #129)
+- "Lint #9 해소 — main pipeline 의 stun 분기가 carry abilityData.stunDuration starLevel별 우선" — code fingerprint (main + OOR 양쪽)
+- LeonaCarry entry fact (stunDuration starLevel별 정확값)
+- integration test 는 후속 후보
 
 ## Lint 체크리스트
 
 - [x] **LEONA_CARRY_ABILITY const vs carryAugments entry duplicate 정리** — PR #127 (`9e6ddb3`) 머지 완료
-- [ ] **Lint #9: starLevel별 stunDuration main pipeline 반영** — 별도 sim 정확도 PR (옵션 A/B/C 결정 후)
+- [x] **Lint #9: starLevel별 stunDuration main pipeline 반영** — PR #129 (`8abbba0`) 머지 완료. main + OOR 양쪽 fix
+- [ ] integration test (실제 simulateCombat 으로 LeonaCarry 1★/2★/3★ stun 측정) — 후속 후보
 - [ ] statOverrides 인게임 측정 — Leona augment 활성 vs 비활성 stat 차이
 - [ ] 17.2 LIVE 초기 값 정확성 — 17.2 패치노트 명시 없음, 17.2b plan doc 의 "before" 표기로 역추정. 외부 archive 로 검증 가능
 

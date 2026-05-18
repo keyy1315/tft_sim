@@ -36,7 +36,7 @@ _미작성_
 
 ## Augments
 
-- [[leona-carry]] (방패 여전사) — 17.2 도입, 3회 연속 변경. ✅ Lint #6 resolved (PR #127, stun 1.0 fixed). ⚠️ Lint #9 신규 (PR #128 검출): stunDuration starLevel별 main pipeline 미반영
+- [[leona-carry]] (방패 여전사) — 17.2 도입, 3회 연속 변경. ✅ Lint #6 resolved (PR #127) + ✅ Lint #9 resolved (PR #129): starLevel별 stun [1.0/1.25/1.5] sim 적용 (main + OOR cast path 양쪽)
 - [[mordekaiser-carry]] (뜨거운 죽음) — 17.2 도입, 3회 연속 변경. ✅ Lint #7 resolved (PR #124 source drift fix). Mordekaiser passive 매초 오라 N 확장 sim 미반영
 - [[gragas-carry]] (자폭) — 17.2 도입. ✅ Lint #8 resolved (PR #127) — 적군 AOE 반경 3칸 정상 작동 (이전 무력화)
 
