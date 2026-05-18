@@ -8,6 +8,28 @@ format: newest first
 
 ## 2026-05-18
 
+### Lint resolved: carryAugments.ts 17.3 sim drift (Lint finding 5 closed)
+- **Trigger**: PR #115 (`39cbce2`) 머지 완료 — 사용자 직렬 워크플로우 적용
+- **위키 lint 사이클 완결 사례** (도입 후 첫 full-cycle):
+  - PR #114 ingest 중 [[patch-17-3]] / [[hero-augment-carry]] 가 `carryAugments.ts` 17.3 drift 5+ entries 검출
+  - PR #115 로 sim 정합 (Leona/Mord/Jax/Aatrox/IvernMinion 5건)
+  - 본 cleanup PR — 위키 표기 drift → resolved 갱신
+- **위키 갱신 내역**:
+  - `patches/patch-17-3.md` "조정 Augments — Champion augments" 표: ⚠️ drift → ✅ PR #115 머지 완료. sim 정합 칼럼 추가 (✅/🔍 TODO)
+  - `patches/patch-17-3.md` "Lint findings" 섹션: drift → resolved 표기 + 커밋 hash 명시
+  - `mechanics/hero-augment-carry.md` "17.3 sim drift" 섹션 → "17.3 sim 정합" + PR #115 링크
+  - `mechanics/hero-augment-carry.md` 패치 히스토리 17.3 row: "별도 PR 필요" → "PR #115 머지 완료"
+  - `mechanics/hero-augment-carry.md` "시뮬 적용 상태" ✅ 활성 항목에 17.3 변경분 5건 정확 반영 추가
+- **TODO 잔존 항목** (인게임 verify 후 후속 PR):
+  - PoppyCarry Termeepnal AS 0.7 → 0.75 (augment grant vs statOverride 모호)
+  - NasusCarry Bonk! resists 40 → 45 (statOverrides 채움 정책)
+- **위키 lint 가치 검증 누적**:
+  1. Fountain stale memory (PR #109 이전)
+  2. plan doc "8 영웅 증강" vs 코드 10건
+  3. CLAUDE.md targeting weight/mana 표 stale 3건 (PR #112 로 해소)
+  4. AbilityTargetingType triad dead code (별도 클린업 PR 대기)
+  5. **carryAugments.ts 17.3 drift (PR #115 로 해소 ✅, 본 cleanup PR)**
+
 ### Major rewrite: patches/patch-17-3.md — 공식 패치노트 정상화 후 종합 ingest
 - **Trigger**: 사용자 — "17.3 패치노트 정상화 됐을 것 같은데 찾아봐주라"
 - **Source** (`feedback_wiki_ingest_verify` 워크플로우):
