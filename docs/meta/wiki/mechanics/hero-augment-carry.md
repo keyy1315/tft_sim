@@ -103,7 +103,23 @@ augment 전용: `shield, shieldDuration, onAttackBonus, passiveDamage, empowered
 | **[[patch-17-2b]]** (2026-04-29) | **CarryAugmentConfig 정식화 + 8 영웅 증강 abilityData 채움 + statOverrides 슬롯 도입** (PR #68 + PR3). 같은 패치에서 `GragasCarry.healthCost` 30→20%, `hexReduction` 55→45%; `MordekaiserCarry.shield` 175/200/250 → 225/250/300; `LeonaCarry.damage` 110/165/250 → 90/135/225 |
 | 17.2b 후속 | PR7-A: `PykeCarry` x_shape pattern + dash to_lowest_hp + onKillRecast / PR7-B: `IvernMinionCarry` dash to_largest_cluster + hexReduction / PR7-C: `AatroxCarry` slam (cycle counter % 3 == 2) + slamStun |
 | 17.2b N.O.V.A. 후속 | `AatroxCarry.novaDamage` 추가 — 5-NOVA 시너지 + 타격 선택기 활성 시 |
-| 17.3 LIVE | (Hero augment carry 자체엔 변경 없음. [[patch-17-3]] 는 [[stargazer-fountain]] 재활성화 등 다른 변경) |
+| 17.3 LIVE (2026-05-13) | **다수 carry augment 수치 조정** — 공식 패치노트 확정 (아래 "17.3 sim drift" 섹션 참조). 코드 `carryAugments.ts` 는 17.2b 값 유지 중 — 별도 sim 정확도 PR 필요 |
+
+## ⚠️ 17.3 sim drift (Lint finding 5번째, 2026-05-18 update)
+
+17.3 LIVE 공식 패치노트가 정상화되며 다수 carry augment 수치 조정 확인. 단 `carryAugments.ts` 는 17.2b 값 그대로 — sim 정확도 갭. **별도 PR 후보**.
+
+| Carry augment | 코드 (17.2b) | 17.3 LIVE 공식 |
+|--------------|-------------|----------------|
+| Shieldmaiden (Leona) | `baseDamageHpFrac: 0.28`, `secondaryDamage: [180,270,405]` | **24%**, **`[200,300,480]`** |
+| Heat Death (Mordekaiser) | `shield: [225,250,300]`, mana `40/100` | **`[175,200,400]`**, **`10/40`** |
+| Reach for the Stars (Jax) | `damage: [155,230,375]` | **`[170,250,450]`** |
+| Stellar Combo (Aatrox) | 2nd `[100,150,225]`, 3rd `[160,240,360]`, `singleTargetMultiplier: 2.5` | **`[110,165,275]`**, **`[200,300,475]`**, **`2.0`** |
+| The Big Bang (Meepsie/IvernMinion) | `hexReduction: 0.45` | **0.35** |
+| Termeepnal Velocity (Poppy) | AS 0.7 (현재 변수 위치 별도 verify) | **0.75** |
+| Bonk! (Nasus) | resists 미설정 (`statOverrides` 비어있음) | **40 → 45** |
+
+→ 자세한 매핑은 [[patch-17-3]] "조정 Augments — Champion augments" 참조.
 
 ## 시뮬 적용 상태 — `partial`
 

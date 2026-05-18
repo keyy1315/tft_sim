@@ -21,7 +21,7 @@ updated: 2026-05-18
 
 ## Patches
 
-- [[patch-17-3]] — 2026-05-13 LIVE. Stargazer Fountain 재활성화 등
+- [[patch-17-3]] — 2026-05-13 LIVE. **공식 패치노트 정상화 후 종합 ingest** (System/Traits/27 챔프/5 신규 aug/15+ 조정 aug/items/bug fixes). Morgana 4코 리워크, Stargazer Fountain 재활성화 + (3)/(5) 4%/7% 확정, carry augment sim drift 5건
 - [[patch-17-2b]] — 2026-04-29 mid-patch. Hero Augment carry 시스템 도입 + 군체의 심장 disabled (17.3 로 부분 obsoleted)
 
 ## Champions

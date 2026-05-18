@@ -8,6 +8,7 @@ current_patch_status: active
 sim_active: true
 last_verified: 2026-05-18
 sources:
+  - https://teamfighttactics.leagueoflegends.com/en-us/news/game-updates/teamfight-tactics-patch-17-3/ (공식 17.3 패치노트)
   - docs/meta/wiki/raw/lolchess/set17-stargazer-constellations.md
   - public/data/tft_set17_traits.json
   - src/lib/simulator/engine/combatLoop.ts (applyStargazerEffects, triggerFountainHeal)
@@ -66,15 +67,29 @@ Tier별 (lolchess.gg 17.3):
 
 17.2 PBE 의 **매초 tick** 모델 (`fountainHealPctPerTick`, `fountainStackingAdapPerTick`) 은 17.3 LIVE 에 채택되지 않았다. 17.3 는 **mana regen + cast-on heal** 모델로 재설계. → legacy tick 코드 (`5263~` 라인 부근) 는 보존되어 있지만 `applyStargazerEffects` 가 해당 변수를 0 으로 둬서 dead path.
 
+## (3)/(5) AD/AP 4%/7% — 공식 확정 (17.3 패치노트, 2026-05-18 update)
+
+17.3 공식 패치노트가 정상화되며 lolchess.gg 에 있던 표기가 Riot 공식으로 확정:
+- **(3) Fountain: AD/AP +4%**
+- **(5) Fountain: AD/AP +7%**
+
+추가 메커니즘 (공식 패치노트):
+- 강화 칸 **아군**: max HP **1%** heal / 2초
+- 강화 칸 **별돌보미**: 추가 **2.5%** heal + **AD/AP 누적 스택** / 2초
+
+→ 이전 "보류 / 미반영" 항목 (lolchess.gg 표기 vs CDragon 미노출) **해소**.
+
 ## 보류 / 미반영
 
-- lolchess.gg 17.3 의 **"(3) AD/AP 4%, (5) AD/AP 7%"** — CDragon Latest 데이터에 노출 안 됨. 별도 변수 미발견 (실제 sim 영향은 미확정)
-- 별돌보미 여사냥꾼 보드 7,0 강화칸 추가 — 별도 보드 데이터 작업 필요
+- AD/AP 4%/7% 효과의 **CDragon 변수명 미발견** — 공식 수치는 확정됐으나 코드 적용 시 어떤 변수로 노출되는지 별도 검증 필요. trait effect override 또는 새 변수 추가 가능성
+- 강화 칸 아군 max HP 1% heal / 2초 + 별돌보미 추가 2.5% heal / 2초 — 현재 sim 의 cast-on-heal (`Fountain_HealPercent`) 외에 **별도 periodic heal** 분기 미구현 가능성. 코드 verify 필요
+- 별돌보미 여사냥꾼 보드 좌상단 hex 추가 — 17.3 공식 확정 ([[patch-17-3]] Stargazer 섹션). 별도 보드 데이터 작업 필요
 
 ## Lint 체크리스트
 
 - [ ] 다음 패치(17.4 등) 머지 시: Fountain 변수명/값 변경 여부 재확인
-- [ ] AD/AP 4%/7% 효과: CDragon 갱신/툴팁 확인 시 미반영 항목 해소
+- [x] AD/AP 4%/7% 공식 수치 확정 (2026-05-18) — sim 변수 매핑 별도 검증 작업 남음
+- [ ] periodic heal (1%/2.5% per 2s) sim 적용 검증 — `applyStargazerEffects` 또는 별도 tick 분기 확인
 - [ ] memory `stargazer_fountain_inactive.md` 의 description — 현재 17.3 active 로 갱신되어 있음 (2026-05-13 확인) ✓
 
 ## 관련

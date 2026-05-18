@@ -8,6 +8,35 @@ format: newest first
 
 ## 2026-05-18
 
+### Major rewrite: patches/patch-17-3.md — 공식 패치노트 정상화 후 종합 ingest
+- **Trigger**: 사용자 — "17.3 패치노트 정상화 됐을 것 같은데 찾아봐주라"
+- **Source** (`feedback_wiki_ingest_verify` 워크플로우):
+  - https://teamfighttactics.leagueoflegends.com/en-us/news/game-updates/teamfight-tactics-patch-17-3/ (공식, 정상화 확인)
+  - public/data/tft_set17_champions.json (Leona AR/MR 40 확인 등)
+  - src/data/carryAugments.ts (17.2b 값 잔존 확인 — drift 검출)
+- **이전 상태**: 46 lines, Fountain 만 다룸 + "추가 패치노트 별도 ingest 필요" 메모
+- **변경 후**: ~230 lines, 7 카테고리 종합 (System/Traits/27 챔프/5 신규 aug/15+ 조정 aug/items/bug fixes)
+- **해소된 미확정 항목**:
+  - Fountain (3)/(5) AD/AP 4%/7% — 공식 확정 (이전 "CDragon 미노출" 상태)
+  - Stargazer Huntress 좌상단 hex 추가 — 공식 확정 (이전 "별도 보드 데이터 작업" 표시)
+- **⚠️ Lint finding (5번째 사례) — `carryAugments.ts` 17.3 drift**:
+  - LeonaCarry baseDamageHpFrac 0.28→0.24, secondaryDamage [180,270,405]→[200,300,480]
+  - MordekaiserCarry shield [225,250,300]→[175,200,400], mana 40/100→10/40
+  - JaxCarry damage [155,230,375]→[170,250,450]
+  - AatroxCarry secondaryDamage [100,150,225]→[110,165,275], slamDamage [160,240,360]→[200,300,475], singleTargetMultiplier 2.5→2.0
+  - IvernMinionCarry hexReduction 0.45→0.35
+  - PoppyCarry (Termeepnal) AS 0.7→0.75, NasusCarry resists 40→45
+  → 별도 sim 정확도 PR 후보. PR #107 이 trait/champion json 갱신했으나 carryAugments.ts 누락.
+- **부수 갱신**:
+  - `mechanics/stargazer-fountain.md` — (3)/(5) 4%/7% 확정 섹션 추가 + 패치노트 공식 URL sources 추가 + Huntress hex 사실 (보드 작업 별도) + periodic heal (1%/2.5% per 2s) sim 적용 검증 추적 항목
+  - `mechanics/hero-augment-carry.md` — 17.3 sim drift 5건을 Lint 섹션으로 추가 + 패치 히스토리 표의 17.3 row 갱신
+- **위키 도입 후 lint 누적 (5건)**:
+  1. Fountain stale memory (PR #109 이전)
+  2. plan doc "8 영웅 증강" vs 코드 10건
+  3. CLAUDE.md targeting weight/mana 표 stale 3건
+  4. AbilityTargetingType triad dead code (PR #113 ability-targeting)
+  5. **본 ingest — carryAugments.ts 17.3 drift 5+ entries**
+
 ### Ingest: mechanics/ability-targeting.md
 - **Source** (`feedback_wiki_ingest_verify` 워크플로우 — 코드 직접 grep, doc 인용 없음):
   - `src/lib/simulator/systems/ability.ts:findAbilityTargets` + `AbilityConfig` 정의
@@ -28,11 +57,19 @@ format: newest first
 - **Cross-ref**:
   - `index.md` Mechanics 섹션에 [[ability-targeting]] 추가
   - `index.md` 우선순위 갱신: 완료된 항목 (ability-targeting, CLAUDE.md) 제거, dead code 클린업 신규 후보 추가
-- **위키 도입 후 lint 누적 (4건)**:
+- **위키 도입 후 lint 누적 (4건, 본 ingest 시점)**:
   1. 메모리 `stargazer_fountain_inactive` stale claim
   2. plan doc "8 영웅 증강" vs 코드 10건
   3. CLAUDE.md targeting weight/mana 표 stale 3건
   4. **본 ingest — AbilityTargetingType 트라이어드 dead code**
+
+### Lint fix (PR #113 Codex P2): ability-targeting damageDecay/dot.duration "미완" 오기재 수정
+- **Finding**: Codex 가 `damageDecay` 를 "미사용 같음 (별도 verify 필요)" 으로 적은 부분 지적. 실제 6 챔프 + combatLoop.ts:6479 active.
+- **Verify (코드 grep)**:
+  - `damageDecay`: TFT16_Yunara/Gangplank/Caitlyn/Ryze + TFT17_Gnar/AurelionSol 사용. `dmg *= (1 - decay)^ti` 적용.
+  - 추가 verify — `dot.duration` 도 "일부만" 모호하게 적었으나 8 챔프 (Nasus/Talon/Pantheon/Viktor/Diana/AurelionSol/Bard/Morgana) + main(:6390) + OOR fallback(:7050) 양 경로 active.
+- **Fix**: 두 필드 모두 "미완" → "활성" 섹션 이동, 구체적 사용처 + combatLoop 라인 명시.
+- **자기-반성**: `feedback_wiki_ingest_verify` 워크플로우 위반. 페이지가 위키 lint 시작점인데 자체 fact 검증 누락. Codex가 정확히 catch — 자기-fix 패턴.
 
 ### Ingest: mechanics/role-passive.md
 - **Source**:
