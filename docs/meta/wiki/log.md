@@ -8,6 +8,23 @@ format: newest first
 
 ## 2026-05-18
 
+### Lint resolved: Mordekaiser carry source-of-truth drift (Lint finding 7 closed)
+- **Trigger**: PR #124 (`3678add`) 머지 완료 — 직렬 워크플로우
+- **위키 lint 사이클 완결 사례** (도입 후 3번째 full-cycle):
+  - PR #123 augments/mordekaiser-carry.md ingest 중 Codex P2 catch — `applyMordekaiserProcCast` 가 raw vars 직접 read → PR #115 미반영 검출 (multi-source drift)
+  - PR #124 — Option A 구현: `CombatUnit.mordekaiserCarryShield` 필드 + `applyHeroCarryTransforms` 가 carry abilityData.shield override 저장 + statOverrides mana 적용
+  - PR #124 추가 Codex P2 catch — 절대값 mana override 가 item bonus 손실. amend 로 item delta 보존 로직 추가 (`feedback_wiki_ingest_verify` 의 "호출 순서/영향 trace" 룰 도입 배경)
+  - 본 cleanup PR — 위키 표기 drift → resolved
+- **위키 갱신 내역** (커밋 `c6d9e75`):
+  - `augments/mordekaiser-carry.md` — "Multi-source drift" → "✅ resolved (PR #124)" + 패치 히스토리 PR #124 row + sim 적용 상태 partial → active + Lint #7 fix 5단계 명시 + 회귀 가드 3건 명시 + Lint 체크리스트 shield/mana 정합 [x]
+  - `mechanics/hero-augment-carry.md` Mordekaiser row: statOverrides ❌ → ✅ + shield/mana sim 정합 명시. statOverrides 채움 정책 노트 보강
+- **위키 lint 가치 검증 누적 (7건, 3건 full-cycle 완결)**:
+  1~3: documented/resolved
+  4. AbilityTargetingType triad dead code → resolved (PR #117/118/119/120)
+  5. carryAugments 17.3 drift → resolved (PR #115/116) — **단 Mordekaiser 항목은 실제 미반영이었음 (#123 검출, #124 fix)**
+  6. LeonaCarry duplicate config — PR #123 open (sim 클린업 후보)
+  7. **Mordekaiser carry source drift — PR #124 + 본 cleanup PR 로 full-cycle 완결 ✅**
+
 ### Ingest: augments/leona-carry.md + augments/mordekaiser-carry.md — augments 폴더 정립
 - **Source** (`feedback_wiki_ingest_verify` + 함수 컨텍스트 룰 적용):
   - `src/data/carryAugments.ts:171` (LeonaCarry entry) / `:238` (MordekaiserCarry entry)
