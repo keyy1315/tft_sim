@@ -53,7 +53,7 @@ TFT 룰: **스킬 피해는 기본적으로 치명타가 안 터진다**. 특정
 | 효과 | 위치 | 동작 |
 |------|------|------|
 | **운명술사 (Fateweaver)** Innate | `applyFateweaverEffects` (line 1734) | `TFT17_Fateweaver` trait count >= 1 (활성 여부 무관) → 운명술사 unit 에 `spellCanCrit = true`. (4) tier 시 추가 Crit Chance +20%, Crit Damage +20% |
-| **Akali Precision** | line 4674 | Akali 어빌리티 시전 시 모든 아군에 spell crit 가능 부여 |
+| **Akali Precision (DRX N.O.V.A. surge)** | `tickDrxNova` (line ~4671) | **Akali cast 가 아님** — DRX N.O.V.A. (5 시너지) 활성 + `TeamAttackDelay` 경과 시 한 번 발동. 발동 시점에 Akali 가 alive 면 모든 alive 아군에 `spellCanCrit = true` 일괄 부여. `state.triggered` 가드로 단발성 |
 | **Graves SharpshooterModule (위력)** | `applyGravesFrameEffects` SharpshooterModule case (line ~2289) | 위력 frame 적용된 Graves 에 `spellCanCrit = true` + AbilityDamage +5% |
 
 ## sim 엔진 적용 (`combatLoop.ts`)
@@ -126,7 +126,7 @@ AP 캐리에 보건/무대 추천 시 +400 프리미엄 (다른 AP 가중치 `Sp
 ✅ **활성**:
 - `computeSpellCanCrit` init + 3 cast crit roll (main/recast/OOR)
 - 운명술사 Innate (count >= 1) + (4) tier crit stat
-- Akali Precision (모든 아군 활성)
+- Akali Precision — DRX N.O.V.A. surge 트리거 (TeamAttackDelay 경과 + Akali alive 시 1회 발동, 모든 alive 아군에 일괄 부여)
 - Graves SharpshooterModule (위력) spell crit + AbilityDamage +5%
 - `estimateDps` AP 분기 — `expectedSpellCritMultiplier` 적용
 - `flatStatBonus` 보건/무대 +400 프리미엄
