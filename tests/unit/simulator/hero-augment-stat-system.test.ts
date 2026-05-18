@@ -1373,4 +1373,39 @@ describe('CarryAugmentConfig.statOverrides — 슬롯 추후 채움 가드', () 
     expect(combatLoopSrc).toMatch(/target\.champion\.stats\.initialMana[\s\S]+?itemDelta\s*=\s*target\.currentMana/);
     expect(combatLoopSrc).toMatch(/target\.currentMana\s*=\s*so\.initialMana\s*\+\s*itemDelta/);
   });
+
+  it('Lint #6 + #8 해소 — LEONA_CARRY_ABILITY / GRAGAS_CARRY_ABILITY const 제거 + flag 우선 분기 우회 (PR #127 회귀 가드)', async () => {
+    // PR #126 검출 Lint #6 (LeonaCarry duplicate config) + Lint #8 (GragasCarry duplicate
+    // config + radius shadow bug) 동시 해소. carryAugments.ts entry 단일 source.
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const combatLoopSrc = fs.readFileSync(
+      path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+      'utf8',
+    );
+
+    // legacy const 정의 완전 제거
+    expect(combatLoopSrc).not.toMatch(/const\s+LEONA_CARRY_ABILITY\s*[:=]/);
+    expect(combatLoopSrc).not.toMatch(/const\s+GRAGAS_CARRY_ABILITY\s*[:=]/);
+
+    // getAbilityConfigForUnit 의 flag 우선 return 분기 제거 (entry 단일 경로)
+    expect(combatLoopSrc).not.toMatch(/if\s*\(\s*unit\.gragasCarryActive\s*\)\s*return\s+GRAGAS_CARRY_ABILITY/);
+    expect(combatLoopSrc).not.toMatch(/if\s*\(\s*unit\.leonaCarryActive\s*\)\s*return\s+LEONA_CARRY_ABILITY/);
+
+    // entry sanity — carryAugments 의 abilityOverride 가 사용되는 path 만 유지
+    expect(combatLoopSrc).toMatch(/function\s+getAbilityConfigForUnit[\s\S]+?findCarryAugment\(unit\.champion\.apiName[\s\S]+?carry\.abilityOverride/);
+  });
+
+  it('Lint #6 + #8 fact — carryAugments entry 가 단일 source 의 정확값 보유 (PR #127 의존)', () => {
+    // LeonaCarry: stun 1.0 (config) + stunDuration [1.0, 1.25, 1.5] (starLevel별, abilityData)
+    const leona = CARRY_AUGMENTS.find(c => c.augmentApiName === 'TFT17_Augment_LeonaCarry');
+    expect(leona?.abilityOverride.stun).toBe(1.0);  // 이전 LEONA_CARRY_ABILITY const 의 1.5 shadow 해소
+    expect(leona?.abilityData?.stunDuration).toEqual([1.0, 1.25, 1.5]);
+
+    // GragasCarry: radius 3 (이전 GRAGAS_CARRY_ABILITY const 의 radius 0 shadow 해소 → 적군 AOE 정상 작동)
+    const gragas = CARRY_AUGMENTS.find(c => c.augmentApiName === 'TFT17_Augment_GragasCarry');
+    expect(gragas?.abilityOverride.pattern).toBe('aoe_circle');
+    expect(gragas?.abilityOverride.radius).toBe(3);
+    expect(gragas?.abilityOverride.selfDamage).toBe(true);
+  });
 });

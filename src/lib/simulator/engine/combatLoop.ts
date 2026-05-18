@@ -596,35 +596,26 @@ function applyHexBuffs(units: CombatUnit[], hexBuffs: HexBuff[]): void {
   }
 }
 
-/**
- * 자폭 (TFT17_Augment_GragasCarry) ability 변환 config.
- * 거대한 폭발: 적군 데미지 없음, 자기 자신만 데미지 + HP floor=1 (자기 스킬로 죽지 않음).
- * damage 값은 그라가스 ability "Damage" 변수 그대로 (heal 제거).
+/** 캐리 증강 포함 AbilityConfig 결정.
+ *
+ * PR #127 (Lint #6 + #8 통합 해소): 이전 LEONA_CARRY_ABILITY / GRAGAS_CARRY_ABILITY
+ * const + gragasCarryActive / leonaCarryActive flag 우선 분기 제거. carryAugments.ts
+ * entry 의 abilityOverride 가 단일 source.
+ *
+ * 해소된 lint findings:
+ *   - #6 LeonaCarry duplicate config: 이전 const stun 1.5 (fixed) 가 entry stun 1.0 +
+ *     abilityData stunDuration [1.0, 1.25, 1.5] (starLevel별) 을 shadow. 이제 entry
+ *     사용되며 starLevel별 stun 의도 정합 (단 main cast pipeline 의 starLevel별
+ *     stun 적용 site 는 별도 — abilityData.stunDuration read 위치 verify 필요)
+ *   - #8 GragasCarry radius shadow bug: 이전 const radius 0 이 entry radius 3 을
+ *     shadow + main pipeline `config.radius ?? 3` 의 0 nullish-not-fallback 문제로
+ *     적군 AOE 무력화. 이제 entry radius 3 사용 → patch note 의도 정합 (반경 3칸)
+ *
+ * gragasCarryActive / leonaCarryActive flag 자체는 sim 코드 사용처 없으나
+ * 테스트 assertion 8건 사용 중이므로 scope strict (CLAUDE.md "Don't refactor
+ * beyond what task requires") 보존. flag 자체 dead 정리는 별도 PR 후보.
  */
-const GRAGAS_CARRY_ABILITY: AbilityConfig = {
-  pattern: 'aoe_circle',
-  radius: 0,
-  selfDamage: true,
-  selfDamageHpFloor: 1,
-};
-
-/**
- * 방패 여전사 (TFT17_Augment_LeonaCarry) ability 변환 config.
- * 적 가로질러 dash + line 관통 물리 피해 + 첫 적중 대상에만 기절 (CC).
- */
-const LEONA_CARRY_ABILITY: AbilityConfig = {
-  pattern: 'line',
-  maxTargets: 4,
-  dash: 'to_target',
-  stun: 1.5,
-  firstHitOnlyStun: true,
-};
-
-/** 캐리 증강 포함 AbilityConfig 결정 */
 function getAbilityConfigForUnit(unit: CombatUnit, augmentApiNames: string[]): AbilityConfig {
-  // hero augment carry 변환 — applyHeroCarryTransforms 가 활성 unit 에 flag 설정.
-  if (unit.gragasCarryActive) return GRAGAS_CARRY_ABILITY;
-  if (unit.leonaCarryActive) return LEONA_CARRY_ABILITY;
   const carry = findCarryAugment(unit.champion.apiName, augmentApiNames);
   if (carry) return carry.abilityOverride;
   return CHAMPION_ABILITY_PATTERNS[unit.champion.apiName] ?? { pattern: 'single' };
