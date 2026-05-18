@@ -6817,7 +6817,15 @@ export function simulateCombat(
 
             // === CC 기절 적용 ===
             if (config.stun && config.stun > 0) {
-              const stunTicks = Math.round(config.stun * TICKS_PER_SECOND);
+              // PR #129 (Lint #9 해소, PR #128 검출): carry augment abilityData.stunDuration
+              // 이 정의됐으면 starLevel별 우선 사용. 없으면 config.stun (fixed) fallback.
+              // - LeonaCarry [1.0, 1.25, 1.5] starLevel별 적용 (이전 main pipeline 미반영)
+              // - IvernMinion 은 abilityOverride.stun 없음 → 본 분기 진입 안 함 (별도 line 1232 분기)
+              // - 다른 carry: abilityData.stunDuration 미정의 → fallback config.stun (기존 동작 보존)
+              // - non-carry 챔프 (carryCfg null) → fallback (영향 없음)
+              const starLevelStun = carryCfg?.abilityData?.stunDuration?.[unit.starLevel - 1];
+              const stunDuration = starLevelStun ?? config.stun;
+              const stunTicks = Math.round(stunDuration * TICKS_PER_SECOND);
               // firstHitOnlyStun (방패 여전사 LeonaCarry) — line 첫 적중만 stun.
               const stunLimit = config.firstHitOnlyStun ? 1 : (config.stunTargets ?? abilityTargets.length);
               let stunCount = 0;
@@ -7121,7 +7129,12 @@ export function simulateCombat(
               if (outOfRangeConfig.stun && outOfRangeConfig.stun > 0 && t.currentHp > 0) {
                 // firstHitOnlyStun → 이미 한 번 적용했으면 skip (LeonaCarry 첫 적중 only).
                 if (outOfRangeConfig.firstHitOnlyStun && oorStunApplied) continue;
-                const stunTicks = Math.round(outOfRangeConfig.stun * TICKS_PER_SECOND);
+                // PR #129 (Lint #9 해소, Codex P2 amend): main pipeline 과 동일하게 carry
+                // abilityData.stunDuration starLevel별 우선. OOR (dash) cast path 에서도
+                // LeonaCarry [1.0,1.25,1.5] 정확 적용 (이전 outOfRangeConfig.stun fixed 1.0 만).
+                const oorStarLevelStun = oorCarryCfg?.abilityData?.stunDuration?.[unit.starLevel - 1];
+                const oorStunDuration = oorStarLevelStun ?? outOfRangeConfig.stun;
+                const stunTicks = Math.round(oorStunDuration * TICKS_PER_SECOND);
                 t.statusEffects.push({ type: 'stun', sourceId: unit.id, remainingTicks: stunTicks });
                 t.state = 'idle';
                 t.attackCooldown = 0;
