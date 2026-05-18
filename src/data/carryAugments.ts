@@ -116,6 +116,8 @@ export const CARRY_AUGMENTS: CarryAugmentConfig[] = [
     abilityOverride: { pattern: 'single' },
     damageTypeOverride: 'physical',
     scalingInput: { label: '처치 수', unit: '회', max: 999, effectPerStack: '피해량 +10' },
+    // TODO 17.3: 패치노트 "Bonk! Resists: 40 → 45" — augment grant 인지 champion baseline 변경인지 모호.
+    // statOverrides 채움 정책 (사용자 인게임 측정 후 적용) — 인게임 verify 후 statOverrides.armor/magicResist 설정 결정.
     abilityData: {
       name: '꽁!',
       desc: '대상에게 물리 피해를 입힙니다. 이 스킬로 적을 처치하면 스킬 피해량이 영구적으로 증가합니다.',
@@ -132,15 +134,15 @@ export const CARRY_AUGMENTS: CarryAugmentConfig[] = [
     damageTypeOverride: 'physical',
     abilityData: {
       name: '별빛 연계',
-      desc: '세 가지 스킬을 번갈아 사용합니다.\n타격: 물리 피해\n휩쓸기: 원뿔 범위 물리 피해 + 방어력 감소\n찍기: 반경 1칸 피해 + 공중 띄움 (단독 적중 시 250%)\nN.O.V.A. 활성 시: 전장 가르고 모든 적 공중 띄움 + 추가 타격',
+      desc: '세 가지 스킬을 번갈아 사용합니다.\n타격: 물리 피해\n휩쓸기: 원뿔 범위 물리 피해 + 방어력 감소\n찍기: 반경 1칸 피해 + 공중 띄움 (단독 적중 시 200%)\nN.O.V.A. 활성 시: 전장 가르고 모든 적 공중 띄움 + 추가 타격',
       mana: '30/90',
       damage: [140, 210, 315], // 타격 (cycle 0)
-      secondaryDamage: [100, 150, 225], // 휩쓸기 (cycle 1)
-      slamDamage: [160, 240, 360], // 찍기 (cycle 2) — PR7-C 추가
+      secondaryDamage: [110, 165, 275], // 휩쓸기 (cycle 1) — 17.3: 100/150/225 → 110/165/275
+      slamDamage: [200, 300, 475], // 찍기 (cycle 2) — PR7-C 추가. 17.3: 160/240/360 → 200/300/475
       slamStunDuration: 1.0, // 찍기 공중 띄움 (knockup → stun) — PR7-C 추가
       armorReduction: 10, // 휩쓸기 armor 감소 (AP 스케일)
       novaDamage: [120, 180, 270], // N.O.V.A. 타격
-      singleTargetMultiplier: 2.5, // 찍기 단독 적중 시 250%
+      singleTargetMultiplier: 2.0, // 찍기 단독 적중 시 200% — 17.3: 2.5 → 2.0 (isolation multiplier nerf)
       damageType: 'physical',
       skillCycleLabels: ['타격', '휩쓸기', '찍기'] as const,
     },
@@ -149,6 +151,8 @@ export const CARRY_AUGMENTS: CarryAugmentConfig[] = [
     augmentApiName: 'TFT17_Augment_PoppyCarry',
     targetChampionApiName: 'TFT17_Poppy',
     // 정령단 속도: ranged projectile (rangeOverride=4). dash 없음 — 사거리 증가가 핵심.
+    // TODO 17.3: 패치노트 "Termeepnal Velocity AS: 0.7 → 0.75" — augment 활성 시 Poppy AS 값.
+    // statOverrides.attackSpeed = 0.75 로 적용해야 하는지 vs base AS 곱셈자인지 모호. 인게임 verify 필요.
     abilityOverride: { pattern: 'single' },
     rangeOverride: 4,
     damageTypeOverride: 'physical',
@@ -170,14 +174,14 @@ export const CARRY_AUGMENTS: CarryAugmentConfig[] = [
     damageTypeOverride: 'physical',
     abilityData: {
       name: '방패 여전사',
-      desc: '2초 동안 보호막. 최대 3칸 돌진해 적이 가장 많은 일직선 타격 (탱커 우선). 첫 적중: AD + 28% 최대체력 + 기절. 추가 대상: AD damage. (17.2b 너프)',
+      desc: '2초 동안 보호막. 최대 3칸 돌진해 적이 가장 많은 일직선 타격 (탱커 우선). 첫 적중: AD + 24% 최대체력 + 기절. 추가 대상: AD damage. (17.3: HP ratio 28%→24%, secondary 180/270/405→200/300/480)',
       mana: '50/110',
       damage: [90, 135, 225], // 17.2b: 110/165/250 → 90/135/225
       shield: [200, 240, 280],
       shieldDuration: 2,
-      baseDamageHpFrac: 0.28, // primary damage 에 maxHp 28% 가산
+      baseDamageHpFrac: 0.24, // primary damage 에 maxHp 24% 가산 — 17.3: 0.28 → 0.24
       stunDuration: [1.0, 1.25, 1.5],
-      secondaryDamage: [180, 270, 405],
+      secondaryDamage: [200, 300, 480], // 17.3: 180/270/405 → 200/300/480
       damageType: 'physical',
     },
   },
@@ -188,11 +192,11 @@ export const CARRY_AUGMENTS: CarryAugmentConfig[] = [
     abilityOverride: { pattern: 'aoe_circle', radius: 3, dash: 'to_largest_cluster' },
     abilityData: {
       name: '빅뱅',
-      desc: '주문력 전사로 변환. 패시브: 기본 공격당 추가 magic damage (미프 시너지 잠재력 스케일). 사용: 2칸 내 가장 큰 적 무리에 도약, 반경 3칸 magic damage (1칸당 45% 감소), 가장 가까운 3명 1.25/1.5/1.75초 공중 띄움.',
+      desc: '주문력 전사로 변환. 패시브: 기본 공격당 추가 magic damage (미프 시너지 잠재력 스케일). 사용: 2칸 내 가장 큰 적 무리에 도약, 반경 3칸 magic damage (1칸당 35% 감소), 가장 가까운 3명 1.25/1.5/1.75초 공중 띄움.',
       mana: '50/100',
       damage: [240, 360, 560],
       onAttackBonus: [40, 60, 90],
-      hexReduction: 0.45,
+      hexReduction: 0.35, // 17.3: 0.45 → 0.35 (Big Bang falloff per hex)
       stunDuration: [1.25, 1.5, 1.75],
       spiritEffectPerStack: 0,
       damageType: 'magic',
@@ -206,7 +210,7 @@ export const CARRY_AUGMENTS: CarryAugmentConfig[] = [
       name: '저 별을 향해',
       desc: '주문력 전사로 변환. 패시브: 기본 공격당 추가 magic damage. 사용: 대상 magic damage + 영구 AS/MS +15/15/20% (전투 종료까지 누적).',
       mana: '20/80',
-      damage: [155, 230, 375],
+      damage: [170, 250, 450], // 17.3: 155/230/375 → 170/250/450
       onAttackBonus: [45, 70, 105],
       asGain: [0.15, 0.15, 0.20],
       damageType: 'magic',
@@ -236,13 +240,13 @@ export const CARRY_AUGMENTS: CarryAugmentConfig[] = [
     abilityOverride: { pattern: 'aoe_circle', radius: 1 },
     abilityData: {
       name: '뜨거운 죽음',
-      desc: '주문력 전사로 변환. 패시브: 매초 반경 N칸 magic damage (시작 1, 6초마다 +1). 사용: 보호막 + 4초 동안 오라 damage 강화. (17.2b: shield 175/200/250 → 225/250/300)',
-      mana: '40/100',
+      desc: '주문력 전사로 변환. 패시브: 매초 반경 N칸 magic damage (시작 1, 6초마다 +1). 사용: 보호막 + 4초 동안 오라 damage 강화. (17.3: shield 225/250/300 → 175/200/400, mana 40/100 → 10/40)',
+      mana: '10/40',
       damage: [50, 75, 115], // 사용 시 오라 damage
       passiveDamage: [20, 30, 45], // 패시브 오라
       empoweredAuraDamage: [50, 75, 115],
       empoweredDuration: 4,
-      shield: [225, 250, 300], // 17.2b: 175/200/250 → 225/250/300
+      shield: [175, 200, 400], // 17.3: 225/250/300 → 175/200/400 (3성 대폭 buff, 1/2성 nerf)
       damageType: 'magic',
     },
   },

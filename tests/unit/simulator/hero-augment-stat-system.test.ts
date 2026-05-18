@@ -53,23 +53,25 @@ describe('CARRY_AUGMENTS 카탈로그 — 8 영웅 증강 abilityData 정의', (
     expect(gragas?.abilityData?.hexReduction).toBe(0.45);
   });
 
-  it('17.2b — 모데카이저 뜨거운 죽음: shield = [225, 250, 300]', () => {
+  it('17.3 — 모데카이저 뜨거운 죽음: shield = [175, 200, 400], mana 10/40', () => {
     const morde = CARRY_AUGMENTS.find(c => c.augmentApiName === 'TFT17_Augment_MordekaiserCarry');
-    expect(morde?.abilityData?.shield).toEqual([225, 250, 300]);
+    expect(morde?.abilityData?.shield).toEqual([175, 200, 400]);
+    expect(morde?.abilityData?.mana).toBe('10/40');
   });
 
-  it('17.2b — 레오나 방패 여전사: damage = [90, 135, 225]', () => {
+  it('17.3 — 레오나 방패 여전사: HP ratio 24%, secondary [200,300,480] (17.3 nerf)', () => {
     const leona = CARRY_AUGMENTS.find(c => c.augmentApiName === 'TFT17_Augment_LeonaCarry');
-    expect(leona?.abilityData?.damage).toEqual([90, 135, 225]);
+    expect(leona?.abilityData?.damage).toEqual([90, 135, 225]); // 17.2b 값 — 17.3 변경 없음
     expect(leona?.abilityData?.shield).toEqual([200, 240, 280]);
-    expect(leona?.abilityData?.baseDamageHpFrac).toBeCloseTo(0.28, 2);
+    expect(leona?.abilityData?.baseDamageHpFrac).toBeCloseTo(0.24, 2); // 17.3: 0.28 → 0.24
+    expect(leona?.abilityData?.secondaryDamage).toEqual([200, 300, 480]); // 17.3: [180,270,405] → [200,300,480]
   });
 
-  it('잭스 저 별을 향해: asGain starLevel 별 [0.15, 0.15, 0.20]', () => {
+  it('17.3 — 잭스 저 별을 향해: damage [170,250,450] (17.3 buff)', () => {
     const jax = CARRY_AUGMENTS.find(c => c.augmentApiName === 'TFT17_Augment_JaxCarry');
     expect(jax?.abilityData?.asGain).toEqual([0.15, 0.15, 0.20]);
     expect(jax?.abilityData?.onAttackBonus).toEqual([45, 70, 105]);
-    expect(jax?.abilityData?.damage).toEqual([155, 230, 375]);
+    expect(jax?.abilityData?.damage).toEqual([170, 250, 450]); // 17.3: [155,230,375] → [170,250,450]
   });
 
   it('파이크 청부 살인마: tankBonus 0.60 + onKillRecast 0.70', () => {
@@ -79,11 +81,13 @@ describe('CARRY_AUGMENTS 카탈로그 — 8 영웅 증강 abilityData 정의', (
     expect(pyke?.abilityData?.secondaryDamage).toEqual([60, 90, 135]);
   });
 
-  it('아트록스 별빛 연계: 3-skill cycle + N.O.V.A. 변수', () => {
+  it('17.3 — 아트록스 별빛 연계: 3-skill cycle + secondary/slam buff + isolation nerf', () => {
     const aatrox = CARRY_AUGMENTS.find(c => c.augmentApiName === 'TFT17_Augment_AatroxCarry');
     expect(aatrox?.abilityData?.skillCycleLabels).toEqual(['타격', '휩쓸기', '찍기']);
     expect(aatrox?.abilityData?.novaDamage).toEqual([120, 180, 270]);
-    expect(aatrox?.abilityData?.singleTargetMultiplier).toBe(2.5);
+    expect(aatrox?.abilityData?.secondaryDamage).toEqual([110, 165, 275]); // 17.3: [100,150,225] → [110,165,275]
+    expect(aatrox?.abilityData?.slamDamage).toEqual([200, 300, 475]); // 17.3: [160,240,360] → [200,300,475]
+    expect(aatrox?.abilityData?.singleTargetMultiplier).toBe(2.0); // 17.3: 2.5 → 2.0 (isolation nerf)
   });
 
   it('뽀삐 정령단 속도: armorScale 1.0 + spiritBounceOnKill', () => {
@@ -93,9 +97,9 @@ describe('CARRY_AUGMENTS 카탈로그 — 8 영웅 증강 abilityData 정의', (
     expect(poppy?.abilityData?.damage).toEqual([340, 510, 850]);
   });
 
-  it('꼬마정령 빅뱅: hexReduction + stunDuration', () => {
+  it('17.3 — 꼬마정령 빅뱅: hexReduction 0.35 (17.3 nerf) + stunDuration', () => {
     const ivern = CARRY_AUGMENTS.find(c => c.augmentApiName === 'TFT17_Augment_IvernMinionCarry');
-    expect(ivern?.abilityData?.hexReduction).toBe(0.45);
+    expect(ivern?.abilityData?.hexReduction).toBe(0.35); // 17.3: 0.45 → 0.35 (Big Bang falloff per hex)
     expect(ivern?.abilityData?.stunDuration).toEqual([1.25, 1.5, 1.75]);
     expect(ivern?.abilityData?.onAttackBonus).toEqual([40, 60, 90]);
   });
@@ -545,15 +549,15 @@ describe('PR7-A — 파이크 carry X-shape 멀티 타겟 + onKill cascade', () 
 //   - N.O.V.A. 타격: 기존 cycle 유지 + 별도 추가 효과 (모든 적 novaDamage 물리 + 1초 knockup)
 //   - "타격 선택기": simulateOptions.{player,enemy}NovaStrikeSelectorUnit 사용자 지정
 describe('PR7-C — 아트록스 carry 3-skill cycle + N.O.V.A. 추가 발동', () => {
-  it('AatroxCarry abilityData 핵심 변수 (PR7-C 시뮬 의존)', () => {
+  it('AatroxCarry abilityData 핵심 변수 (PR7-C 시뮬 의존, 17.3 수치)', () => {
     const aatrox = CARRY_AUGMENTS.find(c => c.augmentApiName === 'TFT17_Augment_AatroxCarry');
-    expect(aatrox?.abilityData?.damage).toEqual([140, 210, 315]);          // 타격
-    expect(aatrox?.abilityData?.secondaryDamage).toEqual([100, 150, 225]); // 휩쓸기
-    expect(aatrox?.abilityData?.slamDamage).toEqual([160, 240, 360]);      // 찍기 (PR7-C 추가)
+    expect(aatrox?.abilityData?.damage).toEqual([140, 210, 315]);          // 타격 (cycle 0) — 17.3 변경 없음
+    expect(aatrox?.abilityData?.secondaryDamage).toEqual([110, 165, 275]); // 휩쓸기 (cycle 1) — 17.3: [100,150,225] → [110,165,275]
+    expect(aatrox?.abilityData?.slamDamage).toEqual([200, 300, 475]);      // 찍기 (cycle 2) — 17.3: [160,240,360] → [200,300,475]
     expect(aatrox?.abilityData?.slamStunDuration).toBe(1.0);                // 찍기 knockup
     expect(aatrox?.abilityData?.novaDamage).toEqual([120, 180, 270]);      // N.O.V.A.
     expect(aatrox?.abilityData?.armorReduction).toBe(10);                   // 휩쓸기 debuff
-    expect(aatrox?.abilityData?.singleTargetMultiplier).toBe(2.5);          // 찍기 단독
+    expect(aatrox?.abilityData?.singleTargetMultiplier).toBe(2.0);          // 찍기 단독 — 17.3: 2.5 → 2.0 (isolation nerf)
     expect(aatrox?.damageTypeOverride).toBe('physical');
   });
 
@@ -593,7 +597,7 @@ describe('PR7-C — 아트록스 carry 3-skill cycle + N.O.V.A. 추가 발동', 
     expect(file).toMatch(/cycleIdx === 0[\s\S]+?pattern:\s*'single'/);
     expect(file).toMatch(/cycleIdx === 1[\s\S]+?pattern:\s*'cone'/);
     expect(file).toMatch(/pattern:\s*'aoe_circle'[\s\S]+?slamStunDuration/);
-    // 단독 적중 ×2.5 — refactor (carry-damage-modifier): helper 안 패턴 검증
+    // 단독 적중 ×2.0 (17.3 nerf, 2.5→2.0) — refactor (carry-damage-modifier): helper 안 패턴 검증
     expect(file).toMatch(/context\.aatroxIsSingleTargetSlam[\s\S]+?context\.aliveTargetCount === 1[\s\S]+?ad\.singleTargetMultiplier/);
   });
 
@@ -1079,7 +1083,7 @@ describe('PR7-E — 미프 시너지 + carry onAttack 패시브', () => {
   // 사용자 결정:
   //   - to_largest_cluster: 각 적 위치 중심 radius 2 내 타 적 개수 max 적 → dash target
   //   - multi-stun: caster (unit) 위치 기준 가장 가까운 3명 (radius 3 AOE 안 alive)
-  //   - hexReduction 0.45: abilityTarget 중심 multiplicative falloff (PR4 자폭 일관)
+  //   - hexReduction 0.35 (17.3 nerf, 0.45→0.35): abilityTarget 중심 multiplicative falloff (PR4 자폭 일관)
   describe('PR7-B — 꼬마정령 carry multi-stun + dash to_largest_cluster + hexReduction', () => {
     it('IvernMinionCarry abilityOverride dash = to_largest_cluster (기존 to_farthest 변경)', () => {
       const ivern = CARRY_AUGMENTS.find(c => c.augmentApiName === 'TFT17_Augment_IvernMinionCarry');
@@ -1089,9 +1093,9 @@ describe('PR7-E — 미프 시너지 + carry onAttack 패시브', () => {
       expect(ivern!.abilityOverride.dash).toBe('to_largest_cluster');
     });
 
-    it('IvernMinionCarry abilityData hexReduction 0.45 / stunDuration [1.25, 1.5, 1.75]', () => {
+    it('IvernMinionCarry abilityData hexReduction 0.35 (17.3) / stunDuration [1.25, 1.5, 1.75]', () => {
       const ivern = CARRY_AUGMENTS.find(c => c.augmentApiName === 'TFT17_Augment_IvernMinionCarry');
-      expect(ivern?.abilityData?.hexReduction).toBe(0.45);
+      expect(ivern?.abilityData?.hexReduction).toBe(0.35); // 17.3: 0.45 → 0.35
       expect(ivern?.abilityData?.stunDuration).toEqual([1.25, 1.5, 1.75]);
       expect(ivern?.abilityData?.damage).toEqual([240, 360, 560]);
     });
