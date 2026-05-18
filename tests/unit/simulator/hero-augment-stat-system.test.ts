@@ -1315,12 +1315,62 @@ describe('PR7-E — 미프 시너지 + carry onAttack 패시브', () => {
 });
 
 describe('CarryAugmentConfig.statOverrides — 슬롯 추후 채움 가드', () => {
-  it('현재는 모든 augment 의 statOverrides 가 미정의 (사용자 추후 인게임 측정 후 채움)', () => {
-    // 본 PR 은 슬롯만 추가. 사용자가 인게임 stat 측정 후 채울 예정.
-    // 미정의 = augment 활성 시 기존 챔프 stat 그대로 (회귀 없음).
+  it('대부분 augment 는 statOverrides 미정의. 예외: 17.3 patch note 명시 값만 적용 (MordekaiserCarry mana)', () => {
+    // 17.2b 도입: 슬롯만 정의, 사용자 인게임 측정 대기.
+    // 17.3 (PR #124 lint #7): 공식 patch note 에 명시된 값만 sim 정합 적용 (MordekaiserCarry mana 10/40).
+    // 인게임 측정 필요 값 (HP/AS/range/armor/MR/damage/role/initialMana except above) 은 여전히 미정의.
+    const ALLOWED_OVERRIDE_AUGMENTS = new Set([
+      'TFT17_Augment_MordekaiserCarry', // 17.3: mana 40/100 → 10/40 (공식 patch note)
+    ]);
     for (const cfg of CARRY_AUGMENTS) {
-      // statOverrides 슬롯 자체는 옵셔널 — 정의 안 되어있어야 정상 (현재).
-      expect(cfg.statOverrides ?? null).toBeNull();
+      if (ALLOWED_OVERRIDE_AUGMENTS.has(cfg.augmentApiName)) {
+        // 허용 augment — statOverrides 존재 OK
+        continue;
+      }
+      expect(cfg.statOverrides ?? null, `${cfg.augmentApiName} statOverrides 가 정의됐지만 ALLOWED_OVERRIDE_AUGMENTS 에 없음`).toBeNull();
     }
+  });
+
+  it('MordekaiserCarry statOverrides: 17.3 mana 10/40 (PR #124 lint #7 sim 정합)', () => {
+    const morde = CARRY_AUGMENTS.find(c => c.augmentApiName === 'TFT17_Augment_MordekaiserCarry');
+    expect(morde?.statOverrides?.initialMana).toBe(10);
+    expect(morde?.statOverrides?.mana).toBe(40);
+  });
+
+  it('MordekaiserCarry abilityData.shield: 17.3 [175,200,400] — applyMordekaiserProcCast 가 carry override 우선 read 검증', async () => {
+    // 위키 lint #7 (PR #123 검출, PR #124 fix) — applyMordekaiserProcCast 가 raw
+    // unit.champion.ability.variables.InitialShield 만 read 했었음. 본 가드는:
+    //   1. carryAugments.ts MordekaiserCarry.abilityData.shield = [175,200,400] (17.3 값)
+    //   2. applyMordekaiserProcCast 가 unit.mordekaiserCarryShield != null 시 우선 사용
+    const morde = CARRY_AUGMENTS.find(c => c.augmentApiName === 'TFT17_Augment_MordekaiserCarry');
+    expect(morde?.abilityData?.shield).toEqual([175, 200, 400]);
+
+    // 코드 fingerprint 가드 — applyMordekaiserProcCast 내부에서 mordekaiserCarryShield 분기 존재
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const combatLoopSrc = fs.readFileSync(
+      path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+      'utf8',
+    );
+    expect(combatLoopSrc).toMatch(/applyMordekaiserProcCast[\s\S]+?unit\.mordekaiserCarryShield/);
+    expect(combatLoopSrc).toMatch(/mordekaiserCarryShield\s*!==\s*null/);
+  });
+
+  it('applyHeroCarryTransforms mana override 는 item delta 보존 (PR #124 Codex P2 회귀 가드)', async () => {
+    // Codex P2 finding: statOverrides.mana = 40 절대값 덮어쓰기가 Tear-based item
+    // mana bonus 무시. fix — base champion stats 와의 delta 보존하도록 변경.
+    // 본 가드는 코드 fingerprint 로 itemDelta 분기 존재 검증.
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const combatLoopSrc = fs.readFileSync(
+      path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+      'utf8',
+    );
+    // mana 분기: base mana 와 현재 maxMana 차이 = itemDelta 계산 + override 에 더함
+    expect(combatLoopSrc).toMatch(/target\.champion\.stats\.mana[\s\S]+?itemDelta\s*=\s*target\.maxMana/);
+    expect(combatLoopSrc).toMatch(/target\.maxMana\s*=\s*so\.mana\s*\+\s*itemDelta/);
+    // initialMana 분기: 동일 패턴
+    expect(combatLoopSrc).toMatch(/target\.champion\.stats\.initialMana[\s\S]+?itemDelta\s*=\s*target\.currentMana/);
+    expect(combatLoopSrc).toMatch(/target\.currentMana\s*=\s*so\.initialMana\s*\+\s*itemDelta/);
   });
 });

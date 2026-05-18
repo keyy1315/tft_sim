@@ -238,15 +238,19 @@ export const CARRY_AUGMENTS: CarryAugmentConfig[] = [
     augmentApiName: 'TFT17_Augment_MordekaiserCarry',
     targetChampionApiName: 'TFT17_Mordekaiser',
     abilityOverride: { pattern: 'aoe_circle', radius: 1 },
+    // 17.3 sim 정합 (PR #124, 위키 lint #7 해소):
+    //   - initialMana=10, mana=40 → applyHeroCarryTransforms 가 자동 적용 (target.maxMana / target.currentMana)
+    //   - abilityData.shield → applyMordekaiserProcCast 가 carryCfg.shield 우선 read (mordekaiserCarryShield override)
+    statOverrides: { initialMana: 10, mana: 40 },
     abilityData: {
       name: '뜨거운 죽음',
-      desc: '주문력 전사로 변환. 패시브: 매초 반경 N칸 magic damage (시작 1, 6초마다 +1). 사용: 보호막 + 4초 동안 오라 damage 강화. (17.3: shield 225/250/300 → 175/200/400, mana 40/100 → 10/40)',
+      desc: '주문력 전사로 변환. 패시브: 매초 반경 N칸 magic damage (시작 1, 6초마다 +1). 사용: 보호막 + 4초 동안 오라 damage 강화. (17.3: shield 225/250/300 → 175/200/400, mana 40/100 → 10/40 — sim 정합 PR #124)',
       mana: '10/40',
       damage: [50, 75, 115], // 사용 시 오라 damage
       passiveDamage: [20, 30, 45], // 패시브 오라
       empoweredAuraDamage: [50, 75, 115],
       empoweredDuration: 4,
-      shield: [175, 200, 400], // 17.3: 225/250/300 → 175/200/400 (3성 대폭 buff, 1/2성 nerf)
+      shield: [175, 200, 400], // 17.3: 225/250/300 → 175/200/400 (3성 대폭 buff, 1/2성 nerf). PR #124: applyMordekaiserProcCast 가 mordekaiserCarryShield 통해 우선 read
       damageType: 'magic',
     },
   },
