@@ -76,7 +76,7 @@ augment 전용: `shield, shieldDuration, onAttackBonus, passiveDamage, empowered
 | `NasusCarry` (꽁!) | TFT17_Nasus | single | ✅ | ❌ | `bonusPerKill` |
 | `AatroxCarry` (별빛 연계) | TFT17_Aatrox | cone r=1 | ✅ | ❌ | 3-skill cycle (`skillCycleLabels`) + `novaDamage` + `slamDamage` |
 | `PoppyCarry` (정령단 속도) | TFT17_Poppy | single r=4 | ✅ | ❌ | `armorScale 1.0` + `spiritBounceOnKill` |
-| [[leona-carry]] (방패 여전사) | TFT17_Leona | line maxT=4, dash | ✅ | ❌ | `shield` + `baseDamageHpFrac 0.24` (17.3) + `secondaryDamage`. ✅ Lint #6 resolved (PR #127): const 제거 → stun 1.0 fixed. ⚠️ **Lint #9 (PR #128 검출)**: `abilityData.stunDuration [1.0,1.25,1.5]` starLevel별 의도 main pipeline 미반영 (config.stun fixed read) — 별도 sim PR 후보 |
+| [[leona-carry]] (방패 여전사) | TFT17_Leona | line maxT=4, dash | ✅ | ❌ | `shield` + `baseDamageHpFrac 0.24` (17.3) + `secondaryDamage`. ✅ Lint #6 resolved (PR #127) + ✅ **Lint #9 resolved (PR #129)**: starLevel별 stun `[1.0, 1.25, 1.5]` sim 적용 (main + OOR cast path 양쪽) |
 | `IvernMinionCarry` (빅뱅) | TFT17_IvernMinion | aoe_circle r=3, dash to_largest_cluster | ✅ | ❌ | `hexReduction 0.45` + `stunDuration` |
 | `JaxCarry` (저 별을 향해) | TFT17_Jax | self_buff AS+0.15 | ✅ | ❌ | `asGain` 영구 누적 + `onAttackBonus` |
 | `PykeCarry` (청부 살인마) | TFT17_Pyke | x_shape, dash to_lowest_hp | ✅ | ❌ | `tankBonusMultiplier 0.60` + `onKillRecastMultiplier 0.70` |

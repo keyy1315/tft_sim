@@ -8,6 +8,30 @@ format: newest first
 
 ## 2026-05-18
 
+### Lint resolved: stunDuration starLevel별 main pipeline 반영 (Lint finding 9 closed)
+- **Trigger**: PR #129 (`8abbba0`) 머지 완료 — 직렬 워크플로우
+- **위키 lint 사이클 완결 사례 (6번째 full-cycle)**:
+  - PR #128 wiki cleanup 중 Codex P2 catch — Lint #9 검출 ("starLevel별 stun sim 정합" 주장이 entry 정합 뿐, main pipeline 미read)
+  - PR #129 — Option A 채택. main pipeline 분기 확장 (`carryCfg?.abilityData?.stunDuration?.[starLevel-1] ?? config.stun`)
+  - PR #129 추가 Codex P2 catch — **OOR (out-of-range dash) cast path 누락** → main + OOR 양쪽 fix amend
+  - 본 cleanup PR — 위키 표기 drift → resolved
+- **위키 갱신 내역**:
+  - `augments/leona-carry.md` — `sim_active: partial → active`. Lint #6 + #9 모두 resolved. 패치 히스토리 PR #129 row + Lint #9 섹션 (Codex P2 amend 컨텍스트 + workflow 룰 도입 배경 명시)
+  - `mechanics/hero-augment-carry.md` Leona row — Lint #6 + #9 모두 resolved + starLevel별 stun sim 적용 명시
+  - `index.md` Leona description — Lint #6 + #9 resolved + main/OOR cast path 양쪽 fix 명시
+- **5단계 워크플로우 룰 도입 배경 — PR #129 amend 가 근거**:
+  - "cast path 3종 전수 확인" sub-rule (호출 순서 trace step 4 보강) — 위키 [[ability-targeting]] 의 "3 호출처 (main / recast / OOR fallback)" 정보를 fix workflow 도우미로 통합
+- **sim 정확도 개선 (positive impact)**:
+  - LeonaCarry starLevel별 stun [1.0, 1.25, 1.5] sim 적용 (main + OOR cast path 양쪽). 1성 변경 없음, 2★ 1.0→1.25, 3★ 1.0→1.5
+- **위키 lint 누적 (9건, 본 PR 후 6건 full-cycle 완결)**:
+  1~3: documented/resolved
+  4. Ability dead code triad — full-cycle ✅
+  5. carryAugments 17.3 drift — full-cycle ✅ (단 Mordekaiser 실제 미반영은 #7)
+  6. LeonaCarry duplicate config — full-cycle ✅ (PR #127 + #128). 단 stunDuration starLevel별은 #9 로 분리 → 본 PR 로 완결
+  7. Mordekaiser carry source drift — full-cycle ✅
+  8. GragasCarry duplicate + radius shadow — full-cycle ✅
+  9. **stunDuration starLevel별 main pipeline 미반영 — full-cycle ✅ (PR #129 main+OOR + 본 PR)**
+
 ### Lint resolved: LeonaCarry duplicate config + GragasCarry duplicate/radius shadow (Lint #6 + #8 동시 closed)
 - **Trigger**: PR #127 (`9e6ddb3`) 머지 완료 — 직렬 워크플로우
 - **위키 lint 사이클 완결 사례 — 4번째/5번째 full-cycle (동시 해소)**:
