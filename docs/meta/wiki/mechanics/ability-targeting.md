@@ -92,23 +92,24 @@ TFT axial 6 방향 중 horizontal (E/W = `[±1, 0]`) 제외, 4 diagonal directio
 ### `default` (unknown pattern)
 fallback = `[primaryTarget]` (single 과 동일). 안전 default.
 
-## ⚠️ Lint finding — Dead code triad (위키 검출 4번째 사례)
+## ✅ Lint finding resolved — Dead code triad 제거 (PR #117, `bab401b`, 2026-05-18)
 
-다음 3 식별자가 **0 호출처** (sim 미사용 dead code):
+위키 lint 사이클 완결 사례 (도입 후 2번째 full-cycle):
+- ingest (PR #113) 가 dead code triad 검출 → 코드 제거 PR (#117) → 본 cleanup PR.
 
-| 식별자 | 위치 | 상태 |
-|--------|------|------|
-| `AbilityTargetingType` | `src/types/index.ts:396` | 8 값 (current_target/farthest/nearest/lowest_hp/lowest_hp_ally/random/self/aoe_center) 정의되어 있으나 어떤 데이터/코드도 이 type 의 string 을 set/read 하지 않음 |
-| `findAbilityTarget` (singular) | `src/lib/simulator/systems/targeting.ts:71` | switch 8 케이스 구현되어 있으나 grep 결과 호출처 없음 (정의만 있음) |
-| `Ability.targeting` 필드 | `src/types/index.ts:439` (Ability interface) | `interface Ability` 의 `targeting: AbilityTargetingType` 필드 — 어떤 코드도 `.targeting` 으로 읽지 않음 |
+제거된 3 식별자 (PR #117 `bab401b`):
 
-**왜 dead 인가**: sim 은 `AbilityConfig.pattern` (위 9종) + `findAbilityTargets` (plural) 경로만 사용. legacy `Ability` interface 가 transition 중에 남은 잔재로 추정. 
+| 식별자 | 위치 (제거 전) | 상태 |
+|--------|---------------|------|
+| `AbilityTargetingType` | `src/types/index.ts:396` (8 string union) | ✅ 제거됨 |
+| `findAbilityTarget` (singular) | `src/lib/simulator/systems/targeting.ts:71` (switch 8 cases) | ✅ 제거됨 |
+| `Ability.targeting` 필드 | `src/types/index.ts:439` (Ability interface) | ✅ 제거됨 |
 
-**조치 제안 (sim 정확도 아님, 코드 클린업 차원)**:
-- 옵션 A: dead code 제거 (`AbilityTargetingType` type, `findAbilityTarget` 함수, `Ability.targeting` 필드)
-- 옵션 B: 보존하고 데드 표시 (`@deprecated` JSDoc) — 향후 어떤 챔프가 actual targeting 분기 필요 시 재활성 후보
+총 -76 lines (0 insertions). sim 정확도 영향 없음 — `pnpm vitest run tests/unit/simulator/` 449 passed 변화 없음.
 
-→ 별도 sim 클린업 PR 후보 (위키 차원 결정 아님).
+**Scope strict**: `Ability` interface 자체도 dead 이지만 PR #117 범위 외 — 후속 클린업 후보 ([[index]] 작성 우선순위 참조).
+
+> **왜 dead 였는가** (역사적 기록): sim 은 `AbilityConfig.pattern` (위 9종) + `findAbilityTargets` (plural) 경로만 사용. legacy `Ability` interface 의 targeting 필드와 helper 함수는 architecture transition 중에 남은 잔재.
 
 ## 패치 히스토리
 
@@ -116,7 +117,8 @@ fallback = `[primaryTarget]` (single 과 동일). 안전 default.
 |------|------|
 | (Set 17 초기) | `findAbilityTargets` 8 패턴 도입 (single/line/aoe_circle/cone/multi/bounce/global/self_buff) |
 | [[patch-17-2b]] (PR7-A) | `x_shape` 패턴 추가 — Pyke carry "X 모양 베기". 9 패턴 완성 |
-| (legacy 잔재) | `AbilityTargetingType` + `findAbilityTarget` (singular) + `Ability.targeting` 필드 — 도입 시점 미상, 현재 dead code |
+| (legacy 잔재) | `AbilityTargetingType` + `findAbilityTarget` (singular) + `Ability.targeting` 필드 — architecture transition 잔재 |
+| 2026-05-18 (PR #117, `bab401b`) | **legacy triad 제거** — `AbilityTargetingType` type, `findAbilityTarget` 함수, `Ability.targeting` 필드 모두 sim 코드에서 삭제 (-76 lines). 위키 lint #4 closed |
 
 ## sim 적용 상태 — `active`
 
@@ -133,10 +135,11 @@ fallback = `[primaryTarget]` (single 과 동일). 안전 default.
 ## Lint 체크리스트
 
 - [ ] 신규 챔프 abilityConfig 추가 시 9 패턴 중 하나로 매핑되는지 (`default` fallback 의존 금지)
-- [ ] `findAbilityTarget` (singular) / `AbilityTargetingType` / `Ability.targeting` — 사용자 결정 후 제거 또는 deprecated 표시
+- [x] `findAbilityTarget` (singular) / `AbilityTargetingType` / `Ability.targeting` — **제거 완료 (PR #117, `bab401b`, 2026-05-18)**
 - [x] `damageDecay` 실제 사용 챔프 검증 (2026-05-18 — PR #113 Codex P2 자기-fix). 6 챔프 + combatLoop:6479 active.
 - [x] `dot.duration` 실제 사용 챔프 검증 (2026-05-18 동일 fix). 8 챔프 + combatLoop:6390/7050 active.
 - [ ] 신규 패턴 추가 시 `AbilityPattern` type + `findAbilityTargets` switch 양쪽 갱신 필요
+- [ ] `Ability` interface 자체 dead 검증 — 사용처 0 확인됨 (PR #117 grep). 후속 정리 PR 후보
 
 ## 관련
 
