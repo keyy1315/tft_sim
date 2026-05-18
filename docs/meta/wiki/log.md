@@ -8,6 +8,33 @@ format: newest first
 
 ## 2026-05-18
 
+### Ingest: augments/leona-carry.md + augments/mordekaiser-carry.md — augments 폴더 정립
+- **Source** (`feedback_wiki_ingest_verify` + 함수 컨텍스트 룰 적용):
+  - `src/data/carryAugments.ts:171` (LeonaCarry entry) / `:238` (MordekaiserCarry entry)
+  - `src/lib/simulator/engine/combatLoop.ts:614` (LEONA_CARRY_ABILITY const) — 함수 컨텍스트 read 로 발견
+  - `src/lib/simulator/engine/combatLoop.ts:622-630` (getAbilityConfigForUnit flag 우선 분기 — duplicate config inconsistency 원인)
+  - `src/lib/simulator/engine/combatLoop.ts:2249-2250` (applyHeroCarryTransforms leonaCarryActive set)
+  - 공식 17.2 / 17.3 패치노트
+- **선정 이유**: 10 carry augment 중 가장 패치 변경 많은 2개 (17.2 도입 → 17.2b → 17.3 3회 변경)
+- **augments/ 폴더 컨벤션 정립** (schema.md 의 `augments/<id>.md` 첫 entry)
+- **⚠️ 신규 Lint finding (위키 검출 6번째 사례) — LeonaCarry duplicate config inconsistency**:
+  - `combatLoop.ts:614` `LEONA_CARRY_ABILITY` const `stun: 1.5`
+  - `carryAugments.ts:171` `LeonaCarry.abilityOverride` `stun: 1.0`, abilityData `stunDuration: [1.0, 1.25, 1.5]` starLevel별
+  - `getAbilityConfigForUnit:626` 가 `leonaCarryActive` flag 우선 분기 → legacy const 우선
+  - 결과: starLevel별 stun duration 의도 (`[1.0, 1.25, 1.5]`) 가 sim 에 반영 안 됨. 1성/2성도 1.5초 적용
+  - → 별도 sim 클린업 PR 후보 (옵션 A: const 제거 + flag 경로 우회 / 옵션 B: const 가 abilityData 참조 동적화)
+  - **GragasCarry 도 동일 패턴 추정** (`GRAGAS_CARRY_ABILITY` const + `gragasCarryActive` flag) — 다음 PR (GragasCarry 페이지) 에서 verify
+- **함수 컨텍스트 룰 가치 검증**: `grep LEONA_CARRY_ABILITY` 만 보고 const 정의 발견 → `getAbilityConfigForUnit` 함수 전체 read 로 flag 우선 분기 인식 → duplicate inconsistency 검출. 메모리 `feedback_wiki_ingest_verify` 의 "함수 컨텍스트 read" 룰이 정확히 작동
+- **부수 갱신 — hero-augment-carry.md 표**:
+  - LeonaCarry row: `baseDamageHpFrac 0.28` (drift) → `0.24` (17.3) + duplicate config lint 명시 + [[leona-carry]] 링크
+  - MordekaiserCarry row: shield/mana 17.3 값 명시 + passive 미반영 명시 + [[mordekaiser-carry]] 링크
+- **Cross-ref**:
+  - `index.md` Augments 섹션 활성화 (_미작성_ → 2 entries)
+  - `index.md` 작성 우선순위 갱신 (augments 나머지 8개로 1순위 — Gragas duplicate verify 가치 강조)
+- **위키 lint 누적 (6건)**:
+  1~5: 기존 (Fountain memory / "8 영웅 증강" / CLAUDE.md weight / dead code triad / carryAugments drift)
+  6. **본 ingest — LeonaCarry duplicate config inconsistency**
+
 ### Ingest: patches/patch-17-2.md — Set 17 메이저 패치 계보 완결
 - **Source** (`feedback_wiki_ingest_verify` 워크플로우):
   - 공식 17.2 패치노트 (URL 동일, 17.2 LIVE 본문 + 17.2b mid-patch 섹션 분리 추출)
