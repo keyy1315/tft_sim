@@ -76,11 +76,11 @@ augment 전용: `shield, shieldDuration, onAttackBonus, passiveDamage, empowered
 | `NasusCarry` (꽁!) | TFT17_Nasus | single | ✅ | ❌ | `bonusPerKill` |
 | `AatroxCarry` (별빛 연계) | TFT17_Aatrox | cone r=1 | ✅ | ❌ | 3-skill cycle (`skillCycleLabels`) + `novaDamage` + `slamDamage` |
 | `PoppyCarry` (정령단 속도) | TFT17_Poppy | single r=4 | ✅ | ❌ | `armorScale 1.0` + `spiritBounceOnKill` |
-| `LeonaCarry` (방패 여전사) | TFT17_Leona | line maxT=4, dash | ✅ | ❌ | `shield` + `baseDamageHpFrac 0.28` + `secondaryDamage` |
+| [[leona-carry]] (방패 여전사) | TFT17_Leona | line maxT=4, dash | ✅ | ❌ | `shield` + `baseDamageHpFrac 0.24` (17.3) + `secondaryDamage`. ⚠️ **duplicate config**: combatLoop `LEONA_CARRY_ABILITY` (stun 1.5) 가 carryAugments entry (stun 1.0 + stunDuration starLevel별) 를 shadow — 위키 lint #6 |
 | `IvernMinionCarry` (빅뱅) | TFT17_IvernMinion | aoe_circle r=3, dash to_largest_cluster | ✅ | ❌ | `hexReduction 0.45` + `stunDuration` |
 | `JaxCarry` (저 별을 향해) | TFT17_Jax | self_buff AS+0.15 | ✅ | ❌ | `asGain` 영구 누적 + `onAttackBonus` |
 | `PykeCarry` (청부 살인마) | TFT17_Pyke | x_shape, dash to_lowest_hp | ✅ | ❌ | `tankBonusMultiplier 0.60` + `onKillRecastMultiplier 0.70` |
-| `MordekaiserCarry` (뜨거운 죽음) | TFT17_Mordekaiser | aoe_circle r=1 | ✅ | ❌ | `passiveDamage` + `empoweredAuraDamage` + `shield` |
+| [[mordekaiser-carry]] (뜨거운 죽음) | TFT17_Mordekaiser | aoe_circle r=1 | ✅ | ❌ | `passiveDamage` (sim 미반영) + `empoweredAuraDamage` + `shield [175,200,400]` (17.3, 3성 대폭 buff) + mana `10/40` (17.3 단축) |
 | `GragasCarry` (자폭) | TFT17_Gragas | aoe_circle r=3, selfDamage | ✅ | ❌ | `healthCost 0.20` + `hexReduction 0.45` + `tankBonusMultiplier 0.60` |
 | `InvaderZed` (침략자 제드) | TFT17_Zed | self_buff (5단계) | ✅ | ❌ | stage 4-2 획득 전용 |
 

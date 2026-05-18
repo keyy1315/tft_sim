@@ -36,7 +36,8 @@ _미작성_
 
 ## Augments
 
-_미작성_
+- [[leona-carry]] (방패 여전사) — 17.2 도입, 3회 연속 변경 carry augment. ⚠️ duplicate config lint (combatLoop `LEONA_CARRY_ABILITY` const vs carryAugments entry)
+- [[mordekaiser-carry]] (뜨거운 죽음) — 17.2 도입, 3회 연속 변경. 17.3 3성 shield `[175,200,400]` 대폭 buff. Mordekaiser passive 매초 오라 sim 미반영
 
 ## Raw Sources (Layer 1)
 
@@ -49,7 +50,7 @@ _미작성_
 ## 작성 우선순위 (다음 후보)
 
 위키화 가치 높은 순:
-1. **augments 개별 페이지** — `LeonaCarry`, `GragasCarry`, `PykeCarry` 등 [[hero-augment-carry]] 의 entry 별 세부
+1. **augments 나머지 8개** — Gragas/Aatrox/Ivern/Jax/Pyke/Nasus/Poppy/Zed Carry. 특히 Gragas 는 LeonaCarry 와 동일 duplicate config 패턴 (`GRAGAS_CARRY_ABILITY` const + `gragasCarryActive` flag) verify 후 lint finding 보강
 2. **챔피언별** — Annie, Galio, Shen, Yasuo (이미 plan 문서 존재)
 3. **Poppy/Nasus 인게임 verify 후 statOverrides 적용** (Lint #5 잔존 TODO — 사용자 측정 필요)
 4. **`mechanics/ability-pattern-internals`** — `findAbilityTargets` 9 패턴 알고리즘 깊이 (line/bounce 알고리즘 디테일, getHexesInLine/Cone 헬퍼)
