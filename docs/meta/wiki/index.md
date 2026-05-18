@@ -39,6 +39,8 @@ _미작성_
 - [[leona-carry]] (방패 여전사) — 17.2 도입, 3회 연속 변경. ✅ Lint #6 resolved (PR #127) + ✅ Lint #9 resolved (PR #129): starLevel별 stun [1.0/1.25/1.5] sim 적용 (main + OOR cast path 양쪽)
 - [[mordekaiser-carry]] (뜨거운 죽음) — 17.2 도입, 3회 연속 변경. ✅ Lint #7 resolved (PR #124 source drift fix). Mordekaiser passive 매초 오라 N 확장 sim 미반영
 - [[gragas-carry]] (자폭) — 17.2 도입. ✅ Lint #8 resolved (PR #127) — 적군 AOE 반경 3칸 정상 작동 (이전 무력화)
+- [[aatrox-carry]] (별빛 연계) — 17.2 도입. 가장 복잡 carry — 3-skill cycle + N.O.V.A. + isolation. 17.3 변경 3건 sim 정합
+- [[pyke-carry]] (청부 살인마) — 17.2 도입. x_shape + onKillRecast cascade. ⚠️ Lint #10 (PR #131 검출): hero-augment-carry 의 "onKill hook 미구현" stale (실제 구현 완료, wiki cleanup 후보)
 
 ## Raw Sources (Layer 1)
 
@@ -51,8 +53,10 @@ _미작성_
 ## 작성 우선순위 (다음 후보)
 
 위키화 가치 높은 순:
-1. **augments 나머지 7개** — Aatrox/Ivern/Jax/Pyke/Nasus/Poppy/Zed Carry. entity-wide grep 으로 추가 lint 검출 가능성 (Aatrox 3-skill cycle / Pyke X-shape onKill 등 복잡 메커니즘)
-2. **flag 자체 dead 정리** (`gragasCarryActive` / `leonaCarryActive`) — sim 코드 사용처 0, 테스트 assertion 만 — 별도 PR 필요 (Lint #6/#8 후속)
-3. **챔피언별** — Annie, Galio, Shen, Yasuo (이미 plan 문서 존재)
-4. **Poppy/Nasus 인게임 verify 후 statOverrides 적용** (Lint #5 잔존 TODO — 사용자 측정 필요)
-5. **`mechanics/ability-pattern-internals`** — `findAbilityTargets` 9 패턴 알고리즘 깊이 (line/bounce 알고리즘 디테일, getHexesInLine/Cone 헬퍼)
+1. **augments 나머지 5개** — Ivern/Jax/Nasus/Poppy/Zed Carry. entity-wide grep 으로 추가 lint 검출 가능성
+2. **flag 자체 dead 정리** (`gragasCarryActive` / `leonaCarryActive`) — sim 코드 사용처 0, 테스트 assertion 만 (Lint #6/#8 후속)
+3. **Lint #10 cleanup** — `hero-augment-carry.md` 의 "Pyke onKill 미구현" stale 정정 (본 PR 에서 부분 정정, 후속 PR 로 더 깊이)
+4. **챔피언별** — Annie, Galio, Shen, Yasuo (이미 plan 문서 존재)
+5. **Poppy/Nasus 인게임 verify 후 statOverrides 적용** (Lint #5 잔존 TODO — 사용자 측정 필요)
+6. **integration test** — LeonaCarry / GragasCarry / AatroxCarry sim 통합 (cycle counter / 적군 AOE / starLevel별 stun 등)
+7. **OOR cast path 의 cycle/x_shape 일관성 verify** — Aatrox/Pyke 페이지의 follow-up verify 항목 (PR #129 stun 같은 패턴 가능성)
