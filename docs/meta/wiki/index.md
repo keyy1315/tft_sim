@@ -17,6 +17,7 @@ updated: 2026-05-18
 - [[stargazer-fountain]] — 별돌보미 우물 별자리. 17.2 inactive → 17.3 LIVE active
 - [[hero-augment-carry]] — 영웅 증강 활성 시 챔프 role + stat + ability 변환. 17.2b 도입, 10 augments configured
 - [[role-passive]] — 6 Role 별 마나/타게팅/AS 자동 분기. mana.ts + targeting.ts 통합. CLAUDE.md vs 코드 stale 3건 검출
+- [[ability-targeting]] — 9 패턴 기반 적중 hex 집합 결정. `findAbilityTargets` + `AbilityConfig.pattern`. dead code triad 검출
 
 ## Patches
 
@@ -47,8 +48,7 @@ _미작성_
 
 위키화 가치 높은 순:
 1. **`patches/patch-17-2`** — Fountain inactive 시기 컨텍스트 (17.2b 부모 패치)
-2. **`mechanics/ability-targeting`** — `findAbilityTarget` (AbilityTargetingType 분기). role-passive 와 별개의 타게팅 경로
-3. **`mechanics/spell-crit`** — 현재 PDCA 진행 중 feature
-4. **CLAUDE.md 갱신** — [[role-passive]] lint findings 반영 (타게팅 weight 표 + Specialist mana + Caster CC 문구)
-5. **augments 개별 페이지** — `LeonaCarry`, `GragasCarry`, `PykeCarry` 등 [[hero-augment-carry]] 의 entry 별 세부
-6. **챔피언별** — Annie, Galio, Shen, Yasuo (이미 plan 문서 존재)
+2. **`mechanics/spell-crit`** — 현재 PDCA 진행 중 feature
+3. **dead code 클린업 PR** — [[ability-targeting]] 가 검출한 `findAbilityTarget` / `AbilityTargetingType` / `Ability.targeting` 제거 또는 `@deprecated` 표시 (sim 정확도 아닌 코드 클린업)
+4. **augments 개별 페이지** — `LeonaCarry`, `GragasCarry`, `PykeCarry` 등 [[hero-augment-carry]] 의 entry 별 세부
+5. **챔피언별** — Annie, Galio, Shen, Yasuo (이미 plan 문서 존재)
