@@ -8,6 +8,27 @@ format: newest first
 
 ## 2026-05-18
 
+### Ingest: mechanics/role-passive.md
+- **Source**:
+  - `src/types/index.ts` (UnitRole 6종 type)
+  - `src/lib/simulator/systems/mana.ts` (ROLE_MANA_CONFIG + 3 gain helpers)
+  - `src/lib/simulator/systems/targeting.ts` (TARGETING_WEIGHT + findTarget)
+  - `src/lib/simulator/engine/combatLoop.ts` (FlatManaRestore aggregation, channelerInnateManaGain init)
+  - CLAUDE.md (마나 / 타게팅 룰 — *stale claim 검출 대조군*)
+- **합성 범위**:
+  - 6 Role 마나 표 (공격당 / 초당 / 피격 시) — 코드 ground truth
+  - 3 마나 gain 경로 흐름 (attack/tick/damage) + stun 차단 + 보너스 (FlatManaRestore, channelerInnateManaGain)
+  - 타게팅 4단계 (taunt → 거리 → role weight → seed RNG)
+  - role 변환 시 자동 따라오는 동작 ([[hero-augment-carry]] 와 cross-ref)
+- **⚠️ Lint findings (CLAUDE.md vs 코드 stale 3건)**:
+  1. **Targeting weight 5/6 role mismatch** — CLAUDE.md `Fighter/Marksman/Caster/Specialist=2, Assassin=1` vs 코드 `Fighter/Assassin=2, Marksman/Caster/Specialist=1`. 사용자 인지 필요 — Patch 15.1 spec 자체가 바뀐 건지 처음부터 잘못 적힌 건지 확인.
+  2. **Specialist 마나 "고유"** — CLAUDE.md 표기, 코드는 표준 (10/0/false). spec vs sim 차이.
+  3. **Caster CC-마나 차단** — CLAUDE.md "Caster 만", 코드는 모든 role 적용 (attack 자체가 stun 으로 막혀서).
+- **Cross-ref**:
+  - `index.md` Mechanics 섹션에 [[role-passive]] 추가
+  - `index.md` 우선순위: CLAUDE.md 갱신을 신규 후보로 추가, ability-targeting 신규 후보 추가
+- **Lint 가치 검증 (3번째)**: 위키 도입 후 stale 검출 사례 누적 — (1) Fountain inactive memory, (2) hero-augment-carry CARRY_AUGMENTS 8 vs 10건, (3) **본 ingest 의 CLAUDE.md weight/mana 표 3건**
+
 ### Ingest: mechanics/hero-augment-carry.md
 - **Source**:
   - `src/data/carryAugments.ts` (CarryAugmentConfig + CARRY_AUGMENTS 10건)
