@@ -8,6 +8,31 @@ format: newest first
 
 ## 2026-05-18
 
+### Ingest: patches/patch-17-2.md — Set 17 메이저 패치 계보 완결
+- **Source** (`feedback_wiki_ingest_verify` 워크플로우):
+  - 공식 17.2 패치노트 (URL 동일, 17.2 LIVE 본문 + 17.2b mid-patch 섹션 분리 추출)
+  - `public/data/tft_set17_augments.json` (Mordekaiser/Gragas/Leona Carry raw entry verify — line 168/584/66)
+  - `src/data/carryAugments.ts` (sim entry verify — line 238/254/171)
+- **합성 범위**:
+  - Trait 7카테고리 (Anima/Arbiter/Brawler/Challenger/Mecha/Psionic/Meeple/Stargazer/Timebreaker 리워크)
+  - Champion ~30건 (1~5코 tier 별)
+  - 신규 augment 5건 — **carry augment 3종 (Heat Death/Self-Destruct/Shieldmaiden) 게임 도입 시점** (sim 정식화는 17.2b)
+  - 조정 augment ~20건, item/artifact emblem nerf 다수
+  - System (Opening Encounters 리워크, Augment Distribution, God Armory, Loot)
+  - Bug fixes 30+ (sim 관련 발췌)
+- **패치 계보 명확화**:
+  - 17.1 (Set 17 출시) → **17.2 (본 페이지)** → 17.2b → 17.3
+  - 17.2 = carry augment 게임 도입 vs 17.2b = sim 정식화 — 두 시점 분리 명시
+- **Cross-ref**:
+  - `mechanics/stargazer-fountain.md` 패치 히스토리 17.2 LIVE row → `[[patch-17-2]]` 링크 + 공식 "Fountain pattern temporarily disabled" 인용
+  - `patches/patch-17-2b.md` 도입부 → `[[patch-17-2]]` 부모 링크
+  - `index.md` Patches 섹션 + 우선순위 갱신 (patch-17-2 완료 → augments 개별 페이지 1순위)
+- **검증 / 미확정 항목**:
+  - 17.2 LIVE 정확 날짜 — 공식 페이지 명시 없음
+  - 챔프 stat ~30건 sim 코드 정합 — 위키 차원 일괄 verify 안 함 (PR #107 직전 PR 들 추정)
+  - Divine Amendment augment sim 적용 상태
+  - New Recruit 17.2 (team size+1 + 3 four-costs) vs 17.2b (four-costs 3→1) — `tft_set17_augments.json:8380` 신병 entry 가 17.2b 최종값인지 verify
+
 ### Ingest: mechanics/spell-crit.md
 - **Source** (`feedback_wiki_ingest_verify` 워크플로우 — 코드 직접 grep 우선):
   - `src/lib/combat/spellCrit.ts` (computeSpellCanCrit / SPELL_CRIT_ITEMS / expectedSpellCritMultiplier / SPELL_CRIT_UNLOCK_BONUS)

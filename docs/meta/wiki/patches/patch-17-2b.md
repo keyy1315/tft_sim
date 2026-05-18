@@ -18,7 +18,7 @@ related:
 
 # Patch 17.2b — 2026-04-29 Mid-Patch Update
 
-17.2 LIVE 의 마이크로 패치. 17.3 LIVE (2026-05-13) 로 부분 갈음됨.
+[[patch-17-2]] LIVE 의 마이크로 패치. [[patch-17-3]] LIVE (2026-05-13) 로 부분 갈음됨.
 
 ## 변경 내역
 
