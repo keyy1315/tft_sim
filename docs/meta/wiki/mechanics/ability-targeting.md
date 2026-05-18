@@ -119,6 +119,7 @@ fallback = `[primaryTarget]` (single 과 동일). 안전 default.
 | [[patch-17-2b]] (PR7-A) | `x_shape` 패턴 추가 — Pyke carry "X 모양 베기". 9 패턴 완성 |
 | (legacy 잔재) | `AbilityTargetingType` + `findAbilityTarget` (singular) + `Ability.targeting` 필드 — architecture transition 잔재 |
 | 2026-05-18 (PR #117, `bab401b`) | **legacy triad 제거** — `AbilityTargetingType` type, `findAbilityTarget` 함수, `Ability.targeting` 필드 모두 sim 코드에서 삭제 (-76 lines). 위키 lint #4 closed |
+| 2026-05-18 (PR #119, `dc7137e`) | **legacy ability 잔재 완전 제거** — 남아있던 `Ability` interface + `AbilityEffect` interface + `EffectType` type 제거 (-18 lines). PR #117 합산 -94 lines |
 
 ## sim 적용 상태 — `active`
 
@@ -139,7 +140,7 @@ fallback = `[primaryTarget]` (single 과 동일). 안전 default.
 - [x] `damageDecay` 실제 사용 챔프 검증 (2026-05-18 — PR #113 Codex P2 자기-fix). 6 챔프 + combatLoop:6479 active.
 - [x] `dot.duration` 실제 사용 챔프 검증 (2026-05-18 동일 fix). 8 챔프 + combatLoop:6390/7050 active.
 - [ ] 신규 패턴 추가 시 `AbilityPattern` type + `findAbilityTargets` switch 양쪽 갱신 필요
-- [ ] `Ability` interface 자체 dead 검증 — 사용처 0 확인됨 (PR #117 grep). 후속 정리 PR 후보
+- [x] `Ability` interface 자체 dead 검증 — **제거 완료 (PR #119, `dc7137e`, 2026-05-18)**. 인접 `AbilityEffect` + `EffectType` 도 함께 제거 (cascaded dead)
 
 ## 관련
 

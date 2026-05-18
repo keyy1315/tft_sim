@@ -8,6 +8,20 @@ format: newest first
 
 ## 2026-05-18
 
+### Sim cleanup: Ability interface family 제거 (PR #117 후속, lint #4 보강)
+- **Trigger**: PR #119 (`dc7137e`) 머지 완료 — 직렬 워크플로우
+- **배경**: PR #117 는 위키 검출 triad 만 제거 (scope strict). PR #119 가 남은 `Ability` interface + 인접 type 까지 정리.
+- **제거 (cascaded dead — 모두 호출처 0)**:
+  - `EffectType` (7 string union)
+  - `AbilityEffect` interface
+  - `Ability` interface
+  - **총 -18 lines** (PR #117 + #119 합산 -94 lines)
+- **위키 갱신 내역**:
+  - `mechanics/ability-targeting.md` 패치 히스토리 표에 PR #119 row 추가 (legacy ability 잔재 완전 제거)
+  - Lint 체크리스트 — "Ability interface 자체 dead 검증 — 후속 정리 PR 후보" 항목 [x] 처리 + 커밋 `dc7137e` 명시
+- **검증 (PR #119)**: pnpm lint/typecheck/build 통과 + `pnpm vitest run tests/unit/simulator/` 449 passed (변화 없음)
+- **legacy ability 시스템 → AbilityConfig 통일 완결**: sim 어빌리티 경로가 architecture transition 완료된 상태로 정리됨 (`AbilityConfig` + `findAbilityTargets` 단일 경로)
+
 ### Lint resolved: AbilityTargetingType triad dead code (Lint finding 4 closed)
 - **Trigger**: PR #117 (`bab401b`) 머지 완료 — 직렬 워크플로우 적용
 - **위키 lint 사이클 완결 사례** (도입 후 2번째 full-cycle):
