@@ -28,18 +28,19 @@ related:
 
 [[patch-17-2]] LIVE 게임 도입 carry augment. Gold tier, Stage 2 only. 활성 시 Mordekaiser (`TFT17_Mordekaiser`) 가 가장 강한 1명 → `Fighter` 변환 + 매초 주변 aoe_circle magic damage 패시브 + 시전 시 보호막 + 강화된 오라 4초. **17.2 → 17.2b → 17.3 3회 연속 변경** ([[leona-carry]] 와 함께 가장 변경 잦은 carry augment).
 
-**⚠️ Multi-source drift** (PR #123 Codex P2 review 발견): LeonaCarry 와 달리 `mordekaiserCarryActive` 플래그/duplicate const 는 없으나, **`applyMordekaiserProcCast` (combatLoop.ts:939) + `tickMordekaiserProc` (line 969) 가 raw `unit.champion.ability.variables` 를 직접 read** → `carryAugments.ts:238` 의 일부 변수 (shield/mana/empoweredDuration 등) 가 실제 sim 에 사용 안 됨. 자세한 분석은 아래 "Lint finding #7" 섹션.
+**✅ Source-of-truth drift 해소 (PR #124, `3678add`, 2026-05-18)**: PR #123 Codex P2 review 가 검출한 `applyMordekaiserProcCast` raw vars 우선 read 이슈를 PR #124 가 Option A 로 해결. 이제 carry augment 활성 시 `carryAugments.ts:238` 의 `shield`/`mana` 값이 sim 에 정확히 반영. 자세한 history 는 아래 "Lint finding #7 (resolved)" 섹션.
 
 ## 변환 후 메커니즘
 
-- **role**: `Fighter` (default, statOverrides 미설정)
+- **role**: `Fighter` (default)
 - **ability pattern**: `aoe_circle, radius: 1`
+- **statOverrides (PR #124 신규)**: `initialMana: 10, mana: 40` (17.3 patch note 정합) — `applyHeroCarryTransforms` 가 item delta 보존하며 적용 (Tear/Blue Buff 등 mana-altering item bonus 위에 누적)
 - **cast 흐름**:
-  1. 시전자 보호막 부여 (shield `[175, 200, 400]` starLevel별, 17.3)
+  1. 시전자 보호막 부여 (shield `[175, 200, 400]` starLevel별, 17.3) — `applyMordekaiserProcCast` 가 `unit.mordekaiserCarryShield` 우선 read (PR #124 신규 필드)
   2. 4초 동안 오라 강화 (`empoweredAuraDamage` × 4초)
 - **패시브 (별도 hook 미구현)**:
   - 매초 반경 N칸 magic damage (시작 N=1, 6초마다 +1)
-  - sim 미반영 — Mordekaiser passive hook 부재
+  - sim 미반영 — Mordekaiser passive hook 부재 (LIVE 패시브 동작 일부만 `tickMordekaiserProc` 가 구현 — N=1 고정, 6초마다 +1 확장 안 됨)
 
 ## 변수 (carryAugments.ts:238 abilityData, 17.3 LIVE 기준)
 
@@ -59,47 +60,57 @@ related:
 |------|------|
 | [[patch-17-2]] LIVE | **게임 도입** — Self-Destruct/Shieldmaiden 과 함께 carry augment 3종 신규. 초기 shield `[175, 200, 250]` (17.2b plan doc "before" 표기) |
 | [[patch-17-2b]] (2026-04-29) | shield `[175,200,250]` → **`[225,250,300]`** (전반 buff). mana 변동 없음 추정. carry augment sim 정식화 (CarryAugmentConfig 도입) |
-| [[patch-17-3]] (2026-05-13) | shield `[225,250,300]` → **`[175,200,400]`** (1/2성 17.2 원복 + 3성 대폭 buff) / mana `40/100` → **`10/40`** (큰 폭 buff, 매우 빠른 발동). PR #115 (`39cbce2`) sim 정합 |
+| [[patch-17-3]] (2026-05-13) | shield `[225,250,300]` → **`[175,200,400]`** (1/2성 17.2 원복 + 3성 대폭 buff) / mana `40/100` → **`10/40`** (큰 폭 buff, 매우 빠른 발동). PR #115 (`39cbce2`) carryAugments.ts entry 갱신 |
+| 2026-05-18 (PR #124, `3678add`) | **sim 정합 완결** — PR #115 가 carryAugments entry 만 갱신했지만 `applyMordekaiserProcCast` 가 raw vars read 해서 sim 미반영이던 갭 해소. `CombatUnit.mordekaiserCarryShield` 필드 신설 + `applyHeroCarryTransforms` 가 carry abilityData.shield override 저장 + applyMordekaiserProcCast 가 우선 read. mana 도 statOverrides 적용 (item delta 보존). 회귀 가드 2건 추가 (451 → 452 tests). 위키 lint #7 closed |
 
 → **3성 shield 폭증 + mana 단축** 으로 17.3 에서 3성 Mordekaiser 의 Heat Death 가 강력한 carry 옵션으로 부상 (사용자 패치 의도 추정).
 
-## sim 적용 상태 — `partial`
+## sim 적용 상태 — `active` (17.3 정합 완결)
 
 ✅ **활성**:
 - role 변환 `Fighter` (default)
-- aoe_circle radius 1 cast (`carryAugments.ts:238` abilityOverride 사용 — `getAbilityConfigForUnit:627` findCarryAugment 경로)
-- cast `damage` (carryAugments entry 사용, line 659 `damageArr = carryCfg.abilityData.damage`)
+- aoe_circle radius 1 cast (`carryAugments.ts:238` abilityOverride — `getAbilityConfigForUnit:627` findCarryAugment 경로)
+- cast `damage` (carryAugments entry 사용)
+- **shield `[175, 200, 400]` 17.3 sim 정합 (PR #124)** — `CombatUnit.mordekaiserCarryShield` 필드 + `applyHeroCarryTransforms` 가 carry abilityData.shield override 저장 → `applyMordekaiserProcCast` 가 raw `InitialShield` 대신 우선 read
+- **mana `10/40` 17.3 sim 정합 (PR #124)** — `statOverrides: { initialMana: 10, mana: 40 }` + `applyHeroCarryTransforms` 가 base champion mana 와 delta 보존 (item bonus 보존, PR #124 Codex P2 catch 반영)
 
-❌ **미반영 — Lint finding #7 (위키 검출 7번째 사례, PR #123 Codex P2 review 발견)**:
+🔍 **미반영 / 검증 필요**:
+- Mordekaiser passive 매초 오라 (시작 N=1, 6초마다 +1) — `tickMordekaiserProc` 는 raw `DamagePerProc`/`ShieldPerProc` 사용. **반경 N 확장 (6초마다 +1)** 분기 미구현. 별도 sim 작업 필요
+- `empoweredAuraDamage` 4초 강화 — raw `Duration` vars 와 통합 검증 필요
+- statOverrides 인게임 측정 — Mordekaiser augment 활성 시 다른 stat (HP/armor/range 등) 변화 (사용자 측정 대기)
 
-`applyMordekaiserProcCast` (combatLoop.ts:939) + `tickMordekaiserProc` (line 969) 가 **raw `unit.champion.ability.variables` 직접 read**:
+## ✅ Lint finding #7 — RESOLVED (PR #124, `3678add`, 2026-05-18)
 
+### 검출 (PR #123 Codex P2 review)
+`applyMordekaiserProcCast` (combatLoop.ts:939) + `tickMordekaiserProc` (line 969) 가 raw `unit.champion.ability.variables` 직접 read:
 ```ts
 const vars = unit.champion.ability.variables;
 const initialShield = readVarByStar(vars.find(v => v.name === 'InitialShield')?.value, ...);
-const duration = readVarByStar(vars.find(v => v.name === 'Duration')?.value, ...);
 ```
 
-→ `carryAugments.ts:238` 의 다음 변수가 **sim 에 사용 안 됨**:
-- `shield` `[175, 200, 400]` (17.3) — raw `InitialShield` vars 가 실제 적용
-- `mana` `'10/40'` (17.3) — combatLoop 에서 `carryCfg.abilityData.mana` read 0건 (전체 코드 grep)
-- `empoweredDuration: 4` — raw `Duration` vars 가 실제 적용
-- `empoweredAuraDamage`, `passiveDamage` — `tickMordekaiserProc` 의 raw `DamagePerProc` / `ShieldPerProc` 사용
+→ `carryAugments.ts:238` 의 shield `[175,200,400]` (17.3) / mana `'10/40'` / empoweredDuration 모두 sim 에 사용 안 됨. **PR #115 의 17.3 정합 코드 변경이 sim 미반영**.
 
-**중대 결과**: **PR #115 의 Mordekaiser shield/mana 17.3 정합 코드 변경이 실제 sim 에 반영 안 됨**. PR #116 의 "resolved" 표기 부정확. raw champion variables (`public/data/tft_set17_champions.json` 의 InitialShield/Duration/DamagePerProc/ShieldPerProc) 가 17.3 값을 반영하고 있는지 별도 verify 필요.
+### Fix (PR #124, Option A 선택)
+1. `CombatUnit.mordekaiserCarryShield: readonly number[] | null` 필드 신규
+2. `applyHeroCarryTransforms` (combatLoop.ts:2252): MordekaiserCarry case → `target.mordekaiserCarryShield = cfg.abilityData?.shield ?? null`
+3. `applyMordekaiserProcCast` (line 943): `unit.mordekaiserCarryShield !== null ? carryShield : rawInitialShield`
+4. `MordekaiserCarry.statOverrides` 추가 (`initialMana: 10, mana: 40`)
+5. `applyHeroCarryTransforms` mana 적용에 **item delta 보존** 추가 (PR #124 Codex P2 catch — `target.maxMana = so.mana + itemDelta`)
 
-**조치 후보 (별도 sim 정확도 PR)**:
-- 옵션 A: `applyMordekaiserProcCast` 가 carry augment 활성 시 `carryCfg.abilityData` 우선 read (다른 carry 와 일관성)
-- 옵션 B: raw champion variables (InitialShield/Duration 등) 가 17.3 값 반영하도록 `tft_set17_champions.json` 검증/갱신. carryAugments.ts entry 의 shield/mana 필드는 제거 (raw vars 단일 source)
+→ 17.3 patch note Heat Death shield/mana 가 sim 에 정확히 반영. mana-altering item (Tear/Blue Buff 등) 보존.
+
+### 회귀 가드 (PR #124)
+- `MordekaiserCarry statOverrides: 17.3 mana 10/40` (mana 정합 검증)
+- `MordekaiserCarry abilityData.shield + override 분기` (code fingerprint)
+- `applyHeroCarryTransforms mana override 는 item delta 보존` (Codex P2 회귀 가드)
 
 ## Lint 체크리스트
 
-- [ ] **Mordekaiser carry shield/mana raw vars 적용 verify** — `tft_set17_champions.json` 의 InitialShield/Duration 이 17.3 값 반영하는지 (별도 sim 클린업 PR — Lint #7)
-- [ ] **`carryAugments.ts:238` 의 shield/mana/empoweredDuration 필드 정리** — raw vars 단일 source 이면 entry 에서 제거 권장
-- [ ] **PR #115/#116 의 "resolved" 표기 정확화** — patch-17-3.md / hero-augment-carry.md 의 Mordekaiser 표 row 정정 필요
-- [ ] Mordekaiser passive 매초 오라 — `tickMordekaiserProc` 가 raw `DamagePerProc` 로 구현되어 있는지 (line 969 컨텍스트 read 시 적용 site 확인 가능)
-- [ ] statOverrides 인게임 측정
-- [ ] 17.2 LIVE 초기 shield 값 — 17.2 패치노트 명시 없음
+- [x] **Mordekaiser carry shield/mana sim 정합** — PR #124 (`3678add`) 머지 완료. carry abilityData 우선 read + statOverrides item delta 보존
+- [ ] Mordekaiser passive 매초 오라 — `tickMordekaiserProc` 의 반경 N 확장 (6초마다 +1) 미구현
+- [ ] `empoweredAuraDamage` × `empoweredDuration` (4초) sim 적용 site verify
+- [ ] statOverrides (HP/armor/range 등) 인게임 측정 — 사용자 측정 대기
+- [ ] 17.2 LIVE 초기 shield 값 — 17.2 패치노트 명시 없음 (역사적 기록만)
 
 ## 17.2 ↔ 17.3 비교 (역사적 흥미)
 

@@ -80,11 +80,11 @@ augment 전용: `shield, shieldDuration, onAttackBonus, passiveDamage, empowered
 | `IvernMinionCarry` (빅뱅) | TFT17_IvernMinion | aoe_circle r=3, dash to_largest_cluster | ✅ | ❌ | `hexReduction 0.45` + `stunDuration` |
 | `JaxCarry` (저 별을 향해) | TFT17_Jax | self_buff AS+0.15 | ✅ | ❌ | `asGain` 영구 누적 + `onAttackBonus` |
 | `PykeCarry` (청부 살인마) | TFT17_Pyke | x_shape, dash to_lowest_hp | ✅ | ❌ | `tankBonusMultiplier 0.60` + `onKillRecastMultiplier 0.70` |
-| [[mordekaiser-carry]] (뜨거운 죽음) | TFT17_Mordekaiser | aoe_circle r=1 | ✅ | ❌ | `passiveDamage` (sim 미반영) + `empoweredAuraDamage` + `shield [175,200,400]` (17.3, 3성 대폭 buff) + mana `10/40` (17.3 단축) |
+| [[mordekaiser-carry]] (뜨거운 죽음) | TFT17_Mordekaiser | aoe_circle r=1 | ✅ | ✅ (PR #124: `initialMana: 10, mana: 40`) | `shield [175,200,400]` 17.3 sim 정합 (PR #124 `mordekaiserCarryShield` 필드) + mana item delta 보존 + `passiveDamage`/`empoweredAuraDamage` (passive hook 일부 미구현) |
 | `GragasCarry` (자폭) | TFT17_Gragas | aoe_circle r=3, selfDamage | ✅ | ❌ | `healthCost 0.20` + `hexReduction 0.45` + `tankBonusMultiplier 0.60` |
 | `InvaderZed` (침략자 제드) | TFT17_Zed | self_buff (5단계) | ✅ | ❌ | stage 4-2 획득 전용 |
 
-> **모든 augment 의 `statOverrides` 가 비어있음** — 사용자가 게임에서 augment 활성 후 stat 측정 작업 필요. 채워지면 sim 정확도 큰 폭 상승.
+> **statOverrides 채움 정책**: 사용자가 게임에서 augment 활성 후 stat 측정한 데이터로만 채움. 단 17.3 patch note 명시 값 (e.g., MordekaiserCarry mana 10/40) 은 PR #124 부터 적용 (item delta 보존 로직 추가). 대부분 augment 의 HP/armor/range/AS 등 stat 측정은 여전히 미완.
 
 ## role 변환 시 자동 따라오는 것
 
