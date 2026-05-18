@@ -124,16 +124,18 @@ fallback = `[primaryTarget]` (single 과 동일). 안전 default.
 - 9 패턴 전부 sim 동작
 - `combatLoop.ts` 3 호출처 (main / recast / OOR fallback)
 - carry augment override 작동 ([[hero-augment-carry]])
+- **`damageDecay` 적용 중** — 6 챔프 사용 (TFT16_Yunara/Gangplank/Caitlyn/Ryze, TFT17_Gnar/AurelionSol). `combatLoop.ts:6479` 에서 `dmg *= (1 - damageDecay)^ti` 적용 (타겟 인덱스별 감쇠)
+- **`dot.duration` 적용 중** — 8 챔프 사용 (TFT17_Nasus/Talon/Pantheon/Viktor/Diana/AurelionSol/Bard/Morgana). `combatLoop.ts:6390` (main) + `:7050` (OOR fallback) 양 경로 처리. `perTickDmg = mitigated / duration * TICK_DURATION`
 
-❌ **미완** (sim 정확도 영향 작음):
-- `damageDecay` 필드 — config 정의되어 있지만 현재 어떤 챔프도 사용 안 하는 듯 (별도 verify 필요)
-- `dot.duration` 만 있고 damage tick 분기 — 일부 챔프만 적용 중
+❌ **미완 / 검증 필요**:
+- (현재 본 페이지 범위에서 명확히 unused 인 ability config 필드 없음 — 정기 lint 시 재확인)
 
 ## Lint 체크리스트
 
 - [ ] 신규 챔프 abilityConfig 추가 시 9 패턴 중 하나로 매핑되는지 (`default` fallback 의존 금지)
 - [ ] `findAbilityTarget` (singular) / `AbilityTargetingType` / `Ability.targeting` — 사용자 결정 후 제거 또는 deprecated 표시
-- [ ] `damageDecay` 실제 사용 챔프 검증
+- [x] `damageDecay` 실제 사용 챔프 검증 (2026-05-18 — PR #113 Codex P2 자기-fix). 6 챔프 + combatLoop:6479 active.
+- [x] `dot.duration` 실제 사용 챔프 검증 (2026-05-18 동일 fix). 8 챔프 + combatLoop:6390/7050 active.
 - [ ] 신규 패턴 추가 시 `AbilityPattern` type + `findAbilityTargets` switch 양쪽 갱신 필요
 
 ## 관련
