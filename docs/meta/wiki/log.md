@@ -8,6 +8,17 @@ format: newest first
 
 ## 2026-05-18
 
+### Lint fix (PR #110 Codex P2): patches 파일명 prefix 통일
+- **Finding**: `patches/17-3.md` frontmatter `id: patch-17-3` 인데 파일명이 `17-3.md`. 다른 entity (traits/mechanics) 는 id와 파일명 일치. patches 만 prefix mismatch — `[[patch-17-3]]` Obsidian 링크 컨벤션 위반 (schema.md "id: 파일명과 일치" 규칙).
+- **Verify**: `[[patch-17-3]]` / `[[patch-17-2b]]` 가 9개 파일 27곳 사용 중. id/링크 통일 필요.
+- **Fix (옵션 A — 파일명 변경)**:
+  - `git mv patches/17-3.md  patches/patch-17-3.md`
+  - `git mv patches/17-2b.md patches/patch-17-2b.md`
+  - 기존 27개 `[[patch-17-*]]` 링크는 그대로 정합
+- **Schema 갱신**: `### patches/<id>.md` 섹션에 "파일명 `patch-` prefix 필수" 명시
+- **위 entries 의 path 참조 (예: "Ingest: patches/17-2b.md") 는 append-only 원칙 상 그대로 보존** (그 시점 기준 사실)
+- **Lint 가치 검증**: 위키 도입 후 첫 외부 review (Codex) 가 정확히 schema-implementation drift 를 잡음 — 향후 lint script 자동화 시 동일 패턴 검출 가능
+
 ### Ingest: patches/17-2b.md
 - **Source**: `docs/meta/set17-patch-17-2b-plan.md` (2026-04-30 plan doc)
 - **합성 범위**:

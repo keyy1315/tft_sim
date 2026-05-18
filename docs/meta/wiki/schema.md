@@ -64,7 +64,8 @@ tft_sim 은 **결정론적 TFT 전투 시뮬레이터**다. 시뮬레이션 정�
 - 동일 패턴. MVP 범위 외는 미작성 OK.
 
 ### `patches/<id>.md`
-- 패치 1개당 1페이지 (예: `17-2.md`, `17-2b.md`, `17-3.md`)
+- 패치 1개당 1페이지. **파일명은 `patch-` prefix 필수** (예: `patch-17-2.md`, `patch-17-2b.md`, `patch-17-3.md`)
+- frontmatter `id` 도 동일 prefix (예: `patch-17-3`) — Obsidian 스타일 `[[patch-17-3]]` 링크 정합
 - frontmatter: `id`, `live_date`, `status` (PBE/LIVE/obsoleted)
 - 해당 패치에서 변경된 entity 링크 모음
 
