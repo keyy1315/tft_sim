@@ -15,6 +15,7 @@ updated: 2026-05-18
 ## Mechanics
 
 - [[stargazer-fountain]] — 별돌보미 우물 별자리. 17.2 inactive → 17.3 LIVE active
+- [[hero-augment-carry]] — 영웅 증강 활성 시 챔프 role + stat + ability 변환. 17.2b 도입, 10 augments configured
 
 ## Patches
 
@@ -44,8 +45,8 @@ _미작성_
 ## 작성 우선순위 (다음 후보)
 
 위키화 가치 높은 순:
-1. **`mechanics/hero-augment-carry`** — carryAugments.ts 시스템 (17.2b 도입, statOverrides + 27변수 abilityData + 8 영웅 증강)
-2. **`patches/17-2`** — Fountain inactive 시기 컨텍스트 (17.2b 부모 패치)
-3. **`mechanics/role-passive`** — 코드에 흩어진 Role별 마나/타게팅 규칙 합성
-4. **`mechanics/spell-crit`** — 현재 PDCA 진행 중 feature
+1. **`patches/patch-17-2`** — Fountain inactive 시기 컨텍스트 (17.2b 부모 패치)
+2. **`mechanics/role-passive`** — 코드에 흩어진 Role별 마나/타게팅 규칙 합성 (CLAUDE.md mana 표 + `mana.ts:ROLE_MANA_CONFIG` 합성)
+3. **`mechanics/spell-crit`** — 현재 PDCA 진행 중 feature
+4. **augments 개별 페이지** — `LeonaCarry`, `GragasCarry`, `PykeCarry` 등 [[hero-augment-carry]] 의 entry 별 세부 (각 augment 의 패치 히스토리·미완 항목)
 5. **챔피언별** — Annie, Galio, Shen, Yasuo (이미 plan 문서 존재)

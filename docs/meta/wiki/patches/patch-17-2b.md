@@ -75,14 +75,12 @@ related:
 
 ## Hero Augment Carry 시스템 (17.2b 도입)
 
-17.2b 작업 중 PR #68/PR3 가 도입한 **carryAugments.ts** 시스템은 별도 메커니즘 페이지화 가치 있음 (현재 미작성). 핵심 골격:
+17.2b 작업 중 PR #68/PR3 가 `carryAugments.ts` 정식화 + 8 영웅 증강 abilityData 채움 + statOverrides 슬롯 도입. 시스템 상세는 [[hero-augment-carry]] 참조.
 
-- `CarryAugmentConfig.statOverrides` — augment 활성 시 챔프 stat 변경 (HP/armor/MR/AS/range 등)
-- `CarryAbilityData` 확장 — `damage` 외 27개 변수 (shield/healthCost/hexReduction/asGain/secondaryDamage 등)
-- `applyHeroCarryTransforms` — CARRY_AUGMENTS iterate, role + statOverrides + abilityData 일괄 적용
-- 8 영웅 증강 모두 `abilityData` 채움 (사용자 인게임 데이터 기반)
-
-→ 후속 ingest 후보: `mechanics/hero-augment-carry.md`
+17.2b 한정 변경분 ([[hero-augment-carry]] 패치 히스토리에서도 다룸):
+- `GragasCarry` healthCost 30%→**20%**, hexReduction 55%→**45%**
+- `MordekaiserCarry` shield 175/200/250 → **225/250/300**
+- `LeonaCarry` damage 110/165/250 → **90/135/225** AD
 
 ## 미완 (사용자 인게임 측정 후 채움 대상)
 

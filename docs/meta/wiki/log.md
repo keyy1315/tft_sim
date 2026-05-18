@@ -8,6 +8,27 @@ format: newest first
 
 ## 2026-05-18
 
+### Ingest: mechanics/hero-augment-carry.md
+- **Source**:
+  - `src/data/carryAugments.ts` (CarryAugmentConfig + CARRY_AUGMENTS 10건)
+  - `src/lib/simulator/engine/combatLoop.ts:applyHeroCarryTransforms` + `findStrongestUnitByApi`
+  - `wiki/raw/in-game/set17-hero-augments.md` (사용자 인게임 측정)
+  - `[[patch-17-2b]]` "Hero Augment Carry 시스템" 섹션
+- **합성 범위**:
+  - 변환 흐름 (role + statOverrides + ability override + flag)
+  - findStrongestUnitByApi tie-break (성급 → 아이템 수 → deterministic)
+  - CarryAugmentConfig 구조 (statOverrides 9 필드 + abilityData 27 변수)
+  - CARRY_AUGMENTS 표 (10건 — augment / 챔프 / pattern / abilityData / statOverrides / 핵심 변수)
+  - role 변환 시 자동 따라오는 것 (mana/AS baseline/타게팅 weight)
+  - 패치 히스토리 (17.2 LIVE → 17.2b 도입 → PR7-A/B/C → N.O.V.A.)
+  - 시뮬 적용 상태 (active/partial 분리)
+  - 미완 (사용자 측정 대기 statOverrides, onKill hook 분기 등)
+- **Cross-ref**:
+  - `patches/patch-17-2b.md` "Hero Augment Carry 시스템" 섹션을 [[hero-augment-carry]] 링크로 축약 (17.2b 한정 변경분 3건만 남김)
+  - `index.md` Mechanics 섹션에 [[hero-augment-carry]] 추가
+  - `index.md` "작성 우선순위" 1번 제거 (완료) → 다음 후보는 patches/patch-17-2 또는 mechanics/role-passive
+- **Lint 관찰**: CARRY_AUGMENTS 가 10건인데 plan doc 은 "8 영웅 증강"이라 표기 — 이 페이지에서 10건 (Nasus, 8 hero augment, Zed special) 명확화
+
 ### Lint fix (PR #110 Codex P2): patches 파일명 prefix 통일
 - **Finding**: `patches/17-3.md` frontmatter `id: patch-17-3` 인데 파일명이 `17-3.md`. 다른 entity (traits/mechanics) 는 id와 파일명 일치. patches 만 prefix mismatch — `[[patch-17-3]]` Obsidian 링크 컨벤션 위반 (schema.md "id: 파일명과 일치" 규칙).
 - **Verify**: `[[patch-17-3]]` / `[[patch-17-2b]]` 가 9개 파일 27곳 사용 중. id/링크 통일 필요.
