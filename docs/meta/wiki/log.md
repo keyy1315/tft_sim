@@ -8,6 +8,34 @@ format: newest first
 
 ## 2026-05-18
 
+### Ingest: augments/gragas-carry.md — 2 lint findings 동시 검출 (Lint #8 sub-A + sub-B)
+- **Source** (`feedback_wiki_ingest_verify` 4단계 워크플로우 적용 — entity-wide grep 핵심):
+  - `src/data/carryAugments.ts:254` (GragasCarry entry — abilityOverride radius 3)
+  - `src/lib/simulator/engine/combatLoop.ts:604` (GRAGAS_CARRY_ABILITY const — radius 0) — entity-wide grep `"Gragas"` 로 발견
+  - `combatLoop.ts:626` getAbilityConfigForUnit flag 우선 분기
+  - `combatLoop.ts:6259-6299` 자폭 self damage + 적군 AOE inline 분기 (함수 컨텍스트 read)
+  - `combatLoop.ts:2264` applyHeroCarryTransforms gragasCarryActive set
+- **⚠️ Lint finding #8 (2 sub-findings 동시)**:
+  - **Sub-A (LeonaCarry #6 와 동일 패턴)**: `GRAGAS_CARRY_ABILITY` const `radius: 0` vs `carryAugments.ts:GragasCarry.abilityOverride.radius: 3` — 두 source 다른 값
+  - **Sub-B (sim 정확도 큰 갭)**: main cast pipeline line 6288 `const aoeRadius = config.radius ?? 3` 에서 `0 ?? 3 = 0` (0 은 nullish 아님). `dist > 0` 인 모든 적 skip → **caster 같은 hex 적군만 hit (사실상 0명)** → patch note "반경 3칸 magic damage" 의도 무력화. PR4 (17.2b 후속) 가 적군 AOE 코드 추가했지만 radius 0 때문에 비활성. carryAugments entry `radius: 3` 의도 sim 미반영
+- **Mordekaiser pattern (#7) 과 비교**:
+  - GragasCarry: LeonaCarry duplicate const 패턴 (#6) + radius shadow 결과 더 심각 (적군 AOE 무력화)
+  - 다행히 source drift (raw vars vs carryAugments) 패턴은 없음 — `applyGragasCast` / `tickGragas` 같은 specific helper 없음. main cast pipeline inline 분기 (line 6259-6299) 가 carryAugments abilityData 직접 read
+- **권장 조치** (별도 sim 정확도 PR — index.md 우선순위 1번 등록):
+  - **옵션 B 권장**: `LEONA_CARRY_ABILITY` + `GRAGAS_CARRY_ABILITY` const 둘 다 제거 + flag 경로 우회 → carryAugments entry 단일 source. **Lint #6 + #8 동시 해소**
+- **Cross-ref 갱신**:
+  - `mechanics/hero-augment-carry.md` Gragas row — Lint #8 명시 + [[gragas-carry]] 링크
+  - `index.md` Augments 섹션 [[gragas-carry]] 추가 + 우선순위 1번 갱신 (#6+#8 통합 PR 강조)
+- **위키 lint 누적 (8건, 3건 full-cycle 완결)**:
+  1~5: documented/resolved (4 full-cycle)
+  6. LeonaCarry duplicate config — open
+  7. Mordekaiser carry source drift — full-cycle ✅
+  8. **GragasCarry duplicate config + radius shadow bug — 본 PR 검출, sim 정확도 PR 후보 (Lint #6 와 동시 해소 권장)**
+- **entity-wide grep 룰 가치 누적 검증 (3번째)**:
+  1. PR #123 Mordekaiser drift 검출 (룰 도입 배경)
+  2. PR #124 메모리 적용 후 fix
+  3. **본 PR Gragas duplicate + radius shadow 검출** (메모리 룰 enforcement 효과 — 같은 lint cycle 빠른 검출)
+
 ### Lint resolved: Mordekaiser carry source-of-truth drift (Lint finding 7 closed)
 - **Trigger**: PR #124 (`3678add`) 머지 완료 — 직렬 워크플로우
 - **위키 lint 사이클 완결 사례** (도입 후 3번째 full-cycle):
