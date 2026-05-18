@@ -202,5 +202,5 @@ abilityData 슬롯은 모두 채워두되 시뮬 cast 로직만 후속 진행.
 
 - 시뮬 적용 위치: `src/data/carryAugments.ts`, `src/lib/simulator/engine/combatLoop.ts:applyHeroCarryTransforms`
 - 마나 재생 룰: `src/lib/simulator/systems/mana.ts:ROLE_MANA_CONFIG`
-- 17.2b 패치 계획: [`set17-patch-17-2b-plan.md`](./set17-patch-17-2b-plan.md)
+- 17.2b 패치 정리: `[[patch-17-2b]]` (구 `set17-patch-17-2b-plan.md` → 2026-05-18 ingest 후 archived)
 - 17.2b 출처 URL: <https://teamfighttactics.leagueoflegends.com/en-us/news/game-updates/teamfight-tactics-patch-17-2/>
