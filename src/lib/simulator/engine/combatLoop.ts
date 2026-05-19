@@ -7344,8 +7344,13 @@ export function simulateCombat(
           // → carry/non-carry 무관 dash/self_buff caster 의 흡혈 sim 미반영.
           // PR #140 Codex P2 amend 시 발견 (Jax damage omnivamp 정합 점검 중 OOR omnivamp 부재 검출).
           // grievousReduction + healAmp 모두 main 과 일관 적용.
+          // codex P2 (PR #141): grievousReduction 은 abilityTarget (dash 후 실제 primary hit target)
+          // 기준 — OOR dash 가 retarget (to_lowest_hp/to_farthest/to_backline 등) 시 target 은
+          // pre-dash target 이라 잘못된 unit 의 augmentGrievousWounds 참조 회귀 가드.
+          // main pipeline 의 동일 패턴 (line 6907 target.augmentGrievousWounds) 도 같은 잠재 버그
+          // — Lint #16 후보 등록 (별도 PR).
           if (unit.omnivamp > 0 && totalAbilityDmg > 0) {
-            const grievousReductionOOR = target.augmentGrievousWounds > 0 ? (1 - target.augmentGrievousWounds) : 1;
+            const grievousReductionOOR = abilityTarget.augmentGrievousWounds > 0 ? (1 - abilityTarget.augmentGrievousWounds) : 1;
             const oorHeal = totalAbilityDmg * unit.omnivamp * grievousReductionOOR * (1 + (unit.healAmp ?? 0));
             applyOmnivampHealWithMeleeShield(unit, oorHeal);
           }

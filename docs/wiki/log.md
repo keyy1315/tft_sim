@@ -8,7 +8,7 @@ format: newest first
 
 ## 2026-05-19
 
-### Sim fix: OOR cast path omnivamp hook 추가 — Lint #15 ✅ resolved (PR #141)
+### Sim fix: OOR cast path omnivamp hook 추가 — Lint #15 ✅ resolved (PR #141 + codex P2 amend)
 
 - **Source**: PR #140 Codex P2 amend 시 발견 (Jax damage omnivamp 정합 점검 중 OOR cast path 의 omnivamp hook 부재 검출)
 - **문제**: main+OOR cast post-processing 비대칭
@@ -27,6 +27,8 @@ format: newest first
   - `pnpm typecheck` pass
   - 기존 16/16 test pass 유지 (regression 없음)
   - OOR cast path omnivamp 검증은 actual-data diff 또는 인게임 측정으로 후속 verify
+- **codex P2 amend (PR #141 amend)** — grievousReduction 의 `target.augmentGrievousWounds` 사용은 OOR dash retarget (to_lowest_hp/to_farthest/to_backline 등) 시 잘못된 unit 참조. `target` = pre-dash 변수 (main loop findTarget 결과), 실제 damage 는 `abilityTarget` (dash 결과) 기준. → `abilityTarget.augmentGrievousWounds` 로 변경.
+- **Lint #16 후보 등록**: main pipeline 의 동일 패턴 (`combatLoop.ts:6907` `target.augmentGrievousWounds`) 도 같은 잠재 버그 — Aatrox/Pyke/IvernMinion carry 가 main pipeline 에서 dash 진입 시 동일 retarget 가능. main+OOR 양쪽 abilityTarget 으로 변경 별도 PR.
 - **메모리 룰 후보**: cast loop 의 main+OOR post-cast hook (omnivamp / Fountain / on_cast) 비대칭은 회귀 위험. main 에 hook 추가 시 OOR 도 동시에 추가 점검 필수 (cast path 3종 룰의 응용)
 
 ### Sim fix: JaxCarry damage self_buff + damage 양립 분기 — Lint #11-A ✅ resolved (PR #140 + codex P2 amend)
