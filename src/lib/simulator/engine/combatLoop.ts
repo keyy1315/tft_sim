@@ -6854,6 +6854,54 @@ export function simulateCombat(
               applyCarryPostCastEffects(unit, abilityTargets, carryCfg);
             }
 
+            // === PR #140 Lint #11-A 해소: JaxCarry self_buff cast 시 target magic damage ===
+            // desc: "사용: 대상 magic damage". self_buff 패턴이 rawAbilityDmgBase=0 강제 (line 6266,
+            // self-hit 회귀 방지) 라 carry abilityData.damage 미반영. jaxCarryActive 가드
+            // (selected single-carry semantics — PR #135 Layer 1 패턴) + abilityData.damage 존재 가드.
+            // damageAmp / Tank 보너스 (invention/madreds/graves) / sniper / mfReplicator / crit
+            // 모두 main cast loop (line ~6435+) 와 일관 적용. mitigation pipeline 표준 helper 사용.
+            // cast path 3종 룰 (PR #129): OOR cast path 에도 동일 분기 추가 (아래 line ~7140+).
+            // **위치**: 일반 cast damage / applyCarryPostCastEffects 직후 + omnivamp/Fountain hook
+            // 직전 (codex P2 PR #140: Jax damage 가 omnivamp/Fountain heal 정합 반영되도록).
+            if (unit.jaxCarryActive && carryCfg?.abilityData?.damage && target.state !== 'dead') {
+              const jaxDmgArr = carryCfg.abilityData.damage;
+              const jaxDmgBase = jaxDmgArr[unit.starLevel - 1] ?? jaxDmgArr[0];
+              const jaxDmgType: DamageType = carryCfg.damageTypeOverride
+                ?? carryCfg.abilityData.damageType
+                ?? 'magic';
+              const jaxRawDmg = jaxDmgType === 'magic'
+                ? jaxDmgBase * (1 + unit.stats.ap / 100)
+                : jaxDmgBase;
+              let jaxDamageAmp = unit.damageAmp;
+              if (unit.inventionTankDamageAmp > 0 && target.role === 'Tank') jaxDamageAmp += unit.inventionTankDamageAmp;
+              if (unit.madredsTankDamageAmp > 0 && target.role === 'Tank') jaxDamageAmp += unit.madredsTankDamageAmp;
+              if (unit.gravesTankDamageAmp > 0 && target.role === 'Tank') jaxDamageAmp += unit.gravesTankDamageAmp;
+              jaxDamageAmp += computeSniperDamageAmp(unit, target);
+              if (unit.mfReplicatorEffectiveness > 0) jaxDamageAmp += unit.mfReplicatorEffectiveness;
+              let jaxAmplified = jaxRawDmg * (1 + jaxDamageAmp);
+              if (unit.spellCanCrit && rng.next() < unit.stats.critChance) {
+                jaxAmplified *= unit.stats.critMultiplier;
+              }
+              totalRawAbilityDmg += jaxAmplified;
+              const jaxEffectiveDmg = applyAbilityMitigation(unit, target, jaxAmplified, jaxDmgType, eventBus, tick);
+              target.currentHp -= jaxEffectiveDmg;
+              target.totalDamageTaken += jaxEffectiveDmg;
+              unit.totalDamageDealt += jaxEffectiveDmg;
+              totalAbilityDmg += jaxEffectiveDmg;
+
+              const jaxLog: CombatLog = {
+                tick, time, type: 'ability',
+                sourceId: unit.id, targetId: target.id,
+                value: Math.round(jaxEffectiveDmg),
+                message: `${unit.champion.name} carry cast! ${target.champion.name}에게 ${Math.round(jaxEffectiveDmg)} ${jaxDmgType === 'magic' ? '마법' : '물리'} 피해`,
+              };
+              logs.push(jaxLog);
+              tickLogs.push(jaxLog);
+
+              // 별돌보미 뱀(Serpent) — JaxCarry cast 도 동일 적용 (cast loop ability damage 일관)
+              triggerSerpentPoison(unit, target, jaxEffectiveDmg);
+            }
+
             // 전체 피해량 기반 흡혈 — healAmp 곱셈 적용.
             if (unit.omnivamp > 0 && totalAbilityDmg > 0) {
               const grievousReduction = target.augmentGrievousWounds > 0 ? (1 - target.augmentGrievousWounds) : 1;
@@ -6948,52 +6996,6 @@ export function simulateCombat(
               if (config.selfBuff.ad) unit.stats.damage += config.selfBuff.ad;
               if (config.selfBuff.ap) unit.stats.ap += config.selfBuff.ap;
               if (config.selfBuff.durability) unit.damageReduction += config.selfBuff.durability;
-            }
-
-            // === PR #140 Lint #11-A 해소: JaxCarry self_buff cast 시 target magic damage ===
-            // desc: "사용: 대상 magic damage". self_buff 패턴이 rawAbilityDmgBase=0 강제 (line 6266,
-            // self-hit 회귀 방지) 라 carry abilityData.damage 미반영. jaxCarryActive 가드
-            // (selected single-carry semantics — PR #135 Layer 1 패턴) + abilityData.damage 존재 가드.
-            // damageAmp / Tank 보너스 (invention/madreds/graves) / sniper / mfReplicator / crit
-            // 모두 main cast loop (line ~6435+) 와 일관 적용. mitigation pipeline 표준 helper 사용.
-            // cast path 3종 룰 (PR #129): OOR cast path 에도 동일 분기 추가 (아래 line 7133+).
-            if (unit.jaxCarryActive && carryCfg?.abilityData?.damage && target.state !== 'dead') {
-              const jaxDmgArr = carryCfg.abilityData.damage;
-              const jaxDmgBase = jaxDmgArr[unit.starLevel - 1] ?? jaxDmgArr[0];
-              const jaxDmgType: DamageType = carryCfg.damageTypeOverride
-                ?? carryCfg.abilityData.damageType
-                ?? 'magic';
-              const jaxRawDmg = jaxDmgType === 'magic'
-                ? jaxDmgBase * (1 + unit.stats.ap / 100)
-                : jaxDmgBase;
-              let jaxDamageAmp = unit.damageAmp;
-              if (unit.inventionTankDamageAmp > 0 && target.role === 'Tank') jaxDamageAmp += unit.inventionTankDamageAmp;
-              if (unit.madredsTankDamageAmp > 0 && target.role === 'Tank') jaxDamageAmp += unit.madredsTankDamageAmp;
-              if (unit.gravesTankDamageAmp > 0 && target.role === 'Tank') jaxDamageAmp += unit.gravesTankDamageAmp;
-              jaxDamageAmp += computeSniperDamageAmp(unit, target);
-              if (unit.mfReplicatorEffectiveness > 0) jaxDamageAmp += unit.mfReplicatorEffectiveness;
-              let jaxAmplified = jaxRawDmg * (1 + jaxDamageAmp);
-              if (unit.spellCanCrit && rng.next() < unit.stats.critChance) {
-                jaxAmplified *= unit.stats.critMultiplier;
-              }
-              totalRawAbilityDmg += jaxAmplified;
-              const jaxEffectiveDmg = applyAbilityMitigation(unit, target, jaxAmplified, jaxDmgType, eventBus, tick);
-              target.currentHp -= jaxEffectiveDmg;
-              target.totalDamageTaken += jaxEffectiveDmg;
-              unit.totalDamageDealt += jaxEffectiveDmg;
-              totalAbilityDmg += jaxEffectiveDmg;
-
-              const jaxLog: CombatLog = {
-                tick, time, type: 'ability',
-                sourceId: unit.id, targetId: target.id,
-                value: Math.round(jaxEffectiveDmg),
-                message: `${unit.champion.name} carry cast! ${target.champion.name}에게 ${Math.round(jaxEffectiveDmg)} ${jaxDmgType === 'magic' ? '마법' : '물리'} 피해`,
-              };
-              logs.push(jaxLog);
-              tickLogs.push(jaxLog);
-
-              // 별돌보미 뱀(Serpent) — JaxCarry cast 도 동일 적용 (cast loop ability damage 일관)
-              triggerSerpentPoison(unit, target, jaxEffectiveDmg);
             }
 
             // === 아군 전체 버프 ===

@@ -8,7 +8,7 @@ format: newest first
 
 ## 2026-05-19
 
-### Sim fix: JaxCarry damage self_buff + damage 양립 분기 — Lint #11-A ✅ resolved (PR #140)
+### Sim fix: JaxCarry damage self_buff + damage 양립 분기 — Lint #11-A ✅ resolved (PR #140 + codex P2 amend)
 
 - **Source**: 위키 lint #11-A (JaxCarry damage 필드 self_buff 패턴 미반영, PR #132 검출)
 - **설계 결정**: Option A 채택 — self_buff 패턴 + abilityData.damage 양립 분기 신규 추가
@@ -27,6 +27,8 @@ format: newest first
 - **테스트** (`hero-carry-augments.test.ts` 1 case 추가, 전체 16/16 pass):
   - JaxCarry cast 시 target magic damage 적용 (totalDamageDealt > 0 + carry cast log 검출)
 - **위키 cleanup**: jax-carry.md sim_active partial → active. Lint #11-A ✅ resolved 기록. damage 필드 ❌ → ✅
+- **codex P2 amend (PR #140 amend)** — Jax damage 분기가 self_buff 분기 다음에 위치 (line 6953+) 했으나 main pipeline omnivamp/Fountain hook (line 6858-6866) 보다 **뒤에** 있어 Jax damage 가 omnivamp/Fountain heal 에 누락. **해소**: Jax damage 분기를 `applyCarryPostCastEffects` 직후 + omnivamp/Fountain hook 직전 (line 6857 즈음) 으로 이동. self_buff 분기는 그대로 (sequence 변경 무해 — selfBuff.attackSpeed 는 future attack 영향이라 cast damage 와 무관).
+- **Lint #15 후보 등록**: OOR cast path 에 omnivamp hook 자체 부재 — `triggerFountainHeal` 만 있고 omnivamp 없음. main 와 OOR 의 cast post-processing 비대칭. 별도 PR (영향: dash/self_buff cast 의 omnivamp heal 모두 누락 — Talon/Corki/Warwick/MasterYi 등)
 - **잔존**:
   - **MS (이동속도) gain** — abilityData movementSpeed 필드 없음. desc "AS/MS" 중 MS 부분 sim 미반영 (낮은 우선순위)
   - **statOverrides** 인게임 측정 (HP/AS base/range)
