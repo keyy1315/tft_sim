@@ -3,8 +3,8 @@ id: hero-augment-carry
 type: mechanic
 display_name_kr: 영웅 증강 carry 변환
 current_patch_status: active
-sim_active: partial   # role/ability 활성, statOverrides 슬롯 비어있는 augment 다수
-last_verified: 2026-05-18
+sim_active: active   # 17.2b/17.3 carry-specific 메커니즘 모두 sim 도달 (Lint #5/#10/#11/#12/#14/#15/#16 resolved). statOverrides 슬롯만 일부 잔존 (인게임 측정 대기)
+last_verified: 2026-05-19 (Lint #10 deep cleanup, PR #146)
 sources:
   - src/data/carryAugments.ts (CarryAugmentConfig + CARRY_AUGMENTS)
   - src/lib/simulator/engine/combatLoop.ts (applyHeroCarryTransforms, findStrongestUnitByApi)
@@ -30,9 +30,10 @@ augmentApiNames 에서 active hero augment 발견
 findStrongestUnitByApi(targetChampionApiName) — 대상 챔프 1명 선정
   ↓
 1. role 변환  → statOverrides.role ?? 'Fighter' (default)
-2. stat 적용 → statOverrides 의 정의된 필드만 (undefined = 기존 유지)
-3. ability  → getAbilityConfigForUnit 에서 findCarryAugment lookup
-4. flag     → gragasCarryActive / leonaCarryActive (분기용, 호환 보존)
+2. stat 적용 → statOverrides 의 정의된 필드만 (undefined = 기존 유지). rangeOverride 도 selected target 에 inline 적용 (PR #144 amend — PoppyCarry range 4)
+3. ability  → getAbilityConfigForUnit 에서 findSelectedCarryAugment lookup (PR #144 codex P1 amend: selected single-carry semantics 일반화)
+4. selectedCarryAugment → 모든 carry 에 일관 set (PR #144). non-selected 카피는 carry-specific 분기 진입 안 함
+5. legacy flag → gragasCarryActive / leonaCarryActive / jaxCarryActive / nasusCarryActive (호환 보존, 점진 deprecate 후보)
 ```
 
 ### `findStrongestUnitByApi` tie-break
@@ -122,22 +123,28 @@ augment 전용: `shield, shieldDuration, onAttackBonus, passiveDamage, empowered
 검증: pnpm lint/typecheck/build 통과 + `pnpm vitest run tests/unit/simulator/` 449 passed.
 자세한 매핑은 [[patch-17-3]] "조정 Augments — Champion augments" 참조.
 
-## 시뮬 적용 상태 — `partial`
+## 시뮬 적용 상태 — `active`
 
 ✅ **활성**:
 - 10개 augment 모두 abilityData 채워짐 → cast damage 시뮬 정확
 - role 변환 + ability pattern + dash + selfDamage 적용
 - 17.2b 변경분 (Gragas/Mordekaiser/Leona) 정확 반영
-- **17.3 변경분 (Leona/Mord/Jax/Aatrox/IvernMinion 5건) 정확 반영** (PR #115, `39cbce2`)
+- **17.3 변경분 (Leona/Mord/Jax/Aatrox/IvernMinion 5건) 정확 반영** (PR #115)
+- **Aatrox 3-skill cycle counter** ✅ (PR7-C: cycle counter % 3 분기 + slamDamage + N.O.V.A. — [[aatrox-carry]])
+- **Pyke X-shape onKill 재시전** ✅ (PR7-A: `combatLoop.ts:6544-6580` cascade max 5 chain — [[pyke-carry]])
+- **Poppy `spiritBounceOnKill`** ✅ (PR7-D: `combatLoop.ts:6648-6680` overkill bounce chain max 50 — [[poppy-carry]])
+- **정령족 잠재력 (미프) `spiritEffectPerStack`** ✅ (`combatLoop.ts:6231-6233` 미프 trait active + astronautMeepsStack 시 적용)
+- **자폭 (Gragas) 적군 damage path** ✅ (PR #127: 적군 AOE radius 3 정상 작동 — [[gragas-carry]])
+- **Lint #10/#11/#12/#14/#15/#16 모두 ✅ resolved** (PR #131~#145)
+- **selected single-carry semantics 일반화** (PR #144 + amend): 다중 carry 카피 시 selected 만 carry-specific 분기 진입
 
-❌ **미완 (사용자 인게임 측정 대기)**:
-- 모든 augment 의 `statOverrides` (HP/armor/MR/AS/range 등 변환 후 stat)
-- 자폭(Gragas) 적군 damage path (현재 적군 damage flow skip 구조 — 적군 magic damage 분리 필요)
-- Mordekaiser passive 매초 tick (시작 1, 6초마다 +1) — 패시브 hook 미구현
-- Aatrox 3-skill cycle counter (현재 모든 cast가 첫 cycle '타격' 으로 적용)
-- ~~Pyke X-shape onKill 재시전 (`onKillRecastMultiplier 0.70`) — onKill hook 분기 필요~~ **이미 구현됨 (PR7-A, `combatLoop.ts:6544-6580`)** — entity-wide grep `Pyke` (PR #131 [[pyke-carry]] ingest) 으로 stale 검출. Lint #10 등록 후 본 줄 obsoleted 표기. cascade max 5 chain + tankBonus + secondaryDamage 정합
-- Poppy `spiritBounceOnKill` — onKill hook 분기 필요
-- 정령족 잠재력 (미프) `spiritEffectPerStack` 시너지 스케일
+🔍 **부분 잔존**:
+- **Mordekaiser passive 매초 tick** — 펄스 자체는 구현됨 (`applyMordekaiserProcCast` / `tickMordekaiserProc`). **radius 증가 (시작 1, 6초마다 +1)** 부분만 미반영 가능성 — 패치 명세 검증 필요
+- **statOverrides 잔존** (Lint #5):
+  - **Poppy AS 0.7→0.75** 인게임 verify (`carryAugments.ts:PoppyCarry` TODO)
+  - **Nasus resists 40→45** 인게임 verify (`carryAugments.ts:NasusCarry` TODO)
+  - 기타 augment HP/AS/range — 사용자 측정 대기
+- **Lint #13 (InvaderZed 실효성 0)** — selfBuff 필드 부재로 cast 효과 거의 0. spec 확인 대기
 
 ## 메모리 — 데이터 수정 원칙
 
@@ -146,9 +153,27 @@ augment 전용: `shield, shieldDuration, onAttackBonus, passiveDamage, empowered
 ## Lint 체크리스트
 
 - [ ] 새 hero augment 추가 시: CARRY_AUGMENTS entry + abilityData 채워졌는지 + 본 페이지 표 update
-- [ ] 사용자가 statOverrides 측정 채울 때: 이 페이지 "❌ 미완" → "✅ 활성" 으로 이동
+- [ ] 사용자가 statOverrides 측정 채울 때: 이 페이지 "🔍 부분 잔존" → "✅ 활성" 으로 이동
 - [ ] AbilityConfig pattern 새 추가 시 (x_shape 처럼): 본 페이지 흐름 섹션 갱신
 - [ ] 다음 패치에서 abilityData 변수 추가/제거 시 ("27변수" 카운트 갱신)
+- [ ] 신규 carry augment 추가 시 selected single-carry semantics 적용 (PR #144 일반화): `findSelectedCarryAugment` 가 자동 가드, applyHeroCarryTransforms 에서 `selectedCarryAugment` 자동 set
+
+## 검증 누적 (Lint sub-finding resolved 사례)
+
+| Lint | 상태 | PR |
+|------|------|----|
+| #5 | full-cycle ✅ (Poppy/Nasus statOverrides 잔존) | #115/#116 |
+| #6 LeonaCarry duplicate | ✅ | #127/#128 |
+| #7 Mordekaiser drift | ✅ | #124/#125 |
+| #8 GragasCarry duplicate + radius | ✅ | #127/#128 |
+| #9 stunDuration starLevel별 main | ✅ | #129/#130 |
+| #10 (본 페이지) "❌ 미완" stale | ✅ **resolved (본 PR #146)** — Aatrox cycle / Pyke recast / Poppy bounce / 정령족 spiritEffect / Gragas AOE 모두 이미 sim 활성 |
+| #11-A/B (Jax damage/asGain) | ✅ | #140/#136 |
+| #12 (Nasus bonusPerKill) | ✅ | #135 |
+| #14-A~G (광범위 abilityOverride pollution) | ✅ | #144/#145 |
+| #15 (OOR omnivamp 부재) | ✅ | #141 |
+| #16 (main grievousReduction target) | ✅ | #142 |
+| #13 (InvaderZed) | spec 대기 | — |
 
 ## 관련
 
