@@ -8,6 +8,26 @@ format: newest first
 
 ## 2026-05-19
 
+### Docs: Lint #10 deep cleanup — hero-augment-carry.md stale 표기 전수 정정 (PR #146 + codex P2 amend)
+
+- **Source**: 위키 lint #10 (`hero-augment-carry.md` 의 "❌ 미완" 섹션 stale 표기 — PR #131 부분 정정 후 deep cleanup 후속)
+- **Stale 표기 정정 (5건)**:
+  - **Aatrox 3-skill cycle counter** ❌ 미완 → ✅ resolved (PR7-C, cycle counter % 3 분기 + slamDamage + N.O.V.A.)
+  - **Pyke X-shape onKill 재시전** ❌ 미완 → ✅ resolved (PR7-A, `combatLoop.ts:6544-6580` cascade max 5 chain) — PR #131 1차 정정 후 본 PR cleanup
+  - **Poppy `spiritBounceOnKill`** ❌ 미완 → ✅ resolved (PR7-D, `combatLoop.ts:6648-6680` overkill bounce max 50)
+  - **정령족 (미프) `spiritEffectPerStack`** ❌ 미완 → ✅ resolved (`combatLoop.ts:6231-6233` 미프 trait + astronautMeepsStack 시 적용)
+  - **자폭 (Gragas) 적군 damage path** ❌ 미완 → ✅ resolved (PR #127 — 적군 AOE radius 3 정상 작동)
+- **부분 잔존 명시**:
+  - **Mordekaiser passive 매초 tick** — 펄스 자체는 구현됨 (applyMordekaiserProcCast / tickMordekaiserProc), radius 증가 (시작 1, 6초마다 +1) 부분만 미반영 가능성 (패치 명세 검증 필요)
+  - **statOverrides 잔존** (Lint #5) — Poppy AS / Nasus resists 인게임 측정 대기
+  - **Lint #13 (InvaderZed)** — spec 확인 대기
+- **frontmatter 갱신**:
+  - `sim_active: partial` 유지 (codex P2 amend) — 9/10 carry active 이나 **InvaderZed (Lint #13) 만 minimal** 잔존. carry-specific 메커니즘 모두 sim 도달이라는 일반론은 9/10 만 해당. 위키 lint script 가 frontmatter 의존 시 InvaderZed gap 가려지지 않게 정확한 상태 comment 명시
+  - `last_verified: 2026-05-18 → 2026-05-19`
+- **변환 흐름 4단계 → 5단계 갱신** (PR #144 selectedCarryAugment 일반화 반영)
+- **신규 섹션 "검증 누적 (Lint sub-finding resolved 사례)"** — Lint #5~#16 모두 추적 표
+- **Lint 체크리스트** — 신규 carry augment 추가 시 selected single-carry semantics 자동 적용 룰 추가
+
 ### Test + wiki cleanup: Lint #14 sub-lint 7건 모두 ✅ resolved (PR #145)
 
 - **Source**: PR #144 + codex P1 amend 가 광범위 selected 가드 일반화 적용 — 7 sub-lint (14-A~G) 자동 해소 효과
