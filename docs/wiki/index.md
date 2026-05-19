@@ -41,7 +41,11 @@ _미작성_
 - [[gragas-carry]] (자폭) — 17.2 도입. ✅ Lint #8 resolved (PR #127) — 적군 AOE 반경 3칸 정상 작동 (이전 무력화)
 - [[aatrox-carry]] (별빛 연계) — 17.2 도입. 가장 복잡 carry — 3-skill cycle + N.O.V.A. + isolation. 17.3 변경 3건 sim 정합
 - [[pyke-carry]] (청부 살인마) — 17.2 도입. x_shape + onKillRecast cascade. ⚠️ Lint #10 (PR #131 검출): hero-augment-carry 의 "onKill hook 미구현" stale (실제 구현 완료, wiki cleanup 후보)
-- [[jax-carry]] (저 별을 향해) — self_buff + onAttackBonus passive + **asGain starLevel별 정합** (PR #136 Lint #11-B ✅) + **cast damage target magic 적용** (PR #140 Lint #11-A ✅). cast path 3종 (main + OOR) + selected single-carry 가드
+- [[jax-carry]] (저 별을 향해) — self_buff + onAttackBonus passive + **asGain starLevel별 정합** (PR #136 Lint #11-B ✅) + **cast damage target magic 적용** (PR #140 Lint #11-A ✅). cast path 3종 (main + OOR) + selected single-carry 가드 (PR #144 일반화)
+
+## Lint #14 ✅ resolved (PR #144 + #145)
+
+selected-carry-augment 일반화 foundation + 광범위 selected 가드 적용 — 7 sub-lint (14-A~G: Aatrox cycle / Pyke recast / Poppy bounce / Ivern hexReduction / Mord proc / Leona-Gragas abilityOverride pollution) 모두 동시 해소. 회귀 가드 test 4 case 추가 (전체 20/20).
 - [[nasus-carry]] (꽁!) — single 패턴 AD physical + **bonusPerKill cast kill 누적** (PR #135 Lint #12 ✅ resolved). Lint #5 잔존 (Resists 40→45 인게임 verify)
 - [[invader-zed]] (침략자 제드) — stage 4-2 special. ⚠️ Lint #13 (selfBuff 필드 부재 + damage 미반영으로 sim 효과 사실상 0 — role='Fighter' + mana 50/100 변경뿐)
 - [[poppy-carry]] (정령단 속도) — ranged projectile (rangeOverride 4) + armorScale 1.0 + spiritBounceOnKill (max 50 chain) + Set 17 Poppy passive 별도 작동. 신규 lint 없음 — 가장 많은 메커니즘 sim 통합 완성도 carry. Lint #5 잔존 (AS 0.7→0.75 인게임 verify)

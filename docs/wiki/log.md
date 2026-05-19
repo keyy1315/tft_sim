@@ -8,6 +8,25 @@ format: newest first
 
 ## 2026-05-19
 
+### Test + wiki cleanup: Lint #14 sub-lint 7건 모두 ✅ resolved (PR #145)
+
+- **Source**: PR #144 + codex P1 amend 가 광범위 selected 가드 일반화 적용 — 7 sub-lint (14-A~G) 자동 해소 효과
+- **검증된 sub-lint** (코드 verify 기반):
+  - **14-A** Aatrox cycle counter / NOVA selector — 다중 Aatrox 카피 시 selected 만 selectedCarryAugment set → carryCfg=null → cycle 분기 진입 안 함 ✅
+  - **14-B** Pyke onKillRecast cascade — non-selected 카피는 carryCfg=null → cascade 진입 안 함 ✅
+  - **14-C** Poppy spiritBounceOnKill chain — non-selected 카피는 carryCfg=null → bounce 진입 안 함 + rangeOverride 도 selected 만 적용 (rangeOverride 통합) ✅
+  - **14-D** Ivern hexReduction + multi-stun — `applyCarryDamageModifiers` / `applyCarryPostCastEffects` 가 받는 carryCfg 가 non-selected 면 null → IvernMinionCarry 분기 진입 안 함 ✅
+  - **14-E** Mord aoe_circle pollution — non-selected 카피는 carryCfg=null → applyMordekaiserProcCast 의 carry shield override 분기 진입 안 함 ✅
+  - **14-F** Leona flag dead + abilityOverride pollution — leonaCarryActive 는 legacy 잔존, abilityOverride pollution 은 selectedCarryAugment 가드로 해소 ✅
+  - **14-G** Gragas flag dead + abilityOverride pollution — 14-F 와 동일 ✅
+- **회귀 가드 test 추가** (`hero-carry-augments.test.ts` 4 case, 전체 20/20 pass):
+  - Aatrox 다중 카피 (3성 + 2성) → 3성만 `selectedCarryAugment === 'TFT17_Augment_AatroxCarry'`, 2성 null
+  - Pyke 다중 카피 → cascade 가드 검증
+  - Poppy 다중 카피 → selected 만 `rangeOverride 4` 적용 (3성 range 4 / 2성 raw)
+  - IvernMinion 다중 카피 → hexReduction + multi-stun 가드 검증
+- **legacy flag 처리**: jaxCarryActive / nasusCarryActive / leonaCarryActive / gragasCarryActive / mordekaiserCarryShield 는 legacy 호환 유지 — read site 는 모두 selected 가드 동치 (jax/nasus 는 selectedCarryAugment 와 동치, leona/gragas 는 dead flag 후속 정리 후보)
+- **남은 lint**: #13 (Zed spec 대기) / #5 잔존 (Poppy/Nasus statOverrides 인게임 verify)
+
 ### Refactor: selected-carry-augment 일반화 foundation — Lint #14 1/N (PR #144 + codex P1 amend)
 
 - **Source**: Lint #14 (광범위 abilityOverride pollution audit) — 사용자 결정 Option B (일반화 helper)
