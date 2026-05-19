@@ -620,7 +620,17 @@ function applyHexBuffs(units: CombatUnit[], hexBuffs: HexBuff[]): void {
  */
 function getAbilityConfigForUnit(unit: CombatUnit, augmentApiNames: string[]): AbilityConfig {
   const carry = findCarryAugment(unit.champion.apiName, augmentApiNames);
-  if (carry) return carry.abilityOverride;
+  if (carry) {
+    // PR #136 codex P2 amend: selected single-carry semantics — findCarryAugment 는 champion
+    // api 매치하는 모든 카피에 동일 config 반환하지만 applyHeroCarryTransforms 는 "가장 강한 1명"
+    // 만 carry transform. carry abilityOverride (예: JaxCarry self_buff) 가 모든 카피에 적용되면
+    // non-selected 도 raw 의도 (Jax aoe_circle stun) 와 다른 cast pattern 사용 → 회귀.
+    // JaxCarry 한정 가드 (다른 carry 의 동일 패턴 lint 는 후속 PR — Lint #14 후보).
+    if (carry.augmentApiName === 'TFT17_Augment_JaxCarry' && !unit.jaxCarryActive) {
+      return CHAMPION_ABILITY_PATTERNS[unit.champion.apiName] ?? { pattern: 'single' };
+    }
+    return carry.abilityOverride;
+  }
   return CHAMPION_ABILITY_PATTERNS[unit.champion.apiName] ?? { pattern: 'single' };
 }
 

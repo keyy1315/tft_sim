@@ -253,4 +253,33 @@ describe('저 별을 향해 (JaxCarry) — asGain starLevel별 정합 (Lint #11-
     expect(star3.jaxCarryActive).toBe(true);
     expect(star2.jaxCarryActive).toBe(false);
   });
+
+  it('non-selected Jax 는 carry self_buff abilityOverride 무시 (PR #136 codex P2 amend)', () => {
+    // 다중 Jax + JaxCarry → non-selected (2성) 은 getAbilityConfigForUnit 에서 raw Jax config
+    // (aoe_circle stun) fallback 받아야 함. carry self_buff override 가 모든 카피에 전파되면
+    // non-selected 도 self_buff 패턴 cast → raw 의도 위반.
+    // 검증 방식: non-selected Jax 의 baseline attackSpeed 와 final attackSpeed 비교 (selected
+    // 만 carry buff 받음. non-selected 는 raw Jax stat 변화 없음 — raw Jax raw selfBuff 는
+    // durability:0.3 만, attackSpeed 변경 없음).
+    const team: PlacedChampion[] = [
+      placed(apJax, 0, 0, 2),
+      placed(apJax, 1, 0, 3),
+    ];
+    const enemy: PlacedChampion[] = [placed(dummyEnemy, 6, 3, 3)]; // 3성 enemy — Jax cast 발동 보장
+    const result = simulateCombat(team, enemy, {
+      seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
+      playerAugments: [augJaxCarry] as RawAugment[],
+    });
+    const jaxUnits = result.playerUnits.filter(u => u.champion.apiName === 'TFT17_Jax');
+    const star2NonSelected = jaxUnits.find(u => u.starLevel === 2)!;
+    // raw Jax 2성 baseline attackSpeed 계산 — STAR_SCALING 적용 base
+    const rawAS = apJax.stats.attackSpeed;
+    // non-selected 2성 Jax 는 carry buff 안 받으므로 final AS 가 raw 와 거의 동일
+    // (item bonus / trait effect 없는 단순 setup). carry self_buff.attackSpeed 0.15 적용되면
+    // final AS = rawAS × 1.15^(castCount) → cast 1회만 진입해도 rawAS 보다 큼.
+    // 회귀 가드: non-selected 가 carry buff 받았다면 attackSpeed 가 raw 보다 큼.
+    expect(star2NonSelected.jaxCarryActive).toBe(false);
+    // raw Jax attackSpeed 와 일치 (±5% 허용 — trait/buff 영향 미미)
+    expect(star2NonSelected.stats.attackSpeed).toBeLessThanOrEqual(rawAS * 1.05);
+  });
 });
