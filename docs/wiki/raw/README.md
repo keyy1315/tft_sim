@@ -51,9 +51,11 @@ Riot 공식 patch notes 복붙·발췌가 필요하면 여기에. 현재는 [[pa
 |------|------|------|
 | `docs/meta/set17-trait-audit.md` | audit (17.2 hash 변수 ↔ 시뮬 매핑) | 트레잇별 페이지 ingest 후 archive |
 | `docs/meta/set17-meta-guide.md` | 정리 가이드 (성급 시스템 등) | `mechanics/` 다수로 분리 ingest |
-| `docs/meta/set17-gods-system.md` | 추정 ("정확하지 않을 수 있음") | yasuo-tiles raw로 대체된 부분 빼고 obsolete 후보 |
 
-> Archived (ingest 완료 후 삭제): `set17-patch-17-2b-plan.md` → [[patch-17-2b]] (2026-05-18)
+> Archived (ingest 완료 후 삭제):
+> - `set17-patch-17-2b-plan.md` → [[patch-17-2b]] (2026-05-18)
+> - `set17-gods-system.md` → [[../raw/lolchess/set17-yasuo-tiles]] raw 로 대체 (2026-05-19, Phase 2). 추정 수치였음
+> - `nova-selector-ui-handoff.md` → PR #85/86/87 머지 완료, 작업 핸드오프 의의 종료 (2026-05-19, Phase 2)
 
 ## 다른 raw 위치 (위키 외부, 참조 매핑)
 
