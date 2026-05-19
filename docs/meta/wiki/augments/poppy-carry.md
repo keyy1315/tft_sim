@@ -18,7 +18,7 @@ sources:
   - src/lib/simulator/engine/combatLoop.ts:6526-6530 (cast loop 사망 처리 overkill 캡처)
   - src/lib/simulator/engine/combatLoop.ts:6648-6680 (spiritBounceOnKill bouncing loop — main pipeline only)
   - src/lib/simulator/engine/combatLoop.ts:873-920 (applyPoppyShieldAndResists — Set 17 Poppy passive, augment 무관)
-  - 공식 17.3 패치노트 (Termeepnal Velocity AS: 0.7 → 0.75 — verify 필요)
+  - "공식 17.3 패치노트 (Termeepnal Velocity AS: 0.7 → 0.75 — verify 필요)"
 related:
   - "[[hero-augment-carry]]"
   - "[[ability-targeting]]"
