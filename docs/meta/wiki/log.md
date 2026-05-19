@@ -6,6 +6,45 @@ format: newest first
 
 # TFT Domain Wiki — Log
 
+## 2026-05-19
+
+### Ingest: augments/jax-carry.md + augments/nasus-carry.md + invader-zed.md — 5단계 워크플로우 + Lint #11/#12/#13 신규 검출
+
+- **Source** (5단계 워크플로우 적용):
+  - `src/data/carryAugments.ts:113-129` (NasusCarry), `:205-218` (JaxCarry), `:274-286` (InvaderZed)
+  - `src/lib/simulator/engine/combatLoop.ts:618-622` (getAbilityConfigForUnit), `:2220-2267` (applyHeroCarryTransforms role='Fighter')
+  - `combatLoop.ts:5618-5660` (onAttackBonus passive — Jax)
+  - `combatLoop.ts:6146-6149` (self_buff carry damage override 미적용 주석), `:6226` (rawAbilityDmgBase=0 강제)
+  - `combatLoop.ts:6885-6891` (config.selfBuff stat 적용 — selfBuff undefined 시 skip → InvaderZed 효과 0)
+  - `combatLoop.ts:1565-1582` (applyZedShadow — augment 무관, trait `TFT17_ZedUniqueTrait` 기반 +40% AD)
+  - `src/lib/simulator/systems/ability.ts:251` (TFT17_Zed raw `{ pattern: 'self_buff' }` 분신 stat-only)
+  - entity-wide grep `Jax` / `Nasus` / `Zed` → specific helper 함수 부재 확인
+- **5단계 워크플로우 적용 결과**:
+  1. 좁은 grep: JaxCarry / NasusCarry / InvaderZed → carryAugments.ts entry lookup
+  2. 함수 컨텍스트 read: `getAbilityConfigForUnit` (carry.abilityOverride 직접 반환), `resolveAbilityDamage` (self_buff 패턴 미반영), `config.selfBuff` 적용 분기
+  3. **entity-wide grep**: `Jax` / `Nasus` / `Zed` 이름 자체 → Jax 는 onAttackBonus passive (line 5618-) 만 별도, Nasus 는 specific helper 0건, Zed 는 trait 기반 applyZedShadow (augment 무관)
+  4. 호출 순서/영향 trace: self_buff cast path 가 main + OOR 양쪽 일관 (PR #98 codex P1 회귀 가드). recast 무관 (Pyke 전용)
+  5. **actual sim integration verify (결정적)**: `grep "asGain\|bonusPerKill" src/` → carryAugments.ts entry 외 read 위치 **0건** → Jax `asGain`, Nasus `bonusPerKill` 필드 dead 검출. self_buff 패턴 + damage 필드 미반영 (Jax/Zed) 추가 검출
+- **⚠️ Lint finding #11-A 검출 — JaxCarry `damage` 필드 sim 미반영**:
+  - carryAugments.ts:213 `damage: [170, 250, 450]` + desc "사용: 대상 magic damage" vs combatLoop.ts:6226 self_buff 패턴 rawAbilityDmgBase=0 강제
+  - 17.3 patch entry 정합 (PR #115 같은 정합) 만 진행, sim 효과 도달 안 함
+- **⚠️ Lint finding #11-B 검출 — JaxCarry `asGain` 필드 dead**:
+  - carryAugments.ts:215 `asGain: [0.15, 0.15, 0.20]` 정의되어 있으나 read 위치 0건
+  - selfBuff.attackSpeed 0.15 fixed 가 starLevel 분기 없이 대체 → **★3 의도 +20% vs 실제 +15%** (starLevel별 mismatch)
+- **⚠️ Lint finding #12 검출 — NasusCarry `bonusPerKill` 필드 dead**:
+  - carryAugments.ts:127 `bonusPerKill: [10, 13, 20]` + desc "처치 시 영구 증가" vs read 위치 0건
+  - scalingInput "처치 수 / 피해량 +10" UI 표시만, sim 효과 도달 안 함
+- **⚠️ Lint finding #13 검출 — InvaderZed augment 실효성 거의 0**:
+  - abilityOverride `{ pattern: 'self_buff' }` 만 정의, **selfBuff 필드 부재** → cast 시 stat 변경 0
+  - damage `[300, 450, 720]` 정의되어 있으나 self_buff 패턴이라 미반영
+  - 실제 sim 효과 = role='Fighter' + mana 50/100 뿐 (raw Zed trait `applyZedShadow` 의 +40% AD 는 augment 무관)
+- **메모리/워크플로우 변경 없음** — 5단계 워크플로우 그대로 적용. Lint #11-B 가 starLevel별 mismatch 패턴 (Lint #9 같은) 재발견 — actual sim integration verify (Step 5) 가 핵심 검출 단계.
+- **후속 작업 후보**:
+  - Lint #11-A/B sim 해소 PR — selfBuff.attackSpeed 를 starLevel별 array 화 + asGain read site 추가 (or 필드 dead 정리)
+  - Lint #12 sim 해소 PR — on_kill eventBus listener + `nasusBonkStack` 누적 + cast damage stack 가산 (Shen passive 패턴)
+  - Lint #13 sim 해소 PR — InvaderZed 의도된 메커니즘 spec 확인 후 abilityOverride.selfBuff 또는 statOverrides 추가
+  - augments 나머지 2개 (Poppy / IvernMinion) ingest
+
 ## 2026-05-18
 
 ### Ingest: augments/aatrox-carry.md + augments/pyke-carry.md — 5단계 워크플로우 누적 적용 + Lint #10 검출

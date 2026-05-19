@@ -1,7 +1,7 @@
 ---
 name: TFT Domain Wiki — Index
 purpose: 위키 전체 페이지 카탈로그 (content-oriented)
-updated: 2026-05-18
+updated: 2026-05-19
 ---
 
 # TFT Domain Wiki — Index
@@ -41,6 +41,9 @@ _미작성_
 - [[gragas-carry]] (자폭) — 17.2 도입. ✅ Lint #8 resolved (PR #127) — 적군 AOE 반경 3칸 정상 작동 (이전 무력화)
 - [[aatrox-carry]] (별빛 연계) — 17.2 도입. 가장 복잡 carry — 3-skill cycle + N.O.V.A. + isolation. 17.3 변경 3건 sim 정합
 - [[pyke-carry]] (청부 살인마) — 17.2 도입. x_shape + onKillRecast cascade. ⚠️ Lint #10 (PR #131 검출): hero-augment-carry 의 "onKill hook 미구현" stale (실제 구현 완료, wiki cleanup 후보)
+- [[jax-carry]] (저 별을 향해) — self_buff + onAttackBonus passive. ⚠️ Lint #11-A (damage 필드 self_buff 미반영), ⚠️ Lint #11-B (asGain 필드 dead — ★3 +20% 의도 vs 실제 +15%)
+- [[nasus-carry]] (꽁!) — single 패턴 AD physical. ⚠️ Lint #12 (bonusPerKill 필드 dead — 처치 누적 영구 damage 미실현), Lint #5 잔존 (Resists 40→45 인게임 verify)
+- [[invader-zed]] (침략자 제드) — stage 4-2 special. ⚠️ Lint #13 (selfBuff 필드 부재 + damage 미반영으로 sim 효과 사실상 0 — role='Fighter' + mana 50/100 변경뿐)
 
 ## Raw Sources (Layer 1)
 
@@ -53,10 +56,11 @@ _미작성_
 ## 작성 우선순위 (다음 후보)
 
 위키화 가치 높은 순:
-1. **augments 나머지 5개** — Ivern/Jax/Nasus/Poppy/Zed Carry. entity-wide grep 으로 추가 lint 검출 가능성
-2. **flag 자체 dead 정리** (`gragasCarryActive` / `leonaCarryActive`) — sim 코드 사용처 0, 테스트 assertion 만 (Lint #6/#8 후속)
-3. **Lint #10 cleanup** — `hero-augment-carry.md` 의 "Pyke onKill 미구현" stale 정정 (본 PR 에서 부분 정정, 후속 PR 로 더 깊이)
-4. **챔피언별** — Annie, Galio, Shen, Yasuo (이미 plan 문서 존재)
-5. **Poppy/Nasus 인게임 verify 후 statOverrides 적용** (Lint #5 잔존 TODO — 사용자 측정 필요)
-6. **integration test** — LeonaCarry / GragasCarry / AatroxCarry sim 통합 (cycle counter / 적군 AOE / starLevel별 stun 등)
-7. **OOR cast path 의 cycle/x_shape 일관성 verify** — Aatrox/Pyke 페이지의 follow-up verify 항목 (PR #129 stun 같은 패턴 가능성)
+1. **augments 나머지 2개** — Poppy / IvernMinion Carry. 복잡 메커니즘 (bouncing / multi-stun) 으로 5단계 워크플로우 적용 시 추가 lint 검출 가능성
+2. **Lint #11-A/B (Jax) + #12 (Nasus) + #13 (Zed) sim 해소** — sim fix PR (필드 read 추가 vs 필드 dead 정리)
+3. **flag 자체 dead 정리** (`gragasCarryActive` / `leonaCarryActive`) — sim 코드 사용처 0, 테스트 assertion 만 (Lint #6/#8 후속)
+4. **Lint #10 cleanup** — `hero-augment-carry.md` 의 "Pyke onKill 미구현" stale 정정 (PR #131 에서 부분 정정, 후속 PR 로 더 깊이)
+5. **챔피언별** — Annie, Galio, Shen, Yasuo (이미 plan 문서 존재)
+6. **Poppy/Nasus 인게임 verify 후 statOverrides 적용** (Lint #5 잔존 TODO — 사용자 측정 필요)
+7. **integration test** — LeonaCarry / GragasCarry / AatroxCarry sim 통합 (cycle counter / 적군 AOE / starLevel별 stun 등)
+8. **OOR cast path 의 cycle/x_shape 일관성 verify** — Aatrox/Pyke 페이지의 follow-up verify 항목 (PR #129 stun 같은 패턴 가능성)
