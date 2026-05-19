@@ -8,6 +8,18 @@ format: newest first
 
 ## 2026-05-19
 
+### Sim fix: main pipeline omnivamp grievousReduction abilityTarget 사용 — Lint #16 ✅ resolved (PR #142)
+
+- **Source**: PR #141 codex P2 amend 시 발견 (OOR fix 일관성 점검 중 main 의 동일 패턴 검출)
+- **문제**: main pipeline (`combatLoop.ts:6907`) 의 omnivamp grievousReduction 도 `target.augmentGrievousWounds` 사용 — Aatrox/Pyke/IvernMinion carry 가 main pipeline dash 진입 시 retarget (to_target/to_lowest_hp/to_largest_cluster 등) 가능 → `target` (pre-dash) vs `abilityTarget` (dash 결과) 불일치 → 잘못된 unit 의 healing-reduction state 참조
+- **변경**: `target.augmentGrievousWounds` → `abilityTarget.augmentGrievousWounds` (PR #141 OOR fix 와 동일 패턴)
+- **검증**:
+  - `pnpm typecheck` pass
+  - `hero-carry-augments.test.ts` 16/16 pass (no regression)
+  - 전체 test suite: 883 pass / 9 fail — **9 fail 은 pre-existing** (Mordekaiser proc test, 변경 전 dev 도 동일 fail 확인됨). 본 PR 변경과 무관
+- **dash retarget abilityTarget 룰 main+OOR 양쪽 정합 완료**
+- **메모리 룰 후보**: dash retarget 분기에서 grievousReduction / shield / debuff 등 target-specific state 참조 시 `target` (pre-dash) 가 아닌 `abilityTarget` (dash 결과) 사용 필수. main+OOR 양쪽 비대칭 점검 필요 (PR #129 cast path 3종 룰의 응용).
+
 ### Sim fix: OOR cast path omnivamp hook 추가 — Lint #15 ✅ resolved (PR #141 + codex P2 amend)
 
 - **Source**: PR #140 Codex P2 amend 시 발견 (Jax damage omnivamp 정합 점검 중 OOR cast path 의 omnivamp hook 부재 검출)

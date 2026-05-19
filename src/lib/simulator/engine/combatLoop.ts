@@ -6903,8 +6903,12 @@ export function simulateCombat(
             }
 
             // 전체 피해량 기반 흡혈 — healAmp 곱셈 적용.
+            // PR #142 Lint #16: grievousReduction 은 abilityTarget (dash 후 실제 primary hit target)
+            // 기준 — Aatrox/Pyke/IvernMinion carry 가 main pipeline dash 진입 시 retarget
+            // (to_target/to_lowest_hp/to_largest_cluster 등) → target 은 pre-dash, abilityTarget
+            // 은 dash 결과. PR #141 amend (OOR 동일 fix) 와 일관. main+OOR 양쪽 abilityTarget 사용.
             if (unit.omnivamp > 0 && totalAbilityDmg > 0) {
-              const grievousReduction = target.augmentGrievousWounds > 0 ? (1 - target.augmentGrievousWounds) : 1;
+              const grievousReduction = abilityTarget.augmentGrievousWounds > 0 ? (1 - abilityTarget.augmentGrievousWounds) : 1;
               const heal = totalAbilityDmg * unit.omnivamp * grievousReduction * (1 + (unit.healAmp ?? 0));
               applyOmnivampHealWithMeleeShield(unit, heal);
             }
