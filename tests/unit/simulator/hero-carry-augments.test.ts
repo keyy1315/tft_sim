@@ -15,10 +15,12 @@ const apGragas = champions.find(c => c.apiName === 'TFT17_Gragas')!;
 const apLeona = champions.find(c => c.apiName === 'TFT17_Leona')!;
 const apTwistedFate = champions.find(c => c.apiName === 'TFT17_TwistedFate')!;
 const apNasus = champions.find(c => c.apiName === 'TFT17_Nasus')!;
+const apJax = champions.find(c => c.apiName === 'TFT17_Jax')!;
 const dummyEnemy = champions.find(c => c.apiName === 'TFT17_Aatrox')!;
 const augGragasCarry = augments.find(a => a.apiName === 'TFT17_Augment_GragasCarry')!;
 const augLeonaCarry = augments.find(a => a.apiName === 'TFT17_Augment_LeonaCarry')!;
 const augNasusCarry = augments.find(a => a.apiName === 'TFT17_Augment_NasusCarry')!;
+const augJaxCarry = augments.find(a => a.apiName === 'TFT17_Augment_JaxCarry')!;
 // 임의 아이템 (가장 강한 룰 — 아이템 보유 우선 검증용)
 const someItem = items.find(i => i.apiName === 'TFT_Item_BFSword')
   ?? items.find(i => i.apiName?.startsWith('TFT_Item_'))!;
@@ -207,5 +209,48 @@ describe('꽁! (NasusCarry) — bonusPerKill cast 누적 (Lint #12 해소)', () 
     const nasus = result.playerUnits.find(u => u.champion.apiName === 'TFT17_Nasus')!;
     // augment 미활성 → carryCfg.abilityData.bonusPerKill 없음 → stack 누적 분기 진입 안 함
     expect(nasus.nasusBonkStack).toBe(0);
+  });
+});
+
+describe('저 별을 향해 (JaxCarry) — asGain starLevel별 정합 (Lint #11-B 해소)', () => {
+  it('augment 활성 → jaxCarryActive = true + role Fighter', () => {
+    const team: PlacedChampion[] = [placed(apJax, 0, 0, 2)];
+    const enemy: PlacedChampion[] = [placed(dummyEnemy, 6, 3)];
+    const withCarry = simulateCombat(team, enemy, {
+      seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
+      playerAugments: [augJaxCarry] as RawAugment[],
+    });
+    const jax = withCarry.playerUnits.find(u => u.champion.apiName === 'TFT17_Jax')!;
+    expect(jax.jaxCarryActive).toBe(true);
+    expect(jax.role).toBe('Fighter');
+  });
+
+  it('augment 미활성 → jaxCarryActive = false (raw Jax)', () => {
+    const team: PlacedChampion[] = [placed(apJax, 0, 0, 2)];
+    const enemy: PlacedChampion[] = [placed(dummyEnemy, 6, 3)];
+    const withoutCarry = simulateCombat(team, enemy, {
+      seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
+    });
+    const jax = withoutCarry.playerUnits.find(u => u.champion.apiName === 'TFT17_Jax')!;
+    expect(jax.jaxCarryActive).toBe(false);
+  });
+
+  it('다중 Jax 카피 시 selected (가장 강한) 1명만 jaxCarryActive (codex P2 패턴 적용)', () => {
+    // Jax 2명 (3성 + 2성) → 3성만 carry transform. findCarryAugment 는 두 명 모두에게 동일
+    // config 반환하지만 selected single-carry semantics (PR #135 패턴) 로 3성만 flag true.
+    const team: PlacedChampion[] = [
+      placed(apJax, 0, 0, 2),
+      placed(apJax, 1, 0, 3),
+    ];
+    const enemy: PlacedChampion[] = [placed(dummyEnemy, 6, 3)];
+    const result = simulateCombat(team, enemy, {
+      seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
+      playerAugments: [augJaxCarry] as RawAugment[],
+    });
+    const jaxUnits = result.playerUnits.filter(u => u.champion.apiName === 'TFT17_Jax');
+    const star3 = jaxUnits.find(u => u.starLevel === 3)!;
+    const star2 = jaxUnits.find(u => u.starLevel === 2)!;
+    expect(star3.jaxCarryActive).toBe(true);
+    expect(star2.jaxCarryActive).toBe(false);
   });
 });

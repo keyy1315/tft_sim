@@ -309,6 +309,7 @@ function createCombatUnit(
     shenPassiveStack: 0,
     nasusBonkStack: 0,
     nasusCarryActive: false,
+    jaxCarryActive: false,
     stargazerShieldCashoutHpFrac: 0,
     stargazerShieldCashoutAsFrac: 0,
     bastionDoubleEndTick: 0,
@@ -2281,6 +2282,10 @@ function applyHeroCarryTransforms(augmentApiNames: string[], units: CombatUnit[]
       // transform. read site (bonusPerKill modifier + cast loop stack hook) 가 champion
       // api 만 확인하면 non-selected 카피도 stack 누적 → 의도 위반. selected 만 flag set.
       target.nasusCarryActive = true;
+    } else if (cfg.augmentApiName === 'TFT17_Augment_JaxCarry') {
+      // PR #136 Lint #11-B 해소: JaxCarry abilityData.asGain[★] starLevel별 read.
+      // selected single-carry semantics (PR #135 패턴) — 다중 Jax 카피 시 selected 만 적용.
+      target.jaxCarryActive = true;
     }
   }
 }
@@ -3623,6 +3628,7 @@ function spawnFreljordTurrets(
             shenPassiveStack: 0,
             nasusBonkStack: 0,
             nasusCarryActive: false,
+            jaxCarryActive: false,
             stargazerShieldCashoutHpFrac: 0,
             stargazerShieldCashoutAsFrac: 0,
             bastionDoubleEndTick: 0,
@@ -3834,6 +3840,7 @@ function trySpawnGalio(
     shenPassiveStack: 0,
     nasusBonkStack: 0,
     nasusCarryActive: false,
+    jaxCarryActive: false,
     stargazerShieldCashoutHpFrac: 0,
     stargazerShieldCashoutAsFrac: 0,
     bastionDoubleEndTick: 0,
@@ -6917,7 +6924,17 @@ export function simulateCombat(
 
             // === 자기 버프 ===
             if (config.selfBuff) {
-              if (config.selfBuff.attackSpeed) unit.stats.attackSpeed *= (1 + config.selfBuff.attackSpeed);
+              if (config.selfBuff.attackSpeed) {
+                // PR #136 Lint #11-B 해소: JaxCarry abilityData.asGain[★] starLevel별 우선 read.
+                // selfBuff.attackSpeed 는 fixed 0.15 (carry abilityOverride) → asGain
+                // [0.15,0.15,0.20] 의 ★3 +20% 의도 미실현. jaxCarryActive 가드 (selected
+                // single-carry semantics — PR #135 패턴) 로 다중 Jax 카피 시 selected 만 정확.
+                const asGainArr = unit.jaxCarryActive ? carryCfg?.abilityData?.asGain : undefined;
+                const asGainPer = asGainArr
+                  ? (asGainArr[unit.starLevel - 1] ?? asGainArr[0])
+                  : config.selfBuff.attackSpeed;
+                unit.stats.attackSpeed *= (1 + asGainPer);
+              }
               if (config.selfBuff.ad) unit.stats.damage += config.selfBuff.ad;
               if (config.selfBuff.ap) unit.stats.ap += config.selfBuff.ap;
               if (config.selfBuff.durability) unit.damageReduction += config.selfBuff.durability;
@@ -7063,7 +7080,13 @@ export function simulateCombat(
           // self_buff
           if (outOfRangeConfig.selfBuff) {
             if (outOfRangeConfig.selfBuff.attackSpeed) {
-              unit.stats.attackSpeed *= (1 + outOfRangeConfig.selfBuff.attackSpeed);
+              // PR #136 Lint #11-B 해소: OOR cast path 도 main 과 동일하게 JaxCarry asGain[★]
+              // starLevel별 우선 read. cast path 3종 일관 (PR #129 stun OOR 누락 패턴 회귀 방지).
+              const oorAsGainArr = unit.jaxCarryActive ? oorCarryCfg?.abilityData?.asGain : undefined;
+              const oorAsGainPer = oorAsGainArr
+                ? (oorAsGainArr[unit.starLevel - 1] ?? oorAsGainArr[0])
+                : outOfRangeConfig.selfBuff.attackSpeed;
+              unit.stats.attackSpeed *= (1 + oorAsGainPer);
             }
             if (outOfRangeConfig.selfBuff.ad) {
               unit.stats.damage += outOfRangeConfig.selfBuff.ad;

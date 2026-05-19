@@ -8,6 +8,28 @@ format: newest first
 
 ## 2026-05-19
 
+### Sim fix: JaxCarry asGain starLevel별 정합 — Lint #11-B ✅ resolved (PR #136)
+
+- **Source**: 위키 lint #11-B (JaxCarry asGain 필드 dead, PR #132 검출)
+- **변경**:
+  - `src/types/index.ts`: `jaxCarryActive: boolean` 필드 추가 (selected single-carry semantics)
+  - `combatLoop.ts` 3 createCombatUnit site: `jaxCarryActive: false` 초기화
+  - `applyHeroCarryTransforms` (line ~2270): JaxCarry 활성 시 selected unit 에 `jaxCarryActive = true` (leona/gragas/mord/nasus 패턴 동일)
+  - `combatLoop.ts:6926-6938` (main pipeline selfBuff 분기): `unit.jaxCarryActive` + `carryCfg.abilityData.asGain` 시 `asGain[starLevel-1] ?? asGain[0]` 우선 read, fallback `config.selfBuff.attackSpeed`
+  - `combatLoop.ts:7071-7081` (OOR cast path selfBuff 분기): 동일 패턴 (oorCarryCfg)
+- **설계 결정**:
+  - **selected single-carry semantics** (PR #135 codex P2 패턴) — `jaxCarryActive` flag 가드. 다중 Jax 카피 시 selected 1명만 starLevel별 정확 적용, non-selected 는 raw fallback
+  - **cast path 3종 양쪽 일관** — main + OOR 둘 다 fix (PR #129 stun OOR 누락 같은 패턴 회귀 가드)
+- **★3 +20% 의도 정합**: 이전 selfBuff.attackSpeed fixed 0.15 (모든 starLevel) → asGain [0.15, 0.15, 0.20] starLevel별 우선
+- **테스트** (`hero-carry-augments.test.ts` 3 case 추가, 전체 14/14 pass):
+  - augment 활성 → jaxCarryActive=true + role=Fighter
+  - augment 미활성 → jaxCarryActive=false (raw Jax)
+  - 다중 Jax 카피 (3성 + 2성) → 3성만 jaxCarryActive=true (selected single-carry semantics 회귀 가드)
+- **위키 cleanup**:
+  - `augments/jax-carry.md` asGain ❌ 미반영 → ✅ 활성. Lint #11-B resolved 기록. Lint #11-A 잔존 표기 유지
+  - `index.md` Lint #11-B ✅ resolved
+- **Lint #11-A 잔존** — damage[170,250,450] self_buff 패턴 미반영. 별도 PR (설계 결정 필요: single-target damage 분기 추가 vs 필드 dead 명시)
+
 ### Sim fix: NasusCarry bonusPerKill — Lint #12 ✅ resolved (PR #135 + codex P2 amend)
 
 - **Source**: 위키 lint #12 (NasusCarry bonusPerKill 필드 dead, PR #132 검출)

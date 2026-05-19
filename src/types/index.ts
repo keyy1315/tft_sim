@@ -866,6 +866,13 @@ export interface CombatUnit {
    */
   nasusCarryActive: boolean;
   /**
+   * JaxCarry — selected single-carry semantics flag (PR #136 Lint #11-B 해소).
+   * findCarryAugment 는 champion api 매치하는 모든 Jax 에 동일 config 반환.
+   * applyHeroCarryTransforms 의 "가장 강한 1명" selector 결과 unit 에만 set.
+   * asGain starLevel별 read site (selfBuff 분기 main + OOR) 둘 다 본 flag 가드.
+   */
+  jaxCarryActive: boolean;
+  /**
    * 요새 (Bastion/ResistTank) — 첫 N초 doubled BonusArmor.
    * 0 = 비활성. 양수면 그 tick 에 도달 시 doubled 부분 (bastionDoubleArmorBonus)
    * 을 stats.armor 에서 차감. tick 마다 main loop 가 체크.
