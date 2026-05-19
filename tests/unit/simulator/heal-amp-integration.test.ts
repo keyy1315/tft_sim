@@ -105,8 +105,10 @@ describe('healAmp 적용 사이트 코드 grep — 회귀 안전성', () => {
     //   (`mordekaiserShieldRemaining * healRefund * (1 + (unit.healAmp ?? 0))`) 추가 → 13 매치.
     // Illaoi NumEnemies drain heal (audit P3): total drain × (1 + healAmp)
     //   (`totalDrain * (1 + (unit.healAmp ?? 0))`) 추가 → 14 매치.
+    // PR #141 Lint #15: OOR cast path omnivamp heal (`totalAbilityDmg * unit.omnivamp *
+    //   grievousReductionOOR * (1 + (unit.healAmp ?? 0))`) 추가 — main+OOR 비대칭 해소 → 15 매치.
     // 새 heal 사이트 추가 시 본 카운트도 갱신 필수.
-    expect(matches!.length).toBe(14);
+    expect(matches!.length).toBe(15);
   });
 
   it('각 heal 사이트별 fingerprint — 의미 단위 회귀 가드', async () => {

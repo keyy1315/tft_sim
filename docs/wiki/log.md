@@ -8,6 +8,20 @@ format: newest first
 
 ## 2026-05-19
 
+### Test fix: Mordekaiser pre-existing 9 fail 해소 — 전체 suite 892/892 ✅ (PR #143)
+
+- **Source**: PR #141/#142 작업 중 발견된 pre-existing 9 fail (Mordekaiser proc test). 변경 전 dev 도 동일 fail 확인 — 본 PR 들과 무관 누적 fail
+- **원인 분석**:
+  - `applyMordekaiserProcCast` line 951: `unit.mordekaiserCarryShield !== null` (strict !==) 가드 — `undefined !== null = true` 로 인해 array access TypeError
+  - 원인: PR #124 (Mordekaiser shield/mana 17.3 정합) 시 `mordekaiserCarryShield: null` 필드 추가 했으나 **test fixture (`tests/unit/mordekaiser-proc.test.ts`) 갱신 누락**
+- **해소 (2-layer)**:
+  - **sim 코드 defensive 가드**: `!== null` (strict) → `!= null` (loose) — undefined 도 safe (`combatLoop.ts:951`)
+  - **test fixture 갱신**: `tests/unit/mordekaiser-proc.test.ts` makeMordekaiserUnit fixture 에 `mordekaiserCarryShield: null` 추가 (raw 챔프 명시)
+- **follow-up test 갱신** (sim 코드 변경의 후속 follow-up):
+  - `tests/unit/simulator/heal-amp-integration.test.ts`: healAmp 곱셈 사이트 카운트 `14 → 15` (PR #141 OOR omnivamp heal 추가 반영)
+  - `tests/unit/simulator/hero-augment-stat-system.test.ts`: Mordekaiser grep test regex `!== null` → `!= null`
+- **검증**: 전체 suite **892/892 pass** ✅ (이전 883 pass / 9 fail → 892 pass / 0 fail)
+
 ### Sim fix: main pipeline omnivamp grievousReduction abilityTarget 사용 — Lint #16 ✅ resolved (PR #142)
 
 - **Source**: PR #141 codex P2 amend 시 발견 (OOR fix 일관성 점검 중 main 의 동일 패턴 검출)
