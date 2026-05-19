@@ -7338,6 +7338,23 @@ export function simulateCombat(
           logs.push(castLog);
           tickLogs.push(castLog);
 
+          // === PR #141 Lint #15 해소: OOR cast path omnivamp heal ===
+          // main pipeline (line 6906) 와 동일 패턴. main+OOR cast post-processing 비대칭 해소.
+          // 이전: OOR cast (Talon/Corki dash, Warwick/MasterYi/Jax self_buff) 시 omnivamp heal 누락
+          // → carry/non-carry 무관 dash/self_buff caster 의 흡혈 sim 미반영.
+          // PR #140 Codex P2 amend 시 발견 (Jax damage omnivamp 정합 점검 중 OOR omnivamp 부재 검출).
+          // grievousReduction + healAmp 모두 main 과 일관 적용.
+          // codex P2 (PR #141): grievousReduction 은 abilityTarget (dash 후 실제 primary hit target)
+          // 기준 — OOR dash 가 retarget (to_lowest_hp/to_farthest/to_backline 등) 시 target 은
+          // pre-dash target 이라 잘못된 unit 의 augmentGrievousWounds 참조 회귀 가드.
+          // main pipeline 의 동일 패턴 (line 6907 target.augmentGrievousWounds) 도 같은 잠재 버그
+          // — Lint #16 후보 등록 (별도 PR).
+          if (unit.omnivamp > 0 && totalAbilityDmg > 0) {
+            const grievousReductionOOR = abilityTarget.augmentGrievousWounds > 0 ? (1 - abilityTarget.augmentGrievousWounds) : 1;
+            const oorHeal = totalAbilityDmg * unit.omnivamp * grievousReductionOOR * (1 + (unit.healAmp ?? 0));
+            applyOmnivampHealWithMeleeShield(unit, oorHeal);
+          }
+
           // 별돌보미 우물(Fountain) — OOR cast (dash/self_buff) path 도 동일 heal 적용
           // (codex P1 회귀 가드: Talon/Corki 같은 dash user 가 사거리 밖 시전 시 누락 방지).
           triggerFountainHeal(unit, totalAbilityDmg, tick, time, tickLogs);
