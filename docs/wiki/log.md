@@ -8,7 +8,7 @@ format: newest first
 
 ## 2026-05-19
 
-### Ingest: champions/shen.md — wiki/champions/ 폴더 첫 페이지 (PR #148)
+### Ingest: champions/shen.md — wiki/champions/ 폴더 첫 페이지 (PR #148 + codex P2 amend)
 
 - **Source** (5단계 워크플로우):
   - `public/data/tft_set17_champions.json` (TFT17_Shen entry — 17.3 LIVE stats)
@@ -25,6 +25,7 @@ format: newest first
   5. **actual integration verify**: passive stack ++ (line 6167) + 평타 시 stack read (line 5710) → 일관 정합. PR2 (plan 문서) 구현 완료
 - **첫 챔피언 페이지** — `champions/` 폴더 신규 생성. frontmatter 표준 정립 (id/type/display_name_kr/api_name/cost/traits/role/sim_active/sources)
 - **17.3 변경 3건 정합**: hp 1200→1300, BonusDamageOnAttack 45/75→20/30, ShieldHP 0.10→0.15 모두 sim 적용 확인
+- **codex P2 amend (PR #148 amend)** — frontmatter `role: Tank` 잘못 표기. raw champion JSON 의 role 은 `APFighter` 이고 `mapGameRole()` 가 `*Fighter` → simulator `Fighter` 매핑. Tank vs Fighter 는 마나 (공격당 5/on-hit ✓ vs 10/on-hit 0) + 타게팅 weight (3 vs 2) + non-target reduction (×0.85 적용 안 됨 vs 적용) 모두 다름 → role-passive 룰 잘못 전파 가능. **해소**: `role: Fighter` + `raw_role: APFighter` + 본문 Role 주의 섹션 추가 + index 갱신
 - **검증 필요 (잔존)**: selfBuff.attackSpeed 0.3 vs raw BonusAS 0.8 관계 / ASSlow debuff 적용 위치 / DamageHP 1% maxHp passive scaling 정확성
 
 ### Refactor: legacy xxxCarryActive flag 4건 deprecate — selectedCarryAugment 단일화 (PR #147)

@@ -28,7 +28,7 @@ updated: 2026-05-19
 
 ## Champions
 
-- [[shen]] (쉔) — 5코스트 Tank, 보루 + 요새. cast 마다 `shenPassiveStack++` 누적 + 평타 시 stack × BonusDamage 추가 (3+ true damage). 17.3 nerf (45/75 → 20/30) + maxHp/ShieldHP buff 정합
+- [[shen]] (쉔) — 5코스트 Fighter (raw `APFighter`, sim mapGameRole → Fighter), 보루 + 요새 trait. cast 마다 `shenPassiveStack++` 누적 + 평타 시 stack × BonusDamage 추가 (3+ true damage). 17.3 nerf (45/75 → 20/30) + maxHp/ShieldHP buff 정합
 
 ## Items
 

@@ -7,10 +7,11 @@ cost: 5
 traits:
   - 보루
   - 요새
-role: Tank
+role: Fighter   # raw "APFighter" → mapGameRole() → sim Fighter (codex P2 PR #148 정정)
+raw_role: APFighter
 current_patch_status: active
 sim_active: active
-last_verified: 2026-05-19
+last_verified: 2026-05-19 (codex P2 amend)
 sources:
   - "public/data/tft_set17_champions.json (TFT17_Shen entry)"
   - "src/lib/simulator/systems/ability.ts:250 (abilityOverride aoe_circle r=2 + selfBuff AS+0.3 999)"
@@ -29,7 +30,9 @@ related:
 
 ## 요약
 
-5코스트 **Tank**, 보루(`TFT17_ShenUniqueTrait`) + 요새 시너지. AS+ 자가 버프 + 균열 AOE active + **누적 passive** (cast 마다 stack +1, 평타 시 stack × BonusDamage 추가, stack 3+ true damage 전환). 17.3 LIVE 에서 passive 너프 (BonusDamage `45/75 → 20/30`) + maxHp buff (`1200 → 1300`) + ShieldHP `0.10 → 0.15`.
+5코스트 **Fighter** (raw `APFighter` → `mapGameRole()` → sim Fighter, [[role-passive]]), 보루(`TFT17_ShenUniqueTrait`) + 요새 시너지. AS+ 자가 버프 + 균열 AOE active + **누적 passive** (cast 마다 stack +1, 평타 시 stack × BonusDamage 추가, stack 3+ true damage 전환). 17.3 LIVE 에서 passive 너프 (BonusDamage `45/75 → 20/30`) + maxHp buff (`1200 → 1300`) + ShieldHP `0.10 → 0.15`.
+
+> ⚠️ Role 주의: 한글 명세나 traits (요새 — Bastion) 때문에 Tank 처럼 보이지만 raw role 은 `APFighter` 라 sim 에서 **Fighter** 룰 적용 — 마나 (공격당 10, on-hit 0) / 타게팅 weight (2, Tank 3 보다 낮음) / non-target damage reduction ×0.85 모두 Fighter 룰. 보루 trait 활성 시 stats 보강이라 외형상 Tank-like 이지만 sim role 은 Fighter.
 
 ## 메커니즘
 
@@ -106,6 +109,7 @@ if (unit.champion.apiName === 'TFT17_Shen') unit.shenPassiveStack++;
 
 - [x] entity-wide grep `Shen` — multi-source 확인 (보루 trait helper / passive stack hook / 평타 hook 모두 정합)
 - [x] raw stats 17.3 정합 (`public/data/tft_set17_champions.json` 확인)
+- [x] **raw role `APFighter` → mapGameRole → sim Fighter** (codex P2 PR #148 정정)
 - [x] passive cast counter `shenPassiveStack` 정합 (cast 시 ++ + 평타 시 read)
 - [ ] selfBuff.attackSpeed vs BonusAS 관계 확정
 - [ ] ASSlow debuff 적용 위치 verify
