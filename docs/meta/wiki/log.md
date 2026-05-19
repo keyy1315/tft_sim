@@ -8,6 +8,36 @@ format: newest first
 
 ## 2026-05-19
 
+### Ingest: augments/ivern-minion-carry.md — 5단계 워크플로우 + 신규 lint 0건 (augments 폴더 완성)
+
+- **Source** (5단계 워크플로우 적용):
+  - `src/data/carryAugments.ts:188-204` (IvernMinionCarry entry)
+  - `src/lib/simulator/systems/augment.ts:58` (tier='gold')
+  - `combatLoop.ts:694-711` (findLargestClusterTarget — cluster radius 2 hex 알고리즘)
+  - `combatLoop.ts:713-758` (applyAbilityDash to_largest_cluster 분기, line 734)
+  - `combatLoop.ts:1226-1252` (applyCarryPostCastEffects — multi-stun IvernMinionCarry 한정 분기)
+  - `combatLoop.ts:1326-1331` (applyCarryDamageModifiers — hexReduction multiplicative falloff IvernMinionCarry 한정)
+  - `combatLoop.ts:5618-5660` (onAttackBonus passive — Jax 와 공유 helper)
+  - `combatLoop.ts:6820-6824` (IvernMinion abilityOverride.stun 없음 → applyCarryPostCastEffects 별도 분기)
+- **5단계 워크플로우 적용 결과**:
+  1. 좁은 grep: IvernMinionCarry / to_largest_cluster / hexReduction / spiritEffectPerStack
+  2. 함수 컨텍스트: `findLargestClusterTarget` (각 alive 적 중심 radius 2 카운트 → max), `applyCarryPostCastEffects` (caller 2 site main+OOR), `applyCarryDamageModifiers` (5 modifier 통합)
+  3. **entity-wide grep `Ivern`**: 4 specific 적용 위치 발견 — dash helper + hexReduction modifier + multi-stun post-cast + onAttackBonus (Jax 공유). 모두 의도된 분리 (drift 아님)
+  4. 호출 순서·cast path: dash + hexReduction + multi-stun 모두 helper 통합 → main + OOR 양쪽 일관. PR #76 (multi-stun OOR 누락 회귀 자동 해소) 효과 검증
+  5. actual integration verify: 6 필드 (damage/onAttackBonus/hexReduction/stunDuration/dash/spiritEffectPerStack) 모두 read 위치 확인
+- **✅ 신규 lint 검출 0건** — PR7-B (17.2b dash to_largest_cluster + aoe_circle r=3 + multi-stun) + PR #76 (helper 통합) + PR #115 (17.3 hexReduction 정합) 누적 fix 효과적.
+- **🔍 후속 verify 항목**:
+  - 17.3 패치노트 IvernMinion 다른 변경분 (damage / onAttackBonus / stunDuration 변경 여부) verify
+  - desc "2칸 내 가장 큰 적 무리에 도약" 해석 — sim 은 cluster 정의 (radius 2 hex) 로 구현. desc 가 "Ivern 으로부터 2칸" 의미일 가능성 → 사용자 의도 확정 필요
+  - statOverrides 인게임 측정
+- **✅ augments 폴더 완성** — 10 carry augments (Leona/Mord/Gragas/Aatrox/Pyke/Jax/Nasus/Zed/Poppy/Ivern) 전체 위키화 완료
+- **다음 후보**:
+  - Lint #11-A/B (Jax damage 미반영 + asGain dead) sim 해소 PR
+  - Lint #12 (Nasus bonusPerKill dead) sim 해소 PR
+  - Lint #13 (Zed augment 실효성 0) sim 해소 PR
+  - 챔피언 페이지 진입 (Annie / Galio / Shen / Yasuo)
+  - `mechanics/ability-pattern-internals` — 9 pattern 알고리즘 + dash helper 깊이
+
 ### Ingest: augments/poppy-carry.md — 5단계 워크플로우 + 신규 lint 0건 (가장 통합 완성도 carry)
 
 - **Source** (5단계 워크플로우 적용):

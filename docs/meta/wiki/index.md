@@ -45,6 +45,7 @@ _미작성_
 - [[nasus-carry]] (꽁!) — single 패턴 AD physical. ⚠️ Lint #12 (bonusPerKill 필드 dead — 처치 누적 영구 damage 미실현), Lint #5 잔존 (Resists 40→45 인게임 verify)
 - [[invader-zed]] (침략자 제드) — stage 4-2 special. ⚠️ Lint #13 (selfBuff 필드 부재 + damage 미반영으로 sim 효과 사실상 0 — role='Fighter' + mana 50/100 변경뿐)
 - [[poppy-carry]] (정령단 속도) — ranged projectile (rangeOverride 4) + armorScale 1.0 + spiritBounceOnKill (max 50 chain) + Set 17 Poppy passive 별도 작동. 신규 lint 없음 — 가장 많은 메커니즘 sim 통합 완성도 carry. Lint #5 잔존 (AS 0.7→0.75 인게임 verify)
+- [[ivern-minion-carry]] (빅뱅) — gold tier. dash to_largest_cluster (cluster radius 2 hex 알고리즘) + aoe_circle r=3 + hexReduction 0.35 (17.3 nerf 완화) + multi-stun 3 nearest + onAttackBonus passive. helper 통합 (applyCarryDamageModifiers / applyCarryPostCastEffects) 덕분에 main+OOR cast path 양쪽 일관 — 신규 lint 0건
 
 ## Raw Sources (Layer 1)
 
@@ -57,7 +58,7 @@ _미작성_
 ## 작성 우선순위 (다음 후보)
 
 위키화 가치 높은 순:
-1. **augments 나머지 1개** — IvernMinion Carry. multi-stun (이미 `applyCarryPostCastEffects` 통합) 으로 추가 lint 검출 가능성
+1. **augments 완료** — 10 carry augments 전체 위키화 완료 (Leona/Mord/Gragas/Aatrox/Pyke/Jax/Nasus/Zed/Poppy/Ivern). 신규 작업 → sim 해소 또는 champion 페이지로 이동
 2. **Lint #11-A/B (Jax) + #12 (Nasus) + #13 (Zed) sim 해소** — sim fix PR (필드 read 추가 vs 필드 dead 정리)
 3. **flag 자체 dead 정리** (`gragasCarryActive` / `leonaCarryActive`) — sim 코드 사용처 0, 테스트 assertion 만 (Lint #6/#8 후속)
 4. **Lint #10 cleanup** — `hero-augment-carry.md` 의 "Pyke onKill 미구현" stale 정정 (PR #131 에서 부분 정정, 후속 PR 로 더 깊이)
