@@ -3,8 +3,8 @@ id: hero-augment-carry
 type: mechanic
 display_name_kr: 영웅 증강 carry 변환
 current_patch_status: active
-sim_active: active   # 17.2b/17.3 carry-specific 메커니즘 모두 sim 도달 (Lint #5/#10/#11/#12/#14/#15/#16 resolved). statOverrides 슬롯만 일부 잔존 (인게임 측정 대기)
-last_verified: 2026-05-19 (Lint #10 deep cleanup, PR #146)
+sim_active: partial   # 9/10 carry active (Aatrox/Pyke/Poppy/Ivern/Mord/Leona/Gragas/Jax/Nasus). InvaderZed (TFT17_Augment_InvaderZed) 만 minimal — selfBuff 필드 부재 + damage 미반영, sim 효과 사실상 0 (Lint #13 spec 확인 대기). statOverrides 슬롯도 일부 잔존 (Poppy/Nasus 인게임 측정 대기 — Lint #5)
+last_verified: 2026-05-19 (Lint #10 deep cleanup, PR #146 + codex P2 amend)
 sources:
   - src/data/carryAugments.ts (CarryAugmentConfig + CARRY_AUGMENTS)
   - src/lib/simulator/engine/combatLoop.ts (applyHeroCarryTransforms, findStrongestUnitByApi)
@@ -123,7 +123,7 @@ augment 전용: `shield, shieldDuration, onAttackBonus, passiveDamage, empowered
 검증: pnpm lint/typecheck/build 통과 + `pnpm vitest run tests/unit/simulator/` 449 passed.
 자세한 매핑은 [[patch-17-3]] "조정 Augments — Champion augments" 참조.
 
-## 시뮬 적용 상태 — `active`
+## 시뮬 적용 상태 — `partial` (9/10 active, InvaderZed 만 minimal)
 
 ✅ **활성**:
 - 10개 augment 모두 abilityData 채워짐 → cast damage 시뮬 정확

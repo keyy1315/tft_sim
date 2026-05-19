@@ -8,7 +8,7 @@ format: newest first
 
 ## 2026-05-19
 
-### Docs: Lint #10 deep cleanup — hero-augment-carry.md stale 표기 전수 정정 (PR #146)
+### Docs: Lint #10 deep cleanup — hero-augment-carry.md stale 표기 전수 정정 (PR #146 + codex P2 amend)
 
 - **Source**: 위키 lint #10 (`hero-augment-carry.md` 의 "❌ 미완" 섹션 stale 표기 — PR #131 부분 정정 후 deep cleanup 후속)
 - **Stale 표기 정정 (5건)**:
@@ -22,7 +22,7 @@ format: newest first
   - **statOverrides 잔존** (Lint #5) — Poppy AS / Nasus resists 인게임 측정 대기
   - **Lint #13 (InvaderZed)** — spec 확인 대기
 - **frontmatter 갱신**:
-  - `sim_active: partial → active` (17.2b/17.3 carry-specific 메커니즘 모두 sim 도달)
+  - `sim_active: partial` 유지 (codex P2 amend) — 9/10 carry active 이나 **InvaderZed (Lint #13) 만 minimal** 잔존. carry-specific 메커니즘 모두 sim 도달이라는 일반론은 9/10 만 해당. 위키 lint script 가 frontmatter 의존 시 InvaderZed gap 가려지지 않게 정확한 상태 comment 명시
   - `last_verified: 2026-05-18 → 2026-05-19`
 - **변환 흐름 4단계 → 5단계 갱신** (PR #144 selectedCarryAugment 일반화 반영)
 - **신규 섹션 "검증 누적 (Lint sub-finding resolved 사례)"** — Lint #5~#16 모두 추적 표
