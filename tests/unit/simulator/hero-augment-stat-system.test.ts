@@ -1353,7 +1353,8 @@ describe('CarryAugmentConfig.statOverrides — 슬롯 추후 채움 가드', () 
       'utf8',
     );
     expect(combatLoopSrc).toMatch(/applyMordekaiserProcCast[\s\S]+?unit\.mordekaiserCarryShield/);
-    expect(combatLoopSrc).toMatch(/mordekaiserCarryShield\s*!==\s*null/);
+    // PR #143: !== null → != null (undefined 도 safe, test fixture 회귀 가드)
+    expect(combatLoopSrc).toMatch(/mordekaiserCarryShield\s*!=\s*null/);
   });
 
   it('applyHeroCarryTransforms mana override 는 item delta 보존 (PR #124 Codex P2 회귀 가드)', async () => {

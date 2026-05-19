@@ -948,7 +948,9 @@ export function applyMordekaiserProcCast(unit: CombatUnit, tick: number): void {
   // 위키 lint #7 (PR #123 검출, fix #124): MordekaiserCarry (Heat Death) 활성 시 carry
   // abilityData.shield override 우선 read. 비활성 시 raw InitialShield var 사용 (base
   // Mordekaiser cast). 17.3 patch note Heat Death shield 175/200/400 정합 적용.
-  const baseInitialShield = unit.mordekaiserCarryShield !== null
+  // PR #143: != null (loose) 가드 — undefined (test fixture / 외부 호출자) 도 safe.
+  // 기존 !== null (strict) 는 undefined !== null = true 라 array access TypeError 회귀.
+  const baseInitialShield = unit.mordekaiserCarryShield != null
     ? (unit.mordekaiserCarryShield[unit.starLevel - 1] ?? 0)
     : readVarByStar(
       vars.find(v => v.name === 'InitialShield')?.value, unit.starLevel, 0

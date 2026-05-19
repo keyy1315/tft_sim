@@ -101,6 +101,9 @@ function makeMordekaiser(opts: {
     mordekaiserProcEndTick: 0,
     mordekaiserNextProcTick: 0,
     mordekaiserShieldRemaining: 0,
+    // PR #124 추가 필드 — raw Mordekaiser test 라 null (MordekaiserCarry 비활성).
+    // applyMordekaiserProcCast 가 carry override 검사 시 raw InitialShield fallback 진입.
+    mordekaiserCarryShield: null,
     // codex P2 PR #103: pulse 의 per-target amp 계산에 사용되는 필드 (0 default).
     inventionTankDamageAmp: 0,
     madredsTankDamageAmp: 0,
