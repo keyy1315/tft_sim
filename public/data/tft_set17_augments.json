@@ -3,7 +3,7 @@
     "set": 17,
     "source": "CommunityDragon TFT ko_kr.json (PBE 5/12)",
     "extractedAt": "2026-05-13T00:30:00.000Z",
-    "totalAugments": 437,
+    "totalAugments": 439,
     "patch_version": "17.3 LIVE",
     "fetched_at": "2026-05-13",
     "set17_active_pool_size": 35
@@ -8413,6 +8413,51 @@
         "{d12ae4b6}",
         "{d22ae649}",
         "{84a6d904}"
+      ],
+      "disable": false
+    },
+    {
+      "name": "재빠른 무장",
+      "apiName": "TFT11_Augment_Slammin",
+      "desc": "@Gold@골드를 획득합니다. 플레이어 대상 전투를 마친 후 대기석에 아이템(소모품 제외)이 없을 때마다 @XP@의 경험치를 획득합니다.",
+      "effects": {
+        "Gold": 3,
+        "XP": 2
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Slammin_II.TFT_Set17.tex",
+      "associatedTraits": [],
+      "tags": [
+        "{ce1fd21c}",
+        "{b72bd3bf}",
+        "{d22ae649}",
+        "{d12ae4b6}",
+        "{7aaa3b47}",
+        "{c5c463aa}",
+        "{77b330ea}",
+        "{24d36c27}",
+        "{4529fead}"
+      ],
+      "disable": false
+    },
+    {
+      "name": "재빠른 무장+",
+      "apiName": "TFT11_Augment_Slammin_Plus",
+      "desc": "즉시 @Gold@골드를 획득하고 경험치를 @XPNow@ 얻습니다. 플레이어 대상 전투를 마친 후 대기석에 아이템(소모품 제외)이 없을 때마다 @XP@의 경험치를 획득합니다.",
+      "effects": {
+        "Gold": 8,
+        "XP": 2,
+        "XPNow": 10
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Slammin_II.TFT_Set17.tex",
+      "associatedTraits": [],
+      "tags": [
+        "{ce1fd21c}",
+        "{b72bd3bf}",
+        "{d22ae649}",
+        "{d02ae323}",
+        "{7aaa3b47}",
+        "{77b330ea}",
+        "{24d36c27}"
       ],
       "disable": false
     }
