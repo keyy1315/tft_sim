@@ -15,10 +15,12 @@ const apGragas = champions.find(c => c.apiName === 'TFT17_Gragas')!;
 const apLeona = champions.find(c => c.apiName === 'TFT17_Leona')!;
 const apTwistedFate = champions.find(c => c.apiName === 'TFT17_TwistedFate')!;
 const apNasus = champions.find(c => c.apiName === 'TFT17_Nasus')!;
+const apJax = champions.find(c => c.apiName === 'TFT17_Jax')!;
 const dummyEnemy = champions.find(c => c.apiName === 'TFT17_Aatrox')!;
 const augGragasCarry = augments.find(a => a.apiName === 'TFT17_Augment_GragasCarry')!;
 const augLeonaCarry = augments.find(a => a.apiName === 'TFT17_Augment_LeonaCarry')!;
 const augNasusCarry = augments.find(a => a.apiName === 'TFT17_Augment_NasusCarry')!;
+const augJaxCarry = augments.find(a => a.apiName === 'TFT17_Augment_JaxCarry')!;
 // 임의 아이템 (가장 강한 룰 — 아이템 보유 우선 검증용)
 const someItem = items.find(i => i.apiName === 'TFT_Item_BFSword')
   ?? items.find(i => i.apiName?.startsWith('TFT_Item_'))!;
@@ -207,5 +209,77 @@ describe('꽁! (NasusCarry) — bonusPerKill cast 누적 (Lint #12 해소)', () 
     const nasus = result.playerUnits.find(u => u.champion.apiName === 'TFT17_Nasus')!;
     // augment 미활성 → carryCfg.abilityData.bonusPerKill 없음 → stack 누적 분기 진입 안 함
     expect(nasus.nasusBonkStack).toBe(0);
+  });
+});
+
+describe('저 별을 향해 (JaxCarry) — asGain starLevel별 정합 (Lint #11-B 해소)', () => {
+  it('augment 활성 → jaxCarryActive = true + role Fighter', () => {
+    const team: PlacedChampion[] = [placed(apJax, 0, 0, 2)];
+    const enemy: PlacedChampion[] = [placed(dummyEnemy, 6, 3)];
+    const withCarry = simulateCombat(team, enemy, {
+      seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
+      playerAugments: [augJaxCarry] as RawAugment[],
+    });
+    const jax = withCarry.playerUnits.find(u => u.champion.apiName === 'TFT17_Jax')!;
+    expect(jax.jaxCarryActive).toBe(true);
+    expect(jax.role).toBe('Fighter');
+  });
+
+  it('augment 미활성 → jaxCarryActive = false (raw Jax)', () => {
+    const team: PlacedChampion[] = [placed(apJax, 0, 0, 2)];
+    const enemy: PlacedChampion[] = [placed(dummyEnemy, 6, 3)];
+    const withoutCarry = simulateCombat(team, enemy, {
+      seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
+    });
+    const jax = withoutCarry.playerUnits.find(u => u.champion.apiName === 'TFT17_Jax')!;
+    expect(jax.jaxCarryActive).toBe(false);
+  });
+
+  it('다중 Jax 카피 시 selected (가장 강한) 1명만 jaxCarryActive (codex P2 패턴 적용)', () => {
+    // Jax 2명 (3성 + 2성) → 3성만 carry transform. findCarryAugment 는 두 명 모두에게 동일
+    // config 반환하지만 selected single-carry semantics (PR #135 패턴) 로 3성만 flag true.
+    const team: PlacedChampion[] = [
+      placed(apJax, 0, 0, 2),
+      placed(apJax, 1, 0, 3),
+    ];
+    const enemy: PlacedChampion[] = [placed(dummyEnemy, 6, 3)];
+    const result = simulateCombat(team, enemy, {
+      seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
+      playerAugments: [augJaxCarry] as RawAugment[],
+    });
+    const jaxUnits = result.playerUnits.filter(u => u.champion.apiName === 'TFT17_Jax');
+    const star3 = jaxUnits.find(u => u.starLevel === 3)!;
+    const star2 = jaxUnits.find(u => u.starLevel === 2)!;
+    expect(star3.jaxCarryActive).toBe(true);
+    expect(star2.jaxCarryActive).toBe(false);
+  });
+
+  it('non-selected Jax 는 carry self_buff abilityOverride 무시 (PR #136 codex P2 amend)', () => {
+    // 다중 Jax + JaxCarry → non-selected (2성) 은 getAbilityConfigForUnit 에서 raw Jax config
+    // (aoe_circle stun) fallback 받아야 함. carry self_buff override 가 모든 카피에 전파되면
+    // non-selected 도 self_buff 패턴 cast → raw 의도 위반.
+    // 검증 방식: non-selected Jax 의 baseline attackSpeed 와 final attackSpeed 비교 (selected
+    // 만 carry buff 받음. non-selected 는 raw Jax stat 변화 없음 — raw Jax raw selfBuff 는
+    // durability:0.3 만, attackSpeed 변경 없음).
+    const team: PlacedChampion[] = [
+      placed(apJax, 0, 0, 2),
+      placed(apJax, 1, 0, 3),
+    ];
+    const enemy: PlacedChampion[] = [placed(dummyEnemy, 6, 3, 3)]; // 3성 enemy — Jax cast 발동 보장
+    const result = simulateCombat(team, enemy, {
+      seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
+      playerAugments: [augJaxCarry] as RawAugment[],
+    });
+    const jaxUnits = result.playerUnits.filter(u => u.champion.apiName === 'TFT17_Jax');
+    const star2NonSelected = jaxUnits.find(u => u.starLevel === 2)!;
+    // raw Jax 2성 baseline attackSpeed 계산 — STAR_SCALING 적용 base
+    const rawAS = apJax.stats.attackSpeed;
+    // non-selected 2성 Jax 는 carry buff 안 받으므로 final AS 가 raw 와 거의 동일
+    // (item bonus / trait effect 없는 단순 setup). carry self_buff.attackSpeed 0.15 적용되면
+    // final AS = rawAS × 1.15^(castCount) → cast 1회만 진입해도 rawAS 보다 큼.
+    // 회귀 가드: non-selected 가 carry buff 받았다면 attackSpeed 가 raw 보다 큼.
+    expect(star2NonSelected.jaxCarryActive).toBe(false);
+    // raw Jax attackSpeed 와 일치 (±5% 허용 — trait/buff 영향 미미)
+    expect(star2NonSelected.stats.attackSpeed).toBeLessThanOrEqual(rawAS * 1.05);
   });
 });
