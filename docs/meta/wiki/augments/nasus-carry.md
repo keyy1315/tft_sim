@@ -7,7 +7,7 @@ target_champion: TFT17_Nasus
 tier: (미확인 — 패치노트 verify 필요)
 stage: stage 2 (carry augment 일반)
 current_patch_status: active
-sim_active: partial
+sim_active: active
 last_verified: 2026-05-19
 sources:
   - src/data/carryAugments.ts:113-129 (NasusCarry entry)
@@ -46,7 +46,7 @@ Nasus (`TFT17_Nasus`) carry augment. 활성 시 가장 강한 Nasus 1명 → `Fi
 |------|-----|---------|------|
 | `mana` | `60/120` | ✅ | raw 채택 |
 | `damage` | `[280, 420, 670]` | ✅ | `resolveAbilityDamage` carryForDamage 경로 — single 패턴 |
-| `bonusPerKill` | `[10, 13, 20]` | ❌ **미반영** | grep `bonusPerKill` src/ → carryAugments.ts entry 외 read 위치 0건. desc "처치 시 피해 영구 증가" sim 미실현 |
+| `bonusPerKill` | `[10, 13, 20]` | ✅ **활성** (PR #135 Lint #12 해소) | `applyCarryDamageModifiers` line 1334 modifier #6 — `baseDmg += unit.nasusBonkStack × bonusPerKill[starLevel-1]`. Stack 누적: cast loop `markTargetDead` 직후 (NasusCarry 활성 + Nasus 본인 한정). basic attack kill 제외 |
 | `damageType` | `physical` | ✅ | damageTypeOverride physical 우선 |
 
 ## 패치 히스토리
@@ -55,24 +55,26 @@ Nasus (`TFT17_Nasus`) carry augment. 활성 시 가장 강한 Nasus 1명 → `Fi
 |------|------|
 | 17.3 (2026-05-13) | 패치노트 "Bonk! Resists: 40 → 45" — augment grant 인지 champion baseline 변경인지 모호. `carryAugments.ts:119-120` TODO 주석. **인게임 verify 필요 (Lint #5 잔존)** |
 
-## sim 적용 상태 — `partial`
+## sim 적용 상태 — `active`
 
 ✅ **활성**:
 - `role='Fighter'` 변환
 - single pattern + damage [280, 420, 670] AD physical (carryForDamage 경로)
 - damageTypeOverride `physical` 우선
 - mana 60/120 raw 채택
+- **`bonusPerKill[10,13,20]` cast kill 누적** (PR #135 Lint #12 해소):
+  - Stack 누적: cast loop `markTargetDead` 직후 (`combatLoop.ts:6549-6555`). NasusCarry 활성 + `unit.champion.apiName === 'TFT17_Nasus'` 한정. basic attack kill 제외 ("이 스킬로" desc 정합)
+  - Read site: `applyCarryDamageModifiers` modifier #6 (`combatLoop.ts:1334-1340`) — `baseDmg += unit.nasusBonkStack × bonusPerKill[starLevel-1]`. base + scale 후 영구 buff raw 가산
+  - Invariant: `nasusBonkStack ≤ killCount` (cast kill 만 누적)
 
-❌ **미반영**:
-1. **`bonusPerKill[10,13,20]` 미반영** — grep src/ 전체 결과 read 위치 0건. desc "이 스킬로 적을 처치하면 스킬 피해량이 영구적으로 증가" sim 미실현. scalingInput.effectPerStack "피해량 +10" UI 표시만, sim 효과 도달 안 함.
-2. **Resists 40→45 buff** — 17.3 패치노트. statOverrides.armor/magicResist 없음. augment grant 인지 base stat 변경인지 모호 → 인게임 측정 후 확정.
+❌ **잔존**:
+- **Resists 40→45 buff** — 17.3 패치노트. statOverrides.armor/magicResist 없음. augment grant 인지 base stat 변경인지 모호 → 인게임 측정 후 확정 (Lint #5 잔존).
 
 🔍 **검증 필요**:
 - statOverrides 인게임 측정 (Lint #5):
   - augment 활성 시 armor +40 (또는 +45)
   - magicResist +40 (또는 +45)
   - HP/AS/range 변화 여부
-- `bonusPerKill` 의도 sim 반영 결정: (1) on_kill eventBus listener 추가, (2) 필드 dead 정리, (3) "design intent only" 명시
 
 ## Cast path 전수 확인 (5단계 워크플로우 cast path 3종)
 
@@ -86,11 +88,14 @@ Nasus (`TFT17_Nasus`) carry augment. 활성 시 가장 강한 Nasus 1명 → `Fi
 
 ## Lint finding
 
-### Lint candidate #12 — NasusCarry `bonusPerKill` 필드 dead
+### Lint #12 — NasusCarry `bonusPerKill` ✅ resolved (PR #135)
 
-- carryAugments.ts:127 `bonusPerKill: [10, 13, 20]` 정의되어 있으나 src/ 전체 grep read 위치 0건
-- desc "이 스킬로 적을 처치하면 스킬 피해량이 영구적으로 증가" + scalingInput "처치 수 / 피해량 +10" 모두 일관되게 영구 누적 buff 의도
-- **해소 방향**: (1) on_kill eventBus listener 추가 → `unit.nasusBonkStack` 누적 + cast damage 에 stack × bonusPerKill 가산 (Shen passive 패턴 [[role-passive]] 참조), (2) 필드 제거 + design-only 명시
+- carryAugments.ts:127 `bonusPerKill: [10, 13, 20]` 가 dead field → sim 도달
+- 해소 방식 (단순 inline hook, eventBus listener 미사용):
+  - **Stack 누적**: cast loop `markTargetDead` 호출 직후 (`combatLoop.ts:6549-6555`) — NasusCarry 활성 + `unit.champion.apiName === 'TFT17_Nasus'` + `carryCfg.abilityData.bonusPerKill` 가드. basic attack kill 자동 제외 (cast site 한정)
+  - **Stack read**: `applyCarryDamageModifiers` modifier #6 추가 (`combatLoop.ts:1334-1340`) — base + scale 후 raw 가산. caller 2 site (main + OOR) 자동 일관 — 다만 NasusCarry single pattern 은 OOR 진입 불가 (canDashCast 가드)
+- 호출 순서: 단독 적중 → secondary → tankBonus → armorScale → hexReduction → **bonusPerKill** (마지막, 영구 buff 가산 의미)
+- 테스트: `tests/unit/simulator/hero-carry-augments.test.ts` 3 case — 초기값 0 / cast kill ≤ killCount invariant / augment 미활성 시 stack 0
 
 ### Lint #5 잔존 — Resists 40→45 인게임 verify (기존)
 
@@ -98,11 +103,11 @@ Nasus (`TFT17_Nasus`) carry augment. 활성 시 가장 강한 Nasus 1명 → `Fi
 
 ## Lint 체크리스트
 
-- [x] entity-wide grep `Nasus` — multi-source drift 없음 (combatLoop.ts 의 specific helper 함수 없음, single pattern 표준 경로만 사용)
-- [x] cast path 3종 — main 만 진입 (OOR/recast 무관)
-- [x] actual integration verify — `bonusPerKill` 필드 dead 검출 (Lint #12)
-- [ ] Resists 40→45 인게임 측정 (Lint #5)
-- [ ] `bonusPerKill` 해소 방향 결정 (sim 추가 vs 필드 제거)
+- [x] entity-wide grep `Nasus` — multi-source drift 없음. PR #135 후 inline 분기 추가 (cast loop markTargetDead 직후 + applyCarryDamageModifiers modifier #6)
+- [x] cast path 3종 — main 만 진입 (OOR/recast 무관). modifier helper 자체는 main+OOR caller 2 site 자동 일관
+- [x] actual integration verify — `bonusPerKill` sim 도달 (PR #135)
+- [x] **Lint #12 ✅ resolved** (PR #135 — inline hook + modifier #6)
+- [ ] Resists 40→45 인게임 측정 (Lint #5 잔존)
 
 ## 관련
 

@@ -307,6 +307,7 @@ function createCombatUnit(
     stargazerSerpentPoisonPercent: 0,
     stargazerSerpentDurationSec: 0,
     shenPassiveStack: 0,
+    nasusBonkStack: 0,
     stargazerShieldCashoutHpFrac: 0,
     stargazerShieldCashoutAsFrac: 0,
     bastionDoubleEndTick: 0,
@@ -1269,12 +1270,13 @@ function applyCarryPostCastEffects(
 /**
  * 통합 carry-specific damage modifier helper (refactor: carry-damage-modifier).
  *
- * cast loop 안의 baseDmg 계산 분기 5종 통합:
+ * cast loop 안의 baseDmg 계산 분기 6종 통합:
  *   1. **singleTargetMultiplier** (아트록스 찍기 cycle): aliveTargets.length === 1 시 ×N
  *   2. **secondaryDamage** (파이크 X-shape, 레오나 line): primary 외 target 에 별도 damage
  *   3. **tankBonusMultiplier** (파이크 onKillRecast): primary target 이 Tank 일 때 ×(1+N)
  *   4. **armorScale** (뽀삐): baseDmg + (target.armor × armorScale) — raw 가산
  *   5. **hexReduction** (꼬마정령): abilityTarget 위치 기준 multiplicative falloff
+ *   6. **bonusPerKill** (Nasus, Lint #12 해소): unit.nasusBonkStack × bonusPerKill[★] raw 가산
  *
  * 자폭 (그라가스) 의 hexReduction / tankBonusMultiplier / baseDamageHpFrac 은 selfDamage
  * 분기 special path (PR4) 라 본 helper 무관.
@@ -1282,8 +1284,8 @@ function applyCarryPostCastEffects(
  * caller 2 site (cast loop main + OOR cast loop). OOR 도 동일 helper 호출 → in-range 와
  * 동작 일관 보장 (codex P1 #76 권장 사항: 다른 carry-specific 메커니즘 OOR 누락 회귀 자동 해소).
  *
- * **호출 순서**: 단독 적중 → secondary → tankBonus → armorScale → hexReduction
- *   (기존 cast loop 분기 순서 보존).
+ * **호출 순서**: 단독 적중 → secondary → tankBonus → armorScale → hexReduction → bonusPerKill
+ *   (기존 cast loop 분기 순서 보존 + bonusPerKill 가장 마지막 — base + scale 후 영구 buff 가산).
  */
 function applyCarryDamageModifiers(
   baseDmg: number,
@@ -1328,6 +1330,15 @@ function applyCarryDamageModifiers(
       && carryCfg.augmentApiName === 'TFT17_Augment_IvernMinionCarry') {
     const distFromCenter = hexDistance(context.abilityTarget.position, t.position);
     baseDmg *= Math.pow(1 - ad.hexReduction, distFromCenter);
+  }
+  // 6. bonusPerKill (NasusCarry 한정, Lint #12 해소): cast kill 누적 stack × bonusPerKill[★]
+  // raw 가산. base damage 계산 후 영구 buff 형태로 더해짐 (스택 0 일 때 무영향).
+  // stack 증가 위치: cast loop 의 markTargetDead 직후 (basic attack kill 제외 — desc "이 스킬로" 정합).
+  if (ad.bonusPerKill && unit.nasusBonkStack > 0
+      && carryCfg.augmentApiName === 'TFT17_Augment_NasusCarry') {
+    const bonusArr = ad.bonusPerKill;
+    const bonusPer = bonusArr[unit.starLevel - 1] ?? bonusArr[0];
+    baseDmg += unit.nasusBonkStack * bonusPer;
   }
   return baseDmg;
 }
@@ -3602,6 +3613,7 @@ function spawnFreljordTurrets(
             stargazerSerpentPoisonPercent: 0,
             stargazerSerpentDurationSec: 0,
             shenPassiveStack: 0,
+            nasusBonkStack: 0,
             stargazerShieldCashoutHpFrac: 0,
             stargazerShieldCashoutAsFrac: 0,
             bastionDoubleEndTick: 0,
@@ -3811,6 +3823,7 @@ function trySpawnGalio(
     stargazerSerpentPoisonPercent: 0,
     stargazerSerpentDurationSec: 0,
     shenPassiveStack: 0,
+    nasusBonkStack: 0,
     stargazerShieldCashoutHpFrac: 0,
     stargazerShieldCashoutAsFrac: 0,
     bastionDoubleEndTick: 0,
@@ -6538,6 +6551,14 @@ export function simulateCombat(
                   logs.push(deathLog);
                   tickLogs.push(deathLog);
                   markTargetDead(unit, t, ownArbCast, eventBus, tick);
+                  // Lint #12 해소 (NasusCarry bonusPerKill): cast 로 처치 시 stack++ 누적.
+                  // desc "이 스킬로 적을 처치하면" — basic attack kill 제외 (cast site only).
+                  // NasusCarry single pattern → main pipeline only (OOR/recast 진입 불가).
+                  // Read site: applyCarryDamageModifiers 의 bonusPerKill modifier (다음 cast 부터 가산).
+                  if (unit.champion.apiName === 'TFT17_Nasus'
+                      && carryCfg?.abilityData?.bonusPerKill) {
+                    unit.nasusBonkStack++;
+                  }
                 }
               }
 
