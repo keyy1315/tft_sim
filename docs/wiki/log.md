@@ -8,7 +8,7 @@ format: newest first
 
 ## 2026-05-19
 
-### Refactor: selected-carry-augment 일반화 foundation — Lint #14 1/N (PR #144)
+### Refactor: selected-carry-augment 일반화 foundation — Lint #14 1/N (PR #144 + codex P1 amend)
 
 - **Source**: Lint #14 (광범위 abilityOverride pollution audit) — 사용자 결정 Option B (일반화 helper)
 - **audit 결과 (Lint #14 sub-lint 카탈로그)**:
@@ -27,6 +27,7 @@ format: newest first
 - **효과**:
   - **모든 carry 에 Layer 2 (abilityOverride) 가드 일관 적용** — non-selected 카피가 carry pattern 으로 cast 하던 회귀 해소 (Aatrox/Pyke/Poppy/Ivern/Mord/Leona/Gragas 동시)
   - 기존 동작 보존 (selected unit 은 동일 carry 패턴 사용, 단 카피만 있으면 raw fallback)
+- **codex P1 amend (PR #144 amend)** — getAbilityConfigForUnit 만 가드한 결과 cast loop 의 `carryCfg = findCarryAugment(...)` 는 여전히 모든 카피에서 non-null. 즉 non-selected Aatrox 도 `carryCfg.augmentApiName === 'TFT17_Augment_AatroxCarry'` 매치 → cycle damage / N.O.V.A. effects 등 carry-specific 분기 진입 (Pyke recast / Poppy bounce / Ivern hexReduction / Mord proc 모두 동일). **해소**: `findSelectedCarryAugment(unit, augNames)` helper 신규 + cast loop 의 `findCarryAugment` 호출 3곳 (basic attack onAttackBonus / main cast carryCfg / OOR cast oorCarryCfg) 교체. `applyCarryAugmentRange` 는 `applyHeroCarryTransforms` 안의 rangeOverride 통합으로 deprecated — selected target 한정 자연스럽게 적용. 결과: getAbilityConfigForUnit + cast loop carryCfg + onAttackBonus + rangeOverride 모두 일관 selected 가드.
 - **검증**: pnpm typecheck pass, 전체 suite 892/892 pass ✅
 - **후속 sub-PR 계획** (carry-specific Layer 1 가드):
   - 14-A: Aatrox cycle counter / NOVA selector selectedCarryAugment 가드
