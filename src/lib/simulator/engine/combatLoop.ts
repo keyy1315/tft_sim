@@ -289,8 +289,6 @@ function createCombatUnit(
     blitzBoltDamage: 0,
     blitzBoltLastFireTick: 0,
     blitzBoltSpeedMult: 1,
-    gragasCarryActive: false,
-    leonaCarryActive: false,
     mordekaiserCarryShield: null,
     aatroxCycleCounter: 0,
     aatroxPreviouslyDead: false,
@@ -308,8 +306,6 @@ function createCombatUnit(
     stargazerSerpentDurationSec: 0,
     shenPassiveStack: 0,
     nasusBonkStack: 0,
-    nasusCarryActive: false,
-    jaxCarryActive: false,
     selectedCarryAugment: null,
     stargazerShieldCashoutHpFrac: 0,
     stargazerShieldCashoutAsFrac: 0,
@@ -1361,9 +1357,12 @@ function applyCarryDamageModifiers(
   // 6. bonusPerKill (NasusCarry 한정, Lint #12 해소): cast kill 누적 stack × bonusPerKill[★]
   // raw 가산. base damage 계산 후 영구 buff 형태로 더해짐 (스택 0 일 때 무영향).
   // stack 증가 위치: cast loop 의 markTargetDead 직후 (basic attack kill 제외 — desc "이 스킬로" 정합).
-  // codex P2 (PR #135): unit.nasusCarryActive 가드 — 다중 Nasus 카피 시 selected 1명만 적용.
-  // (augmentApiName 매치 만으로는 non-selected 카피도 동일 carry config 반환 → semantics 위반).
-  if (ad.bonusPerKill && unit.nasusBonkStack > 0 && unit.nasusCarryActive) {
+  // codex P2 (PR #135): selected 가드 — 다중 Nasus 카피 시 selected 1명만 적용.
+  // PR #147 deprecate: nasusCarryActive flag → selectedCarryAugment 비교 (동치 + 일반화).
+  // 단, PR #144 findSelectedCarryAugment 가 carryCfg 를 selected 만 반환하므로 본 가드는
+  // defense-in-depth (carryCfg 통과 시 추가 검증 — bonusPerKill 정의 + stack > 0).
+  if (ad.bonusPerKill && unit.nasusBonkStack > 0
+      && unit.selectedCarryAugment === 'TFT17_Augment_NasusCarry') {
     const bonusArr = ad.bonusPerKill;
     const bonusPer = bonusArr[unit.starLevel - 1] ?? bonusArr[0];
     baseDmg += unit.nasusBonkStack * bonusPer;
@@ -2291,8 +2290,9 @@ function applyHeroCarryTransforms(augmentApiNames: string[], units: CombatUnit[]
       }
     }
     // PR #144 Lint #14 foundation: selected single-carry semantics 일반화 — 모든 carry 에
-    // selectedCarryAugment 일관 set. 기존 xxxCarryActive flag 는 legacy 호환 유지 (점진 deprecate).
-    // 신규 가드 (getAbilityConfigForUnit + 미래 carry-specific) 는 selectedCarryAugment 사용 권장.
+    // selectedCarryAugment 일관 set. PR #147 deprecate: 기존 xxxCarryActive flag (jax/nasus/
+    // leona/gragas) 제거됨 — read site 모두 selectedCarryAugment 비교로 변경. carry-specific
+    // 데이터 보유 필드 (mordekaiserCarryShield) 만 유지.
     target.selectedCarryAugment = cfg.augmentApiName;
 
     // PR #144 codex P1 amend: rangeOverride 통합 — 이전엔 applyCarryAugmentRange 가 selected
@@ -2302,27 +2302,13 @@ function applyHeroCarryTransforms(augmentApiNames: string[], units: CombatUnit[]
       target.stats.range = cfg.rangeOverride;
     }
 
-    // ability 분기용 flag (기존 호출 경로 호환 — legacy, PR #144 이후 deprecate 예정)
-    if (cfg.augmentApiName === 'TFT17_Augment_GragasCarry') {
-      target.gragasCarryActive = true;
-    } else if (cfg.augmentApiName === 'TFT17_Augment_LeonaCarry') {
-      target.leonaCarryActive = true;
-    } else if (cfg.augmentApiName === 'TFT17_Augment_MordekaiserCarry') {
+    // Mordekaiser carry shield (carry data 보유 — 단순 boolean 아님)
+    if (cfg.augmentApiName === 'TFT17_Augment_MordekaiserCarry') {
       // 위키 lint #7 (PR #123 Codex P2 검출): applyMordekaiserProcCast 가 raw
       // unit.champion.ability.variables.InitialShield 만 read 했음 (PR #115 의 17.3
       // shield/mana sim 미반영). carry abilityData.shield override 를 unit 에 저장
       // → applyMordekaiserProcCast 가 우선 read.
       target.mordekaiserCarryShield = cfg.abilityData?.shield ?? null;
-    } else if (cfg.augmentApiName === 'TFT17_Augment_NasusCarry') {
-      // PR #135 Codex P2 catch: findCarryAugment 는 모든 Nasus 카피에 NasusCarry config 반환
-      // (champion api name 매치만) 하지만 applyHeroCarryTransforms 는 가장 강한 1명만 carry
-      // transform. read site (bonusPerKill modifier + cast loop stack hook) 가 champion
-      // api 만 확인하면 non-selected 카피도 stack 누적 → 의도 위반. selected 만 flag set.
-      target.nasusCarryActive = true;
-    } else if (cfg.augmentApiName === 'TFT17_Augment_JaxCarry') {
-      // PR #136 Lint #11-B 해소: JaxCarry abilityData.asGain[★] starLevel별 read.
-      // selected single-carry semantics (PR #135 패턴) — 다중 Jax 카피 시 selected 만 적용.
-      target.jaxCarryActive = true;
     }
   }
 }
@@ -3645,8 +3631,6 @@ function spawnFreljordTurrets(
             blitzBoltDamage: 0,
             blitzBoltLastFireTick: 0,
             blitzBoltSpeedMult: 1,
-            gragasCarryActive: false,
-            leonaCarryActive: false,
             mordekaiserCarryShield: null,
             aatroxCycleCounter: 0,
             aatroxPreviouslyDead: false,
@@ -3664,8 +3648,6 @@ function spawnFreljordTurrets(
             stargazerSerpentDurationSec: 0,
             shenPassiveStack: 0,
             nasusBonkStack: 0,
-            nasusCarryActive: false,
-            jaxCarryActive: false,
             selectedCarryAugment: null,
             stargazerShieldCashoutHpFrac: 0,
             stargazerShieldCashoutAsFrac: 0,
@@ -3858,8 +3840,6 @@ function trySpawnGalio(
     blitzBoltDamage: 0,
     blitzBoltLastFireTick: 0,
     blitzBoltSpeedMult: 1,
-    gragasCarryActive: false,
-    leonaCarryActive: false,
     mordekaiserCarryShield: null,
     aatroxCycleCounter: 0,
     aatroxPreviouslyDead: false,
@@ -3877,8 +3857,6 @@ function trySpawnGalio(
     stargazerSerpentDurationSec: 0,
     shenPassiveStack: 0,
     nasusBonkStack: 0,
-    nasusCarryActive: false,
-    jaxCarryActive: false,
     selectedCarryAugment: null,
     stargazerShieldCashoutHpFrac: 0,
     stargazerShieldCashoutAsFrac: 0,
@@ -6618,7 +6596,8 @@ export function simulateCombat(
                   // codex P2 (PR #135): unit.nasusCarryActive 가드 — findCarryAugment 는 모든 Nasus
                   // 카피에 NasusCarry config 반환하나 applyHeroCarryTransforms 는 가장 강한 1명만
                   // selected. selected 만 stack 누적 (비-carry 카피 회귀 방지).
-                  if (unit.nasusCarryActive && carryCfg?.abilityData?.bonusPerKill) {
+                  // PR #147: nasusCarryActive → selectedCarryAugment 비교 (동치)
+                  if (unit.selectedCarryAugment === 'TFT17_Augment_NasusCarry' && carryCfg?.abilityData?.bonusPerKill) {
                     unit.nasusBonkStack++;
                   }
                 }
@@ -6896,7 +6875,8 @@ export function simulateCombat(
             // cast path 3종 룰 (PR #129): OOR cast path 에도 동일 분기 추가 (아래 line ~7140+).
             // **위치**: 일반 cast damage / applyCarryPostCastEffects 직후 + omnivamp/Fountain hook
             // 직전 (codex P2 PR #140: Jax damage 가 omnivamp/Fountain heal 정합 반영되도록).
-            if (unit.jaxCarryActive && carryCfg?.abilityData?.damage && target.state !== 'dead') {
+            // PR #147: jaxCarryActive → selectedCarryAugment 비교 (동치)
+            if (unit.selectedCarryAugment === 'TFT17_Augment_JaxCarry' && carryCfg?.abilityData?.damage && target.state !== 'dead') {
               const jaxDmgArr = carryCfg.abilityData.damage;
               const jaxDmgBase = jaxDmgArr[unit.starLevel - 1] ?? jaxDmgArr[0];
               const jaxDmgType: DamageType = carryCfg.damageTypeOverride
@@ -7024,7 +7004,10 @@ export function simulateCombat(
                 // selfBuff.attackSpeed 는 fixed 0.15 (carry abilityOverride) → asGain
                 // [0.15,0.15,0.20] 의 ★3 +20% 의도 미실현. jaxCarryActive 가드 (selected
                 // single-carry semantics — PR #135 패턴) 로 다중 Jax 카피 시 selected 만 정확.
-                const asGainArr = unit.jaxCarryActive ? carryCfg?.abilityData?.asGain : undefined;
+                // PR #147: jaxCarryActive → selectedCarryAugment 비교 (동치)
+                const asGainArr = unit.selectedCarryAugment === 'TFT17_Augment_JaxCarry'
+                  ? carryCfg?.abilityData?.asGain
+                  : undefined;
                 const asGainPer = asGainArr
                   ? (asGainArr[unit.starLevel - 1] ?? asGainArr[0])
                   : config.selfBuff.attackSpeed;
@@ -7178,7 +7161,10 @@ export function simulateCombat(
             if (outOfRangeConfig.selfBuff.attackSpeed) {
               // PR #136 Lint #11-B 해소: OOR cast path 도 main 과 동일하게 JaxCarry asGain[★]
               // starLevel별 우선 read. cast path 3종 일관 (PR #129 stun OOR 누락 패턴 회귀 방지).
-              const oorAsGainArr = unit.jaxCarryActive ? oorCarryCfg?.abilityData?.asGain : undefined;
+              // PR #147: jaxCarryActive → selectedCarryAugment 비교 (동치)
+              const oorAsGainArr = unit.selectedCarryAugment === 'TFT17_Augment_JaxCarry'
+                ? oorCarryCfg?.abilityData?.asGain
+                : undefined;
               const oorAsGainPer = oorAsGainArr
                 ? (oorAsGainArr[unit.starLevel - 1] ?? oorAsGainArr[0])
                 : outOfRangeConfig.selfBuff.attackSpeed;
@@ -7222,7 +7208,8 @@ export function simulateCombat(
           // main pipeline (line ~6952+) 와 동일 분기. cast path 3종 일관 (PR #129 룰 — stun 같은 OOR 누락 가드).
           // OOR cast path 는 self_buff 패턴 + JaxCarry abilityOverride 면 진입 (line 7038 canDashCast).
           // 사망 시 markTargetDead 직접 호출 — OOR cast 의 처치 분기는 abilityTargets loop 안 (self-hit 회귀 방지 제외).
-          if (unit.jaxCarryActive && oorCarryCfg?.abilityData?.damage && target.state !== 'dead') {
+          // PR #147: jaxCarryActive → selectedCarryAugment 비교 (동치)
+          if (unit.selectedCarryAugment === 'TFT17_Augment_JaxCarry' && oorCarryCfg?.abilityData?.damage && target.state !== 'dead') {
             const oorJaxDmgArr = oorCarryCfg.abilityData.damage;
             const oorJaxDmgBase = oorJaxDmgArr[unit.starLevel - 1] ?? oorJaxDmgArr[0];
             const oorJaxDmgType: DamageType = oorCarryCfg.damageTypeOverride

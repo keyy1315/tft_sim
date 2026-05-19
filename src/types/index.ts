@@ -762,17 +762,9 @@ export interface CombatUnit {
   blitzBoltLastFireTick: number;
   /** 파티광 후속 효과 — 회복 완료 후 Bolt 발사 속도 multiplier. 1 default / 4 (회복 완료 후). */
   blitzBoltSpeedMult: number;
-  /**
-   * 자폭(TFT17_Augment_GragasCarry) 활성 + 가장 강한 그라가스로 선정된 unit 만 true.
-   * 그라가스 ability 가 거대한 폭발 (자기 자신 데미지, 다른 아군 X) 로 변환되며,
-   * 자폭 데미지로 hp 가 1 미만으로 떨어지지 않음 (HP floor=1).
-   */
-  gragasCarryActive: boolean;
-  /**
-   * 방패 여전사(TFT17_Augment_LeonaCarry) 활성 + 가장 강한 레오나로 선정된 unit 만 true.
-   * 레오나 ability 가 적 가로질러 dash (line 패턴) + 첫 적중 대상 기절 (CC) 로 변환.
-   */
-  leonaCarryActive: boolean;
+  // PR #147 deprecate: gragasCarryActive / leonaCarryActive 필드 제거됨.
+  // selectedCarryAugment === 'TFT17_Augment_GragasCarry' / 'TFT17_Augment_LeonaCarry'
+  // 비교로 대체. sim 코드 read 0건이었음 (test assertion 만 갱신).
   /**
    * 뜨거운 죽음(TFT17_Augment_MordekaiserCarry) 활성 시 carry abilityData.shield override.
    * null = 비활성, 배열 = augment 활성 (starLevel 별 [1성, 2성, 3성]).
@@ -858,13 +850,8 @@ export interface CombatUnit {
    * Read site: applyCarryDamageModifiers 의 bonusPerKill modifier — baseDmg += stack × bonusPerKill[starLevel-1].
    */
   nasusBonkStack: number;
-  /**
-   * NasusCarry — applyHeroCarryTransforms 의 "가장 강한 1명" selector 결과 flag.
-   * findCarryAugment 는 champion api 매치하는 모든 Nasus 에 NasusCarry config 반환 (다중 카피 시).
-   * 가장 강한 1명만 실제 carry transform 대상 → 본 flag 로 selected unit 분기.
-   * stack hook (cast loop) + bonusPerKill modifier 둘 다 본 flag 가드 (PR #135 Codex P2).
-   */
-  nasusCarryActive: boolean;
+  // PR #147 deprecate: nasusCarryActive 필드 제거됨. selectedCarryAugment 비교로 대체
+  // (cast loop bonusPerKill modifier + stack hook 두 read site 모두 갱신됨).
   /**
    * Selected single-carry semantics 일반화 helper (PR #144 foundation, Lint #14).
    * `applyHeroCarryTransforms` 가 "가장 강한 1명" selector 결과 target 에 본 필드 set
@@ -878,13 +865,8 @@ export interface CombatUnit {
    * 신규 가드는 `selectedCarryAugment === '<augment_api>'` 사용 권장. 점진 deprecate.
    */
   selectedCarryAugment: string | null;
-  /**
-   * JaxCarry — selected single-carry semantics flag (PR #136 Lint #11-B 해소).
-   * findCarryAugment 는 champion api 매치하는 모든 Jax 에 동일 config 반환.
-   * applyHeroCarryTransforms 의 "가장 강한 1명" selector 결과 unit 에만 set.
-   * asGain starLevel별 read site (selfBuff 분기 main + OOR) 둘 다 본 flag 가드.
-   */
-  jaxCarryActive: boolean;
+  // PR #147 deprecate: jaxCarryActive 필드 제거됨. selectedCarryAugment 비교로 대체
+  // (selfBuff asGain 분기 main + OOR + Jax damage 분기 main + OOR 4 read site 갱신됨).
   /**
    * 요새 (Bastion/ResistTank) — 첫 N초 doubled BonusArmor.
    * 0 = 비활성. 양수면 그 tick 에 도달 시 doubled 부분 (bastionDoubleArmorBonus)

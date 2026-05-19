@@ -47,7 +47,7 @@ describe('자폭 (GragasCarry) — 가장 강한 그라가스 self-damage + HP f
     });
     const gragas = withCarry.playerUnits.find(u => u.champion.apiName === 'TFT17_Gragas')!;
     // gragasCarryActive 플래그 + role 'Fighter' 변환
-    expect(gragas.gragasCarryActive).toBe(true);
+    expect(gragas.selectedCarryAugment).toBe('TFT17_Augment_GragasCarry');
     expect(gragas.role).toBe('Fighter');
   });
 
@@ -68,7 +68,7 @@ describe('자폭 (GragasCarry) — 가장 강한 그라가스 self-damage + HP f
     // 이 테스트는 ability 시전 후 즉시 검증이 어려우니 (loop 끝남) — gragasCarryActive 플래그
     // + log 기반 검증으로 대체.
     const gragas = withCarry.playerUnits.find(u => u.champion.apiName === 'TFT17_Gragas')!;
-    expect(gragas.gragasCarryActive).toBe(true);
+    expect(gragas.selectedCarryAugment).toBe('TFT17_Augment_GragasCarry');
     // log 에 자폭 메시지 존재
     const selfDamageLog = withCarry.logs.find(l => l.message?.includes('자폭'));
     expect(selfDamageLog).toBeDefined();
@@ -81,7 +81,7 @@ describe('자폭 (GragasCarry) — 가장 강한 그라가스 self-damage + HP f
       seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
     });
     const gragas = withoutCarry.playerUnits.find(u => u.champion.apiName === 'TFT17_Gragas')!;
-    expect(gragas.gragasCarryActive).toBe(false);
+    expect(gragas.selectedCarryAugment).toBeNull();
   });
 
   it('가장 강한 룰 — 동급 시 아이템 보유 unit 우선', () => {
@@ -100,8 +100,8 @@ describe('자폭 (GragasCarry) — 가장 강한 그라가스 self-damage + HP f
     // 아이템 보유 unit 만 carry transform
     const withItems = gragasUnits.find(u => u.items.length > 0)!;
     const noItems = gragasUnits.find(u => u.items.length === 0)!;
-    expect(withItems.gragasCarryActive).toBe(true);
-    expect(noItems.gragasCarryActive).toBe(false);
+    expect(withItems.selectedCarryAugment).toBe('TFT17_Augment_GragasCarry');
+    expect(noItems.selectedCarryAugment).toBeNull();
   });
 });
 
@@ -114,7 +114,7 @@ describe('방패 여전사 (LeonaCarry) — 가장 강한 레오나 dash + 첫 �
       playerAugments: [augLeonaCarry] as RawAugment[],
     });
     const leona = withCarry.playerUnits.find(u => u.champion.apiName === 'TFT17_Leona')!;
-    expect(leona.leonaCarryActive).toBe(true);
+    expect(leona.selectedCarryAugment).toBe('TFT17_Augment_LeonaCarry');
     expect(leona.role).toBe('Fighter');
   });
 
@@ -125,7 +125,7 @@ describe('방패 여전사 (LeonaCarry) — 가장 강한 레오나 dash + 첫 �
       seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
     });
     const leona = withoutCarry.playerUnits.find(u => u.champion.apiName === 'TFT17_Leona')!;
-    expect(leona.leonaCarryActive).toBe(false);
+    expect(leona.selectedCarryAugment).toBeNull();
   });
 
   it('가장 강한 룰 — 3성 > 2성 우선', () => {
@@ -142,8 +142,8 @@ describe('방패 여전사 (LeonaCarry) — 가장 강한 레오나 dash + 첫 �
     const leonaUnits = withCarry.playerUnits.filter(u => u.champion.apiName === 'TFT17_Leona');
     const star3 = leonaUnits.find(u => u.starLevel === 3)!;
     const star2 = leonaUnits.find(u => u.starLevel === 2)!;
-    expect(star3.leonaCarryActive).toBe(true);
-    expect(star2.leonaCarryActive).toBe(false);
+    expect(star3.selectedCarryAugment).toBe('TFT17_Augment_LeonaCarry');
+    expect(star2.selectedCarryAugment).toBeNull();
   });
 });
 
@@ -198,8 +198,8 @@ describe('꽁! (NasusCarry) — bonusPerKill cast 누적 (Lint #12 해소)', () 
     const star3 = nasusUnits.find(u => u.starLevel === 3)!;
     const star2 = nasusUnits.find(u => u.starLevel === 2)!;
     // 3성만 selected
-    expect(star3.nasusCarryActive).toBe(true);
-    expect(star2.nasusCarryActive).toBe(false);
+    expect(star3.selectedCarryAugment).toBe('TFT17_Augment_NasusCarry');
+    expect(star2.selectedCarryAugment).toBeNull();
     // 2성 non-carry 는 stack 누적 안 함 (회귀 가드)
     expect(star2.nasusBonkStack).toBe(0);
   });
@@ -229,7 +229,7 @@ describe('저 별을 향해 (JaxCarry) — asGain starLevel별 정합 (Lint #11-
       playerAugments: [augJaxCarry] as RawAugment[],
     });
     const jax = withCarry.playerUnits.find(u => u.champion.apiName === 'TFT17_Jax')!;
-    expect(jax.jaxCarryActive).toBe(true);
+    expect(jax.selectedCarryAugment).toBe('TFT17_Augment_JaxCarry');
     expect(jax.role).toBe('Fighter');
   });
 
@@ -240,7 +240,7 @@ describe('저 별을 향해 (JaxCarry) — asGain starLevel별 정합 (Lint #11-
       seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
     });
     const jax = withoutCarry.playerUnits.find(u => u.champion.apiName === 'TFT17_Jax')!;
-    expect(jax.jaxCarryActive).toBe(false);
+    expect(jax.selectedCarryAugment).toBeNull();
   });
 
   it('다중 Jax 카피 시 selected (가장 강한) 1명만 jaxCarryActive (codex P2 패턴 적용)', () => {
@@ -258,8 +258,8 @@ describe('저 별을 향해 (JaxCarry) — asGain starLevel별 정합 (Lint #11-
     const jaxUnits = result.playerUnits.filter(u => u.champion.apiName === 'TFT17_Jax');
     const star3 = jaxUnits.find(u => u.starLevel === 3)!;
     const star2 = jaxUnits.find(u => u.starLevel === 2)!;
-    expect(star3.jaxCarryActive).toBe(true);
-    expect(star2.jaxCarryActive).toBe(false);
+    expect(star3.selectedCarryAugment).toBe('TFT17_Augment_JaxCarry');
+    expect(star2.selectedCarryAugment).toBeNull();
   });
 
   it('cast 시 target 에 magic damage 적용 (Lint #11-A 해소, PR #140)', () => {
@@ -308,7 +308,7 @@ describe('저 별을 향해 (JaxCarry) — asGain starLevel별 정합 (Lint #11-
     // (item bonus / trait effect 없는 단순 setup). carry self_buff.attackSpeed 0.15 적용되면
     // final AS = rawAS × 1.15^(castCount) → cast 1회만 진입해도 rawAS 보다 큼.
     // 회귀 가드: non-selected 가 carry buff 받았다면 attackSpeed 가 raw 보다 큼.
-    expect(star2NonSelected.jaxCarryActive).toBe(false);
+    expect(star2NonSelected.selectedCarryAugment).toBeNull();
     // raw Jax attackSpeed 와 일치 (±5% 허용 — trait/buff 영향 미미)
     expect(star2NonSelected.stats.attackSpeed).toBeLessThanOrEqual(rawAS * 1.05);
   });

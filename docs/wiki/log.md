@@ -8,6 +8,24 @@ format: newest first
 
 ## 2026-05-19
 
+### Refactor: legacy xxxCarryActive flag 4건 deprecate — selectedCarryAugment 단일화 (PR #147)
+
+- **Source**: PR #144 selectedCarryAugment 일반화 후속 cleanup. legacy flag 4건 (PR #135/#136 추가 + leona/gragas legacy) 단순 deprecate
+- **제거된 type 필드** (CombatUnit):
+  - `gragasCarryActive` (legacy, sim 코드 read 0건 dead)
+  - `leonaCarryActive` (legacy, sim 코드 read 0건 dead)
+  - `nasusCarryActive` (PR #135, bonusPerKill modifier + stack hook read site 2건)
+  - `jaxCarryActive` (PR #136, selfBuff asGain + Jax damage 분기 main+OOR 4 read site)
+- **read site 모두 selectedCarryAugment 비교로 교체** (동치 검증):
+  - `unit.xxxCarryActive` → `unit.selectedCarryAugment === 'TFT17_Augment_XxxCarry'`
+  - cast loop 6 read site + applyCarryDamageModifiers 1 read site = 7 read site 갱신
+- **createCombatUnit init 12 site 제거** (4 flag × 3 init site)
+- **`applyHeroCarryTransforms` simplify** — 4 flag set 분기 제거. `selectedCarryAugment` + Mordekaiser carry shield (carry data 보유) 만 유지
+- **test assertion 갱신** — `.xxxCarryActive).toBe(true/false)` → `.selectedCarryAugment).toBe(...) / .toBeNull()` 14건 sed 일괄 갱신
+- **mordekaiserCarryShield 유지**: carry data (shield array 보유) — 단순 boolean 아니라 별도 처리. selectedCarryAugment 와 함께 유지
+- **검증**: pnpm typecheck pass, 전체 suite **896/896 pass** ✅
+- **효과**: type 8 줄 + 12 init line + 14 test assertion 일관 → CombatUnit type 단순화, selected single-carry semantics 일원화 완료
+
 ### Docs: Lint #10 deep cleanup — hero-augment-carry.md stale 표기 전수 정정 (PR #146 + codex P2 amend)
 
 - **Source**: 위키 lint #10 (`hero-augment-carry.md` 의 "❌ 미완" 섹션 stale 표기 — PR #131 부분 정정 후 deep cleanup 후속)

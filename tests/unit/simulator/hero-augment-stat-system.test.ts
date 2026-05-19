@@ -192,7 +192,7 @@ describe('자폭 (GragasCarry) — 17.2b healthCost 적용', () => {
     });
     const g = result.playerUnits.find(u => u.champion.apiName === 'TFT17_Gragas');
     if (!g) return;
-    expect(g.gragasCarryActive).toBe(true);
+    expect(g.selectedCarryAugment).toBe('TFT17_Augment_GragasCarry');
     expect(g.role).toBe('Fighter');
     // 자폭이 maxHp 를 stat으로 변경하지는 않음 — base HP 보존
     expect(g.maxHp).toBeGreaterThan(0);
