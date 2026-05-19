@@ -310,6 +310,7 @@ function createCombatUnit(
     nasusBonkStack: 0,
     nasusCarryActive: false,
     jaxCarryActive: false,
+    selectedCarryAugment: null,
     stargazerShieldCashoutHpFrac: 0,
     stargazerShieldCashoutAsFrac: 0,
     bastionDoubleEndTick: 0,
@@ -548,12 +549,24 @@ function applySet17SynergyBuffs(traits: ActiveTrait[], units: CombatUnit[]): voi
   }
 }
 
-/** 캐리 증강 사거리 오버라이드 */
-function applyCarryAugmentRange(unit: CombatUnit, augmentApiNames: string[]): void {
+/**
+ * Selected single-carry semantics helper (PR #144 amend, codex P1).
+ *
+ * `findCarryAugment` 는 champion api 매치하는 모든 카피에 동일 config 반환 →
+ * non-selected 카피도 carry-specific 분기 (Aatrox cycle / Pyke recast / Poppy bounce /
+ * Ivern hexReduction 등) 진입. 본 helper 가 selectedCarryAugment 비교 → selected 만 carry config 반환.
+ *
+ * cast loop 의 모든 `findCarryAugment` 호출 (carryCfg, oorCarryCfg, onAttackBonus carry 등) 은
+ * 본 helper 로 교체. `getAbilityConfigForUnit` 의 inline 가드와 동일 의미.
+ */
+function findSelectedCarryAugment(
+  unit: CombatUnit,
+  augmentApiNames: string[],
+): CarryAugmentConfig | null {
   const carry = findCarryAugment(unit.champion.apiName, augmentApiNames);
-  if (carry?.rangeOverride) {
-    unit.stats.range = carry.rangeOverride;
-  }
+  if (!carry) return null;
+  if (unit.selectedCarryAugment !== carry.augmentApiName) return null;
+  return carry;
 }
 
 /** 칸 버프 증강 효과 적용 (전투 시작 시 유닛 위치 기반) */
@@ -621,12 +634,12 @@ function applyHexBuffs(units: CombatUnit[], hexBuffs: HexBuff[]): void {
 function getAbilityConfigForUnit(unit: CombatUnit, augmentApiNames: string[]): AbilityConfig {
   const carry = findCarryAugment(unit.champion.apiName, augmentApiNames);
   if (carry) {
-    // PR #136 codex P2 amend: selected single-carry semantics — findCarryAugment 는 champion
-    // api 매치하는 모든 카피에 동일 config 반환하지만 applyHeroCarryTransforms 는 "가장 강한 1명"
-    // 만 carry transform. carry abilityOverride (예: JaxCarry self_buff) 가 모든 카피에 적용되면
-    // non-selected 도 raw 의도 (Jax aoe_circle stun) 와 다른 cast pattern 사용 → 회귀.
-    // JaxCarry 한정 가드 (다른 carry 의 동일 패턴 lint 는 후속 PR — Lint #14 후보).
-    if (carry.augmentApiName === 'TFT17_Augment_JaxCarry' && !unit.jaxCarryActive) {
+    // PR #144 Lint #14 foundation: selected single-carry semantics 일반화 — findCarryAugment 는
+    // champion api 매치하는 모든 카피에 동일 config 반환하지만 applyHeroCarryTransforms 는
+    // "가장 강한 1명" 만 carry transform. carry abilityOverride 가 모든 카피에 적용되면
+    // non-selected 도 raw 의도 (raw 챔프 pattern) 와 다른 cast pattern 사용 → 회귀.
+    // 이전 PR #136 의 JaxCarry 한정 가드를 일반화 — 모든 carry 에 selectedCarryAugment 비교.
+    if (unit.selectedCarryAugment !== carry.augmentApiName) {
       return CHAMPION_ABILITY_PATTERNS[unit.champion.apiName] ?? { pattern: 'single' };
     }
     return carry.abilityOverride;
@@ -2277,7 +2290,19 @@ function applyHeroCarryTransforms(augmentApiNames: string[], units: CombatUnit[]
         target.currentMana = so.initialMana + itemDelta;
       }
     }
-    // ability 분기용 flag (기존 호출 경로 호환)
+    // PR #144 Lint #14 foundation: selected single-carry semantics 일반화 — 모든 carry 에
+    // selectedCarryAugment 일관 set. 기존 xxxCarryActive flag 는 legacy 호환 유지 (점진 deprecate).
+    // 신규 가드 (getAbilityConfigForUnit + 미래 carry-specific) 는 selectedCarryAugment 사용 권장.
+    target.selectedCarryAugment = cfg.augmentApiName;
+
+    // PR #144 codex P1 amend: rangeOverride 통합 — 이전엔 applyCarryAugmentRange 가 selected
+    // 가드 없이 모든 카피에 적용 (PoppyCarry non-selected 도 range 4 받음). 본 분기는
+    // selected target 한정이라 의도 정합.
+    if (cfg.rangeOverride !== undefined) {
+      target.stats.range = cfg.rangeOverride;
+    }
+
+    // ability 분기용 flag (기존 호출 경로 호환 — legacy, PR #144 이후 deprecate 예정)
     if (cfg.augmentApiName === 'TFT17_Augment_GragasCarry') {
       target.gragasCarryActive = true;
     } else if (cfg.augmentApiName === 'TFT17_Augment_LeonaCarry') {
@@ -3641,6 +3666,7 @@ function spawnFreljordTurrets(
             nasusBonkStack: 0,
             nasusCarryActive: false,
             jaxCarryActive: false,
+            selectedCarryAugment: null,
             stargazerShieldCashoutHpFrac: 0,
             stargazerShieldCashoutAsFrac: 0,
             bastionDoubleEndTick: 0,
@@ -3853,6 +3879,7 @@ function trySpawnGalio(
     nasusBonkStack: 0,
     nasusCarryActive: false,
     jaxCarryActive: false,
+    selectedCarryAugment: null,
     stargazerShieldCashoutHpFrac: 0,
     stargazerShieldCashoutAsFrac: 0,
     bastionDoubleEndTick: 0,
@@ -4442,7 +4469,6 @@ export function simulateCombat(
     const mod = resolvePerUnitMods(playerAugsWithStacks, swapped.champion);
     applyPerUnitMods(unit, mod);
     applyPermanentStacks(unit, swapped);
-    applyCarryAugmentRange(unit, playerAugApiNames);
     applyStartPassives(unit);
     applyItemStaticEffects(unit, swapped);
     return unit;
@@ -4456,7 +4482,6 @@ export function simulateCombat(
     const mod = resolvePerUnitMods(enemyAugsWithStacks, swapped.champion);
     applyPerUnitMods(unit, mod);
     applyPermanentStacks(unit, swapped);
-    applyCarryAugmentRange(unit, enemyAugApiNames);
     applyStartPassives(unit);
     applyItemStaticEffects(unit, swapped);
     return unit;
@@ -5664,7 +5689,9 @@ export function simulateCombat(
           // mitigation: magic resist + magicPen + DR + non-target reduction + shield + invulnerable.
           {
             const augNamesAtk = unit.team === 'player' ? playerAugApiNames : enemyAugApiNames;
-            const carryAtk = findCarryAugment(unit.champion.apiName, augNamesAtk);
+            // PR #144 codex P1 amend: selected single-carry semantics — onAttackBonus passive
+            // 도 selected 만 적용 (Jax/IvernMinion non-selected 카피는 raw basic attack).
+            const carryAtk = findSelectedCarryAugment(unit, augNamesAtk);
             const onAttackArr = carryAtk?.abilityData?.onAttackBonus;
             // codex P1 (PR #74): basic attack damage 가 이미 target.currentHp 차감 적용됐으나
             // target.state 는 아직 'dead' 로 변경 안 된 상태 (사망 처리는 별도 위치).
@@ -6189,7 +6216,11 @@ export function simulateCombat(
             // augment damage override 시 self-hit 대량 damage (예: Jax 155+/cast). raw 챔프
             // 변수 (작은 값, 예: Jax Duration=4초) 는 damage 의미 약해 self-hit 영향 미미.
             // → self_buff pattern 은 carry damage override 적용 안 함.
-            const carryCfg = findCarryAugment(unit.champion.apiName, augNames);
+            // PR #144 codex P1 amend: findSelectedCarryAugment — non-selected 카피는 carry
+            // -specific 분기 (Aatrox cycle / Pyke recast / Poppy bounce / Ivern hexReduction
+            // / Mord proc / Leona line / Gragas selfDamage) 진입 안 함. getAbilityConfigForUnit
+            // 의 raw fallback 과 일관.
+            const carryCfg = findSelectedCarryAugment(unit, augNames);
 
             // === PR7-C (17.2b): Aatrox carry — 3-skill cycle + N.O.V.A. 변환 ===
             // cast 마다 cycle counter % 3 으로 분기:
@@ -7107,7 +7138,8 @@ export function simulateCombat(
           // PR5 (17.2b): OOR cast 경로 (사거리 밖 dash cast) 도 carry augment 활성 시
           // abilityData.damage override 적용 — 일반 cast 경로 (line 4892~) 와 동일 패턴.
           // codex P1 (PR #71): self_buff pattern 은 self-hit 회귀 방지로 raw 사용 (일반 cast 와 동일).
-          const oorCarryCfg = findCarryAugment(unit.champion.apiName, augNames);
+          // PR #144 codex P1 amend: findSelectedCarryAugment — OOR cast path 도 selected 만 적용.
+          const oorCarryCfg = findSelectedCarryAugment(unit, augNames);
           const oorCarryForDamage = outOfRangeConfig.pattern !== 'self_buff' ? oorCarryCfg : null;
           const { damage: rawOORDmgResolved, type: dmgType } = resolveAbilityDamage(
             unit.champion, unit.starLevel, unit.stats.ap, oorCarryForDamage, outOfRangeConfig.damageVar
