@@ -8,6 +8,28 @@ format: newest first
 
 ## 2026-05-19
 
+### Ingest: augments/poppy-carry.md — 5단계 워크플로우 + 신규 lint 0건 (가장 통합 완성도 carry)
+
+- **Source** (5단계 워크플로우 적용):
+  - `src/data/carryAugments.ts:150-169` (PoppyCarry entry)
+  - `combatLoop.ts:549-554` (applyCarryAugmentRange — rangeOverride 4)
+  - `combatLoop.ts:1288-1333` (applyCarryDamageModifiers — armorScale 분기 4번째)
+  - `combatLoop.ts:6231-6233` (spiritEffectPerStack — main pipeline only)
+  - `combatLoop.ts:6526-6530` (cast loop 사망 처리 overkill 캡처, clamp 전)
+  - `combatLoop.ts:6648-6680` (spiritBounceOnKill bouncing loop — main only, MAX 50)
+  - `combatLoop.ts:873-920` (applyPoppyShieldAndResists — Set 17 Poppy raw passive, augment 무관, 2 cast path 호출)
+- **5단계 워크플로우 적용 결과**:
+  1. 좁은 grep: PoppyCarry / rangeOverride / armorScale / spiritBounceOnKill
+  2. 함수 컨텍스트: `applyCarryDamageModifiers` (5 modifier 통합 helper, caller 2 site main+OOR), `applyCarryPostCastEffects` (multi-stun/Akali burn 통합)
+  3. **entity-wide grep**: `Poppy` 이름 자체 → `applyPoppyShieldAndResists` 별도 helper 발견 (raw Set 17 Poppy passive, augment 와 별개 작동). multi-source 의도된 분리 — drift 아님
+  4. 호출 순서/cast path: spiritBounceOnKill 이 main only 인 것 검토 → PoppyCarry abilityOverride `{ pattern: 'single' }` 만, dash/self_buff 둘 다 없음 → **OOR 진입 불가** 확인 (`combatLoop.ts:6977-78` canDashCast 가드) → main only 정합
+  5. actual integration verify: 5 필드 (rangeOverride/damage/armorScale/spiritEffect/spiritBounce) 모두 main pipeline read 위치 확인
+- **✅ 신규 lint 검출 0건** — PoppyCarry 는 carry augment 중 가장 많은 메커니즘 (range/armorScale/spiritEffect/spiritBounce + raw passive) 이 모두 sim 도달. PR7-D / codex P1 PR #75 (overkill clamp 회귀) / codex P1 #76 (다른 OOR 누락 회귀 자동 해소 helper 통합) 누적 fix 가 효과적.
+- **Lint #5 잔존** — AS 0.7→0.75 인게임 verify (`carryAugments.ts:154-155` TODO 주석). 사용자 측정 후 statOverrides.attackSpeed 채움.
+- **후속**:
+  - augments 나머지 1개 (IvernMinion) ingest — multi-stun (`applyCarryPostCastEffects` line 1232) 이 이미 잘 통합되어 추가 lint 검출 가능성 낮으나 entity-wide grep 으로 검증
+  - Lint #5 잔존 — 사용자 측정 대기
+
 ### Ingest: augments/jax-carry.md + augments/nasus-carry.md + invader-zed.md — 5단계 워크플로우 + Lint #11/#12/#13 신규 검출
 
 - **Source** (5단계 워크플로우 적용):
