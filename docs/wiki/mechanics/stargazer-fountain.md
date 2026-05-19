@@ -9,7 +9,7 @@ sim_active: true
 last_verified: 2026-05-18
 sources:
   - https://teamfighttactics.leagueoflegends.com/en-us/news/game-updates/teamfight-tactics-patch-17-3/ (공식 17.3 패치노트)
-  - docs/meta/wiki/raw/lolchess/set17-stargazer-constellations.md
+  - docs/wiki/raw/lolchess/set17-stargazer-constellations.md
   - public/data/tft_set17_traits.json
   - src/lib/simulator/engine/combatLoop.ts (applyStargazerEffects, triggerFountainHeal)
 related:

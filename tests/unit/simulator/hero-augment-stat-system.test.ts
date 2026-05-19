@@ -13,7 +13,7 @@
  *   - 복잡 메커니즘 (3-skill cycle / X-shape / bouncing / 미프)
  *   - 사용자 인게임 stat 측정 후 statOverrides 채우기
  *
- * 17.2b 변경 출처: docs/meta/wiki/raw/in-game/set17-hero-augments.md
+ * 17.2b 변경 출처: docs/wiki/raw/in-game/set17-hero-augments.md
  */
 import { describe, it, expect } from 'vitest';
 import { simulateCombat } from '@/lib/simulator/engine/combatLoop';
