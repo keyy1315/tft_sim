@@ -7,8 +7,8 @@ target_champion: TFT17_Jax
 tier: (미확인 — 패치노트 verify 필요)
 stage: stage 2 (carry augment 일반)
 current_patch_status: active
-sim_active: partial
-last_verified: 2026-05-19 (Lint #11-B resolved PR #136)
+sim_active: active
+last_verified: 2026-05-19 (Lint #11-A + #11-B resolved PR #140 / #136)
 sources:
   - src/data/carryAugments.ts:205-218 (JaxCarry entry)
   - src/lib/simulator/engine/combatLoop.ts:618-622 (getAbilityConfigForUnit)
@@ -51,7 +51,7 @@ abilityOverride 가 `self_buff` 라서 cast 자체는 damage 없음. 실질 효�
 | 변수 | 값 | sim 적용 | 비고 |
 |------|-----|---------|------|
 | `mana` | `20/80` | ✅ | raw 채택 |
-| `damage` | `[170, 250, 450]` | ❌ **미반영** | self_buff 패턴 → rawAbilityDmgBase=0 (line 6226). 17.3: `[155, 230, 375] → [170, 250, 450]` (entry 정합만) |
+| `damage` | `[170, 250, 450]` | ✅ **활성** (PR #140 Lint #11-A 해소) | self_buff 분기 직후 신규 분기 — `unit.jaxCarryActive` + abilityData.damage 가드 시 target 에 magic damage 적용. damageAmp + Tank 보너스 + sniper + crit + mitigation pipeline 표준. 17.3: `[155, 230, 375] → [170, 250, 450]` |
 | `onAttackBonus` | `[45, 70, 105]` | ✅ | `combatLoop.ts:5626` AP scaling magic. 매 기본 공격마다 추가 |
 | `asGain` | `[0.15, 0.15, 0.20]` | ✅ **활성** (PR #136 Lint #11-B 해소) | cast loop selfBuff 분기 (main `combatLoop.ts:6926` + OOR `:7071`) 에 starLevel별 우선 read. `unit.jaxCarryActive` 가드 (selected single-carry semantics). ★3 +20% 정합 |
 | `damageType` | `magic` | n/a | damage 미반영이라 무의미. onAttackBonus 는 hardcoded 'magic' (line 5637) |
@@ -76,9 +76,11 @@ abilityOverride 가 `self_buff` 라서 cast 자체는 damage 없음. 실질 효�
 ✅ **활성** (PR #136 Lint #11-B 해소):
 - **`asGain[0.15, 0.15, 0.20]` starLevel별 적용** — cast loop selfBuff 분기 (main + OOR 양쪽) `unit.jaxCarryActive` 가드. ★3 +20% 정합. selected single-carry semantics 적용
 
+✅ **활성** (PR #140 Lint #11-A 해소):
+- **`damage[170,250,450]` self_buff cast target magic damage** — main pipeline + OOR cast path 양쪽. `unit.jaxCarryActive` 가드 + abilityData.damage 존재 가드. damageAmp + Tank 보너스 + sniper + crit + mitigation pipeline 표준 + Serpent poison
+
 ❌ **미반영** (잔존):
-1. **`damage[170,250,450]` 미반영** — self_buff 패턴 → `rawAbilityDmgBase=0` (line 6226). user spec "사용: 대상 magic damage" 의도 vs 실제 cast damage 0. **Lint #11-A 잔존** — 별도 PR 필요 (single-target damage 분기 추가 vs 필드 dead 명시 결정)
-2. **MS (이동속도) gain** — abilityData 에 movementSpeed 필드 없음. desc "AS/MS" 중 MS 부분 sim 미반영
+1. **MS (이동속도) gain** — abilityData 에 movementSpeed 필드 없음. desc "AS/MS" 중 MS 부분 sim 미반영 (낮은 우선순위)
 
 🔍 **검증 필요**:
 - selfBuff.duration 999 와 매 cast multiplicative AS *= 1.15 의 의도 일치성 — desc "전투 종료까지 누적" 표현이 multiplicative 인지 additive 인지 모호. PR #71 (codex P1) 가 self_buff 패턴 자체는 처리하나 starLevel별 분기는 별도.
@@ -96,12 +98,15 @@ abilityOverride 가 `self_buff` 라서 cast 자체는 damage 없음. 실질 효�
 
 ## Lint finding (신규 검출)
 
-### Lint candidate #11-A — JaxCarry `damage` 필드 sim 미반영
+### Lint #11-A — JaxCarry `damage` ✅ resolved (PR #140)
 
-- carryAugments.ts:213 `damage: [170, 250, 450]` 와 desc "사용: 대상 magic damage" 명시
-- combatLoop.ts:6149 주석 "self_buff pattern 은 carry damage override 적용 안 함" + line 6226 `if (config.pattern === 'self_buff') rawAbilityDmgBase = 0;`
-- 17.3 patch entry 정합 (PR #115 같은 정합) 만 진행, sim 효과 도달 안 함
-- **해소 방향**: (1) damage 필드 자체 deprecate + entry 에서 제거, (2) self_buff 패턴에서 별도 single-target damage 추가 분기, (3) "design intent" 로 sim 미반영 명시
+- carryAugments.ts:213 `damage: [170, 250, 450]` 가 self_buff 패턴이라 미반영 → sim 도달
+- 해소 방식 (Option A: self_buff + damage 양립 분기 신규):
+  - **main pipeline 분기** (`combatLoop.ts:6953+`): self_buff 분기 직후 — `unit.jaxCarryActive` + `carryCfg.abilityData.damage` 가드 시 target 에 magic damage 적용
+  - **OOR cast path 분기** (`combatLoop.ts:7134+`): 동일 패턴 (cast path 3종 룰). 처치 시 markTargetDead 직접 호출
+  - **표준 적용**: damageAmp / Tank 보너스 (invention/madreds/graves) / sniper / mfReplicator / spellCanCrit / mitigation pipeline + Serpent poison
+  - **selected single-carry semantics**: `unit.jaxCarryActive` 가드 (PR #135 Layer 1 패턴)
+- 테스트: cast 시 target magic damage 적용 (totalDamageDealt > 0 + carry cast log)
 
 ### Lint #11-B — JaxCarry `asGain` ✅ resolved (PR #136)
 
@@ -114,11 +119,11 @@ abilityOverride 가 `self_buff` 라서 cast 자체는 damage 없음. 실질 효�
 
 ## Lint 체크리스트
 
-- [x] entity-wide grep `Jax` — multi-source drift 없음 (combatLoop.ts 의 self_buff 분기 + onAttackBonus 패시브 외 specific helper 함수 없음)
-- [x] cast path 3종 (main + recast + OOR) — main + OOR 정합 (PR #136 asGain 양쪽 fix), recast 무관
-- [x] actual integration verify — asGain ✅ resolved (PR #136), damage 잔존 (Lint #11-A)
+- [x] entity-wide grep `Jax` — multi-source drift 없음 (combatLoop.ts 의 self_buff 분기 + onAttackBonus 패시브 + Jax cast damage 분기 외 specific helper 함수 없음)
+- [x] cast path 3종 (main + recast + OOR) — main + OOR 양쪽 fix (PR #136 asGain + PR #140 damage), recast 무관
+- [x] actual integration verify — asGain ✅ resolved (PR #136), damage ✅ resolved (PR #140)
+- [x] **Lint #11-A ✅ resolved** (PR #140 — Option A: self_buff + damage 양립 분기, main + OOR + selected 가드)
 - [x] **Lint #11-B ✅ resolved** (PR #136 — asGain starLevel별 우선 + jaxCarryActive 가드)
-- [ ] **Lint #11-A 잔존** — damage 필드 미반영 (설계 결정 필요)
 - [ ] statOverrides 인게임 측정 (HP/AS base/range)
 
 ## 관련

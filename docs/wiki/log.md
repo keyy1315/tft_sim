@@ -8,6 +8,29 @@ format: newest first
 
 ## 2026-05-19
 
+### Sim fix: JaxCarry damage self_buff + damage 양립 분기 — Lint #11-A ✅ resolved (PR #140)
+
+- **Source**: 위키 lint #11-A (JaxCarry damage 필드 self_buff 패턴 미반영, PR #132 검출)
+- **설계 결정**: Option A 채택 — self_buff 패턴 + abilityData.damage 양립 분기 신규 추가
+  - Option B (필드 dead 명시) 거부 — desc 와 sim 미스매치 유지하면 lint 종결 안 됨
+  - Option C (abilityOverride pattern 변경) 거부 — selfBuff.attackSpeed + onAttackBonus 의도 깨짐
+- **변경**:
+  - `combatLoop.ts` main pipeline self_buff 분기 직후 (line 6953-7001 사이, 6952 다음): `unit.jaxCarryActive` + `carryCfg.abilityData.damage` 가드 시 target magic damage 적용
+  - `combatLoop.ts` OOR cast path Illaoi result 직후 (line 7133+, abilityDmg 분기 전): 동일 패턴 (cast path 3종 룰 — PR #129 OOR 누락 회귀 가드). 처치 시 `markTargetDead` 직접 호출
+- **표준 적용** (main cast loop 와 일관):
+  - damageAmp + Tank 보너스 (invention/madreds/graves) + sniper + mfReplicator
+  - spellCanCrit + critMultiplier
+  - applyAbilityMitigation pipeline (resistance + DR + non-target reduction + shield + invul)
+  - triggerSerpentPoison (별돌보미 뱀 강화 칸 ability 명중 시 중독)
+  - totalAbilityDmg / totalRawAbilityDmg 누적 — omnivamp / Fountain heal / on_cast emit 일관
+- **selected single-carry semantics** (PR #135 Layer 1 패턴): `unit.jaxCarryActive` 가드 — 다중 Jax 카피 시 selected 만 cast damage 적용
+- **테스트** (`hero-carry-augments.test.ts` 1 case 추가, 전체 16/16 pass):
+  - JaxCarry cast 시 target magic damage 적용 (totalDamageDealt > 0 + carry cast log 검출)
+- **위키 cleanup**: jax-carry.md sim_active partial → active. Lint #11-A ✅ resolved 기록. damage 필드 ❌ → ✅
+- **잔존**:
+  - **MS (이동속도) gain** — abilityData movementSpeed 필드 없음. desc "AS/MS" 중 MS 부분 sim 미반영 (낮은 우선순위)
+  - **statOverrides** 인게임 측정 (HP/AS base/range)
+
 ### Archive: docs/meta/ leftover 2 파일 — Phase 2 첫 정리
 
 - **Source**: 사용자 요청 — docs/meta/ leftover 점진 정리
