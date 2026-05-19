@@ -6854,6 +6854,54 @@ export function simulateCombat(
               applyCarryPostCastEffects(unit, abilityTargets, carryCfg);
             }
 
+            // === PR #140 Lint #11-A 해소: JaxCarry self_buff cast 시 target magic damage ===
+            // desc: "사용: 대상 magic damage". self_buff 패턴이 rawAbilityDmgBase=0 강제 (line 6266,
+            // self-hit 회귀 방지) 라 carry abilityData.damage 미반영. jaxCarryActive 가드
+            // (selected single-carry semantics — PR #135 Layer 1 패턴) + abilityData.damage 존재 가드.
+            // damageAmp / Tank 보너스 (invention/madreds/graves) / sniper / mfReplicator / crit
+            // 모두 main cast loop (line ~6435+) 와 일관 적용. mitigation pipeline 표준 helper 사용.
+            // cast path 3종 룰 (PR #129): OOR cast path 에도 동일 분기 추가 (아래 line ~7140+).
+            // **위치**: 일반 cast damage / applyCarryPostCastEffects 직후 + omnivamp/Fountain hook
+            // 직전 (codex P2 PR #140: Jax damage 가 omnivamp/Fountain heal 정합 반영되도록).
+            if (unit.jaxCarryActive && carryCfg?.abilityData?.damage && target.state !== 'dead') {
+              const jaxDmgArr = carryCfg.abilityData.damage;
+              const jaxDmgBase = jaxDmgArr[unit.starLevel - 1] ?? jaxDmgArr[0];
+              const jaxDmgType: DamageType = carryCfg.damageTypeOverride
+                ?? carryCfg.abilityData.damageType
+                ?? 'magic';
+              const jaxRawDmg = jaxDmgType === 'magic'
+                ? jaxDmgBase * (1 + unit.stats.ap / 100)
+                : jaxDmgBase;
+              let jaxDamageAmp = unit.damageAmp;
+              if (unit.inventionTankDamageAmp > 0 && target.role === 'Tank') jaxDamageAmp += unit.inventionTankDamageAmp;
+              if (unit.madredsTankDamageAmp > 0 && target.role === 'Tank') jaxDamageAmp += unit.madredsTankDamageAmp;
+              if (unit.gravesTankDamageAmp > 0 && target.role === 'Tank') jaxDamageAmp += unit.gravesTankDamageAmp;
+              jaxDamageAmp += computeSniperDamageAmp(unit, target);
+              if (unit.mfReplicatorEffectiveness > 0) jaxDamageAmp += unit.mfReplicatorEffectiveness;
+              let jaxAmplified = jaxRawDmg * (1 + jaxDamageAmp);
+              if (unit.spellCanCrit && rng.next() < unit.stats.critChance) {
+                jaxAmplified *= unit.stats.critMultiplier;
+              }
+              totalRawAbilityDmg += jaxAmplified;
+              const jaxEffectiveDmg = applyAbilityMitigation(unit, target, jaxAmplified, jaxDmgType, eventBus, tick);
+              target.currentHp -= jaxEffectiveDmg;
+              target.totalDamageTaken += jaxEffectiveDmg;
+              unit.totalDamageDealt += jaxEffectiveDmg;
+              totalAbilityDmg += jaxEffectiveDmg;
+
+              const jaxLog: CombatLog = {
+                tick, time, type: 'ability',
+                sourceId: unit.id, targetId: target.id,
+                value: Math.round(jaxEffectiveDmg),
+                message: `${unit.champion.name} carry cast! ${target.champion.name}에게 ${Math.round(jaxEffectiveDmg)} ${jaxDmgType === 'magic' ? '마법' : '물리'} 피해`,
+              };
+              logs.push(jaxLog);
+              tickLogs.push(jaxLog);
+
+              // 별돌보미 뱀(Serpent) — JaxCarry cast 도 동일 적용 (cast loop ability damage 일관)
+              triggerSerpentPoison(unit, target, jaxEffectiveDmg);
+            }
+
             // 전체 피해량 기반 흡혈 — healAmp 곱셈 적용.
             if (unit.omnivamp > 0 && totalAbilityDmg > 0) {
               const grievousReduction = target.augmentGrievousWounds > 0 ? (1 - target.augmentGrievousWounds) : 1;
@@ -7131,6 +7179,57 @@ export function simulateCombat(
             totalAbilityDmg += illaoiOorResult.totalDealt;
             totalRawAbilityDmg += illaoiOorResult.totalRaw;
           }
+
+          // === PR #140 Lint #11-A 해소 (OOR cast path): JaxCarry self_buff cast 시 target damage ===
+          // main pipeline (line ~6952+) 와 동일 분기. cast path 3종 일관 (PR #129 룰 — stun 같은 OOR 누락 가드).
+          // OOR cast path 는 self_buff 패턴 + JaxCarry abilityOverride 면 진입 (line 7038 canDashCast).
+          // 사망 시 markTargetDead 직접 호출 — OOR cast 의 처치 분기는 abilityTargets loop 안 (self-hit 회귀 방지 제외).
+          if (unit.jaxCarryActive && oorCarryCfg?.abilityData?.damage && target.state !== 'dead') {
+            const oorJaxDmgArr = oorCarryCfg.abilityData.damage;
+            const oorJaxDmgBase = oorJaxDmgArr[unit.starLevel - 1] ?? oorJaxDmgArr[0];
+            const oorJaxDmgType: DamageType = oorCarryCfg.damageTypeOverride
+              ?? oorCarryCfg.abilityData.damageType
+              ?? 'magic';
+            const oorJaxRawDmg = oorJaxDmgType === 'magic'
+              ? oorJaxDmgBase * (1 + unit.stats.ap / 100)
+              : oorJaxDmgBase;
+            let oorJaxDamageAmp = unit.damageAmp;
+            if (unit.inventionTankDamageAmp > 0 && target.role === 'Tank') oorJaxDamageAmp += unit.inventionTankDamageAmp;
+            if (unit.madredsTankDamageAmp > 0 && target.role === 'Tank') oorJaxDamageAmp += unit.madredsTankDamageAmp;
+            if (unit.gravesTankDamageAmp > 0 && target.role === 'Tank') oorJaxDamageAmp += unit.gravesTankDamageAmp;
+            oorJaxDamageAmp += computeSniperDamageAmp(unit, target);
+            if (unit.mfReplicatorEffectiveness > 0) oorJaxDamageAmp += unit.mfReplicatorEffectiveness;
+            let oorJaxAmplified = oorJaxRawDmg * (1 + oorJaxDamageAmp);
+            if (unit.spellCanCrit && rng.next() < unit.stats.critChance) {
+              oorJaxAmplified *= unit.stats.critMultiplier;
+            }
+            totalRawAbilityDmg += oorJaxAmplified;
+            const oorJaxEffectiveDmg = applyAbilityMitigation(unit, target, oorJaxAmplified, oorJaxDmgType, eventBus, tick);
+            target.currentHp -= oorJaxEffectiveDmg;
+            target.totalDamageTaken += oorJaxEffectiveDmg;
+            unit.totalDamageDealt += oorJaxEffectiveDmg;
+            totalAbilityDmg += oorJaxEffectiveDmg;
+
+            const oorJaxLog: CombatLog = {
+              tick, time, type: 'ability',
+              sourceId: unit.id, targetId: target.id,
+              value: Math.round(oorJaxEffectiveDmg),
+              message: `${unit.champion.name} carry cast (OOR)! ${target.champion.name}에게 ${Math.round(oorJaxEffectiveDmg)} ${oorJaxDmgType === 'magic' ? '마법' : '물리'} 피해`,
+            };
+            logs.push(oorJaxLog);
+            tickLogs.push(oorJaxLog);
+
+            // 별돌보미 뱀(Serpent) — OOR cast 도 동일 적용
+            triggerSerpentPoison(unit, target, oorJaxEffectiveDmg);
+
+            // 사망 시 markTargetDead (OOR 의 일반 처치 path 는 self_buff abilityTargets self 만이라 진입 안 함).
+            // target.state 검사는 위 가드로 narrowed 라 currentHp 만 검사. markTargetDead 내부 idempotent.
+            if (target.currentHp <= 0) {
+              const ownArbiterStateOORJax = unit.team === 'player' ? playerArbiterState : enemyArbiterState;
+              markTargetDead(unit, target, ownArbiterStateOORJax, eventBus, tick);
+            }
+          }
+
           const oorAlive = abilityTargets.filter(t => t.state !== 'dead');
           const abilityDmg = oorIsSplit && oorAlive.length > 0
             ? oorHitTotal / oorAlive.length

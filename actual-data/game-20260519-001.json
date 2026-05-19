@@ -1,0 +1,573 @@
+{
+  "gameId": "game-20260519-001",
+  "videoSource": {
+    "kind": "local",
+    "filename": "game-20260519-001.mp4",
+    "mimeType": "video/mp4",
+    "sizeBytes": 4032930070,
+    "durationSeconds": 2129.251667,
+    "uploadedAt": "2026-05-19T04:06:14.937Z"
+  },
+  "patchVersion": "17.3",
+  "playerRiotId": "무례한 친구#0129",
+  "finalPlacement": 2,
+  "shrinesInPlay": [
+    "ahri",
+    "evelynn"
+  ],
+  "timeline": [],
+  "createdAt": "2026-05-19T04:03:26.031Z",
+  "updatedAt": "2026-05-19T04:18:29.459Z",
+  "rounds": [
+    {
+      "type": "pvp",
+      "roundName": "2-1",
+      "videoStartTime": 269.4,
+      "videoEndTime": 292.2,
+      "playerTeam": {
+        "units": [
+          {
+            "championId": "TFT17_Lissandra",
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Kaisa",
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT_Item_InfinityEdge",
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Chogath",
+            "hex": {
+              "q": 2,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Mordekaiser",
+            "hex": {
+              "q": 3,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          }
+        ],
+        "augments": [
+          "TFT17_Augment_DarkStar_WhiteHole",
+          null,
+          null,
+          null
+        ],
+        "level": 4,
+        "hp": 100,
+        "hexModifiers": []
+      },
+      "opponent": {
+        "units": [
+          {
+            "championId": "TFT17_IvernMinion",
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT_Item_FrozenHeart",
+              "TFT_Item_NegatronCloak",
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Mordekaiser",
+            "hex": {
+              "q": 3,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Pyke",
+            "hex": {
+              "q": 4,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          }
+        ],
+        "augments": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "level": 3,
+        "hp": 100,
+        "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "championId": "TFT17_IvernMinion",
+            "alive": true,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 3
+            },
+            "championId": "TFT17_Mordekaiser",
+            "alive": true,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 4,
+              "r": 3
+            },
+            "championId": "TFT17_Pyke",
+            "alive": false,
+            "hpPercent": 0
+          }
+        ],
+        "riotId": "coinTFT#1234"
+      },
+      "winner": "player",
+      "playerDamageChart": [
+        {
+          "unitHex": {
+            "q": -1,
+            "r": 3
+          },
+          "championId": "TFT17_Kaisa",
+          "damage": 1708
+        },
+        {
+          "unitHex": {
+            "q": 0,
+            "r": 3
+          },
+          "championId": "TFT17_Lissandra",
+          "damage": 1317
+        },
+        {
+          "unitHex": {
+            "q": 2,
+            "r": 0
+          },
+          "championId": "TFT17_Chogath",
+          "damage": 629
+        },
+        {
+          "unitHex": {
+            "q": 3,
+            "r": 0
+          },
+          "championId": "TFT17_Mordekaiser",
+          "damage": 505
+        }
+      ],
+      "opponentDamageChart": [
+        {
+          "unitHex": {
+            "q": 4,
+            "r": 3
+          },
+          "championId": "TFT17_Pyke",
+          "damage": 946
+        },
+        {
+          "unitHex": {
+            "q": 3,
+            "r": 3
+          },
+          "championId": "TFT17_Mordekaiser",
+          "damage": 460
+        },
+        {
+          "unitHex": {
+            "q": 2,
+            "r": 3
+          },
+          "championId": "TFT17_IvernMinion",
+          "damage": 352
+        }
+      ]
+    },
+    {
+      "type": "pvp",
+      "roundName": "2-2",
+      "videoStartTime": 340,
+      "videoEndTime": 360.2,
+      "playerTeam": {
+        "units": [
+          {
+            "championId": "TFT17_Lissandra",
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Kaisa",
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT_Item_InfinityEdge",
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Chogath",
+            "hex": {
+              "q": 2,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Mordekaiser",
+            "hex": {
+              "q": 3,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          }
+        ],
+        "augments": [
+          "TFT17_Augment_DarkStar_WhiteHole",
+          null,
+          null,
+          null
+        ],
+        "level": 4,
+        "hp": 100,
+        "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "championId": "TFT17_Lissandra",
+            "alive": true,
+            "hpPercent": 95
+          },
+          {
+            "hex": {
+              "q": 3,
+              "r": 0
+            },
+            "championId": "TFT17_Mordekaiser",
+            "alive": true,
+            "hpPercent": 50
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 0
+            },
+            "championId": "TFT17_Chogath",
+            "alive": true,
+            "hpPercent": 55
+          },
+          {
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "championId": "TFT17_Kaisa",
+            "alive": true,
+            "hpPercent": 98
+          }
+        ]
+      },
+      "opponent": {
+        "units": [
+          {
+            "championId": "TFT17_Leona",
+            "hex": {
+              "q": 3,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Illaoi",
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Zoe",
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          }
+        ],
+        "augments": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "level": 3,
+        "hp": 100,
+        "hexModifiers": [],
+        "survivors": [
+          {
+            "hex": {
+              "q": 3,
+              "r": 3
+            },
+            "championId": "TFT17_Leona",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 2,
+              "r": 3
+            },
+            "championId": "TFT17_Illaoi",
+            "alive": false,
+            "hpPercent": 0
+          },
+          {
+            "hex": {
+              "q": 6,
+              "r": 0
+            },
+            "championId": "TFT17_Zoe",
+            "alive": false,
+            "hpPercent": 0
+          }
+        ],
+        "riotId": "함식이#KR1"
+      },
+      "winner": "player",
+      "playerDamageChart": [
+        {
+          "unitHex": {
+            "q": -1,
+            "r": 3
+          },
+          "championId": "TFT17_Kaisa",
+          "damage": 1282
+        },
+        {
+          "unitHex": {
+            "q": 0,
+            "r": 3
+          },
+          "championId": "TFT17_Lissandra",
+          "damage": 1097
+        },
+        {
+          "unitHex": {
+            "q": 2,
+            "r": 0
+          },
+          "championId": "TFT17_Chogath",
+          "damage": 644
+        },
+        {
+          "unitHex": {
+            "q": 3,
+            "r": 0
+          },
+          "championId": "TFT17_Mordekaiser",
+          "damage": 421
+        }
+      ],
+      "opponentDamageChart": [
+        {
+          "unitHex": {
+            "q": 6,
+            "r": 0
+          },
+          "championId": "TFT17_Zoe",
+          "damage": 515
+        },
+        {
+          "unitHex": {
+            "q": 2,
+            "r": 3
+          },
+          "championId": "TFT17_Illaoi",
+          "damage": 303
+        },
+        {
+          "unitHex": {
+            "q": 3,
+            "r": 3
+          },
+          "championId": "TFT17_Leona",
+          "damage": 262
+        }
+      ]
+    },
+    {
+      "type": "pvp",
+      "roundName": "2-3",
+      "videoStartTime": 407.5,
+      "playerTeam": {
+        "units": [
+          {
+            "championId": "TFT17_Lissandra",
+            "hex": {
+              "q": 0,
+              "r": 3
+            },
+            "starLevel": 2,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Kaisa",
+            "hex": {
+              "q": -1,
+              "r": 3
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT_Item_InfinityEdge",
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Chogath",
+            "hex": {
+              "q": 2,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              null,
+              null,
+              null
+            ]
+          },
+          {
+            "championId": "TFT17_Mordekaiser",
+            "hex": {
+              "q": 3,
+              "r": 0
+            },
+            "starLevel": 1,
+            "items": [
+              "TFT_Item_NegatronCloak",
+              null,
+              null
+            ]
+          }
+        ],
+        "augments": [
+          "TFT17_Augment_DarkStar_WhiteHole",
+          null,
+          null,
+          null
+        ],
+        "level": 4,
+        "hp": 100,
+        "hexModifiers": []
+      },
+      "opponent": {
+        "units": [],
+        "augments": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "level": 4,
+        "hp": 100,
+        "hexModifiers": [],
+        "riotId": "karl Marx#자본론"
+      },
+      "winner": "draw"
+    }
+  ]
+}

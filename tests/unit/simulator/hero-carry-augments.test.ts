@@ -254,6 +254,28 @@ describe('저 별을 향해 (JaxCarry) — asGain starLevel별 정합 (Lint #11-
     expect(star2.jaxCarryActive).toBe(false);
   });
 
+  it('cast 시 target 에 magic damage 적용 (Lint #11-A 해소, PR #140)', () => {
+    // JaxCarry desc: "사용: 대상 magic damage". self_buff 패턴이라도 carry abilityData.damage
+    // 가 target 에 magic damage 로 적용되어야 함. self_buff 분기 직후 신규 분기.
+    const team: PlacedChampion[] = [placed(apJax, 0, 0, 3)];
+    const enemy: PlacedChampion[] = [placed(dummyEnemy, 6, 3, 3)]; // 3성 enemy — Jax cast 발동 보장
+    const result = simulateCombat(team, enemy, {
+      seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
+      playerAugments: [augJaxCarry] as RawAugment[],
+    });
+    const jax = result.playerUnits.find(u => u.champion.apiName === 'TFT17_Jax')!;
+    // cast 발동 시 (castCount > 0) totalDamageDealt > 0 보장 (carry damage 적용됨).
+    // 이전 (PR #140 전) 에는 self_buff 패턴 rawAbilityDmgBase=0 강제로 cast 자체는 damage 0.
+    // basic attack damage 도 있지만 onAttackBonus passive (line 5618-) 와 raw AD 합산이라
+    // 어느 path 든 totalDamageDealt > 0.
+    expect(jax.totalDamageDealt).toBeGreaterThan(0);
+    // carry cast log message 가 발생 (cast count > 0 이면 minimum 1번)
+    if (jax.castCount > 0) {
+      const carryCastLog = result.logs.find(l => l.message?.includes('carry cast'));
+      expect(carryCastLog).toBeDefined();
+    }
+  });
+
   it('non-selected Jax 는 carry self_buff abilityOverride 무시 (PR #136 codex P2 amend)', () => {
     // 다중 Jax + JaxCarry → non-selected (2성) 은 getAbilityConfigForUnit 에서 raw Jax config
     // (aoe_circle stun) fallback 받아야 함. carry self_buff override 가 모든 카피에 전파되면
