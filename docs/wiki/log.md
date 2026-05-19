@@ -8,6 +8,20 @@ format: newest first
 
 ## 2026-05-19
 
+### Archive: docs/meta/ leftover 2 파일 — Phase 2 첫 정리
+
+- **Source**: 사용자 요청 — docs/meta/ leftover 점진 정리
+- **변경**:
+  - `git rm docs/meta/nova-selector-ui-handoff.md` — PR #85/86/87 머지 완료, 작업 핸드오프 의의 종료
+  - `git rm docs/meta/set17-gods-system.md` — "정확하지 않을 수 있음" 명시 추정 데이터. `docs/wiki/raw/lolchess/set17-yasuo-tiles.md` (lolchess.gg 공식 인게임 텍스트 기준) 가 ground truth 로 부분 대체
+- **참조 갱신** (4건):
+  - `docs/wiki/raw/README.md` — Archived 섹션 2 항목 추가
+  - `docs/wiki/raw/lolchess/set17-yasuo-tiles.md` — archived 명시
+  - `docs/meta/actual-data-brainstorm.md` — yasuo-tiles 로 대체 명시
+  - `docs/superpowers/specs/2026-04-23-actual-data-design.md` — 선행 문서 갱신 (1건) + 참고 자료 archived 표시 (1건)
+- **유지 (점진 ingest 별도 PR)**: set17-trait-audit / set17-meta-guide / diff-attribution (2) / opponent-carries-audit / sim-accuracy-followups / simulator-synergy-todos / actual-data-brainstorm / augment-management / tft-coach-app-idea / tft_deck_building / tft_item_abbreviations / user_tft_knowledge
+- **메모리 사본 3 파일 유지** — 사용자 룰 `tft_memory_preference`: "TFT 관련은 로컬 메모리 대신 레포 docs/meta/ 에 저장"
+
 ### Refactor: docs/meta/wiki/ → docs/wiki/ relocate (Phase 1)
 
 - **Source**: 사용자 요청 — LLM Wiki 구조 prominent 화

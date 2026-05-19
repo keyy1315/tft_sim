@@ -1,7 +1,7 @@
 # Set 17 야스오 칸 — 수치 정리
 
 > 출처: lolchess.gg/rewards/set17/space-gods (2026-04-23 확인)
-> 공식 인게임 텍스트 기준 — 기존 `set17-gods-system.md`의 추정 수치를 이걸로 대체.
+> 공식 인게임 텍스트 기준 — 기존 `set17-gods-system.md` (추정 수치) 는 2026-05-19 archived, 본 raw 가 ground truth.
 
 ## 개요
 
