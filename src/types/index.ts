@@ -851,6 +851,21 @@ export interface CombatUnit {
    */
   shenPassiveStack: number;
   /**
+   * NasusCarry (꽁! / Bonk!) — cast kill 누적 stack (Lint #12 해소).
+   * desc: "이 스킬로 적을 처치하면 스킬 피해량이 영구적으로 증가".
+   * cast loop 의 markTargetDead 직후 (nasusCarryActive 가드) +1 누적.
+   * basic attack kill 은 stack 미증가 (cast 로만 누적 — desc 정합).
+   * Read site: applyCarryDamageModifiers 의 bonusPerKill modifier — baseDmg += stack × bonusPerKill[starLevel-1].
+   */
+  nasusBonkStack: number;
+  /**
+   * NasusCarry — applyHeroCarryTransforms 의 "가장 강한 1명" selector 결과 flag.
+   * findCarryAugment 는 champion api 매치하는 모든 Nasus 에 NasusCarry config 반환 (다중 카피 시).
+   * 가장 강한 1명만 실제 carry transform 대상 → 본 flag 로 selected unit 분기.
+   * stack hook (cast loop) + bonusPerKill modifier 둘 다 본 flag 가드 (PR #135 Codex P2).
+   */
+  nasusCarryActive: boolean;
+  /**
    * 요새 (Bastion/ResistTank) — 첫 N초 doubled BonusArmor.
    * 0 = 비활성. 양수면 그 tick 에 도달 시 doubled 부분 (bastionDoubleArmorBonus)
    * 을 stats.armor 에서 차감. tick 마다 main loop 가 체크.

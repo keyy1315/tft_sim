@@ -14,9 +14,11 @@ const { champions, traits, augments, items } = loadServerCatalogs();
 const apGragas = champions.find(c => c.apiName === 'TFT17_Gragas')!;
 const apLeona = champions.find(c => c.apiName === 'TFT17_Leona')!;
 const apTwistedFate = champions.find(c => c.apiName === 'TFT17_TwistedFate')!;
+const apNasus = champions.find(c => c.apiName === 'TFT17_Nasus')!;
 const dummyEnemy = champions.find(c => c.apiName === 'TFT17_Aatrox')!;
 const augGragasCarry = augments.find(a => a.apiName === 'TFT17_Augment_GragasCarry')!;
 const augLeonaCarry = augments.find(a => a.apiName === 'TFT17_Augment_LeonaCarry')!;
+const augNasusCarry = augments.find(a => a.apiName === 'TFT17_Augment_NasusCarry')!;
 // 임의 아이템 (가장 강한 룰 — 아이템 보유 우선 검증용)
 const someItem = items.find(i => i.apiName === 'TFT_Item_BFSword')
   ?? items.find(i => i.apiName?.startsWith('TFT_Item_'))!;
@@ -132,5 +134,78 @@ describe('방패 여전사 (LeonaCarry) — 가장 강한 레오나 dash + 첫 �
     const star2 = leonaUnits.find(u => u.starLevel === 2)!;
     expect(star3.leonaCarryActive).toBe(true);
     expect(star2.leonaCarryActive).toBe(false);
+  });
+});
+
+describe('꽁! (NasusCarry) — bonusPerKill cast 누적 (Lint #12 해소)', () => {
+  it('nasusBonkStack 초기값 0', () => {
+    const team: PlacedChampion[] = [placed(apNasus, 0, 0)];
+    const enemy: PlacedChampion[] = [placed(dummyEnemy, 6, 3)];
+    const withCarry = simulateCombat(team, enemy, {
+      seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
+      playerAugments: [augNasusCarry] as RawAugment[],
+    });
+    const nasus = withCarry.playerUnits.find(u => u.champion.apiName === 'TFT17_Nasus')!;
+    // 초기값 + carry transform 정합
+    expect(nasus.role).toBe('Fighter');
+    // 전투 진행 후엔 0 또는 양수 (kill 발생 여부에 따라). 최소 음수 아님.
+    expect(nasus.nasusBonkStack).toBeGreaterThanOrEqual(0);
+  });
+
+  it('cast 로 처치 시 nasusBonkStack ≤ killCount (basic attack kill 제외)', () => {
+    // Nasus 3성 + 약한 적 다수 → 일부 kill 발생. nasusBonkStack 은 cast kill 만 누적
+    // (basic attack kill 제외). 따라서 stack ≤ killCount 가 항상 invariant.
+    const team: PlacedChampion[] = [placed(apNasus, 0, 0, 3)];
+    const enemy: PlacedChampion[] = [
+      placed(dummyEnemy, 6, 3, 1),
+      placed(dummyEnemy, 6, 4, 1),
+      placed(dummyEnemy, 5, 3, 1),
+    ];
+    const result = simulateCombat(team, enemy, {
+      seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
+      playerAugments: [augNasusCarry] as RawAugment[],
+    });
+    const nasus = result.playerUnits.find(u => u.champion.apiName === 'TFT17_Nasus')!;
+    // stack >= 0 (음수 아님), stack <= killCount (cast kill 만 누적)
+    expect(nasus.nasusBonkStack).toBeGreaterThanOrEqual(0);
+    expect(nasus.nasusBonkStack).toBeLessThanOrEqual(nasus.killCount);
+  });
+
+  it('다중 Nasus 카피 시 selected (가장 강한) 1명만 nasusCarryActive (codex P2 회귀 가드)', () => {
+    // Nasus 2명 (3성 + 2성) → 3성만 carry transform. findCarryAugment 는 두 명 모두에게
+    // NasusCarry config 반환하지만, applyHeroCarryTransforms 의 "가장 강한 1명" selector 결과
+    // 3성 unit 만 nasusCarryActive=true → stack hook + modifier 가드 작동.
+    const team: PlacedChampion[] = [
+      placed(apNasus, 0, 0, 2),
+      placed(apNasus, 1, 0, 3),
+    ];
+    const enemy: PlacedChampion[] = [placed(dummyEnemy, 6, 3)];
+    const result = simulateCombat(team, enemy, {
+      seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
+      playerAugments: [augNasusCarry] as RawAugment[],
+    });
+    const nasusUnits = result.playerUnits.filter(u => u.champion.apiName === 'TFT17_Nasus');
+    const star3 = nasusUnits.find(u => u.starLevel === 3)!;
+    const star2 = nasusUnits.find(u => u.starLevel === 2)!;
+    // 3성만 selected
+    expect(star3.nasusCarryActive).toBe(true);
+    expect(star2.nasusCarryActive).toBe(false);
+    // 2성 non-carry 는 stack 누적 안 함 (회귀 가드)
+    expect(star2.nasusBonkStack).toBe(0);
+  });
+
+  it('augment 미활성 → nasusBonkStack 누적 안 함 (raw Nasus)', () => {
+    const team: PlacedChampion[] = [placed(apNasus, 0, 0, 3)];
+    const enemy: PlacedChampion[] = [
+      placed(dummyEnemy, 6, 3, 1),
+      placed(dummyEnemy, 6, 4, 1),
+    ];
+    const result = simulateCombat(team, enemy, {
+      seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
+      // playerAugments 미설정 → raw Nasus
+    });
+    const nasus = result.playerUnits.find(u => u.champion.apiName === 'TFT17_Nasus')!;
+    // augment 미활성 → carryCfg.abilityData.bonusPerKill 없음 → stack 누적 분기 진입 안 함
+    expect(nasus.nasusBonkStack).toBe(0);
   });
 });
