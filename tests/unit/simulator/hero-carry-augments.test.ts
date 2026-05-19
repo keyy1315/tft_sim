@@ -16,11 +16,19 @@ const apLeona = champions.find(c => c.apiName === 'TFT17_Leona')!;
 const apTwistedFate = champions.find(c => c.apiName === 'TFT17_TwistedFate')!;
 const apNasus = champions.find(c => c.apiName === 'TFT17_Nasus')!;
 const apJax = champions.find(c => c.apiName === 'TFT17_Jax')!;
+const apAatrox = champions.find(c => c.apiName === 'TFT17_Aatrox')!;
+const apPyke = champions.find(c => c.apiName === 'TFT17_Pyke')!;
+const apPoppy = champions.find(c => c.apiName === 'TFT17_Poppy')!;
+const apIvernMinion = champions.find(c => c.apiName === 'TFT17_IvernMinion')!;
 const dummyEnemy = champions.find(c => c.apiName === 'TFT17_Aatrox')!;
 const augGragasCarry = augments.find(a => a.apiName === 'TFT17_Augment_GragasCarry')!;
 const augLeonaCarry = augments.find(a => a.apiName === 'TFT17_Augment_LeonaCarry')!;
 const augNasusCarry = augments.find(a => a.apiName === 'TFT17_Augment_NasusCarry')!;
 const augJaxCarry = augments.find(a => a.apiName === 'TFT17_Augment_JaxCarry')!;
+const augAatroxCarry = augments.find(a => a.apiName === 'TFT17_Augment_AatroxCarry')!;
+const augPykeCarry = augments.find(a => a.apiName === 'TFT17_Augment_PykeCarry')!;
+const augPoppyCarry = augments.find(a => a.apiName === 'TFT17_Augment_PoppyCarry')!;
+const augIvernMinionCarry = augments.find(a => a.apiName === 'TFT17_Augment_IvernMinionCarry')!;
 // 임의 아이템 (가장 강한 룰 — 아이템 보유 우선 검증용)
 const someItem = items.find(i => i.apiName === 'TFT_Item_BFSword')
   ?? items.find(i => i.apiName?.startsWith('TFT_Item_'))!;
@@ -303,5 +311,80 @@ describe('저 별을 향해 (JaxCarry) — asGain starLevel별 정합 (Lint #11-
     expect(star2NonSelected.jaxCarryActive).toBe(false);
     // raw Jax attackSpeed 와 일치 (±5% 허용 — trait/buff 영향 미미)
     expect(star2NonSelected.stats.attackSpeed).toBeLessThanOrEqual(rawAS * 1.05);
+  });
+});
+
+describe('Lint #14 selected-carry-augment 일반화 회귀 가드 (PR #144)', () => {
+  it('Aatrox 다중 카피 (3성 + 2성) — selected 만 selectedCarryAugment set', () => {
+    const team: PlacedChampion[] = [
+      placed(apAatrox, 0, 0, 2),
+      placed(apAatrox, 1, 0, 3),
+    ];
+    const enemy: PlacedChampion[] = [placed(dummyEnemy, 6, 3, 3)];
+    const result = simulateCombat(team, enemy, {
+      seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
+      playerAugments: [augAatroxCarry] as RawAugment[],
+    });
+    const aatroxUnits = result.playerUnits.filter(u => u.champion.apiName === 'TFT17_Aatrox');
+    const star3 = aatroxUnits.find(u => u.starLevel === 3)!;
+    const star2 = aatroxUnits.find(u => u.starLevel === 2)!;
+    expect(star3.selectedCarryAugment).toBe('TFT17_Augment_AatroxCarry');
+    expect(star2.selectedCarryAugment).toBeNull();
+  });
+
+  it('Pyke 다중 카피 — selected 만 selectedCarryAugment set (cascade 가드)', () => {
+    const team: PlacedChampion[] = [
+      placed(apPyke, 0, 0, 2),
+      placed(apPyke, 1, 0, 3),
+    ];
+    const enemy: PlacedChampion[] = [placed(dummyEnemy, 6, 3, 3)];
+    const result = simulateCombat(team, enemy, {
+      seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
+      playerAugments: [augPykeCarry] as RawAugment[],
+    });
+    const pykeUnits = result.playerUnits.filter(u => u.champion.apiName === 'TFT17_Pyke');
+    const star3 = pykeUnits.find(u => u.starLevel === 3)!;
+    const star2 = pykeUnits.find(u => u.starLevel === 2)!;
+    expect(star3.selectedCarryAugment).toBe('TFT17_Augment_PykeCarry');
+    expect(star2.selectedCarryAugment).toBeNull();
+  });
+
+  it('Poppy 다중 카피 — selected 만 rangeOverride 4 적용', () => {
+    // PoppyCarry rangeOverride = 4. selected 만 적용, non-selected 는 raw Poppy range (4 가 아닌 raw).
+    const team: PlacedChampion[] = [
+      placed(apPoppy, 0, 0, 2),
+      placed(apPoppy, 1, 0, 3),
+    ];
+    const enemy: PlacedChampion[] = [placed(dummyEnemy, 6, 3, 3)];
+    const result = simulateCombat(team, enemy, {
+      seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
+      playerAugments: [augPoppyCarry] as RawAugment[],
+    });
+    const poppyUnits = result.playerUnits.filter(u => u.champion.apiName === 'TFT17_Poppy');
+    const star3 = poppyUnits.find(u => u.starLevel === 3)!;
+    const star2 = poppyUnits.find(u => u.starLevel === 2)!;
+    expect(star3.selectedCarryAugment).toBe('TFT17_Augment_PoppyCarry');
+    expect(star2.selectedCarryAugment).toBeNull();
+    // selected 만 range 4 적용 (PR #144 codex P1 amend — applyHeroCarryTransforms rangeOverride 통합)
+    expect(star3.stats.range).toBe(4);
+    // non-selected 는 raw Poppy range (4 가 아님)
+    expect(star2.stats.range).not.toBe(4);
+  });
+
+  it('IvernMinion 다중 카피 — selected 만 selectedCarryAugment set (hexReduction + multi-stun 가드)', () => {
+    const team: PlacedChampion[] = [
+      placed(apIvernMinion, 0, 0, 2),
+      placed(apIvernMinion, 1, 0, 3),
+    ];
+    const enemy: PlacedChampion[] = [placed(dummyEnemy, 6, 3, 3)];
+    const result = simulateCombat(team, enemy, {
+      seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
+      playerAugments: [augIvernMinionCarry] as RawAugment[],
+    });
+    const ivernUnits = result.playerUnits.filter(u => u.champion.apiName === 'TFT17_IvernMinion');
+    const star3 = ivernUnits.find(u => u.starLevel === 3)!;
+    const star2 = ivernUnits.find(u => u.starLevel === 2)!;
+    expect(star3.selectedCarryAugment).toBe('TFT17_Augment_IvernMinionCarry');
+    expect(star2.selectedCarryAugment).toBeNull();
   });
 });
