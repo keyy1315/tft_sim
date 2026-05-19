@@ -3,7 +3,7 @@
     "set": 17,
     "source": "CommunityDragon TFT ko_kr.json (PBE 5/12)",
     "extractedAt": "2026-05-13T00:30:00.000Z",
-    "totalAugments": 439,
+    "totalAugments": 440,
     "patch_version": "17.3 LIVE",
     "fetched_at": "2026-05-13",
     "set17_active_pool_size": 35
@@ -8458,6 +8458,24 @@
         "{7aaa3b47}",
         "{77b330ea}",
         "{24d36c27}"
+      ],
+      "disable": false
+    },
+    {
+      "name": "태양불꽃판",
+      "apiName": "TFT6_Augment_SunfireBoard",
+      "desc": "전투 시작: 모든 적을 불태워 @Duration@초 동안 대상 최대 체력의 @TotalBurnPercent@%만큼 피해를 입히고 받는 회복 효과를 @GrievousWoundsPercent@% 감소시킵니다.",
+      "effects": {
+        "Duration": 15,
+        "GrievousWoundsPercent": 33,
+        "TotalBurnPercent": 15
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/SunfireBoard2.TFT_Set17.tex",
+      "associatedTraits": [],
+      "tags": [
+        "{b72bd3bf}",
+        "{ce1fd21c}",
+        "{ee04db7b}"
       ],
       "disable": false
     }
