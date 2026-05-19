@@ -866,6 +866,19 @@ export interface CombatUnit {
    */
   nasusCarryActive: boolean;
   /**
+   * Selected single-carry semantics 일반화 helper (PR #144 foundation, Lint #14).
+   * `applyHeroCarryTransforms` 가 "가장 강한 1명" selector 결과 target 에 본 필드 set
+   * (해당 carry augment 의 apiName 저장). non-selected 카피는 null.
+   *
+   * **사용**: `getAbilityConfigForUnit` 에서 selected 확인 후 carry abilityOverride 반환,
+   * 아니면 raw `CHAMPION_ABILITY_PATTERNS` fallback. carry-specific cast loop hook /
+   * helper 에서도 동일 가드 가능.
+   *
+   * **xxxCarryActive 와의 관계**: 기존 boolean flag (jax/nasus/leona/gragas) 는 legacy.
+   * 신규 가드는 `selectedCarryAugment === '<augment_api>'` 사용 권장. 점진 deprecate.
+   */
+  selectedCarryAugment: string | null;
+  /**
    * JaxCarry — selected single-carry semantics flag (PR #136 Lint #11-B 해소).
    * findCarryAugment 는 champion api 매치하는 모든 Jax 에 동일 config 반환.
    * applyHeroCarryTransforms 의 "가장 강한 1명" selector 결과 unit 에만 set.

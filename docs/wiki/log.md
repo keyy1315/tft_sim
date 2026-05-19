@@ -8,6 +8,33 @@ format: newest first
 
 ## 2026-05-19
 
+### Refactor: selected-carry-augment 일반화 foundation — Lint #14 1/N (PR #144)
+
+- **Source**: Lint #14 (광범위 abilityOverride pollution audit) — 사용자 결정 Option B (일반화 helper)
+- **audit 결과 (Lint #14 sub-lint 카탈로그)**:
+  - **14-A** Aatrox cycle counter / NOVA selector — 🔴 selected 가드 없음
+  - **14-B** Pyke onKillRecast cascade — 🔴 모든 카피 진입
+  - **14-C** Poppy spiritBounceOnKill chain — 🔴 모든 카피
+  - **14-D** Ivern hexReduction + multi-stun — 🔴 augmentApiName 검사만
+  - **14-E** Mord aoe_circle pollution — 🟡 mordekaiserCarryShield 일부 가드
+  - **14-F** Leona flag dead + abilityOverride pollution — 🟡 leonaCarryActive read 0건
+  - **14-G** Gragas flag dead + abilityOverride pollution — 🟡 gragasCarryActive read 0건
+- **Foundation 변경 (본 PR)**:
+  - `src/types/index.ts`: `selectedCarryAugment: string | null` 필드 추가
+  - `combatLoop.ts` 3 createCombatUnit site: `selectedCarryAugment: null` 초기화
+  - `applyHeroCarryTransforms`: 모든 carry 의 selected target 에 `target.selectedCarryAugment = cfg.augmentApiName` 일관 set (기존 xxxCarryActive flag 도 legacy 호환 유지)
+  - `getAbilityConfigForUnit`: 일반화 가드 — `unit.selectedCarryAugment !== carry.augmentApiName` 시 raw fallback. **이전 JaxCarry 한정 가드 (PR #136) 를 모든 carry 로 확장**
+- **효과**:
+  - **모든 carry 에 Layer 2 (abilityOverride) 가드 일관 적용** — non-selected 카피가 carry pattern 으로 cast 하던 회귀 해소 (Aatrox/Pyke/Poppy/Ivern/Mord/Leona/Gragas 동시)
+  - 기존 동작 보존 (selected unit 은 동일 carry 패턴 사용, 단 카피만 있으면 raw fallback)
+- **검증**: pnpm typecheck pass, 전체 suite 892/892 pass ✅
+- **후속 sub-PR 계획** (carry-specific Layer 1 가드):
+  - 14-A: Aatrox cycle counter / NOVA selector selectedCarryAugment 가드
+  - 14-B: Pyke onKillRecast cascade 가드
+  - 14-C: Poppy spiritBounceOnKill chain 가드
+  - 14-D: Ivern hexReduction + multi-stun 가드 (`applyCarryDamageModifiers` / `applyCarryPostCastEffects` 의 augmentApiName 검사 → selectedCarryAugment 검사 변경)
+  - 14-E/F/G: Mord/Leona/Gragas — 기존 dead flag deprecate + selectedCarryAugment 활용
+
 ### Test fix: Mordekaiser pre-existing 9 fail 해소 — 전체 suite 892/892 ✅ (PR #143)
 
 - **Source**: PR #141/#142 작업 중 발견된 pre-existing 9 fail (Mordekaiser proc test). 변경 전 dev 도 동일 fail 확인 — 본 PR 들과 무관 누적 fail
