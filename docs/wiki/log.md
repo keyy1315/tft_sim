@@ -8,6 +8,26 @@ format: newest first
 
 ## 2026-05-19
 
+### Ingest: champions/shen.md — wiki/champions/ 폴더 첫 페이지 (PR #148 + codex P2 amend)
+
+- **Source** (5단계 워크플로우):
+  - `public/data/tft_set17_champions.json` (TFT17_Shen entry — 17.3 LIVE stats)
+  - `src/lib/simulator/systems/ability.ts:250` (abilityOverride aoe_circle r=2 + selfBuff)
+  - `src/lib/simulator/engine/combatLoop.ts:1508-1525` (applyShenArtifactShield — 보루 trait)
+  - `combatLoop.ts:5710-5748` (passive 평타 시 stack × BonusDamage)
+  - `combatLoop.ts:6167-6169` (cast 시 shenPassiveStack++)
+  - `docs/01-plan/features/tft-17-3-shen-passive.plan.md` (Plan 문서)
+- **5단계 워크플로우 적용**:
+  1. 좁은 grep: TFT17_Shen / shenPassiveStack
+  2. 함수 컨텍스트: 평타 hook 분기 (line 5710-) — stack × bonus + isTrueDmg (>= 3)
+  3. **entity-wide grep `Shen`**: 보루 trait helper + passive stack hook + 평타 hook + Shen artifact 등 multi-source. 의도된 분리 (trait + champion + carry 별 helper)
+  4. cast path 3종: aoe_circle pattern + selfBuff 분기 모두 main pipeline (Shen 자체는 dash 없음 → OOR 진입 안 함)
+  5. **actual integration verify**: passive stack ++ (line 6167) + 평타 시 stack read (line 5710) → 일관 정합. PR2 (plan 문서) 구현 완료
+- **첫 챔피언 페이지** — `champions/` 폴더 신규 생성. frontmatter 표준 정립 (id/type/display_name_kr/api_name/cost/traits/role/sim_active/sources)
+- **17.3 변경 3건 정합**: hp 1200→1300, BonusDamageOnAttack 45/75→20/30, ShieldHP 0.10→0.15 모두 sim 적용 확인
+- **codex P2 amend (PR #148 amend)** — frontmatter `role: Tank` 잘못 표기. raw champion JSON 의 role 은 `APFighter` 이고 `mapGameRole()` 가 `*Fighter` → simulator `Fighter` 매핑. Tank vs Fighter 는 마나 (공격당 5/on-hit ✓ vs 10/on-hit 0) + 타게팅 weight (3 vs 2) + non-target reduction (×0.85 적용 안 됨 vs 적용) 모두 다름 → role-passive 룰 잘못 전파 가능. **해소**: `role: Fighter` + `raw_role: APFighter` + 본문 Role 주의 섹션 추가 + index 갱신
+- **검증 필요 (잔존)**: selfBuff.attackSpeed 0.3 vs raw BonusAS 0.8 관계 / ASSlow debuff 적용 위치 / DamageHP 1% maxHp passive scaling 정확성
+
 ### Refactor: legacy xxxCarryActive flag 4건 deprecate — selectedCarryAugment 단일화 (PR #147)
 
 - **Source**: PR #144 selectedCarryAugment 일반화 후속 cleanup. legacy flag 4건 (PR #135/#136 추가 + leona/gragas legacy) 단순 deprecate
