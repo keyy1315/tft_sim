@@ -63,8 +63,9 @@ Nasus (`TFT17_Nasus`) carry augment. 활성 시 가장 강한 Nasus 1명 → `Fi
 - damageTypeOverride `physical` 우선
 - mana 60/120 raw 채택
 - **`bonusPerKill[10,13,20]` cast kill 누적** (PR #135 Lint #12 해소):
-  - Stack 누적: cast loop `markTargetDead` 직후 (`combatLoop.ts:6549-6555`). NasusCarry 활성 + `unit.champion.apiName === 'TFT17_Nasus'` 한정. basic attack kill 제외 ("이 스킬로" desc 정합)
-  - Read site: `applyCarryDamageModifiers` modifier #6 (`combatLoop.ts:1334-1340`) — `baseDmg += unit.nasusBonkStack × bonusPerKill[starLevel-1]`. base + scale 후 영구 buff raw 가산
+  - Stack 누적: cast loop `markTargetDead` 직후. **`unit.nasusCarryActive` 가드** (codex P2 — 다중 Nasus 카피 시 selected 1명만 누적). basic attack kill 제외 ("이 스킬로" desc 정합)
+  - Read site: `applyCarryDamageModifiers` modifier #6 — `baseDmg += unit.nasusBonkStack × bonusPerKill[starLevel-1]`. `nasusCarryActive` 가드. base + scale 후 영구 buff raw 가산
+  - Selected unit: `applyHeroCarryTransforms` "가장 강한 1명" selector (성급 → 아이템 → 첫 번째). flag set 위치 — leona/gragas/mordekaiser 와 동일 패턴
   - Invariant: `nasusBonkStack ≤ killCount` (cast kill 만 누적)
 
 ❌ **잔존**:
@@ -91,11 +92,12 @@ Nasus (`TFT17_Nasus`) carry augment. 활성 시 가장 강한 Nasus 1명 → `Fi
 ### Lint #12 — NasusCarry `bonusPerKill` ✅ resolved (PR #135)
 
 - carryAugments.ts:127 `bonusPerKill: [10, 13, 20]` 가 dead field → sim 도달
-- 해소 방식 (단순 inline hook, eventBus listener 미사용):
-  - **Stack 누적**: cast loop `markTargetDead` 호출 직후 (`combatLoop.ts:6549-6555`) — NasusCarry 활성 + `unit.champion.apiName === 'TFT17_Nasus'` + `carryCfg.abilityData.bonusPerKill` 가드. basic attack kill 자동 제외 (cast site 한정)
-  - **Stack read**: `applyCarryDamageModifiers` modifier #6 추가 (`combatLoop.ts:1334-1340`) — base + scale 후 raw 가산. caller 2 site (main + OOR) 자동 일관 — 다만 NasusCarry single pattern 은 OOR 진입 불가 (canDashCast 가드)
+- 해소 방식 (단순 inline hook + selected flag, eventBus listener 미사용):
+  - **`nasusCarryActive` flag** (codex P2 amend): `applyHeroCarryTransforms` 의 "가장 강한 1명" selector 결과 unit 에만 true set. 다중 Nasus 카피 시 non-selected 회귀 방지 (leona/gragas/mordekaiser 패턴 동일)
+  - **Stack 누적**: cast loop `markTargetDead` 호출 직후 — `nasusCarryActive` + `carryCfg.abilityData.bonusPerKill` 가드. basic attack kill 자동 제외 (cast site 한정)
+  - **Stack read**: `applyCarryDamageModifiers` modifier #6 추가 — `nasusCarryActive` 가드. base + scale 후 raw 가산. caller 2 site (main + OOR) 자동 일관 — 다만 NasusCarry single pattern 은 OOR 진입 불가 (canDashCast 가드)
 - 호출 순서: 단독 적중 → secondary → tankBonus → armorScale → hexReduction → **bonusPerKill** (마지막, 영구 buff 가산 의미)
-- 테스트: `tests/unit/simulator/hero-carry-augments.test.ts` 3 case — 초기값 0 / cast kill ≤ killCount invariant / augment 미활성 시 stack 0
+- 테스트: `tests/unit/simulator/hero-carry-augments.test.ts` 4 case — 초기값 0 / cast kill ≤ killCount invariant / **다중 Nasus selected 1명만 nasusCarryActive (codex P2 회귀 가드)** / augment 미활성 시 stack 0
 
 ### Lint #5 잔존 — Resists 40→45 인게임 verify (기존)
 

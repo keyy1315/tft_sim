@@ -8,7 +8,7 @@ format: newest first
 
 ## 2026-05-19
 
-### Sim fix: NasusCarry bonusPerKill — Lint #12 ✅ resolved (PR #135)
+### Sim fix: NasusCarry bonusPerKill — Lint #12 ✅ resolved (PR #135 + codex P2 amend)
 
 - **Source**: 위키 lint #12 (NasusCarry bonusPerKill 필드 dead, PR #132 검출)
 - **변경**:
@@ -22,9 +22,11 @@ format: newest first
   - applyCarryDamageModifiers 통합 helper 에 modifier #6 추가 → main + OOR caller 2 site 자동 일관 (다만 OOR 진입 불가하니 main only)
 - **호출 순서**: 단독 적중 → secondary → tankBonus → armorScale → hexReduction → **bonusPerKill** (마지막 — base + scale 후 영구 buff raw 가산 의미)
 - **Invariant**: `nasusBonkStack ≤ killCount` (cast kill 만 누적, basic attack kill 제외)
-- **테스트** (`hero-carry-augments.test.ts` 3 case 추가, 전체 10/10 pass):
+- **codex P2 catch (PR #135 amend)** — `findCarryAugment` 는 champion api 매치하는 **모든 Nasus 카피** 에 NasusCarry config 반환하나 `applyHeroCarryTransforms` 는 "가장 강한 1명" 만 carry transform. 초기 fix 는 `champion.apiName === 'TFT17_Nasus'` 가드만 → non-selected 카피도 stack 누적 → 의도 위반. **해소**: `nasusCarryActive: boolean` flag 추가 (leona/gragas/mordekaiser 패턴), `applyHeroCarryTransforms` 에서 selected unit 에만 set, 두 read site 가드를 `unit.nasusCarryActive` 로 변경.
+- **테스트** (`hero-carry-augments.test.ts` 4 case 추가, 전체 11/11 pass):
   - 초기값 nasusBonkStack >= 0 + role='Fighter' 정합
   - cast kill 시 stack ≤ killCount invariant 유지
+  - **다중 Nasus 카피 시 selected 1명만 nasusCarryActive (codex P2 회귀 가드)**
   - augment 미활성 (raw Nasus) → stack = 0
 - **위키 cleanup**:
   - `augments/nasus-carry.md` sim_active partial → active. Lint #12 resolved 기록. bonusPerKill ❌ 미반영 → ✅ 활성

@@ -308,6 +308,7 @@ function createCombatUnit(
     stargazerSerpentDurationSec: 0,
     shenPassiveStack: 0,
     nasusBonkStack: 0,
+    nasusCarryActive: false,
     stargazerShieldCashoutHpFrac: 0,
     stargazerShieldCashoutAsFrac: 0,
     bastionDoubleEndTick: 0,
@@ -1334,8 +1335,9 @@ function applyCarryDamageModifiers(
   // 6. bonusPerKill (NasusCarry 한정, Lint #12 해소): cast kill 누적 stack × bonusPerKill[★]
   // raw 가산. base damage 계산 후 영구 buff 형태로 더해짐 (스택 0 일 때 무영향).
   // stack 증가 위치: cast loop 의 markTargetDead 직후 (basic attack kill 제외 — desc "이 스킬로" 정합).
-  if (ad.bonusPerKill && unit.nasusBonkStack > 0
-      && carryCfg.augmentApiName === 'TFT17_Augment_NasusCarry') {
+  // codex P2 (PR #135): unit.nasusCarryActive 가드 — 다중 Nasus 카피 시 selected 1명만 적용.
+  // (augmentApiName 매치 만으로는 non-selected 카피도 동일 carry config 반환 → semantics 위반).
+  if (ad.bonusPerKill && unit.nasusBonkStack > 0 && unit.nasusCarryActive) {
     const bonusArr = ad.bonusPerKill;
     const bonusPer = bonusArr[unit.starLevel - 1] ?? bonusArr[0];
     baseDmg += unit.nasusBonkStack * bonusPer;
@@ -2273,6 +2275,12 @@ function applyHeroCarryTransforms(augmentApiNames: string[], units: CombatUnit[]
       // shield/mana sim 미반영). carry abilityData.shield override 를 unit 에 저장
       // → applyMordekaiserProcCast 가 우선 read.
       target.mordekaiserCarryShield = cfg.abilityData?.shield ?? null;
+    } else if (cfg.augmentApiName === 'TFT17_Augment_NasusCarry') {
+      // PR #135 Codex P2 catch: findCarryAugment 는 모든 Nasus 카피에 NasusCarry config 반환
+      // (champion api name 매치만) 하지만 applyHeroCarryTransforms 는 가장 강한 1명만 carry
+      // transform. read site (bonusPerKill modifier + cast loop stack hook) 가 champion
+      // api 만 확인하면 non-selected 카피도 stack 누적 → 의도 위반. selected 만 flag set.
+      target.nasusCarryActive = true;
     }
   }
 }
@@ -3614,6 +3622,7 @@ function spawnFreljordTurrets(
             stargazerSerpentDurationSec: 0,
             shenPassiveStack: 0,
             nasusBonkStack: 0,
+            nasusCarryActive: false,
             stargazerShieldCashoutHpFrac: 0,
             stargazerShieldCashoutAsFrac: 0,
             bastionDoubleEndTick: 0,
@@ -3824,6 +3833,7 @@ function trySpawnGalio(
     stargazerSerpentDurationSec: 0,
     shenPassiveStack: 0,
     nasusBonkStack: 0,
+    nasusCarryActive: false,
     stargazerShieldCashoutHpFrac: 0,
     stargazerShieldCashoutAsFrac: 0,
     bastionDoubleEndTick: 0,
@@ -6555,8 +6565,10 @@ export function simulateCombat(
                   // desc "이 스킬로 적을 처치하면" — basic attack kill 제외 (cast site only).
                   // NasusCarry single pattern → main pipeline only (OOR/recast 진입 불가).
                   // Read site: applyCarryDamageModifiers 의 bonusPerKill modifier (다음 cast 부터 가산).
-                  if (unit.champion.apiName === 'TFT17_Nasus'
-                      && carryCfg?.abilityData?.bonusPerKill) {
+                  // codex P2 (PR #135): unit.nasusCarryActive 가드 — findCarryAugment 는 모든 Nasus
+                  // 카피에 NasusCarry config 반환하나 applyHeroCarryTransforms 는 가장 강한 1명만
+                  // selected. selected 만 stack 누적 (비-carry 카피 회귀 방지).
+                  if (unit.nasusCarryActive && carryCfg?.abilityData?.bonusPerKill) {
                     unit.nasusBonkStack++;
                   }
                 }

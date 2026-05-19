@@ -171,6 +171,29 @@ describe('꽁! (NasusCarry) — bonusPerKill cast 누적 (Lint #12 해소)', () 
     expect(nasus.nasusBonkStack).toBeLessThanOrEqual(nasus.killCount);
   });
 
+  it('다중 Nasus 카피 시 selected (가장 강한) 1명만 nasusCarryActive (codex P2 회귀 가드)', () => {
+    // Nasus 2명 (3성 + 2성) → 3성만 carry transform. findCarryAugment 는 두 명 모두에게
+    // NasusCarry config 반환하지만, applyHeroCarryTransforms 의 "가장 강한 1명" selector 결과
+    // 3성 unit 만 nasusCarryActive=true → stack hook + modifier 가드 작동.
+    const team: PlacedChampion[] = [
+      placed(apNasus, 0, 0, 2),
+      placed(apNasus, 1, 0, 3),
+    ];
+    const enemy: PlacedChampion[] = [placed(dummyEnemy, 6, 3)];
+    const result = simulateCombat(team, enemy, {
+      seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
+      playerAugments: [augNasusCarry] as RawAugment[],
+    });
+    const nasusUnits = result.playerUnits.filter(u => u.champion.apiName === 'TFT17_Nasus');
+    const star3 = nasusUnits.find(u => u.starLevel === 3)!;
+    const star2 = nasusUnits.find(u => u.starLevel === 2)!;
+    // 3성만 selected
+    expect(star3.nasusCarryActive).toBe(true);
+    expect(star2.nasusCarryActive).toBe(false);
+    // 2성 non-carry 는 stack 누적 안 함 (회귀 가드)
+    expect(star2.nasusBonkStack).toBe(0);
+  });
+
   it('augment 미활성 → nasusBonkStack 누적 안 함 (raw Nasus)', () => {
     const team: PlacedChampion[] = [placed(apNasus, 0, 0, 3)];
     const enemy: PlacedChampion[] = [
