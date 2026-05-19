@@ -3,7 +3,7 @@
     "set": 17,
     "source": "CommunityDragon TFT ko_kr.json (PBE 5/12)",
     "extractedAt": "2026-05-13T00:30:00.000Z",
-    "totalAugments": 437,
+    "totalAugments": 440,
     "patch_version": "17.3 LIVE",
     "fetched_at": "2026-05-13",
     "set17_active_pool_size": 35
@@ -8413,6 +8413,69 @@
         "{d12ae4b6}",
         "{d22ae649}",
         "{84a6d904}"
+      ],
+      "disable": false
+    },
+    {
+      "name": "재빠른 무장",
+      "apiName": "TFT11_Augment_Slammin",
+      "desc": "@Gold@골드를 획득합니다. 플레이어 대상 전투를 마친 후 대기석에 아이템(소모품 제외)이 없을 때마다 @XP@의 경험치를 획득합니다.",
+      "effects": {
+        "Gold": 3,
+        "XP": 2
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Slammin_II.TFT_Set17.tex",
+      "associatedTraits": [],
+      "tags": [
+        "{ce1fd21c}",
+        "{b72bd3bf}",
+        "{d22ae649}",
+        "{d12ae4b6}",
+        "{7aaa3b47}",
+        "{c5c463aa}",
+        "{77b330ea}",
+        "{24d36c27}",
+        "{4529fead}"
+      ],
+      "disable": false
+    },
+    {
+      "name": "재빠른 무장+",
+      "apiName": "TFT11_Augment_Slammin_Plus",
+      "desc": "즉시 @Gold@골드를 획득하고 경험치를 @XPNow@ 얻습니다. 플레이어 대상 전투를 마친 후 대기석에 아이템(소모품 제외)이 없을 때마다 @XP@의 경험치를 획득합니다.",
+      "effects": {
+        "Gold": 8,
+        "XP": 2,
+        "XPNow": 10
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Slammin_II.TFT_Set17.tex",
+      "associatedTraits": [],
+      "tags": [
+        "{ce1fd21c}",
+        "{b72bd3bf}",
+        "{d22ae649}",
+        "{d02ae323}",
+        "{7aaa3b47}",
+        "{77b330ea}",
+        "{24d36c27}"
+      ],
+      "disable": false
+    },
+    {
+      "name": "태양불꽃판",
+      "apiName": "TFT6_Augment_SunfireBoard",
+      "desc": "전투 시작: 모든 적을 불태워 @Duration@초 동안 대상 최대 체력의 @TotalBurnPercent@%만큼 피해를 입히고 받는 회복 효과를 @GrievousWoundsPercent@% 감소시킵니다.",
+      "effects": {
+        "Duration": 15,
+        "GrievousWoundsPercent": 33,
+        "TotalBurnPercent": 15
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/SunfireBoard2.TFT_Set17.tex",
+      "associatedTraits": [],
+      "tags": [
+        "{b72bd3bf}",
+        "{ce1fd21c}",
+        "{ee04db7b}"
       ],
       "disable": false
     }
