@@ -8,7 +8,7 @@ current_patch_status: active
 sim_active: partial   # 별자리별로 다름 — 아래 표 참조
 last_verified: 2026-05-18
 sources:
-  - docs/meta/wiki/raw/lolchess/set17-stargazer-constellations.md
+  - docs/wiki/raw/lolchess/set17-stargazer-constellations.md
   - https://lolchess.gg/synergies/set17/guide
 related:
   - "[[stargazer-fountain]]"
@@ -66,4 +66,4 @@ Set 17 시너지. (3) tier 부터 활성. 매 게임마다 **별자리 1개**가
 
 - [[stargazer-fountain]] — 우물 별자리 상세
 - [[patch-17-3]] — Fountain 재활성화 패치
-- raw source: `docs/meta/wiki/raw/lolchess/set17-stargazer-constellations.md`
+- raw source: `docs/wiki/raw/lolchess/set17-stargazer-constellations.md`

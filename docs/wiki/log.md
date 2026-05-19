@@ -8,6 +8,23 @@ format: newest first
 
 ## 2026-05-19
 
+### Refactor: docs/meta/wiki/ → docs/wiki/ relocate (Phase 1)
+
+- **Source**: 사용자 요청 — LLM Wiki 구조 prominent 화
+- **변경**:
+  - `git mv docs/meta/wiki docs/wiki` — 폴더 전체 한 단계 상승. "meta" 계층 의미 모호 해결
+  - 17 파일에서 25 ref 갱신 (sed 일괄): wiki 본문 (schema/log/traits/mechanics/augments) + CLAUDE.md + 코드/테스트 주석 + docs/meta leftover + docs/superpowers spec + 메모리 6 파일
+  - `docs/meta/` 13 leftover (set17-trait-audit / set17-meta-guide 등) 는 점진 ingest 대상으로 그대로 유지 (Phase 2 후보)
+- **PDCA artifact (01-plan/02-design/03-analysis/04-report)** 그대로 유지 — 사용자 결정: wiki 와 별개 process artifact
+- **검증**: typecheck pass, hero-augment-stat-system.test.ts 97/97 pass
+- **Karpathy 패턴 정합 향상**:
+  - `docs/wiki/` 자체가 top-level prominent (이전 `docs/meta/wiki/` 의 "meta" 계층 제거)
+  - 3-Layer 폴더 안에서 자연스럽게 표현: `docs/wiki/raw/` (Layer 1) + `docs/wiki/{traits,mechanics,augments,patches}/` (Layer 2) + `schema.md/index.md/log.md` (Layer 3)
+- **후속 Phase 후보**:
+  - Phase 2: `docs/meta/` 13 leftover 분류 + ingest
+  - Phase 3: `docs/migration/`, `docs/todo/` 처리 (각 1 파일)
+  - Phase 5 (선택): PDCA 완료 artifact 의 wiki cross-link
+
 ### Sim fix: JaxCarry asGain starLevel별 정합 — Lint #11-B ✅ resolved (PR #136 + codex P2 amend)
 
 - **Source**: 위키 lint #11-B (JaxCarry asGain 필드 dead, PR #132 검출)
@@ -552,7 +569,7 @@ format: newest first
 ### Seed: Schema + Stargazer Fountain
 - **Ingest origin**: Karpathy LLM Wiki pattern 도입 결정 (대화 합의)
 - **Sources consumed**:
-  - `docs/meta/wiki/raw/lolchess/set17-stargazer-constellations.md` (lolchess.gg 2026-04-23 추출)
+  - `docs/wiki/raw/lolchess/set17-stargazer-constellations.md` (lolchess.gg 2026-04-23 추출)
   - 메모리 `stargazer_fountain_inactive.md` (2026-05-13 업데이트 = 17.3 active)
   - git log: `bfa7794`, `6321f98`, `e6d5365`, `059547c`, `08b5615` 등 Fountain 관련 커밋
   - `src/lib/simulator/engine/combatLoop.ts` (applyStargazerEffects, triggerFountainHeal)

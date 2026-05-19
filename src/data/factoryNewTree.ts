@@ -2,7 +2,7 @@
  * 그레이브즈 최신상(GravesTrait) 무기고 트리 — 51 노드.
  *
  * 출처: lolchess.gg/rewards/set17/factory-new + 사용자 인게임 검수.
- * 구조 문서: docs/meta/wiki/raw/lolchess/set17-graves-factory-tree.md
+ * 구조 문서: docs/wiki/raw/lolchess/set17-graves-factory-tree.md
  *
  * 알고리즘 (시뮬레이터 — 인게임과 다르게 모든 옵션 표시):
  *   Round 1: 3 root frames (고정)

@@ -141,7 +141,7 @@ React Compiler의 자동 메모이제이션과 충돌하여 의도치 않은 동
 Tank (weight=3) > Fighter/Assassin (weight=2) > Marksman/Caster/Specialist (weight=1)
 ```
 
-> 위 가중치는 `src/lib/simulator/systems/targeting.ts:TARGETING_WEIGHT` ground truth 기준. 자세한 흐름은 위키 `docs/meta/wiki/mechanics/role-passive.md` 참조.
+> 위 가중치는 `src/lib/simulator/systems/targeting.ts:TARGETING_WEIGHT` ground truth 기준. 자세한 흐름은 위키 `docs/wiki/mechanics/role-passive.md` 참조.
 
 **타게팅 오버라이드 조건** (우선순위 높은 순):
 1. 도발(Taunt) 효과 → 강제 어그로 전환
@@ -168,7 +168,7 @@ Tank (weight=3) > Fighter/Assassin (weight=2) > Marksman/Caster/Specialist (weig
 
 **CC 상태 시 마나 차단** — 스턴 등 CC 가 적용되면 **모든 role**이 공격 마나 획득 중단 (`gainManaOnAttack` 의 `isStunned` 가드). Caster는 추가로 초당 마나(`gainManaPerTick`)도 차단되어 영향이 가장 큼.
 
-> 마나/타게팅 시스템 전체 흐름·아이템·trait 보너스는 위키 `docs/meta/wiki/mechanics/role-passive.md` 참조.
+> 마나/타게팅 시스템 전체 흐름·아이템·trait 보너스는 위키 `docs/wiki/mechanics/role-passive.md` 참조.
 
 ---
 

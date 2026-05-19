@@ -1,9 +1,9 @@
 ---
 name: TFT Domain Wiki Schema
 purpose: tft_sim 도메인 지식 (TFT 게임 메커니즘) 위키의 구조·워크플로우 정의
-scope: docs/meta/wiki/ 하위만. PDCA(docs/01-plan/ 등)는 별도 영역
+scope: docs/wiki/ 하위만. PDCA(docs/01-plan/ 등)는 별도 영역
 based_on: Karpathy LLM Wiki pattern (https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f)
-updated: 2026-05-18
+updated: 2026-05-19
 ---
 
 # TFT Domain Wiki — Schema
@@ -22,13 +22,13 @@ tft_sim 은 **결정론적 TFT 전투 시뮬레이터**다. 시뮬레이션 정�
 
 | Layer | 위치 | 성격 |
 |-------|------|------|
-| **1. Raw Sources** | `docs/meta/wiki/raw/{lolchess,in-game,cdragon,patch-notes,assets}/` + `public/data/tft_set17_*.json` (코드 직접 참조 본진) | 불변 추출물. 직접 편집은 출처가 갱신될 때만 |
-| **2. Wiki** | `docs/meta/wiki/{champions,traits,mechanics,patches,items,augments}/` | LLM이 합성·유지. 교차참조 `[[entity-id]]` 사용 |
+| **1. Raw Sources** | `docs/wiki/raw/{lolchess,in-game,cdragon,patch-notes,assets}/` + `public/data/tft_set17_*.json` (코드 직접 참조 본진) | 불변 추출물. 직접 편집은 출처가 갱신될 때만 |
+| **2. Wiki** | `docs/wiki/{champions,traits,mechanics,patches,items,augments}/` | LLM이 합성·유지. 교차참조 `[[entity-id]]` 사용 |
 | **3. Schema** | 이 파일 + `index.md` + `log.md` + `raw/README.md` (raw 카탈로그) | 위키 자체의 메타 |
 
 ### Raw 폴더 컨벤션
 
-`docs/meta/wiki/raw/` 하위는 **출처(source) 기준**으로 분류:
+`docs/wiki/raw/` 하위는 **출처(source) 기준**으로 분류:
 
 | 폴더 | 출처 | 특징 |
 |------|------|------|
@@ -81,7 +81,7 @@ current_patch_status: active    # active | inactive | data-only | obsoleted
 sim_active: true                # 시뮬에 실제 적용되어 있는가
 last_verified: 2026-05-18       # 마지막 검증일
 sources:                        # 출처 (Layer 1 / 외부 URL)
-  - docs/meta/wiki/raw/lolchess/set17-stargazer-constellations.md
+  - docs/wiki/raw/lolchess/set17-stargazer-constellations.md
   - https://lolchess.gg/...
 related:                        # 다른 위키 페이지 (자유 링크)
   - "[[stargazer]]"

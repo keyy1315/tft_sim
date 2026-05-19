@@ -8,7 +8,7 @@ last_verified: 2026-05-18
 sources:
   - src/data/carryAugments.ts (CarryAugmentConfig + CARRY_AUGMENTS)
   - src/lib/simulator/engine/combatLoop.ts (applyHeroCarryTransforms, findStrongestUnitByApi)
-  - docs/meta/wiki/raw/in-game/set17-hero-augments.md (사용자 인게임 측정 raw)
+  - docs/wiki/raw/in-game/set17-hero-augments.md (사용자 인게임 측정 raw)
 related:
   - "[[patch-17-2b]]"
   - "[[stargazer-fountain]]"
@@ -153,6 +153,6 @@ augment 전용: `shield, shieldDuration, onAttackBonus, passiveDamage, empowered
 ## 관련
 
 - [[patch-17-2b]] — 도입 패치
-- raw: `docs/meta/wiki/raw/in-game/set17-hero-augments.md` (사용자 인게임 측정 데이터)
+- raw: `docs/wiki/raw/in-game/set17-hero-augments.md` (사용자 인게임 측정 데이터)
 - `mana.ts:ROLE_MANA_CONFIG` — role 변환 후 자동 따라오는 마나 재생 룰 (향후 `mechanics/role-passive.md` 분리 가능)
 - 메모리: `feedback_data_edit` (raw 수정 원칙)
