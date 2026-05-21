@@ -36,13 +36,14 @@ format: newest first
   - 우선순위: base raw 사용 빈도가 낮으면 후순위 (carry 활성 시점이 주된 컨텍스트)
 
 - **워크플로우 진화 — 0단계 신규 도입**:
-  - 이전 메모리 (`project_tft_wiki_session_state.md`) 가 다음 champion 후보로 Annie/Galio/Yasuo 추천 — 실제 set14 작업물이라 set17 챔피언 아님
+  - 이전 메모리 (`project_tft_wiki_session_state.md`) 가 다음 champion 후보로 Annie/Galio/Yasuo 추천
   - 사용자 catch → 메모리 `feedback_wiki_ingest_verify.md` 에 **0단계 (entity set 소속 ground truth 확인)** 추가
   - `public/data/tft_set17_*.json` 의 `TFT17_` prefix 로 ground truth 검증 — plan 파일 존재만으로 후보 선정 금지
+  - **codex PR #149 P2 정정 (0단계 sub-rule 도입)**: 본 PR 1차 정정에서 Galio 도 set17 아니라고 잘못 표기. 실제 `TFT17_Galio = 거대 메크 로봇 (4코 메카+여행자)` 으로 set17 챔피언 맞음. 한글 이름과 apiName 미스매치 (영문 챔프명 ≠ 한글 표기 가능 — Galio→거대 메크 로봇, Reksai→렉사이 처럼). 결론: **Annie/Yasuo 만 set17 아님, Galio 는 set17** (단 기존 plan 은 다른 챔프 디자인이라 직접 매핑 불가). **0단계 sub-rule**: ground truth 조회 시 한글 이름 매칭 금지, apiName grep 으로만 verify
 
 - **wiki index.md 업데이트**:
   - Champions 섹션에 Jax entry 추가
-  - "작성 우선순위" 섹션의 Annie/Galio/Yasuo 후보 정정 (set17 기반: Nasus/Zed/Poppy/Mordekaiser 후보)
+  - "작성 우선순위" 섹션의 Annie/Yasuo 후보 정정 (set17 기반: Nasus/Zed/Poppy/Mordekaiser 후보) + Galio set17 정정 (codex P2)
 
 - **메모리 동기화** (`~/.claude/projects/.../memory/`):
   - `project_tft_wiki_session_state.md` 1순위 후보 → Jax → Nasus 확정

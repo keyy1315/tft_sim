@@ -67,7 +67,7 @@ selected-carry-augment 일반화 foundation + 광범위 selected 가드 적용 �
 2. **Lint #11-A/B (Jax) + #12 (Nasus) + #13 (Zed) sim 해소** — sim fix PR (필드 read 추가 vs 필드 dead 정리)
 3. **flag 자체 dead 정리** (`gragasCarryActive` / `leonaCarryActive`) — sim 코드 사용처 0, 테스트 assertion 만 (Lint #6/#8 후속)
 4. **Lint #10 cleanup** — `hero-augment-carry.md` 의 "Pyke onKill 미구현" stale 정정 (PR #131 에서 부분 정정, 후속 PR 로 더 깊이)
-5. **챔피언별** (set17 한정 — `public/data/tft_set17_champions.json` `TFT17_` prefix entries) — Shen ✅ / Jax ✅ / 다음: Nasus (PR #135 Layer 1 사례), Zed (Lint #13 spec 대기), Poppy (Lint #5 측정 대기), Mordekaiser (mordekaiserCarryShield deprecate 연계). ⚠️ Annie/Galio/Yasuo plan 파일은 이전 set 작업물 — set17 챔피언 아님 (2026-05-21 정정)
+5. **챔피언별** (set17 한정 — `public/data/tft_set17_champions.json` `TFT17_` prefix entries 로 ground truth 확인 필수, **한글 이름이 아닌 apiName 으로**) — Shen ✅ / Jax ✅ / 다음: Nasus (PR #135 Layer 1 사례), Zed (Lint #13 spec 대기), Poppy (Lint #5 측정 대기), Mordekaiser (mordekaiserCarryShield deprecate 연계). ⚠️ Annie/Yasuo plan 파일은 이전 set 작업물 — set17 챔피언 아님 (2026-05-21 정정). ✅ **TFT17_Galio = 거대 메크 로봇 (4코 메카+여행자)** 으로 set17 챔피언 맞음 (codex PR #149 P2 정정) — 단 `galio-hero.plan.md` (5코 hero) 는 이전 set 작업물이라 직접 매핑 불가, 신규 plan 또는 raw 기반 ingest 필요
 6. **Poppy/Nasus 인게임 verify 후 statOverrides 적용** (Lint #5 잔존 TODO — 사용자 측정 필요)
 7. **integration test** — LeonaCarry / GragasCarry / AatroxCarry sim 통합 (cycle counter / 적군 AOE / starLevel별 stun 등)
 8. **OOR cast path 의 cycle/x_shape 일관성 verify** — Aatrox/Pyke 페이지의 follow-up verify 항목 (PR #129 stun 같은 패턴 가능성)
