@@ -6,6 +6,50 @@ format: newest first
 
 # TFT Domain Wiki — Log
 
+## 2026-05-21
+
+### Ingest: champions/jax.md — 2번째 champion 페이지 (Shen 표준 적용)
+
+- **Source** (0+5단계 워크플로우, 신규 0단계 = set17 entity 소속 ground truth 확인):
+  - `public/data/tft_set17_champions.json` (TFT17_Jax entry — 17.3 LIVE)
+  - `src/types/index.ts:39` (`mapGameRole`: 'Tank' substring 우선 → APTank → Tank)
+  - `src/lib/simulator/systems/ability.ts:206` (abilityOverride aoe_circle r=1 + stun 1.5 + selfBuff durability 0.3 for 3s)
+  - `src/lib/simulator/engine/combatLoop.ts:2258-2296` (`applyHeroCarryTransforms` — JaxCarry 활성 시 role=Fighter overwrite + selectedCarryAugment set)
+  - `src/lib/simulator/engine/combatLoop.ts:4643` (carry 변환 시 Fighter AS bonus 자동 수령)
+  - 기존 페이지: [[jax-carry]] (augment 페이지) — base 와 carry 변환 사항 분리
+
+- **Frontmatter 표준 (Shen 따름)**:
+  - `role: Tank   # raw "APTank" → mapGameRole() → sim Tank. ⚠️ JaxCarry augment 활성 시 Fighter 로 변환`
+  - `raw_role: APTank` — ground truth 명시
+  - `sim_active: partial` — base raw 의 ShieldAP / FlatDR / StunDuration starLevel별 / 3초 지연 AOE 다수 미반영
+
+- **신규 발견 — Role 미스매치 메커니즘 차이**:
+  - Shen: raw `APFighter` → sim Fighter (mapGameRole 단순 매핑)
+  - Jax: raw `APTank` → sim Tank (base) **+** JaxCarry augment 활성 시 `applyHeroCarryTransforms` 가 `target.role = 'Fighter'` overwrite — augment 가 role 자체 변경 (Shen 과 다른 패턴)
+
+- **신규 lint 후보 5건 등록 (champion ingest 가 base raw 검증 효용)**:
+  - L1: `ShieldAP` AP 스케일 보호막 부여 미반영 (base ability shield 단계 누락)
+  - L2: `FlatDR` flat 수치 + AP 스케일 미반영 (sim 30% durability 와 의미 다름)
+  - L3: `StunDuration` starLevel별 (1.0/1.25/1.5/1.75) 미반영 (hardcoded 1.5)
+  - L4: 3초 지연 AOE 시퀀스 미모델링 (sim cast 즉시 selfBuff+damage+stun 동시)
+  - L5: `ArmorMRScale` damage formula sim read site 미verify
+  - 우선순위: base raw 사용 빈도가 낮으면 후순위 (carry 활성 시점이 주된 컨텍스트)
+
+- **워크플로우 진화 — 0단계 신규 도입**:
+  - 이전 메모리 (`project_tft_wiki_session_state.md`) 가 다음 champion 후보로 Annie/Galio/Yasuo 추천
+  - 사용자 catch → 메모리 `feedback_wiki_ingest_verify.md` 에 **0단계 (entity set 소속 ground truth 확인)** 추가
+  - `public/data/tft_set17_*.json` 의 `TFT17_` prefix 로 ground truth 검증 — plan 파일 존재만으로 후보 선정 금지
+  - **codex PR #149 P2 정정 (0단계 sub-rule 도입)**: 본 PR 1차 정정에서 Galio 도 set17 아니라고 잘못 표기. 실제 `TFT17_Galio = 거대 메크 로봇 (4코 메카+여행자)` 으로 set17 챔피언 맞음. 한글 이름과 apiName 미스매치 (영문 챔프명 ≠ 한글 표기 가능 — Galio→거대 메크 로봇, Reksai→렉사이 처럼). 결론: **Annie/Yasuo 만 set17 아님, Galio 는 set17** (단 기존 plan 은 다른 챔프 디자인이라 직접 매핑 불가). **0단계 sub-rule**: ground truth 조회 시 한글 이름 매칭 금지, apiName grep 으로만 verify
+
+- **wiki index.md 업데이트**:
+  - Champions 섹션에 Jax entry 추가
+  - "작성 우선순위" 섹션의 Annie/Yasuo 후보 정정 (set17 기반: Nasus/Zed/Poppy/Mordekaiser 후보) + Galio set17 정정 (codex P2)
+
+- **메모리 동기화** (`~/.claude/projects/.../memory/`):
+  - `project_tft_wiki_session_state.md` 1순위 후보 → Jax → Nasus 확정
+  - `feedback_wiki_ingest_verify.md` 0단계 추가 + How to apply 체크리스트 보강
+  - `MEMORY.md` 인덱스 entry 두 건 갱신 (워크플로우 + 세션 상태)
+
 ## 2026-05-19
 
 ### Ingest: champions/shen.md — wiki/champions/ 폴더 첫 페이지 (PR #148 + codex P2 amend)
