@@ -8,6 +8,41 @@ format: newest first
 
 ## 2026-05-21
 
+### Ingest: champions/nasus.md — 3번째 champion 페이지 (Jax 표준 + carry semantics 강조)
+
+- **Source** (0+5단계 워크플로우):
+  - `public/data/tft_set17_champions.json` (TFT17_Nasus entry — 17.3 LIVE, 1코 우주 그루브+선봉대)
+  - `src/lib/simulator/systems/ability.ts:189` (abilityOverride aoe_circle r=1 + selfBuff durability 0.2 for 6s + dot 6s)
+  - `src/types/index.ts:846-852` (`nasusBonkStack` field — Lint #12 해소 trace)
+  - `src/lib/simulator/engine/combatLoop.ts:1357-1369` (`applyCarryDamageModifiers` modifier #6 — bonusPerKill stack × bonusPerKill[★] raw 가산, selectedCarryAugment 가드)
+  - `src/lib/simulator/engine/combatLoop.ts:6592-6602` (cast loop markTargetDead 직후 nasusBonkStack++ 누적 — basic attack kill 제외)
+  - `src/lib/simulator/engine/combatLoop.ts:308/3650/3859` (nasusBonkStack 초기화 3 site)
+  - 기존 페이지: [[nasus-carry]] (augment 페이지)
+  - 테스트: `hero-carry-augments.test.ts:151+` (3 case 회귀 가드) + `vanguard-trait.test.ts:21` (apNasus fixture)
+
+- **Frontmatter 표준 (Jax 따름)**:
+  - `role: Tank   # raw "APTank" → mapGameRole() → sim Tank. ⚠️ NasusCarry augment 활성 시 Fighter 로 변환`
+  - `raw_role: APTank` (Jax 와 동일 매핑)
+  - `sim_active: partial` — base raw 의 MaxHealth / DamageHealth / Space Groove `TheGroove` 상태 / DamageAP DOT read site 미반영
+
+- **신규 발견 — base champion 분석 효용 일관**:
+  - Jax (2코 Tank) + Nasus (1코 Tank) 둘 다 raw `APTank` + augment 시 Fighter overwrite 패턴 = Shen (raw `APFighter` → 단순 mapping) 과 명확히 구분되는 메커니즘
+  - 두 챔프 모두 base raw 의 selfBuff 만 sim 적용 + temporary stats boost / 시너지 상태 / starLevel 별 scaling 미반영 다수 (champion ingest 가 base 검증 효용 입증)
+
+- **신규 lint 후보 4건 등록 (champion ingest 발견)**:
+  - N1: `MaxHealth` 변신 시 임시 maxHp +N (★3 +550 hp 무효)
+  - N2: `DamageHealth` DOT scaleHealth 2% scaling 미반영
+  - N3: Space Groove `TheGroove` 상태 변신 시 활성화 미모델링
+  - N4: `DamageAP` ★별 (30/45/70/120) sim read 위치 verify 필요
+  - Jax L1~L5 + Nasus N1~N4 = base champion 미반영 lint 9건 누적 (champion 페이지 작성이 발견 trigger)
+  - 우선순위: base raw 사용 빈도가 낮으면 후순위 — carry 활성 시점 ([[nasus-carry]] / [[jax-carry]]) 이 주된 컨텍스트
+
+- **Lint #5 잔존 명시**: `Bonk! Resists: 40 → 45` 17.3 패치노트의 base vs augment grant 구분 — `carryAugments.ts:119-120` TODO 명시, 사용자 인게임 측정 후 결정
+
+- **wiki index.md 업데이트**:
+  - Champions 섹션에 Nasus entry 추가 (Shen / Jax / Nasus 3개 완료)
+  - "작성 우선순위" 섹션 다음 후보 정렬 (Zed/Poppy/Mordekaiser/Galio)
+
 ### Ingest: champions/jax.md — 2번째 champion 페이지 (Shen 표준 적용)
 
 - **Source** (0+5단계 워크플로우, 신규 0단계 = set17 entity 소속 ground truth 확인):
