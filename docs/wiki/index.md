@@ -1,7 +1,7 @@
 ---
 name: TFT Domain Wiki — Index
 purpose: 위키 전체 페이지 카탈로그 (content-oriented)
-updated: 2026-05-19
+updated: 2026-05-21
 ---
 
 # TFT Domain Wiki — Index
@@ -29,6 +29,7 @@ updated: 2026-05-19
 ## Champions
 
 - [[shen]] (쉔) — 5코스트 Fighter (raw `APFighter`, sim mapGameRole → Fighter), 보루 + 요새 trait. cast 마다 `shenPassiveStack++` 누적 + 평타 시 stack × BonusDamage 추가 (3+ true damage). 17.3 nerf (45/75 → 20/30) + maxHp/ShieldHP buff 정합
+- [[jax]] (잭스) — 2코스트 Tank (raw `APTank` → sim Tank), 별돌보미 + 요새. base raw "별의 반격" 3초 방어 태세 + AOE+stun. ⚠️ JaxCarry augment 활성 시 role=Fighter 로 변환 (augment 가 role 자체 변경, [[shen]] 과 다른 패턴). base 의 ShieldAP/FlatDR/StunDuration starLevel별 미반영 5건 lint 후보 검출
 
 ## Items
 
@@ -66,7 +67,7 @@ selected-carry-augment 일반화 foundation + 광범위 selected 가드 적용 �
 2. **Lint #11-A/B (Jax) + #12 (Nasus) + #13 (Zed) sim 해소** — sim fix PR (필드 read 추가 vs 필드 dead 정리)
 3. **flag 자체 dead 정리** (`gragasCarryActive` / `leonaCarryActive`) — sim 코드 사용처 0, 테스트 assertion 만 (Lint #6/#8 후속)
 4. **Lint #10 cleanup** — `hero-augment-carry.md` 의 "Pyke onKill 미구현" stale 정정 (PR #131 에서 부분 정정, 후속 PR 로 더 깊이)
-5. **챔피언별** — Annie, Galio, Shen, Yasuo (이미 plan 문서 존재)
+5. **챔피언별** (set17 한정 — `public/data/tft_set17_champions.json` `TFT17_` prefix entries) — Shen ✅ / Jax ✅ / 다음: Nasus (PR #135 Layer 1 사례), Zed (Lint #13 spec 대기), Poppy (Lint #5 측정 대기), Mordekaiser (mordekaiserCarryShield deprecate 연계). ⚠️ Annie/Galio/Yasuo plan 파일은 이전 set 작업물 — set17 챔피언 아님 (2026-05-21 정정)
 6. **Poppy/Nasus 인게임 verify 후 statOverrides 적용** (Lint #5 잔존 TODO — 사용자 측정 필요)
 7. **integration test** — LeonaCarry / GragasCarry / AatroxCarry sim 통합 (cycle counter / 적군 AOE / starLevel별 stun 등)
 8. **OOR cast path 의 cycle/x_shape 일관성 verify** — Aatrox/Pyke 페이지의 follow-up verify 항목 (PR #129 stun 같은 패턴 가능성)
