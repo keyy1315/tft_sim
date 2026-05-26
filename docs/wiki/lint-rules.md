@@ -56,11 +56,17 @@ Lint subagent 는 페이지에 적힌 모든 fact / 코드 참조 / sim 효과 �
 페이지에 **"특정 augment 활성 시" 효과** (예: "Concentration augment 활성 시 Duration 6초") 주장이 있으면 그 augment 의 `disable` 필드를 0단계 part 로 확인:
 
 ```bash
-# augment apiName 확인 후
+# 권장 (structure-aware, robust) — node -e
 node -e "const j=require('./public/data/tft_set17_augments.json'); const a=j.augments.find(x=>x.apiName==='TFT17_Augment_<Name>'); console.log({apiName: a?.apiName, disable: a?.disable})"
-# 또는
-grep -A 20 '"apiName": "TFT17_Augment_<Name>"' public/data/tft_set17_augments.json | grep -E '"disable"|"apiName"'
+
+# 또는 jq (structure-aware)
+jq '.augments[] | select(.apiName == "TFT17_Augment_<Name>") | {apiName, disable}' public/data/tft_set17_augments.json
+
+# grep fallback — entry 크기 (set17 max 31 line) 보다 큰 window + 첫 disable 만
+grep -A 50 '"apiName": "TFT17_Augment_<Name>"' public/data/tft_set17_augments.json | grep -m1 '"disable"'
 ```
+
+⚠️ **grep window 주의** (PR #153 codex P2 catch): `-A 20` 같은 작은 window 는 entry size 가 21 line 이상인 augment (예: `TFT17_Augment_Weightlifting` apiName line 671 → disable line 692, gap 21) 를 miss → false finding 또는 downgrade 누락. set17 max augment entry size 31 line 기준 `-A 50` 안전 마진. **가능하면 node -e / jq 사용**.
 
 `"disable": true` 면 해당 augment 는 set17 inactive — **그 augment 활성 시 효과 미반영은 sim 영향 0** (자동 무효). 본문에 그 사실 명시 권장. M1 사례 (`mordekaiser.md` AugmentedDuration → Concentration `disable: true`) 가 도입 배경.
 

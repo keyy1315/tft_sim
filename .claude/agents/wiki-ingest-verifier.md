@@ -101,7 +101,11 @@ dispatch 시 다음 grep 패턴을 entity type 별로 우선 수행:
 grep -n "TFT17_<id>" public/data/tft_set17_champions.json
 
 # 0-sub — conditional augment disable (페이지에 "X augment 활성 시" 효과 주장이 있을 때)
+# 권장: node -e (structure-aware, robust)
 node -e "const j=require('./public/data/tft_set17_augments.json'); const a=j.augments.find(x=>x.apiName==='TFT17_Augment_<Name>'); console.log({apiName:a?.apiName, disable:a?.disable})"
+# 또는 jq: jq '.augments[] | select(.apiName == "TFT17_Augment_<Name>") | {apiName, disable}' public/data/tft_set17_augments.json
+# grep fallback 시: -A 50 (set17 max entry 31 line + 안전 마진) + grep -m1 첫 disable 만
+# grep -A 20 사용 금지 — entry size 21 line 이상 augment (예: Weightlifting) miss → PR #153 codex P2 catch
 
 # 3단계 — entity-wide multi-source helper
 grep -rn "<ChampionName>" src/lib/simulator/
