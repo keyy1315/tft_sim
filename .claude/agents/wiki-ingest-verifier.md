@@ -36,11 +36,13 @@ main agent 가 dispatch 시 다음 중 하나 또는 복수의 페이지 경로�
    - path `mechanics/` → mechanic checklist 적용
    - path `augments/` + 본문 carry semantic → carry-augment checklist 적용
 4. **5단계 + 0단계 verify 수행**:
-   - 0 set 소속 / 1 좁은 grep / 2 함수 컨텍스트 / 3 entity-wide grep / 4 호출 순서 (+ cast path 3종 sub-rule) / 5 actual integration verify
+   - 0 set 소속 (+ 0-sub conditional augment `disable: true` verify) / 1 좁은 grep / 2 함수 컨텍스트 / 3 entity-wide grep / 4 호출 순서 (+ cast path 3종 sub-rule) / 5 actual integration verify
    - 각 단계마다 코드 grep / 함수 read 결과를 finding 의 근거로 인용
 5. **Entity-type 별 추가 checklist 적용** — lint-rules.md 의 entity-type 표 참조
-6. **Tiered finding 분류** — P0 / P1 / P2 (Severity Tier 정의는 lint-rules.md)
-7. **Output 보고** — 아래 형식 준수
+6. **Page-internal cross-check** (PR #152 도입) — 같은 entity / fact 가 페이지 여러 line 에서 모순 표기 시 **단일 finding 으로 통합**. frontmatter 와 본문 모순도 동일. lint-rules.md "Page-internal Cross-check" 섹션 참조
+7. **Line 번호 인용 drift 확인** (선택) — 본문/frontmatter 의 `src/...:NNNN` line 인용에 대해 인용 line 의 함수 여전히 존재하는지 grep. drift > 10 line 시만 P2 informational ("last_verified + line 번호 갱신 권장"), 함수 자체 사라짐은 P0. drift ≤ 10 line 은 finding 불요
+8. **Tiered finding 분류** — P0 / P1 / P2 (Severity Tier 정의는 lint-rules.md). False-positive 방지 룰 적용 (본문 "PR #XYZ resolved" / "🔍 검증 필요" / "disable: true 자동 무효" 표기 + 코드 verify 결과로 downgrade)
+9. **Output 보고** — 아래 형식 준수. `Finding 통계` 라인에 `raised P0/P1/P2 N/M/K + downgraded known D` 필수 명시. `Downgraded known findings` 섹션으로 false-positive 작동 사례 별도 보고
 
 ## 출력 형식 (반드시 준수)
 
@@ -48,19 +50,19 @@ main agent 가 dispatch 시 다음 중 하나 또는 복수의 페이지 경로�
 ## Lint Result: <page-path>
 
 **Entity type**: <champion | mechanic | carry-augment>
-**Verify 수행 단계**: 0 ✅ / 1 ✅ / 2 ✅ / 3 ✅ / 4 ✅ / 4-sub cast path ✅ / 5 ✅
-**총 finding**: P0 <N> / P1 <M> / P2 <K>
+**Verify 수행 단계**: 0 ✅ / 0-sub ✅ / 1 ✅ / 2 ✅ / 3 ✅ / 4 ✅ / 4-sub cast path ✅ / 5 ✅ / page-internal cross-check ✅ / line drift check ✅
+**Finding 통계**: raised P0 <N> / P1 <M> / P2 <K> / downgraded known <D>
 
 ### P0 (commit 전 fix 필수)
 
 #### P0-1. <Finding name>
-- **위치**: 본문 line ~XX 또는 섹션 헤딩
+- **위치**: 본문 line ~XX 또는 섹션 헤딩 (다중 line 영향 시 모두 명시)
 - **주장**: "<인용>"
 - **검증**:
   - `grep -n "<pattern>" <path>` → <결과>
   - `<src/...:functionName>` 함수 read → <발견 사실>
 - **회귀 위험**: <sim 영향. cast path / range / starLevel / item 손실 등 명시>
-- **권장 fix**: <action>
+- **권장 fix**: <action; 다중 line 시 통합 patch 권장>
 
 #### P0-2. ...
 
@@ -68,14 +70,24 @@ main agent 가 dispatch 시 다음 중 하나 또는 복수의 페이지 경로�
 
 (동일 형식)
 
-### P2 (다음 사이클)
+### P2 (다음 사이클; informational 포함)
 
-(동일 형식)
+(동일 형식. line drift > 10 / 명시적 보류 표기 항목 등)
+
+### Downgraded known findings (false-positive 방지 작동 사례)
+
+#### D-1. <Finding name>
+- **위치**: 본문 line / 섹션
+- **본문 표기**: "PR #XYZ resolved" / "🔍 검증 필요" / "disable: true 자동 무효" / "Lint #N pending" 등
+- **코드 verify**: <grep / read 결과로 표기 사실 확인>
+- **결론**: raise 안 함 (downgrade 처리)
 
 ### Self-verify check
 
 - 9건 lint history 의 어떤 패턴과 유사한가? (해당 시 #번호 인용)
+- Page-internal cross-check 결과: <같은 entity 여러 line 모순 발견 / 없음>
 - 본 lint 가 놓쳤을 가능성이 있는 영역: <명시>
+- 룰 보강 권장 (있으면): <항목>
 ```
 
 ## 핵심 패턴 (lint-rules.md 보강)
@@ -88,6 +100,13 @@ dispatch 시 다음 grep 패턴을 entity type 별로 우선 수행:
 # 0단계 — set17 소속
 grep -n "TFT17_<id>" public/data/tft_set17_champions.json
 
+# 0-sub — conditional augment disable (페이지에 "X augment 활성 시" 효과 주장이 있을 때)
+# 권장: node -e (structure-aware, robust)
+node -e "const j=require('./public/data/tft_set17_augments.json'); const a=j.augments.find(x=>x.apiName==='TFT17_Augment_<Name>'); console.log({apiName:a?.apiName, disable:a?.disable})"
+# 또는 jq: jq '.augments[] | select(.apiName == "TFT17_Augment_<Name>") | {apiName, disable}' public/data/tft_set17_augments.json
+# grep fallback 시: -A 50 (set17 max entry 31 line + 안전 마진) + grep -m1 첫 disable 만
+# grep -A 20 사용 금지 — entry size 21 line 이상 augment (예: Weightlifting) miss → PR #153 codex P2 catch
+
 # 3단계 — entity-wide multi-source helper
 grep -rn "<ChampionName>" src/lib/simulator/
 
@@ -99,6 +118,9 @@ grep -n "abilityData\.<field>\|carryCfg\?\.abilityData\?\.<field>" src/lib/simul
 
 # 4-sub — cast path 3종
 grep -n "config\.<field>\|outOfRangeConfig\.<field>\|recastConfig\.<field>" src/lib/simulator/engine/combatLoop.ts
+
+# Line drift check (페이지의 src/...:NNNN line 인용에 대해)
+grep -n "<expected-symbol-or-snippet>" src/lib/simulator/engine/combatLoop.ts  # 실제 line 과 비교, drift > 10 line 시 P2
 ```
 
 ### Mechanic
@@ -130,12 +152,18 @@ grep -n "<EntityName>Carry" src/lib/simulator/carryAugments.ts
 - ❌ **좁은 식별자 grep 한 줄만 보고 fact 단정** — 함수 컨텍스트 read 또는 entity-wide grep 으로 multi-source 확인
 - ❌ **"abilityData 에 정의됨" → "sim 적용됨" 결론** — main pipeline read site 까지 trace 필수
 - ❌ **Cast 관련 finding 시 cast path 1개 (main) 만 확인** — main / OOR / recast 3종 전수
+- ❌ **"특정 augment 활성 시 효과 미반영" finding raise 전 augment `disable: true` 확인 누락** — disable 이면 자동 무효 → finding 자체 raise 안 함 (downgrade only)
+- ❌ **같은 entity 의 여러 line 모순을 개별 finding 으로 raise** — page-internal cross-check 후 단일 통합 finding
+- ❌ **Line 번호 인용 자체를 finding 으로 raise** — line 인용은 허용. drift > 10 line + 함수 위치 변경 시만 P2 informational. 함수 자체 사라짐은 P0
 - ❌ **Pass/fail 단순 판정** — 모든 finding 은 P0/P1/P2 tier + 근거 (grep 결과) + 권장 fix 동반
+- ❌ **Downgraded known findings 보고 누락** — false-positive 방지 작동 사례는 별도 섹션으로 명시 (Finding 통계 D 값에 카운트)
 
 ## False-positive 방지
 
 - 본문에 이미 "🔍 sim 효과 검증 필요" / "Lint #X (pending)" / "측정 대기" 등 명시적 보류 표기 있는 항목은 **P0 → P2** 로 downgrade
 - 본문에 PR 번호 (`#XYZ`) 와 함께 "resolved" / "applied" 표기된 항목은 grep 으로 실제 적용 verify. 적용됐으면 finding 아님
+- 본문에 `"disable": true` 명시된 augment 와 연관된 미반영 finding 은 **자동 무효** — downgrade only, raise 안 함 (raised 통계에서 제외, downgraded 통계에 포함)
+- 위 모두 `Downgraded known findings` 섹션에 명시
 
 ## 종료 조건
 

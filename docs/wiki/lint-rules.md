@@ -4,7 +4,7 @@ purpose: 위키 ingest 직후 lint subagent (`wiki-ingest-verifier`) 가 사용�
 scope: docs/wiki/{champions,mechanics,augments}/*.md (carry-augment 만, 일반 augment 제외)
 based_on: 자기-lint 9건 누적 (모두 Codex catch — self-catch rate 0%)
 goal: self-catch rate ≥ 50% (P0 기준) in 6 PR
-updated: 2026-05-26 (initial extract from memory)
+updated: 2026-05-26 (initial extract + pilot prompt 보강 4건 — page-internal cross-check / line 번호 정책 / conditional augment disable / downgrade 통계)
 ---
 
 # Wiki Ingest Lint Rules
@@ -50,6 +50,25 @@ Lint subagent 는 페이지에 적힌 모든 fact / 코드 참조 / sim 효과 �
 - **Champion**: `public/data/tft_set17_champions.json` 에서 `TFT17_<id>` prefix entry 존재 확인
 - **Carry augment**: `src/lib/simulator/carryAugments.ts` 등에서 entry 존재 확인
 - **Mechanic**: 코드 ground truth (예: `targeting.ts:TARGETING_WEIGHT`) 존재 확인
+
+#### 0-sub. Conditional augment `disable: true` verify (PR #152 retro pilot 도입)
+
+페이지에 **"특정 augment 활성 시" 효과** (예: "Concentration augment 활성 시 Duration 6초") 주장이 있으면 그 augment 의 `disable` 필드를 0단계 part 로 확인:
+
+```bash
+# 권장 (structure-aware, robust) — node -e
+node -e "const j=require('./public/data/tft_set17_augments.json'); const a=j.augments.find(x=>x.apiName==='TFT17_Augment_<Name>'); console.log({apiName: a?.apiName, disable: a?.disable})"
+
+# 또는 jq (structure-aware)
+jq '.augments[] | select(.apiName == "TFT17_Augment_<Name>") | {apiName, disable}' public/data/tft_set17_augments.json
+
+# grep fallback — entry 크기 (set17 max 31 line) 보다 큰 window + 첫 disable 만
+grep -A 50 '"apiName": "TFT17_Augment_<Name>"' public/data/tft_set17_augments.json | grep -m1 '"disable"'
+```
+
+⚠️ **grep window 주의** (PR #153 codex P2 catch): `-A 20` 같은 작은 window 는 entry size 가 21 line 이상인 augment (예: `TFT17_Augment_Weightlifting` apiName line 671 → disable line 692, gap 21) 를 miss → false finding 또는 downgrade 누락. set17 max augment entry size 31 line 기준 `-A 50` 안전 마진. **가능하면 node -e / jq 사용**.
+
+`"disable": true` 면 해당 augment 는 set17 inactive — **그 augment 활성 시 효과 미반영은 sim 영향 0** (자동 무효). 본문에 그 사실 명시 권장. M1 사례 (`mordekaiser.md` AugmentedDuration → Concentration `disable: true`) 가 도입 배경.
 
 ❌ **금지**: `docs/01-plan/features/` plan 파일 존재만으로 후보 선정 — 이전 set 작업물 잔존 가능
 
@@ -166,13 +185,37 @@ read 위치 없으면 → 본문에 "🔍 sim 효과 검증 필요" 표기 또�
 | Cast path 3종 cycle/x_shape 일관성 | cycle/recast carry | Aatrox/Pyke follow-up verify |
 | 17.2 → 17.2b → 17.3 변경 누적 fact 정합 | 패치 boundary 페이지 | 3회 연속 변경 보존 |
 
+## Page-internal Cross-check (PR #152 retro pilot 도입)
+
+같은 entity / 같은 fact 가 페이지의 **여러 line 에서 모순 표기** 될 때 단일 finding 으로 통합 처리.
+
+### 사례 (mordekaiser.md pilot)
+
+같은 trait "전달자" 가:
+- line 102 "전달자 — 시너지 stat 보강 분기 (Tank 보조)" (부정확)
+- line 142 "전달자 trait 효과 — sim 별도 분기 verify 필요" (부정확, 실제는 통합 완료)
+- line 145 "전달자 trait 의 정확한 효과 ... — sim 통합 위치 verify 필요" (부정확)
+- line 171 "(사용자 verify) 전달자 trait 효과 + sim 통합 위치" (부정확)
+
+→ 4 line 모두 같은 fact 의 다른 표기. 4개 finding 으로 잘게 raise 하지 말고 **단일 finding 으로 통합** ("전달자 trait 표기 부정확 — 본문 4 line 영향, 일괄 정정 필요"). 권장 fix 도 통합 patch 로.
+
+### 룰
+
+- 같은 entity (trait / champ / mechanic / augment) 의 같은 fact 가 페이지 내 다중 line 에 등장 시 → **단일 finding + 모든 영향 line 명시**
+- 모순 (line A "X 적용" + line B "X 미적용") 발견 시 → P1 이상 priority + Page-internal contradiction 명시
+- frontmatter 와 본문 모순 (예: `sim_active: true` + 본문 "🔍 검증 필요") → 단일 finding, frontmatter 정정 + 본문 정정 동시 권장
+
 ## Lint Output 형식 (subagent → main agent)
 
 ```markdown
 ## Lint Result: <page-path>
 
+**Entity type**: <champion | mechanic | carry-augment>
+**Verify 수행 단계**: 0 ✅ / 0-sub ✅ / 1 ✅ / 2 ✅ / 3 ✅ / 4 ✅ / 4-sub cast path ✅ / 5 ✅
+**Finding 통계**: raised P0 <N> / P1 <M> / P2 <K> / **downgraded known** <D>
+
 ### P0 (commit 전 fix 필수)
-- **[Finding name]** — 본문 위치 (line 또는 섹션 헤딩)
+- **[Finding name]** — 본문 위치 (line 또는 섹션 헤딩; 다중 line 영향 시 모두 명시)
   - 주장: "<인용>"
   - 검증: <grep / read 결과>
   - 회귀 위험: <sim 영향>
@@ -181,12 +224,17 @@ read 위치 없으면 → 본문에 "🔍 sim 효과 검증 필요" 표기 또�
 ### P1 (follow-up 허용)
 - ...
 
-### P2 (다음 사이클)
+### P2 (다음 사이클; informational 포함)
 - ...
 
-### Self-catch metric
-- 본 lint 가 발견한 finding 중 사전 Codex review 와 중복: <N건>
-- 신규 finding: <M건>
+### Downgraded known findings (false-positive 방지 작동 사례)
+- **[#lint-history-num 또는 self-raised lint name]** — 본문 표기 ("PR #XYZ resolved" / "🔍 검증 필요" / "disable: true 자동 무효") + 코드 verify 결과로 downgrade
+- ...
+
+### Self-verify check
+- 9건 lint history 유사 패턴: #번호 인용
+- 본 lint 가 놓쳤을 가능성 영역: <명시>
+- 보강 권장 룰 (있으면): <항목>
 ```
 
 ## 9건 Lint History (학습 사례)
@@ -238,22 +286,33 @@ mordekaiser.md retro pilot 으로 subagent 동작 검증:
 - ✅ 본문 self-raised M1 lint (Concentration AugmentedDuration) 도 `disable: true` verify 후 P2 downgrade
 - Cost: 페이지당 Read 6회 + grep 9회 ≈ 15 tool call, sonnet 적정
 
-### Pilot 발견 prompt 보강 (4건, 후속 적용 예정)
+### Pilot 발견 prompt 보강 (4건, 본 룰셋 + subagent 에 적용 완료 2026-05-26)
 
-1. **Page-internal cross-check** — 같은 entity 가 페이지의 여러 line 에서 모순 표기 시 단일 finding 으로 통합
-2. **Line 번호 인용 정책** — `combatLoop.ts:XXXX-YYYY` line 인용의 stale risk vs 위키 일관성 trade-off 결정
-3. **Conditional augment `disable` 0단계 verify** — "특정 augment 활성 시" 효과 (M1 같은) 는 augment `"disable": true` 여부도 0단계로 추가
-4. **False-positive downgrade 통계** — output 에 "raised: N / downgraded known: M" 명시
+| # | 항목 | 적용 위치 |
+|---|------|-----------|
+| 1 | **Page-internal cross-check** — 같은 entity 가 페이지의 여러 line 에서 모순 표기 시 단일 finding 으로 통합 | "Page-internal Cross-check" 섹션 + Lint Output 형식 ("다중 line 영향 시 모두 명시") |
+| 2 | **Line 번호 인용 정책** — 허용 + drift > 10 line 시 P2 informational | "허용 / 금지" 섹션의 line 정책 sub-section |
+| 3 | **Conditional augment `disable` 0단계 verify** | "0. Entity set 소속" 의 0-sub section |
+| 4 | **False-positive downgrade 통계 필드** | "Lint Output 형식" 의 통계 라인 + "Downgraded known findings" 섹션 |
 
 ## 허용 / 금지
 
 ### ✅ 허용
 
-- 코드 ground truth (`src/...:identifier`) — line 번호는 즉시 stale 되므로 함수명까지만
+- 코드 ground truth (`src/...:identifier`) — **함수명 + line 번호 둘 다 허용** (이동 편의성). 단 line drift 시 P2 informational lint 가능 (아래 정책 참조)
 - Raw source (`public/data/tft_set17_*.json`, `docs/wiki/raw/`)
 - 패치노트 공식 URL
 - PR/commit 참조 (`#PR번호`, short hash)
 - PDCA plan/design — **도입 시점/동기 기록용으로만** (도메인 fact 는 코드 verify)
+
+#### Line 번호 인용 정책 (2026-05-26 결정)
+
+위키 페이지의 line 번호 인용 (`combatLoop.ts:524-529` 등) **허용**. 위키 22 페이지 (champion 4 + augment 10 + mechanic 5 + patch 3) 의 line 인용 관행 유지.
+
+- subagent 가 lint 시 인용 line 의 함수 여전히 존재하는지 grep 으로 확인 (선택적)
+- 인용 line 과 실제 함수 위치 **drift > 10 line** 인 경우만 **P2 informational** finding ("last_verified 업데이트 + line 번호 갱신 권장")
+- drift ≤ 10 line 또는 함수 자체 위치 변경 없음 → finding 불요
+- 함수 자체가 사라진 경우 (rename / 삭제) → **P0** (fact 의 ground truth 부재)
 
 ### ❌ 금지
 
