@@ -8,6 +8,44 @@ format: newest first
 
 ## 2026-05-21
 
+### Ingest: champions/mordekaiser.md — 4번째 champion 페이지 (helper 통합 sim 가장 정합)
+
+- **Source** (0+5단계 워크플로우):
+  - `public/data/tft_set17_champions.json` (TFT17_Mordekaiser entry — 2코 암흑의 별+전달자+선봉대)
+  - `src/lib/simulator/systems/ability.ts:210` (abilityOverride `pattern: 'self_buff'` + helper 참조 comment)
+  - `src/lib/simulator/engine/combatLoop.ts:230-233/292` (state field 4개: mordekaiserProcEndTick / NextProcTick / ShieldRemaining + mordekaiserCarryShield)
+  - `src/lib/simulator/engine/combatLoop.ts:953-975` (`applyMordekaiserProcCast` — cast 진입 helper)
+  - `src/lib/simulator/engine/combatLoop.ts:990-1067` (`tickMordekaiserProc` — per-tick helper, 4 펄스 + 만료 healRefund)
+  - `src/lib/simulator/engine/combatLoop.ts:1213-1218` (별도 shield pool 우선 흡수 — HealRefund 정확 계산)
+  - `src/lib/simulator/engine/combatLoop.ts:7037 / :7185` (cast path parity — main + OOR 양쪽 helper 호출)
+  - `src/lib/simulator/engine/combatLoop.ts:5533` (per-tick 호출 site)
+  - `src/lib/simulator/engine/combatLoop.ts:2305-2312` (applyHeroCarryTransforms — MordekaiserCarry 활성 시 `mordekaiserCarryShield` carry data 저장, PR #124 lint #7 해소)
+  - 테스트: `tests/unit/mordekaiser-proc.test.ts` (전용) + `tests/unit/simulator/darkstar-execute-supermassive.test.ts:27+` (apMordekaiser 암흑의 별 fixture)
+
+- **Frontmatter 표준 (Jax/Nasus 따름)**:
+  - `role: Tank   # raw "APTank" → mapGameRole() → sim Tank` (3번째 base APTank champion — Jax/Nasus/Mordekaiser 모두 동일 매핑)
+  - `raw_role: APTank`
+  - `sim_active: active` ⭐ — base raw 메커니즘 가장 정합 (이전 Jax/Nasus 는 partial)
+
+- **신규 발견 — helper 통합 sim 의 효율성**:
+  - Mordekaiser 는 **가장 정합 base sim** (champion 페이지 4개 중 sim_active: active 첫 사례)
+  - 이유: cast 진입 helper + per-tick helper + 별도 shield pool + main/OOR cast parity + 전용 test 5 case
+  - Jax/Nasus 는 raw ability variables 의 starLevel별 / scaling 다수 미반영 → helper 부재 (단순 selfBuff/dot 매핑)
+  - Mordekaiser 는 raw vars `InitialShield/ShieldPerProc/DamagePerProc/HealRefund/Duration` 모두 `readVarByStar` 로 ★별 정확 read
+  - **인사이트**: base champion sim 정합도는 helper 존재 여부와 강한 상관관계 — champion ingest 가 helper 필요성 신호 (Jax/Nasus 도 helper 작성하면 sim 정합도 ↑)
+
+- **신규 lint 후보 1건만 등록** (champion ingest 발견):
+  - M1: `AugmentedDuration` (Concentration augment 활성 시 Duration 4→6초 펄스 +2회) 미반영
+  - 비교: Jax 5건, Nasus 4건 vs Mordekaiser 1건 — helper 통합 효과 입증
+  - Jax L1~L5 + Nasus N1~N4 + Mordekaiser M1 = 누적 10건 (champion ingest trigger)
+
+- **cleanup 후보 식별**:
+  - `mordekaiserCarryShield` 필드 deprecate 검토 — `selectedCarryAugment + carryCfg.abilityData?.shield` 로 derive 가능 (PR #147 xxxCarryActive deprecate 후속). 단 데이터 보유 (`null | number[]`) 라 단순 boolean flag 와 다른 work 필요
+
+- **wiki index.md 업데이트**:
+  - Champions 섹션에 Mordekaiser entry 추가 (Shen / Jax / Nasus / Mordekaiser 4개 완료)
+  - "작성 우선순위" 섹션 정렬 (Mordekaiser 완료 → Zed/Poppy/Galio/블리츠크랭크 후보)
+
 ### Ingest: champions/nasus.md — 3번째 champion 페이지 (Jax 표준 + carry semantics 강조)
 
 - **Source** (0+5단계 워크플로우):
