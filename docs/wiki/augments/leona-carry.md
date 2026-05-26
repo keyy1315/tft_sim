@@ -7,7 +7,7 @@ target_champion: TFT17_Leona
 tier: Gold
 stage: 2 only
 current_patch_status: active
-sim_active: active   # Lint #6 resolved (PR #127) + Lint #9 resolved (PR #129, main + OOR fix). statOverrides 인게임 측정만 남음
+sim_active: partial   # Lint #6 resolved (PR #127) + Lint #9 resolved (PR #129) — 단 PR #154 retro lint 에서 Lint #10 (shield/shieldDuration main pipeline 미read) + Lint #11 (baseDamageHpFrac && hexReduction AND 가드로 미진입) 신규 등록, 도메인 verify 대기. 본 룰셋 #8 (sub-entity partial 시 보수적 minimum) 적용
 last_verified: 2026-05-26 (retro lint subagent — frontmatter sources stale 식별자 정리, line drift 갱신; P0 shield/baseDamageHpFrac sim 미반영 lint case #10/#11 신규 등록 → 도메인 verify 대기)
 sources:
   - src/data/carryAugments.ts:171 (LeonaCarry entry — abilityOverride/abilityData)
@@ -86,7 +86,7 @@ LeonaCarry 가 2개 config 로 정의되어 있었음. `getAbilityConfigForUnit`
 | 2026-05-18 (PR #129, `8abbba0`) | **Lint #9 sim 해소** — main pipeline (당시 line 6819-6831, 현재 6941-6953) + OOR fallback (당시 line 7129-7140, 현재 7325-7332) 양쪽 분기 확장: `carryCfg?.abilityData?.stunDuration?.[starLevel-1] ?? config.stun`. **starLevel별 stun [1.0, 1.25, 1.5] sim 적용** (1성 변경 없음, 2★ 1.0→1.25, 3★ 1.0→1.5). Codex P2 amend 로 OOR 누락 catch — 위키 [[ability-targeting]] cast path 3종 정보가 워크플로우 룰 도입 배경 |
 | 2026-05-26 (retro lint subagent) | **신규 P0 lint case #10/#11 등록** (도메인 verify 대기, [[lint-rules]] 참조). #10 = `shield [200,240,280]` + `shieldDuration 2s` 의 sim main pipeline read site 부재 (실제는 raw vars `ShieldAmount` 우선 read). #11 = `baseDamageHpFrac 0.24` 의 sim 분기 진입 가드 (`baseDamageHpFrac && hexReduction` 양쪽 가드) 로 LeonaCarry 미진입. P0 fix 는 도메인 사실 (인게임 측정 / 패치노트) verify 후 코드 fix PR 진행 예정 |
 
-## sim 적용 상태 — `active` (Lint #6 + #9 resolved) + Lint #10/#11 신규 등록 (도메인 verify 대기)
+## sim 적용 상태 — `partial` (Lint #6 + #9 resolved, Lint #10/#11 미반영 sim 갭 잔존)
 
 ✅ **활성**:
 - role 변환 `Fighter` (default)
