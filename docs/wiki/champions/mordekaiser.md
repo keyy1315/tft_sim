@@ -12,7 +12,7 @@ role: Tank   # raw "APTank" → mapGameRole() → sim Tank. ⚠️ MordekaiserCa
 raw_role: APTank
 current_patch_status: active
 sim_active: active   # base raw 메커니즘 거의 완성 (helper 2개 + 별도 shield pool + healRefund + main/OOR cast parity)
-last_verified: 2026-05-21
+last_verified: 2026-05-26
 sources:
   - "public/data/tft_set17_champions.json (TFT17_Mordekaiser entry)"
   - "src/lib/simulator/systems/ability.ts:210 (abilityOverride pattern 'self_buff' + comment helper 참조)"
@@ -25,6 +25,9 @@ sources:
   - "src/lib/simulator/engine/combatLoop.ts:5533 (tickMordekaiserProc — combat loop per-tick 호출)"
   - "src/lib/simulator/engine/combatLoop.ts:7037 / :7185 (applyMordekaiserProcCast — main + OOR cast path 양쪽 호출, cast path parity)"
   - "src/lib/simulator/engine/combatLoop.ts:2305-2312 (applyHeroCarryTransforms — MordekaiserCarry 활성 시 mordekaiserCarryShield carry data 저장)"
+  - "src/lib/simulator/engine/combatLoop.ts:524-529 (전달자/Channeler TFT17_ManaTrait InnateManaGain → unit.channelerInnateManaGain 설정)"
+  - "src/lib/simulator/engine/combatLoop.ts:5549 (channelerMult — 매 tick mana gain × (1 + channelerInnateManaGain))"
+  - "src/lib/simulator/systems/mana.ts:36-41 (channelerInnateManaGain 곱셈자 helper)"
   - "tests/unit/mordekaiser-proc.test.ts (applyMordekaiserProcCast + tickMordekaiserProc 전용 test)"
   - "tests/unit/simulator/darkstar-execute-supermassive.test.ts:27+ (apMordekaiser 암흑의 별 fixture)"
 related:
@@ -99,7 +102,7 @@ TFT17_Mordekaiser: { pattern: 'self_buff' },  // 헬퍼가 메인 처리
 ### Trait — 암흑의 별(Dark Star) + 전달자 + 선봉대(Vanguard)
 
 - **암흑의 별 (Dark Star)** — `combatLoop.ts:2041` 6 챔프 그룹: Kaisa / Karma / Jhin / Chogath / Lissandra / **Mordekaiser**. Set 17 신규 시너지 — execute / supermassive 메커니즘 (`darkstar-execute-supermassive.test.ts` 27+ apMordekaiser fixture)
-- **전달자** — 시너지 stat 보강 분기 (Tank 보조)
+- **전달자 (Channeler, `TFT17_ManaTrait`)** — 활성 시 전달자 unit 의 mana gain 곱셈자. `combatLoop.ts:524-529` `InnateManaGain` (raw 0.20) → `unit.channelerInnateManaGain`. 매 tick mana 가산 시 `combatLoop.ts:5549` `channelerMult = 1 + channelerInnateManaGain` 적용 (`augmentManaRegen` 도 곱셈 적용, codex P1 PR #64). Tank stat 보강 아님 — **mana regen 곱셈** (`mana.ts:36-41` helper)
 - **선봉대 (Vanguard)** — `applyVanguardEffects` (`combatLoop.ts:4664`) 전투 시작 시 보호막 (tick=0). Tank role 보강
 
 ## MordekaiserCarry 변환 시 (참조)
@@ -138,24 +141,20 @@ MordekaiserCarry augment 활성 시:
 - MordekaiserCarry 활성 시 `mordekaiserCarryShield` carry data 우선 read (PR #124 lint #7 해소)
 
 ❌ **미반영**:
-- **`AugmentedDuration` (Concentration augment 활성 시 Duration 4→6초)** — `TFT17_Augment_Concentration` augment 활성 시 펄스 +2회 (6 펄스). sim 분기 없음
-- 전달자 (Transmitter?) trait 효과 — sim 별도 분기 verify 필요
+- **`AugmentedDuration` (Concentration augment 활성 시 Duration 4→6초)** — `TFT17_Augment_Concentration` augment 활성 시 펄스 +2회 (6 펄스). sim 분기 없음. ⚠️ `public/data/tft_set17_augments.json:83-102` 에서 해당 augment `"disable": true` (set17 inactive) — 본 미반영의 실제 sim 영향 0, M1 lint 자동 무효 (retro lint pilot 2026-05-26)
 
 🔍 **검증 필요**:
-- 전달자 trait 의 정확한 효과 (Tank 보조 / stat 보강 등) — sim 통합 위치 verify 필요
 - `mordekaiserCarryShield` 의 cleanup 가능성 — `selectedCarryAugment + carryCfg.abilityData.shield` 로 derive 가능 여부 (PR #147 후속 후보)
 
 ## Lint 신규 등록 후보 (champion ingest 발견)
 
 본 페이지 작성 중 **base Mordekaiser** sim 미반영 1건 검출:
 
-| # | 항목 | 의미 |
-|---|------|------|
-| M1 | `AugmentedDuration` 6초 (Concentration augment 활성 시) | 펄스 +2회 = ShieldPerProc + DamagePerProc 50% 추가 손실 |
+| # | 항목 | 의미 | 상태 |
+|---|------|------|------|
+| M1 | `AugmentedDuration` 6초 (Concentration augment 활성 시) | 펄스 +2회 = ShieldPerProc + DamagePerProc 50% 추가 손실 | ✅ 자동 무효 — Concentration augment `disable: true` set17 inactive (retro lint pilot 2026-05-26 verify) |
 
-⚠️ **우선순위 평가**: Concentration augment 자체가 set17 active 여부 별도 verify 필요. inactive 시 본 lint 자동 무효. 활성 augment 면 +50% 펄스 손실 큼.
-
-**Jax L1~L5 + Nasus N1~N4 + Mordekaiser M1 = base champion 미반영 lint 10건 누적** — Mordekaiser 는 가장 정합 (1건만 검출) → helper 통합 sim 의 효율성 입증.
+**Jax L1~L5 + Nasus N1~N4 + Mordekaiser M1 (자동 무효) = base champion 미반영 lint 9건 활성 + 1건 무효** — Mordekaiser 는 가장 정합 (검출 1건도 augment inactive 로 자동 무효) → helper 통합 sim 의 효율성 입증.
 
 ## Lint 체크리스트
 
@@ -167,10 +166,10 @@ MordekaiserCarry augment 활성 시:
 - [x] **cast path 3종** — main (`combatLoop.ts:7037`) + OOR (`:7185`) 양쪽 `applyMordekaiserProcCast` 호출 parity verify. recast 무관 (self_buff 패턴 + onKillRecast 없음)
 - [x] 별도 shield pool (`mordekaiserShieldRemaining`) general unit.shield 와 분리 — HealRefund 정확 계산 verify
 - [x] 사망 시 proc cleanup verify (`tickMordekaiserProc` line 1004-1009)
-- [ ] (사용자 verify) Concentration augment 활성 set17 여부 + `AugmentedDuration` sim 통합 결정
-- [ ] (사용자 verify) 전달자 trait 효과 + sim 통합 위치
+- [x] **전달자 (Channeler, `TFT17_ManaTrait`) trait 효과 verify** — `combatLoop.ts:524-529` + `:5549` + `mana.ts:36-41` mana gain 곱셈자 (`InnateManaGain=0.20` raw) integration 완료. Tank stat 보강 아님 (retro lint pilot 2026-05-26 catch)
+- [x] **Concentration augment `disable: true` verify** — `tft_set17_augments.json:83-102` `"disable": true` set17 inactive. M1 lint 자동 무효
 - [ ] (선택) `mordekaiserCarryShield` cleanup 가능성 평가 (selectedCarryAugment + carryCfg derive)
-- [ ] (선택) Lint M1 정식 등록 — Jax L1~L5 + Nasus N1~N4 와 묶음 평가
+- [ ] (선택) Lint M1 정식 등록 보류 — Concentration disable 으로 자동 무효, 추후 augment 재활성 시만 의미
 
 ## 관련
 
