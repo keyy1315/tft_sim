@@ -204,3 +204,35 @@ MVP에서 제외하는 것:
 - 시뮬레이션 엔진은 UI 레이어와 완전히 분리되어야 한다
 - Replay 정확성을 위해 엔진에 `Math.random()` 직접 사용 금지 — seed 기반 난수 생성기를 통해서만 사용
 - `console.log` 커밋 금지
+
+---
+
+## TFT Domain Wiki Ingest 검증
+
+`docs/wiki/` 에 champion / mechanic / carry-augment 페이지를 작성·수정할 때 누적된 9건 lint case 가 모두 Codex review 가 catch 했다 (self-catch 0%). 사전 verify forcing function 으로 `wiki-ingest-verifier` subagent 를 도입한다.
+
+### Dispatch 규칙 (필수)
+
+다음 경로의 파일을 **write 또는 edit 직후 commit 전** 에 반드시 `wiki-ingest-verifier` subagent 를 dispatch 한다.
+
+- `docs/wiki/champions/*.md` (모든 champion 페이지)
+- `docs/wiki/mechanics/*.md` (모든 mechanic 페이지)
+- `docs/wiki/augments/*-carry.md` (carry augment 만, 일반 augment 제외)
+
+### Dispatch 호출 예시
+
+```
+Agent (subagent_type=wiki-ingest-verifier) — dispatch with page paths
+```
+
+Subagent 는 read-only. P0/P1/P2 finding 을 tiered 로 반환하며, **P0 finding 은 commit 전 반드시 fix**. P1 은 본 PR 내 가능하면 fix, P2 는 다음 사이클 허용.
+
+### Single source of truth
+
+- 룰셋: `docs/wiki/lint-rules.md` — 5단계 verify rule + entity-type checklist + 9건 lint history + Severity Tier 정의. 룰 진화 시 본 파일만 수정 (git diff 추적).
+- Subagent: `.claude/agents/wiki-ingest-verifier.md` — lint-rules.md 를 dispatch 첫 단계에서 Read 하여 룰 로드.
+- 메모리 `feedback_wiki_ingest_verify` (user-local) — main agent 작성 워크플로우 (positive verify). lint subagent (negative verify) 와 책임 분리.
+
+### 평가
+
+다음 6 PR 후 `docs/wiki/lint-rules.md` 의 Self-catch Metric 표 업데이트. Target: **self-catch / (self-catch + Codex) ≥ 50%** (P0 기준). 미달 시 subagent prompt 강화 / 룰 추가.

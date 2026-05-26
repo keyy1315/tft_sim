@@ -1,0 +1,275 @@
+---
+name: TFT Domain Wiki — Lint Rules
+purpose: 위키 ingest 직후 lint subagent (`wiki-ingest-verifier`) 가 사용하는 단일 출처 룰셋
+scope: docs/wiki/{champions,mechanics,augments}/*.md (carry-augment 만, 일반 augment 제외)
+based_on: 자기-lint 9건 누적 (모두 Codex catch — self-catch rate 0%)
+goal: self-catch rate ≥ 50% (P0 기준) in 6 PR
+updated: 2026-05-26 (initial extract from memory)
+---
+
+# Wiki Ingest Lint Rules
+
+## 목적
+
+위키 ingest 시 9건의 lint case 가 누적되었으나 **전부 Codex review 가 catch** (self-catch 0%). 룰을 알아도 작성 단계에서 실행되지 않는 패턴이 반복 → reactive 진화. 본 문서는 사전 verify 강제용 **lint subagent** (`.claude/agents/wiki-ingest-verifier.md`) 가 참조하는 단일 룰셋이다.
+
+본 문서는 **lint 관점** (negative verify, Codex-style). main agent 의 작성 워크플로우 (positive verify) 는 user-local 메모리 `feedback_wiki_ingest_verify` 가 담당 — 책임 분리.
+
+## Scope (entity type 별 적용)
+
+| Entity type | Path 패턴 | Lint 적용 | 비고 |
+|-------------|----------|-----------|------|
+| Champion | `docs/wiki/champions/*.md` | ✅ | 9건 중 5건 (cast path / starLevel / carry helper) |
+| Mechanic | `docs/wiki/mechanics/*.md` | ✅ | 9건 중 3건 (trigger context / ground truth) |
+| Carry augment | `docs/wiki/augments/*-carry.md` | ✅ | 9건 중 1건 (entity-wide multi-source) |
+| 일반 augment | `docs/wiki/augments/*.md` (non-carry) | ❌ | 단순 fact lookup, lint case 0건. 발생 시 확장 |
+| Trait | `docs/wiki/traits/*.md` | ❌ | lint case 0건. 발생 시 확장 |
+| Patch | `docs/wiki/patches/*.md` | ❌ | lint case 0건. 발생 시 확장 |
+| Item | `docs/wiki/items/*.md` | ❌ | 미작성. 발생 시 확장 |
+
+확장 트리거: trait/patch/item lint case **1건 발생 즉시** scope 추가.
+
+## Severity Tier
+
+Codex review vocabulary 와 정렬. lint output 은 반드시 tier 부여.
+
+| Tier | 의미 | 처리 |
+|------|------|------|
+| **P0** | sim 회귀 / 잘못된 fact / 검증 실패 (ground truth 부정합) | **commit 전 fix 필수** |
+| **P1** | 의미는 맞으나 부정확 표현 / 출처 누락 / 좁은 주장 (multi-source 미명시) | follow-up PR 허용, 단 본 PR 에서 가능하면 fix |
+| **P2** | wording / frontmatter wording / cross-ref 누락 / nice-to-have | 다음 ingest 사이클에서 정리 가능 |
+
+## 5단계 Verify Rule (모든 entity 공통)
+
+Lint subagent 는 페이지에 적힌 모든 fact / 코드 참조 / sim 효과 주장에 대해 다음 순서로 검증.
+
+### 0. Entity set 소속 (champion / mechanic / carry-augment 모두)
+
+작업 대상이 set17 entity 인지 raw json 으로 확인.
+
+- **Champion**: `public/data/tft_set17_champions.json` 에서 `TFT17_<id>` prefix entry 존재 확인
+- **Carry augment**: `src/lib/simulator/carryAugments.ts` 등에서 entry 존재 확인
+- **Mechanic**: 코드 ground truth (예: `targeting.ts:TARGETING_WEIGHT`) 존재 확인
+
+❌ **금지**: `docs/01-plan/features/` plan 파일 존재만으로 후보 선정 — 이전 set 작업물 잔존 가능
+
+❌ **금지**: 한글 이름 list 만으로 검증 — 한글 이름과 apiName 이 미스매치 가능 (`TFT17_Galio = 거대 메크 로봇`, `TFT17_Reksai = 렉사이` 등)
+
+✅ **허용 패턴**:
+```bash
+node -e "require('./public/data/tft_set17_champions.json').champions.find(c => c.apiName === 'TFT17_X')"
+# 또는
+grep -n "TFT17_X" public/data/tft_set17_champions.json
+```
+
+### 1. 좁은 grep — 식별자 정의/사용 위치
+
+```bash
+grep -rn "<식별자>" src/
+```
+
+페이지에 등장하는 모든 코드 식별자 (함수명 / 변수명 / 상수명 / api_name) 의 정의·사용 위치 추출.
+
+### 2. 함수 컨텍스트 read — 트리거/조건/타이밍
+
+추출 라인이 단순 정의/할당이면 **그 함수 전체 read** 로 트리거/조건/타이밍 확인.
+
+> **예시**: `u.spellCanCrit = true` 한 줄 → if 블록 + 함수 시그니처 + 함수 호출처 1회 확인. PR #121 사례에서 `tickDrxNova` 함수 컨텍스트 누락 → "Akali 어빌리티 시전 시" 로 잘못 주장 (실제는 DRX N.O.V.A. surge 트리거).
+
+### 3. Entity-wide grep — 좁은 식별자 외 entity 이름 자체
+
+`grep "MordekaiserCarry"` 만 ❌ → `grep "Mordekaiser"` 도 함께 ✅.
+
+엔티티 이름으로 wider grep 하면 specific helper (`applyMordekaiserProcCast`, `tickMordekaiserProc` 등) 가 raw vars 직접 read 하는 multi-source drift 발견.
+
+> **예시**: PR #123 — `carryAugments.ts entry` 만 보고 "단일 source" 단정 → 실제는 entity-specific helper 가 raw `unit.champion.ability.variables` 별도 read. PR #115/#116 미반영 검출.
+
+### 4. 호출 순서 / 영향 범위 trace (sim 코드 변경 / override 주장 시)
+
+변경되거나 주장되는 필드 / 값이:
+
+- **누가 set** 하는가? (직접 set, calculateStats, applyXxxEffects 등)
+- **누가 read** 하는가? (단일 read 가정 금지)
+- **호출 순서** 는? (item bonus → augment override → trait effect → ...)
+- **절대값 override 가 기존 시스템을 손실시키는가?** (Tear/Blue Buff item mana 손실 등)
+
+손실되면 → **delta 보존 / 적용 위치 이동 / 우선순위 명시** 중 선택.
+
+#### 4-sub: Cast path 3종 전수 확인 (PR #129 도입)
+
+Cast 관련 동작 (stun apply / damage apply / debuff / dot / shield 등) 은 **3 cast path 에 별도 분기**:
+
+1. **Main pipeline** (`combatLoop.ts` cast 메인)
+2. **OOR (out-of-range) fallback** dash cast
+3. **Recast** (`onKill` 재시전)
+
+한 곳만 fix 시 range-dependent / kill-pattern-dependent 회귀 발생. **반드시 위키 [[ability-targeting]] 의 "3 호출처" 정보를 참고**.
+
+✅ **검증 패턴**:
+```bash
+grep -n "config\.<field>\|outOfRangeConfig\.<field>\|recastConfig\.<field>" src/lib/simulator/engine/combatLoop.ts
+```
+
+### 5. Actual sim integration verify (sim 효과 주장 시 필수, PR #128 도입)
+
+페이지에 "X 효과가 적용된다" 라고 주장하기 전에:
+
+- 주장된 효과 (예: "starLevel별 stun 1.0/1.25/1.5 적용") **를 실현하는 main pipeline read 위치** 가 실제 존재하는가?
+- **entry 값 변경 + config 정합 ≠ sim 효과**. main pipeline 이 그 값을 read 하는 위치까지 grep 으로 trace.
+- "entry 정합" / "config 단일 source" 는 **저장소 정합 + 1차 read 정합** 까지만 의미. starLevel별 / 조건부 / 다단계 효과는 별도 verify.
+
+❌ **금지**: "abilityData 에 정의돼 있음" → "sim 적용됨" 결론
+
+✅ **검증 패턴**:
+```
+효과 주장: "abilityData.stunDuration starLevel별 적용"
+verify: grep -n "abilityData\.stunDuration\b" src/lib/simulator/engine/combatLoop.ts
+  → IvernMinion 분기에만 사용 (line ~1234)
+  → 다른 carry (LeonaCarry 등) 의 stunDuration 은 sim 미반영 → P0 finding
+```
+
+read 위치 없으면 → 본문에 "🔍 sim 효과 검증 필요" 표기 또는 신규 lint case 등록.
+
+## Entity-type 별 추가 Checklist
+
+5단계 공통 룰에 더해 entity type 별 특이 fail mode.
+
+### Champion (`docs/wiki/champions/*.md`)
+
+| Check | 빈도 | 사례 |
+|-------|------|------|
+| `TFT17_<id>` set17 entry 존재 (0단계) | 항상 | 한글-apiName 미스매치 catch |
+| Carry augment 활성 시 role 변환 확인 | 카리 augment 가진 champ | Jax: APTank → Fighter 변환 |
+| `<Champion>Carry` raw helper 함수 multi-source (`apply<X>Cast`, `tick<X>Proc`) | 항상 | Mordekaiser helper 가 raw vars 직접 read |
+| starLevel별 ability variables (`[1.0, 1.25, 1.5]`) 의 main pipeline read site | 항상 | Leona stunDuration 미반영 (#9) |
+| Cast path 3종 (main / OOR / recast) 각 분기 일관성 | cast 변경 시 | Leona OOR stun 누락 (#9 amend) |
+| 절대값 stat override (`maxMana`, `maxHp` 등) 의 calculateStats 이후 호출 순서 | override 적용 시 | Mordekaiser mana 40 override → Tear 손실 (#7) |
+| Base ability variables 의 starLevel별 sim 적용 여부 (ShieldAP/FlatDR/MaxHealth 등) | 항상 | Jax base 5건 / Nasus base 4건 lint 후보 |
+
+### Mechanic (`docs/wiki/mechanics/*.md`)
+
+| Check | 빈도 | 사례 |
+|-------|------|------|
+| 코드 ground truth 인용 (CLAUDE.md / 다른 wiki 인용 금지) | 항상 | `targeting.ts:TARGETING_WEIGHT` 인용 |
+| 트리거 함수의 컨텍스트 (단순 grep 라인 ❌, 함수 시그니처 + 호출처) | 항상 | spell-crit `spellCanCrit = true` → `tickDrxNova` (#1) |
+| `<field>` "미사용 같음" 추정 표기 시 grep 전수 확인 | 추정 표기 시 | `damageDecay` "미사용 추정" → 실제 6 챔프 + combatLoop active (#2) |
+| 패치별 active/inactive 분기 (current_patch_status frontmatter 와 본문 정합) | 항상 | Stargazer Fountain 17.2 inactive → 17.3 active |
+| `[[other-page]]` 링크 깨짐 / orphan | 항상 | dead link lint |
+
+### Carry augment (`docs/wiki/augments/*-carry.md`)
+
+| Check | 빈도 | 사례 |
+|-------|------|------|
+| `<X>Carry` entry 외 entity 이름 wider grep (helper 함수 multi-source) | 항상 | Mordekaiser helper 가 carryAugments 외 read (#3) |
+| `selected single-carry` semantics (Layer 1 state/stack flag + Layer 2 abilityOverride 가드) | onKill / cast cycle 변경 시 | PR #135/#136 학습 |
+| `selfBuff` 필드 부재로 인한 sim no-op | new carry 도입 시 | Zed: selfBuff 부재 + damage 미반영 (#13) |
+| Cast path 3종 cycle/x_shape 일관성 | cycle/recast carry | Aatrox/Pyke follow-up verify |
+| 17.2 → 17.2b → 17.3 변경 누적 fact 정합 | 패치 boundary 페이지 | 3회 연속 변경 보존 |
+
+## Lint Output 형식 (subagent → main agent)
+
+```markdown
+## Lint Result: <page-path>
+
+### P0 (commit 전 fix 필수)
+- **[Finding name]** — 본문 위치 (line 또는 섹션 헤딩)
+  - 주장: "<인용>"
+  - 검증: <grep / read 결과>
+  - 회귀 위험: <sim 영향>
+  - 권장 fix: <action>
+
+### P1 (follow-up 허용)
+- ...
+
+### P2 (다음 사이클)
+- ...
+
+### Self-catch metric
+- 본 lint 가 발견한 finding 중 사전 Codex review 와 중복: <N건>
+- 신규 finding: <M건>
+```
+
+## 9건 Lint History (학습 사례)
+
+| # | PR | Entity type | Finding | 5단계 중 catch 단계 | Tier |
+|---|----|-----------|--------|--------------------|------|
+| 1 | #111 | augment | CLAUDE.md weight 표 인용 → stale 전파. 실제 `targeting.ts:TARGETING_WEIGHT` 다름 | 1 (좁은 grep) | P0 |
+| 2 | #113 | mechanic | `damageDecay` "미사용 같음" 추정 → 실제 6 챔프 + `combatLoop.ts:6479` active | 1 (좁은 grep) | P0 |
+| 3 | #121 | mechanic | `u.spellCanCrit = true` → "Akali 어빌리티 시전 시" 추정. 실제 `tickDrxNova` DRX N.O.V.A. surge 트리거 | 2 (함수 컨텍스트) | P0 |
+| 4 | #123 | augment (carry) | `grep "MordekaiserCarry"` 만 보고 "단일 source" 단정 → `applyMordekaiserProcCast` / `tickMordekaiserProc` 가 raw vars read | 3 (entity-wide grep) | P0 |
+| 5 | #124 | champion | `statOverrides.mana = 40` 절대값 override → `calculateStats` 이후 호출 시 Tear-based item mana 손실 | 4 (호출 순서 trace) | P0 |
+| 6 | #128 | augment (carry) | "starLevel별 stun [1.0/1.25/1.5] sim 적용" 주장 → 실제 `config.stun` fixed 만 read. `abilityData.stunDuration` 은 IvernMinion 분기 전용 | 5 (integration verify) | P0 |
+| 7 | #129 amend | augment (carry) | Main pipeline stun fix → OOR cast path `outOfRangeConfig.stun` 분기 fix 누락. range-dependent 회귀 | 4-sub (cast path 3종) | P0 |
+| 8 | #146 | mechanic | mechanic-level `sim_active: true` 가 sub-entity partial 상태를 가림 | 0 + frontmatter | P1 |
+| 9 | #149 P2 | champion | "Galio set17 아님" 잘못 표기 — 한글 이름 list 만으로 검증, apiName grep 누락 | 0 (set 소속) | P1 |
+
+> 모든 case 가 self-catch 0% (Codex catch). 본 룰셋의 목적은 다음 6 PR 에서 self-catch ≥ 50% (P0).
+
+## 워크플로우 진화
+
+| 시점 | 룰 추가 | 도입 PR |
+|------|---------|---------|
+| 초기 | 1단계 좁은 grep + verify | — |
+| 2026-05-XX | 2단계 함수 컨텍스트 read | #121 (spell-crit Akali) |
+| 2026-05-XX | 3단계 entity-wide grep | #123 (Mordekaiser helper) |
+| 2026-05-XX | 4단계 호출 순서/영향 trace | #124 (mana override item 손실) |
+| 2026-05-XX | 5단계 actual integration verify | #128 (starLevel별 read site 부재) |
+| 2026-05-XX | 4-sub cast path 3종 전수 | #129 (OOR stun 누락) |
+| 2026-05-21 | 0단계 entity set 소속 (apiName grep) | #149 P2 (Galio 한글 list 누락) |
+| 2026-05-26 | **본 룰셋 single source 화 + lint subagent 도입** | (this) |
+
+## Self-catch Metric (6 PR 평가)
+
+다음 champion / mechanic / carry-augment ingest 부터 lint subagent dispatch. 6 PR 후 다음 metric 산출.
+
+| 평가 PR | Date | Page | Subagent P0 catch | Subagent P1 catch | Codex P0 catch | Self-catch rate (P0) |
+|---------|------|------|-------------------|-------------------|----------------|----------------------|
+| (retro pilot) | 2026-05-26 | champions/mordekaiser.md | 0 (전부 false-positive downgrade) | 1 (전달자 trait 부정확 → 정정 commit) | 0 (이미 머지) | N/A (retro) |
+
+Target: **self-catch / (self-catch + Codex) ≥ 50%** (P0 기준).
+
+미달 시: subagent prompt 강화 / 5단계 룰 추가 / cast path 4종 이상 확장 검토.
+
+### Pilot 검증 결과 (2026-05-26)
+
+mordekaiser.md retro pilot 으로 subagent 동작 검증:
+- ✅ 신규 P1 finding 1건 catch — "전달자 trait 효과 sim 별도 분기 verify 필요" 부정확 표기 → 실제 `TFT17_ManaTrait` `InnateManaGain` integration 완료 발견 (`combatLoop.ts:524-529 / 5549`, `mana.ts:36-41`)
+- ✅ Known finding (#3 entity-wide helper / #7 mana override) 모두 false-positive 룰로 정상 downgrade
+- ✅ 본문 self-raised M1 lint (Concentration AugmentedDuration) 도 `disable: true` verify 후 P2 downgrade
+- Cost: 페이지당 Read 6회 + grep 9회 ≈ 15 tool call, sonnet 적정
+
+### Pilot 발견 prompt 보강 (4건, 후속 적용 예정)
+
+1. **Page-internal cross-check** — 같은 entity 가 페이지의 여러 line 에서 모순 표기 시 단일 finding 으로 통합
+2. **Line 번호 인용 정책** — `combatLoop.ts:XXXX-YYYY` line 인용의 stale risk vs 위키 일관성 trade-off 결정
+3. **Conditional augment `disable` 0단계 verify** — "특정 augment 활성 시" 효과 (M1 같은) 는 augment `"disable": true` 여부도 0단계로 추가
+4. **False-positive downgrade 통계** — output 에 "raised: N / downgraded known: M" 명시
+
+## 허용 / 금지
+
+### ✅ 허용
+
+- 코드 ground truth (`src/...:identifier`) — line 번호는 즉시 stale 되므로 함수명까지만
+- Raw source (`public/data/tft_set17_*.json`, `docs/wiki/raw/`)
+- 패치노트 공식 URL
+- PR/commit 참조 (`#PR번호`, short hash)
+- PDCA plan/design — **도입 시점/동기 기록용으로만** (도메인 fact 는 코드 verify)
+
+### ❌ 금지
+
+- CLAUDE.md / 다른 wiki 페이지 / docs/meta/ 의 plan·audit·guide 문서를 **도메인 fact 출처로 인용**
+- "관련 룰: 다른 페이지 참조" 식으로 fact 본체 위임 (cross-ref OK, 단 핵심 수치는 본문에 직접 verify 한 값)
+- Grep 한 줄만 보고 fact 단정 (함수/조건 가드/타이밍 검증 없이)
+- 좁은 식별자 grep 만 보고 단일 source 단정 (entity-wide grep 누락)
+- 절대값 override 추가 시 호출 순서/영향 범위 분석 누락
+- "sim 정합" / "X 효과 적용" 주장 시 actual integration verify 누락
+- Cast path 한 곳만 fix (main 만, OOR/recast 누락)
+- 한글 이름 list 만으로 set 소속 검증 (apiName grep 누락)
+
+## 관련
+
+- 메모리 `feedback_wiki_ingest_verify` — main agent 작성 워크플로우 (positive verify, user-local)
+- 메모리 `feedback_codex_review_workflow` — Codex review reply 워크플로우
+- 메모리 `feedback_pr_serial_workflow` — 1 PR 씩 직렬 처리
+- Subagent: `.claude/agents/wiki-ingest-verifier.md` — 본 룰셋 reference
+- 위키 메타: [[schema]] (구조), [[index]] (카탈로그), [[log]] (변경 기록)
