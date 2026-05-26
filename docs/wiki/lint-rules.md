@@ -4,7 +4,7 @@ purpose: 위키 ingest 직후 lint subagent (`wiki-ingest-verifier`) 가 사용�
 scope: docs/wiki/{champions,mechanics,augments}/*.md (carry-augment 만, 일반 augment 제외)
 based_on: 자기-lint 9건 누적 (모두 Codex catch — self-catch rate 0%)
 goal: self-catch rate ≥ 50% (P0 기준) in 6 PR
-updated: 2026-05-26 (PR #154 retro lint 5 페이지 — Lint case #10/#11 신규 등록, retro metric 표, 룰 보강 권장 4건 #11~#14)
+updated: 2026-05-26 (PR #155 룰 보강 #11~#15 적용 — carry self-buff field / damage modifier 진입 가드 / mechanic summary 표 cross-check / carry augment ingest 시 mechanic page sync / frontmatter ↔ P0 lint case 정합)
 ---
 
 # Wiki Ingest Lint Rules
@@ -164,6 +164,8 @@ read 위치 없으면 → 본문에 "🔍 sim 효과 검증 필요" 표기 또�
 | Cast path 3종 (main / OOR / recast) 각 분기 일관성 | cast 변경 시 | Leona OOR stun 누락 (#9 amend) |
 | 절대값 stat override (`maxMana`, `maxHp` 등) 의 calculateStats 이후 호출 순서 | override 적용 시 | Mordekaiser mana 40 override → Tear 손실 (#7) |
 | Base ability variables 의 starLevel별 sim 적용 여부 (ShieldAP/FlatDR/MaxHealth 등) | 항상 | Jax base 5건 / Nasus base 4건 lint 후보 |
+| **Carry augment 활성 시 abilityData self-buff / damage modifier 가 base raw vars 보다 우선 read 되는지 verify** (룰 #11/#12 cross-ref, PR #155 도입) | carry augment 가진 champ | Mordekaiser shield 는 `mordekaiserCarryShield` 패턴 ✅. Leona / 다른 carry 도 동형 패턴 필요 (#154 #10/#11) |
+| **본문에 P0 lint case (sim 미반영) 등록 시 frontmatter `sim_active: active` 유지 → P1 raise + `partial` 강등 권장** (룰 #15, PR #155 도입) | P0 lint case 등록 시 | champion 페이지에 base ability vars sim 미반영 lint case (Jax L1~L5 등) 등록 시 sim_active 강등 검토 |
 
 ### Mechanic (`docs/wiki/mechanics/*.md`)
 
@@ -173,6 +175,7 @@ read 위치 없으면 → 본문에 "🔍 sim 효과 검증 필요" 표기 또�
 | 트리거 함수의 컨텍스트 (단순 grep 라인 ❌, 함수 시그니처 + 호출처) | 항상 | spell-crit `spellCanCrit = true` → `tickDrxNova` (#1) |
 | `<field>` "미사용 같음" 추정 표기 시 grep 전수 확인 | 추정 표기 시 | `damageDecay` "미사용 추정" → 실제 6 챔프 + combatLoop active (#2) |
 | 패치별 active/inactive 분기 (current_patch_status frontmatter 와 본문 정합) | 항상 | Stargazer Fountain 17.2 inactive → 17.3 active |
+| **Entity summary 표 (carry 표 / 시너지 표 / 챔프 표) → entity 페이지 / 코드 ground truth cross-check** (룰 #13, PR #155 도입) | 항상 | hero-augment-carry `IvernMinion hexReduction 0.45` 표 stale → 코드 0.35 (#154 P0-3) |
 | `[[other-page]]` 링크 깨짐 / orphan | 항상 | dead link lint |
 
 ### Carry augment (`docs/wiki/augments/*-carry.md`)
@@ -184,6 +187,10 @@ read 위치 없으면 → 본문에 "🔍 sim 효과 검증 필요" 표기 또�
 | `selfBuff` 필드 부재로 인한 sim no-op | new carry 도입 시 | Zed: selfBuff 부재 + damage 미반영 (#13) |
 | Cast path 3종 cycle/x_shape 일관성 | cycle/recast carry | Aatrox/Pyke follow-up verify |
 | 17.2 → 17.2b → 17.3 변경 누적 fact 정합 | 패치 boundary 페이지 | 3회 연속 변경 보존 |
+| **abilityData self-buff 필드 (`shield` / `shieldDuration` / `heal` / `damageReduction`) main pipeline cast-time apply 분기 read site verify** (룰 #11, PR #155 도입) | self-buff 필드 정의 시 | Leona shield/duration → raw `ShieldAmount` 우선 read (#154 #10). Mordekaiser 패턴 (`mordekaiserCarryShield` 필드) 차용 fix 필수 |
+| **abilityData damage modifier 필드 (`baseDamageHpFrac` / `tankBonusMultiplier` / `armorScale` / `singleTargetMultiplier` / `hexReduction`) 의 main pipeline read site 진입 가드 (`&&` 조합) 전수 확인** (룰 #12, PR #155 도입) | damage modifier 필드 정의 시 | Leona baseDamageHpFrac → `baseDamageHpFrac && hexReduction` AND 가드로 미진입 (#154 #11) |
+| **신규 carry augment 도입 시 관련 mechanic page (spell-crit / mana / cast path / role-passive) 의 cast roll / trigger / 호출처 리스트 stale 검증 + last_verified 갱신** (룰 #14, PR #155 도입) | 신규 carry / cast path 변경 시 | Jax carry hero augment (PR #135/#147) 가 5번째/6번째 spellCanCrit cast roll 추가 → spell-crit.md last_verified 갱신 누락 (#154 P1-1) |
+| **본문에 P0 lint case (sim 미반영) 등록 시 frontmatter `sim_active: active` 유지 → page-internal contradiction P1 raise + `partial` 강등 권장** (룰 #15, PR #155 도입, 룰 #8 의 carry-augment / champion 일반화) | P0 lint case 등록 시 | leona-carry frontmatter active ↔ 본문 Lint #10/#11 등록 모순 (#154 codex P2) |
 
 ## Page-internal Cross-check (PR #152 retro pilot 도입)
 
@@ -204,6 +211,7 @@ read 위치 없으면 → 본문에 "🔍 sim 효과 검증 필요" 표기 또�
 - 같은 entity (trait / champ / mechanic / augment) 의 같은 fact 가 페이지 내 다중 line 에 등장 시 → **단일 finding + 모든 영향 line 명시**
 - 모순 (line A "X 적용" + line B "X 미적용") 발견 시 → P1 이상 priority + Page-internal contradiction 명시
 - frontmatter 와 본문 모순 (예: `sim_active: true` + 본문 "🔍 검증 필요") → 단일 finding, frontmatter 정정 + 본문 정정 동시 권장
+- **본문에 P0 lint case (sim 미반영) 등록 시 frontmatter `sim_active: active` 유지** → page-internal contradiction P1 raise + `partial` 강등 권장 (룰 #15, PR #155 도입). 본 룰셋 #8 (PR #146 mechanic-level 보수적 minimum) 의 carry-augment / champion 일반화. **사례**: leona-carry frontmatter active ↔ 본문 Lint #10/#11 등록 모순 (#154 codex P2)
 
 ## Lint Output 형식 (subagent → main agent)
 
@@ -262,18 +270,24 @@ read 위치 없으면 → 본문에 "🔍 sim 효과 검증 필요" 표기 또�
 
 ### Subagent prompt 보강 사례 (P2 catch, infra self-evolution)
 
-| PR | catch 주체 | Finding | Tier |
-|----|----------|--------|------|
-| #153 | Codex (P2) | lint-rules.md 0-sub 의 grep `-A 20` fallback window 부족 → entry size ≥ 21 line augment (`Weightlifting`) miss. node -e / jq / `-A 50` + `grep -m1` 로 강화 (fix commit `a4c1d90`) | P2 |
+| PR | catch 주체 | Finding | Tier | 해소 |
+|----|----------|--------|------|------|
+| #153 | Codex (P2) | lint-rules.md 0-sub 의 grep `-A 20` fallback window 부족 → entry size ≥ 21 line augment (`Weightlifting`) miss. node -e / jq / `-A 50` + `grep -m1` 로 강화 | P2 | PR #153 fix commit `a4c1d90` ✅ |
+| #154 | Codex (P2) | leona-carry frontmatter `sim_active: active` ↔ 본문 P0 Lint #10/#11 등록 (sim 미반영) 모순. 본 룰셋 #8 (PR #146 mechanic-level 보수적 minimum) 의 carry-augment / champion 일반화 누락 | P2 | PR #154 fix commit `3e0412d` + **신규 룰 #15** 등록 (PR #155) ✅ |
 
-### Subagent 가 catch 한 룰 보강 권장 (PR #154 retro lint 검출, 다음 사이클)
+### 룰 보강 #11~#15 (PR #155 적용 완료, 2026-05-26)
 
-1. **신규 룰 #11**: "carry abilityData self-buff 필드 (shield / shieldDuration / heal / damageReduction) — main pipeline cast 시점 self-buff apply 분기 read site verify" (Lint #10 패턴, Mordekaiser 사례에서 이미 학습한 패턴이 Leona 에 동형 재발)
-2. **신규 룰 #12**: "carry abilityData damage modifier 필드 (`baseDamageHpFrac`, `tankBonusMultiplier`, `armorScale`, `singleTargetMultiplier`, `hexReduction`) — 각 필드의 main pipeline read site 진입 가드 (`&&` 조합 가드) 전수 확인" (Lint #11 패턴)
-3. **신규 룰 #13**: "mechanic 페이지의 entity summary 표 ↔ entity 페이지 / 코드 ground truth cross-check" (PR #154 P0-3 패턴 — `hero-augment-carry.md` 의 `IvernMinionCarry hexReduction 0.45` summary 표가 17.3 코드 `0.35` 와 page-internal contradiction)
-4. **신규 룰 #14**: "carry augment ingest 시 관련 mechanic page (spell-crit / mana / cast path) 의 trigger 리스트 stale 검증" (PR #154 spell-crit.md P1-1 패턴 — Jax carry hero augment 가 5번째/6번째 spellCanCrit cast roll 분기를 추가했으나 mechanic page last_verified 갱신 누락)
+본 5건 보강은 PR #154 retro lint + Codex catch 학습. lint-rules.md (entity-type checklist + Page-internal Cross-check) + `.claude/agents/wiki-ingest-verifier.md` (실행 절차 + 핵심 패턴 + 금지 사항) 양쪽 동시 갱신.
 
-> Codex catch 9건 모두 self-catch 0% (PR #111~#149). 본 룰셋 도입 후 PR #154 retro lint 에서 신규 P0 2건 self-catch (Lint #10/#11) + Codex P2 1건 (PR #153) 으로 catch infra 자체가 self-evolving 검증됨. 6 PR 평가 target ≥ 50% self-catch.
+| # | 룰 | 도입 사례 | 적용 위치 |
+|---|----|----------|-----------|
+| #11 | carry abilityData self-buff 필드 (shield / shieldDuration / heal / damageReduction) — main pipeline cast 시점 self-buff apply 분기 read site verify | Lint #10 (Leona shield, Mordekaiser 동형 재발) | Entity-type checklist "Carry augment" + "Champion" cross-ref |
+| #12 | carry abilityData damage modifier 필드 (`baseDamageHpFrac` / `tankBonusMultiplier` / `armorScale` / `singleTargetMultiplier` / `hexReduction`) — 각 필드의 main pipeline read site 진입 가드 (`&&` 조합) 전수 확인 | Lint #11 (Leona baseDamageHpFrac && hexReduction AND 가드) | Entity-type checklist "Carry augment" + "Champion" cross-ref |
+| #13 | mechanic 페이지의 entity summary 표 ↔ entity 페이지 / 코드 ground truth cross-check | PR #154 P0-3 (hero-augment-carry `IvernMinion hexReduction 0.45` 표 stale) | Entity-type checklist "Mechanic" |
+| #14 | 신규 carry augment 도입 시 관련 mechanic page (spell-crit / mana / cast path / role-passive) 의 cast roll / trigger / 호출처 리스트 stale 검증 + last_verified 갱신 | PR #154 spell-crit.md P1-1 (Jax carry 가 cast roll 호출처 2개 추가했으나 mechanic page last_verified 갱신 누락) | Entity-type checklist "Carry augment" |
+| #15 | 본문에 P0 lint case (sim 미반영) 등록 시 frontmatter `sim_active: active` 유지 → P1 raise + `partial` 강등 권장 (룰 #8 의 carry-augment / champion 일반화) | PR #154 codex P2 (leona-carry self-rule violation) | Entity-type checklist "Carry augment" + "Champion" + Page-internal Cross-check 룰 |
+
+> Codex catch 9건 모두 self-catch 0% (PR #111~#149). 본 룰셋 도입 후 PR #154 retro lint 에서 신규 P0 2건 self-catch (Lint #10/#11) + Codex P2 2건 (PR #153/#154) 으로 catch infra 자체가 self-evolving 검증됨. 룰 #11~#15 적용 (PR #155) 후 다음 champion ingest 부터 운영 적용. 6 PR 평가 target ≥ 50% self-catch.
 
 ## 워크플로우 진화
 
