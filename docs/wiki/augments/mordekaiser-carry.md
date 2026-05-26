@@ -8,7 +8,7 @@ tier: Gold
 stage: 2 only
 current_patch_status: active
 sim_active: partial   # passive 매초 tick 미구현
-last_verified: 2026-05-18
+last_verified: 2026-05-26 (retro lint subagent — line drift 갱신, frontmatter ↔ 본문 active wording 명확화)
 sources:
   - src/data/carryAugments.ts:238 (MordekaiserCarry entry)
   - src/lib/simulator/engine/combatLoop.ts (carry augment 일괄 처리 — duplicate const 없음, carryAugments entry 직접 사용)
@@ -65,7 +65,7 @@ related:
 
 → **3성 shield 폭증 + mana 단축** 으로 17.3 에서 3성 Mordekaiser 의 Heat Death 가 강력한 carry 옵션으로 부상 (사용자 패치 의도 추정).
 
-## sim 적용 상태 — `active` (17.3 정합 완결)
+## sim 적용 상태 — core fact `active` (17.3 정합 완결) + edge passive `partial`
 
 ✅ **활성**:
 - role 변환 `Fighter` (default)
@@ -82,7 +82,7 @@ related:
 ## ✅ Lint finding #7 — RESOLVED (PR #124, `3678add`, 2026-05-18)
 
 ### 검출 (PR #123 Codex P2 review)
-`applyMordekaiserProcCast` (combatLoop.ts:939) + `tickMordekaiserProc` (line 969) 가 raw `unit.champion.ability.variables` 직접 read:
+`applyMordekaiserProcCast` (combatLoop.ts:953) + `tickMordekaiserProc` (line 990) 가 raw `unit.champion.ability.variables` 직접 read:
 ```ts
 const vars = unit.champion.ability.variables;
 const initialShield = readVarByStar(vars.find(v => v.name === 'InitialShield')?.value, ...);
@@ -93,7 +93,7 @@ const initialShield = readVarByStar(vars.find(v => v.name === 'InitialShield')?.
 ### Fix (PR #124, Option A 선택)
 1. `CombatUnit.mordekaiserCarryShield: readonly number[] | null` 필드 신규
 2. `applyHeroCarryTransforms` (combatLoop.ts:2252): MordekaiserCarry case → `target.mordekaiserCarryShield = cfg.abilityData?.shield ?? null`
-3. `applyMordekaiserProcCast` (line 943): `unit.mordekaiserCarryShield !== null ? carryShield : rawInitialShield`
+3. `applyMordekaiserProcCast` (line 962): `unit.mordekaiserCarryShield != null ? carryShield : rawInitialShield`
 4. `MordekaiserCarry.statOverrides` 추가 (`initialMana: 10, mana: 40`)
 5. `applyHeroCarryTransforms` mana 적용에 **item delta 보존** 추가 (PR #124 Codex P2 catch — `target.maxMana = so.mana + itemDelta`)
 

@@ -4,10 +4,10 @@ type: mechanic
 display_name_kr: 어빌리티 타게팅 (패턴 기반)
 current_patch_status: active
 sim_active: true
-last_verified: 2026-05-18
+last_verified: 2026-05-26 (retro lint subagent — frontmatter dead-source 정리, line drift 5건 갱신, multi 예시 set17 정합)
 sources:
   - src/lib/simulator/systems/ability.ts (findAbilityTargets, AbilityConfig)
-  - src/types/index.ts (AbilityPattern 9종, AbilityTargetingType 8종 — dead code)
+  - src/types/index.ts (AbilityPattern 9종 — AbilityTargetingType 8종은 PR #117 제거됨, 본 페이지 "패치 히스토리" 섹션에 보존)
   - src/lib/simulator/engine/combatLoop.ts (findAbilityTargets 호출 3 위치)
 related:
   - "[[role-passive]]"
@@ -33,7 +33,7 @@ related:
 4. targets 각각에 damage / debuff / stun 등 적용
 ```
 
-`combatLoop.ts` 의 호출처 3곳: main cast (line 6351), recast on-kill (6552), out-of-range fallback (6991).
+`combatLoop.ts` 의 호출처 3곳: main cast (line 6418), recast on-kill (6630), out-of-range fallback (7144).
 
 ## 9 패턴 (`AbilityPattern` ground truth)
 
@@ -43,7 +43,7 @@ related:
 | `line` | caster→target 직선 8칸 hex 집합, 거리순 정렬, `maxTargets` cap | `maxTargets`, `dash` | Leona carry (maxTargets=4) |
 | `aoe_circle` | primary target 위치 기준 `radius` 반경 hex 집합 | `radius` (default 1) | Mordekaiser/Gragas/IvernMinion carry |
 | `cone` | caster→target 방향 원뿔 (`radius` deep) | `radius` (default 2) | Aatrox carry (radius=1) |
-| `multi` | caster 기준 가까운 순 정렬 `maxTargets` 개 (primary 무시) | `maxTargets` (default 3) | Mel, Azir 등 |
+| `multi` | caster 기준 가까운 순 정렬 `maxTargets` 개 (primary 무시) | `maxTargets` (default 3) | TFT17_MissFortune, TFT17_Kindred 등 (set17 다수) |
 | `bounce` | primary 시작, 마지막 hit 기준 가까운 미적중 unit 으로 튕김, `maxTargets` 회 | `maxTargets` (default 2) | Poppy 정령단 속도 (`spiritBounceOnKill` 별도) |
 | `global` | alive enemy 전원 | — | 글로벌 ult |
 | `self_buff` | caster 본인 1명 (적 대상 X) | `selfBuff` config 객체 | Jax carry, Sion 등 |
@@ -127,8 +127,8 @@ fallback = `[primaryTarget]` (single 과 동일). 안전 default.
 - 9 패턴 전부 sim 동작
 - `combatLoop.ts` 3 호출처 (main / recast / OOR fallback)
 - carry augment override 작동 ([[hero-augment-carry]])
-- **`damageDecay` 적용 중** — 6 챔프 사용 (TFT16_Yunara/Gangplank/Caitlyn/Ryze, TFT17_Gnar/AurelionSol). `combatLoop.ts:6479` 에서 `dmg *= (1 - damageDecay)^ti` 적용 (타겟 인덱스별 감쇠)
-- **`dot.duration` 적용 중** — 8 챔프 사용 (TFT17_Nasus/Talon/Pantheon/Viktor/Diana/AurelionSol/Bard/Morgana). `combatLoop.ts:6390` (main) + `:7050` (OOR fallback) 양 경로 처리. `perTickDmg = mitigated / duration * TICK_DURATION`
+- **`damageDecay` 적용 중** — 6 챔프 사용 (TFT16_Yunara/Gangplank/Caitlyn/Ryze, TFT17_Gnar/AurelionSol). `combatLoop.ts:6546-6547` 에서 `dmg *= (1 - damageDecay)^ti` 적용 (타겟 인덱스별 감쇠)
+- **`dot.duration` 적용 중** — 8 챔프 사용 (TFT17_Nasus/Talon/Pantheon/Viktor/Diana/AurelionSol/Bard/Morgana). `combatLoop.ts:6457-6466` (main) + `:7263-7271` (OOR fallback) 양 경로 처리. `perTickDmg = mitigated / duration * TICK_DURATION`
 
 ❌ **미완 / 검증 필요**:
 - (현재 본 페이지 범위에서 명확히 unused 인 ability config 필드 없음 — 정기 lint 시 재확인)
