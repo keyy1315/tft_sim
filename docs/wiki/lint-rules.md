@@ -4,7 +4,7 @@ purpose: 위키 ingest 직후 lint subagent (`wiki-ingest-verifier`) 가 사용�
 scope: docs/wiki/{champions,mechanics,augments}/*.md (carry-augment 만, 일반 augment 제외)
 based_on: 자기-lint 9건 누적 (모두 Codex catch — self-catch rate 0%)
 goal: self-catch rate ≥ 50% (P0 기준) in 6 PR
-updated: 2026-05-26 (initial extract + pilot prompt 보강 4건 — page-internal cross-check / line 번호 정책 / conditional augment disable / downgrade 통계)
+updated: 2026-05-26 (PR #154 retro lint 5 페이지 — Lint case #10/#11 신규 등록, retro metric 표, 룰 보강 권장 4건 #11~#14)
 ---
 
 # Wiki Ingest Lint Rules
@@ -237,7 +237,9 @@ read 위치 없으면 → 본문에 "🔍 sim 효과 검증 필요" 표기 또�
 - 보강 권장 룰 (있으면): <항목>
 ```
 
-## 9건 Lint History (학습 사례)
+## Lint History (학습 사례)
+
+### Codex catch 9건 (self-catch 0% 시기)
 
 | # | PR | Entity type | Finding | 5단계 중 catch 단계 | Tier |
 |---|----|-----------|--------|--------------------|------|
@@ -251,7 +253,27 @@ read 위치 없으면 → 본문에 "🔍 sim 효과 검증 필요" 표기 또�
 | 8 | #146 | mechanic | mechanic-level `sim_active: true` 가 sub-entity partial 상태를 가림 | 0 + frontmatter | P1 |
 | 9 | #149 P2 | champion | "Galio set17 아님" 잘못 표기 — 한글 이름 list 만으로 검증, apiName grep 누락 | 0 (set 소속) | P1 |
 
-> 모든 case 가 self-catch 0% (Codex catch). 본 룰셋의 목적은 다음 6 PR 에서 self-catch ≥ 50% (P0).
+### Subagent self-catch 신규 (PR #154 retro lint 5 페이지, 2026-05-26)
+
+| # | PR | Entity type | Finding | 5단계 중 catch 단계 | Tier | 상태 |
+|---|----|-----------|--------|--------------------|------|------|
+| 10 | #154 (등록) | augment (carry) | `leona-carry.md`: `shield [200,240,280]` + `shieldDuration 2s` 가 carry abilityData 에만 정의, main pipeline `getAbilityShield` fallback 이 raw vars (`ShieldAmount`) 우선 read → carry 의도 미반영 | 5 (integration verify) + 3 (entity-wide grep) | P0 | 도메인 verify 대기 (인게임 측정 / 패치노트) |
+| 11 | #154 (등록) | augment (carry) | `leona-carry.md`: `baseDamageHpFrac 0.24` sim 분기 (`combatLoop.ts:6329`) 진입 가드 `baseDamageHpFrac && hexReduction` AND 가드로 인해 LeonaCarry (hexReduction 없음) 미진입. maxHP 24% 가산 sim 영향 0 | 4 (호출 순서 / 진입 가드) + 5 (integration verify) | P0 | 도메인 verify 대기 |
+
+### Subagent prompt 보강 사례 (P2 catch, infra self-evolution)
+
+| PR | catch 주체 | Finding | Tier |
+|----|----------|--------|------|
+| #153 | Codex (P2) | lint-rules.md 0-sub 의 grep `-A 20` fallback window 부족 → entry size ≥ 21 line augment (`Weightlifting`) miss. node -e / jq / `-A 50` + `grep -m1` 로 강화 (fix commit `a4c1d90`) | P2 |
+
+### Subagent 가 catch 한 룰 보강 권장 (PR #154 retro lint 검출, 다음 사이클)
+
+1. **신규 룰 #11**: "carry abilityData self-buff 필드 (shield / shieldDuration / heal / damageReduction) — main pipeline cast 시점 self-buff apply 분기 read site verify" (Lint #10 패턴, Mordekaiser 사례에서 이미 학습한 패턴이 Leona 에 동형 재발)
+2. **신규 룰 #12**: "carry abilityData damage modifier 필드 (`baseDamageHpFrac`, `tankBonusMultiplier`, `armorScale`, `singleTargetMultiplier`, `hexReduction`) — 각 필드의 main pipeline read site 진입 가드 (`&&` 조합 가드) 전수 확인" (Lint #11 패턴)
+3. **신규 룰 #13**: "mechanic 페이지의 entity summary 표 ↔ entity 페이지 / 코드 ground truth cross-check" (PR #154 P0-3 패턴 — `hero-augment-carry.md` 의 `IvernMinionCarry hexReduction 0.45` summary 표가 17.3 코드 `0.35` 와 page-internal contradiction)
+4. **신규 룰 #14**: "carry augment ingest 시 관련 mechanic page (spell-crit / mana / cast path) 의 trigger 리스트 stale 검증" (PR #154 spell-crit.md P1-1 패턴 — Jax carry hero augment 가 5번째/6번째 spellCanCrit cast roll 분기를 추가했으나 mechanic page last_verified 갱신 누락)
+
+> Codex catch 9건 모두 self-catch 0% (PR #111~#149). 본 룰셋 도입 후 PR #154 retro lint 에서 신규 P0 2건 self-catch (Lint #10/#11) + Codex P2 1건 (PR #153) 으로 catch infra 자체가 self-evolving 검증됨. 6 PR 평가 target ≥ 50% self-catch.
 
 ## 워크플로우 진화
 
@@ -270,9 +292,16 @@ read 위치 없으면 → 본문에 "🔍 sim 효과 검증 필요" 표기 또�
 
 다음 champion / mechanic / carry-augment ingest 부터 lint subagent dispatch. 6 PR 후 다음 metric 산출.
 
-| 평가 PR | Date | Page | Subagent P0 catch | Subagent P1 catch | Codex P0 catch | Self-catch rate (P0) |
-|---------|------|------|-------------------|-------------------|----------------|----------------------|
-| (retro pilot) | 2026-05-26 | champions/mordekaiser.md | 0 (전부 false-positive downgrade) | 1 (전달자 trait 부정확 → 정정 commit) | 0 (이미 머지) | N/A (retro) |
+| 평가 PR | Date | Page | Subagent P0 catch | Subagent P1 catch | Subagent P2 catch | Subagent downgraded known | Codex P0 catch | Self-catch rate (P0) |
+|---------|------|------|-------------------|-------------------|-------------------|---------------------------|----------------|----------------------|
+| (retro pilot) | 2026-05-26 | champions/mordekaiser.md | 0 (전부 downgrade) | 1 (전달자 trait) | 3 | 3 | 0 (이미 머지) | N/A (retro) |
+| (retro #154) | 2026-05-26 | augments/leona-carry.md | 2 (#10 shield/duration, #11 baseDamageHpFrac) | 2 (sources stale) | 2 (line drift) | 3 (#6/#9/disable) | 0 (이미 머지) | N/A (retro) |
+| (retro #154) | 2026-05-26 | augments/mordekaiser-carry.md | 0 (전부 downgrade) | 0 | 2 (line drift + frontmatter wording) | 4 (#3/#5/#7/명시적 보류) | 0 (이미 머지) | N/A (retro) |
+| (retro #154) | 2026-05-26 | mechanics/spell-crit.md | 0 (전부 downgrade) | 1 (3→5 cast 호출처) | 2 (line drift + pickTopCombo) | 2 (#1 trigger / 정밀 trait 빈 배열) | 0 (이미 머지) | N/A (retro) |
+| (retro #154) | 2026-05-26 | mechanics/ability-targeting.md | 0 (전부 downgrade) | 0 | 3 (line drift + frontmatter + multi 예시) | 2 (#2 damageDecay / Ability dead) | 0 (이미 머지) | N/A (retro) |
+| (retro #154) | 2026-05-26 | mechanics/hero-augment-carry.md | 1 (#13 → IvernMinion hexReduction 0.45 stale) | 1 (legacy flag 4개 제거됨) | 3 (line drift 3건) | 3 (#1 weight / #10 Pyke / Mord radius) | 0 (이미 머지) | N/A (retro) |
+
+**Retro 합계 (6 페이지)**: raised P0 **3** / P1 **5** / P2 **15** / downgraded known **17** / Codex P0 catch **0** (모두 이미 머지된 페이지). 9건 lint history 패턴 catch rate: 100% (false-positive 룰 정상 작동).
 
 Target: **self-catch / (self-catch + Codex) ≥ 50%** (P0 기준).
 

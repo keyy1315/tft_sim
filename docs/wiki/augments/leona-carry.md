@@ -8,12 +8,11 @@ tier: Gold
 stage: 2 only
 current_patch_status: active
 sim_active: active   # Lint #6 resolved (PR #127) + Lint #9 resolved (PR #129, main + OOR fix). statOverrides 인게임 측정만 남음
-last_verified: 2026-05-18
+last_verified: 2026-05-26 (retro lint subagent — frontmatter sources stale 식별자 정리, line drift 갱신; P0 shield/baseDamageHpFrac sim 미반영 lint case #10/#11 신규 등록 → 도메인 verify 대기)
 sources:
   - src/data/carryAugments.ts:171 (LeonaCarry entry — abilityOverride/abilityData)
-  - src/lib/simulator/engine/combatLoop.ts:614 (LEONA_CARRY_ABILITY const)
-  - src/lib/simulator/engine/combatLoop.ts:626 (getAbilityConfigForUnit flag 분기)
-  - src/lib/simulator/engine/combatLoop.ts:2249 (applyHeroCarryTransforms leonaCarryActive set)
+  - src/lib/simulator/engine/combatLoop.ts:630 (getAbilityConfigForUnit — findSelectedCarryAugment 단일 source; ~~LEONA_CARRY_ABILITY const~~ PR #127 제거)
+  - src/lib/simulator/engine/combatLoop.ts:2258 (applyHeroCarryTransforms — selectedCarryAugment set; ~~leonaCarryActive 필드~~ PR #147 제거, selectedCarryAugment === '...' 비교로 대체)
   - public/data/tft_set17_augments.json:66
   - 공식 17.2 / 17.3 패치노트
 related:
@@ -84,17 +83,20 @@ LeonaCarry 가 2개 config 로 정의되어 있었음. `getAbilityConfigForUnit`
 | [[patch-17-2b]] (2026-04-29) | damage `[110,165,250]` → **`[90,135,225]`** (큰 nerf). carry augment sim 정식화 (CarryAugmentConfig + abilityData + statOverrides) |
 | [[patch-17-3]] (2026-05-13) | baseDamageHpFrac 0.28 → **0.24** (HP scale nerf) + secondaryDamage `[180,270,405]` → **`[200,300,480]`** (line buff). PR #115 (`39cbce2`) sim 정합 |
 | 2026-05-18 (PR #127, `9e6ddb3`) | **Lint #6 sim 해소** — `LEONA_CARRY_ABILITY` const 제거 (`GRAGAS_CARRY_ABILITY` 동시) + flag 우선 분기 우회 → carryAugments entry 단일 source. **stun 1.0 fixed 적용** (이전 1.5 → 1.0 fixed). [[gragas-carry]] Lint #8 과 같은 사이클 |
-| 2026-05-18 (PR #129, `8abbba0`) | **Lint #9 sim 해소** — main pipeline (line 6819-6831) + OOR fallback (line 7129-7140) 양쪽 분기 확장: `carryCfg?.abilityData?.stunDuration?.[starLevel-1] ?? config.stun`. **starLevel별 stun [1.0, 1.25, 1.5] sim 적용** (1성 변경 없음, 2★ 1.0→1.25, 3★ 1.0→1.5). Codex P2 amend 로 OOR 누락 catch — 위키 [[ability-targeting]] cast path 3종 정보가 워크플로우 룰 도입 배경 |
+| 2026-05-18 (PR #129, `8abbba0`) | **Lint #9 sim 해소** — main pipeline (당시 line 6819-6831, 현재 6941-6953) + OOR fallback (당시 line 7129-7140, 현재 7325-7332) 양쪽 분기 확장: `carryCfg?.abilityData?.stunDuration?.[starLevel-1] ?? config.stun`. **starLevel별 stun [1.0, 1.25, 1.5] sim 적용** (1성 변경 없음, 2★ 1.0→1.25, 3★ 1.0→1.5). Codex P2 amend 로 OOR 누락 catch — 위키 [[ability-targeting]] cast path 3종 정보가 워크플로우 룰 도입 배경 |
+| 2026-05-26 (retro lint subagent) | **신규 P0 lint case #10/#11 등록** (도메인 verify 대기, [[lint-rules]] 참조). #10 = `shield [200,240,280]` + `shieldDuration 2s` 의 sim main pipeline read site 부재 (실제는 raw vars `ShieldAmount` 우선 read). #11 = `baseDamageHpFrac 0.24` 의 sim 분기 진입 가드 (`baseDamageHpFrac && hexReduction` 양쪽 가드) 로 LeonaCarry 미진입. P0 fix 는 도메인 사실 (인게임 측정 / 패치노트) verify 후 코드 fix PR 진행 예정 |
 
-## sim 적용 상태 — `active` (Lint #6 + #9 모두 resolved)
+## sim 적용 상태 — `active` (Lint #6 + #9 resolved) + Lint #10/#11 신규 등록 (도메인 verify 대기)
 
 ✅ **활성**:
 - role 변환 `Fighter` (default)
 - line dash + maxTargets 4 + firstHitOnlyStun
 - primary damage (carryAugments entry) + secondaryDamage (line 추가 대상)
-- baseDamageHpFrac maxHP 24% 가산 (17.3 sim 정합)
-- shield + duration
 - **starLevel별 stun `[1.0, 1.25, 1.5]` sim 적용 (PR #129)** — main pipeline + OOR fallback 양쪽 분기. 1★ 1.0초 / 2★ 1.25초 / 3★ 1.5초
+
+🔍 **sim 미반영 — Lint case #10/#11 신규 등록 (PR #154 retro lint, 도메인 verify 대기)**:
+- **#10 shield / shieldDuration**: carry abilityData `shield [200, 240, 280]` + `shieldDuration 2s` 가 main pipeline read site 부재. 실제 cast 시점 shield 는 `combatLoop.ts:6425-6427` 의 `getAbilityShield(unit.champion, ...)` fallback path 가 raw vars `ShieldAmount [0, 420, 480, 620, ...]` + `ShieldDuration [4, ...]` 우선 read. carry 의도 (짧은 cast 보호막) vs sim 동작 (긴 raw 보호막) 불일치 — Mordekaiser 패턴 (`mordekaiserCarryShield` 필드) 차용 fix 필요 또는 sim_active 정정. ⚠️ 인게임 측정 / 17.3 패치노트 verify 후 fix 결정
+- **#11 baseDamageHpFrac**: carry abilityData `baseDamageHpFrac 0.24` 가 main pipeline 분기 진입 가드 (`baseDamageHpFrac && hexReduction` AND 가드, `combatLoop.ts:6329`) 로 인해 LeonaCarry (hexReduction 없음) 미진입. maxHP 24% 가산 sim 영향 0. ⚠️ 인게임 측정 / 패치 명세 verify 후 fix 결정
 
 🔍 **검증 필요 / 미완**:
 - statOverrides (HP/AS/range/etc) — 사용자 인게임 측정 대기
@@ -105,13 +107,13 @@ LeonaCarry 가 2개 config 로 정의되어 있었음. `getAbilityConfigForUnit`
 PR #128 검출 → PR #129 (옵션 A 채택 — 옵션 C와 사실상 동일) 해소. Codex P2 amend 로 OOR cast path 누락 catch 후 main + OOR 양쪽 fix 완결.
 
 ### 검출 시점 (PR #128) — 기록 보존
-- `combatLoop.ts:6819-6820` main pipeline: `if (config.stun && config.stun > 0) { stunTicks = config.stun * TICKS_PER_SECOND; }` — **config.stun fixed 만 read**
-- `combatLoop.ts:1234`: `carryCfg.abilityData.stunDuration` read 는 IvernMinion-specific 분기 전용
+- `combatLoop.ts:6819-6820` main pipeline (당시 line, 현재 6941-6953): `if (config.stun && config.stun > 0) { stunTicks = config.stun * TICKS_PER_SECOND; }` — **config.stun fixed 만 read**
+- `combatLoop.ts:1234` (당시 line, 현재 1256): `carryCfg.abilityData.stunDuration` read 는 IvernMinion-specific 분기 전용
 - LeonaCarry abilityData.stunDuration `[1.0, 1.25, 1.5]` 정의되어 있으나 main pipeline 미read → 모든 starLevel 1.0초
 
 ### Fix (PR #129, Option A + Codex P2 amend)
-1. **main pipeline (line 6819-6831)**: `starLevelStun = carryCfg?.abilityData?.stunDuration?.[starLevel-1] ?? config.stun` 분기 추가
-2. **OOR (out-of-range dash) fallback (line 7129-7140)**: 동일 패턴 추가 (`oorCarryCfg?.abilityData?.stunDuration?.[starLevel-1] ?? outOfRangeConfig.stun`)
+1. **main pipeline (PR #129 당시 line 6819-6831, 현재 6941-6953)**: `starLevelStun = carryCfg?.abilityData?.stunDuration?.[starLevel-1] ?? config.stun` 분기 추가
+2. **OOR (out-of-range dash) fallback (PR #129 당시 line 7129-7140, 현재 7325-7332)**: 동일 패턴 추가 (`oorCarryCfg?.abilityData?.stunDuration?.[starLevel-1] ?? outOfRangeConfig.stun`)
 3. fallback: 다른 carry (`abilityData.stunDuration` 미정의) / non-carry → 기존 `config.stun` fixed 동작 보존
 
 ### 워크플로우 메모리 도입 배경

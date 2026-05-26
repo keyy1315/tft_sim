@@ -4,7 +4,7 @@ type: mechanic
 display_name_kr: 영웅 증강 carry 변환
 current_patch_status: active
 sim_active: partial   # 9/10 carry active (Aatrox/Pyke/Poppy/Ivern/Mord/Leona/Gragas/Jax/Nasus). InvaderZed (TFT17_Augment_InvaderZed) 만 minimal — selfBuff 필드 부재 + damage 미반영, sim 효과 사실상 0 (Lint #13 spec 확인 대기). statOverrides 슬롯도 일부 잔존 (Poppy/Nasus 인게임 측정 대기 — Lint #5)
-last_verified: 2026-05-19 (Lint #10 deep cleanup, PR #146 + codex P2 amend)
+last_verified: 2026-05-26 (retro lint subagent — IvernMinion hexReduction 0.45→0.35 정정, legacy flag stale 정정, line drift 3건 갱신)
 sources:
   - src/data/carryAugments.ts (CarryAugmentConfig + CARRY_AUGMENTS)
   - src/lib/simulator/engine/combatLoop.ts (applyHeroCarryTransforms, findStrongestUnitByApi)
@@ -33,7 +33,7 @@ findStrongestUnitByApi(targetChampionApiName) — 대상 챔프 1명 선정
 2. stat 적용 → statOverrides 의 정의된 필드만 (undefined = 기존 유지). rangeOverride 도 selected target 에 inline 적용 (PR #144 amend — PoppyCarry range 4)
 3. ability  → getAbilityConfigForUnit 에서 findSelectedCarryAugment lookup (PR #144 codex P1 amend: selected single-carry semantics 일반화)
 4. selectedCarryAugment → 모든 carry 에 일관 set (PR #144). non-selected 카피는 carry-specific 분기 진입 안 함
-5. legacy flag → gragasCarryActive / leonaCarryActive / jaxCarryActive / nasusCarryActive (호환 보존, 점진 deprecate 후보)
+   - ~~legacy flag (gragasCarryActive / leonaCarryActive / jaxCarryActive / nasusCarryActive)~~ — **PR #147 에서 4 필드 모두 제거됨**. 모든 read site `selectedCarryAugment === 'TFT17_Augment_<X>Carry'` 비교로 대체. `combatLoop.ts:2293-2295` + `types/index.ts:765-766/853/868` 명시
 ```
 
 ### `findStrongestUnitByApi` tie-break
@@ -78,7 +78,7 @@ augment 전용: `shield, shieldDuration, onAttackBonus, passiveDamage, empowered
 | [[aatrox-carry]] (별빛 연계) | TFT17_Aatrox | cone r=1, cycle | ✅ | ❌ | 3-skill cycle (`cycleIdx % 3`: 타격/휩쓸기/찍기) + N.O.V.A. 별도 발동 + isolation `2.0` (17.3). 17.3 변경 3건 정합 (PR #115) |
 | `PoppyCarry` (정령단 속도) | TFT17_Poppy | single r=4 | ✅ | ❌ | `armorScale 1.0` + `spiritBounceOnKill` |
 | [[leona-carry]] (방패 여전사) | TFT17_Leona | line maxT=4, dash | ✅ | ❌ | `shield` + `baseDamageHpFrac 0.24` (17.3) + `secondaryDamage`. ✅ Lint #6 resolved (PR #127) + ✅ **Lint #9 resolved (PR #129)**: starLevel별 stun `[1.0, 1.25, 1.5]` sim 적용 (main + OOR cast path 양쪽) |
-| `IvernMinionCarry` (빅뱅) | TFT17_IvernMinion | aoe_circle r=3, dash to_largest_cluster | ✅ | ❌ | `hexReduction 0.45` + `stunDuration` |
+| `IvernMinionCarry` (빅뱅) | TFT17_IvernMinion | aoe_circle r=3, dash to_largest_cluster | ✅ | ❌ | `hexReduction 0.35` (17.3 nerf, 코드 정합) + `stunDuration` |
 | `JaxCarry` (저 별을 향해) | TFT17_Jax | self_buff AS+0.15 | ✅ | ❌ | `asGain` 영구 누적 + `onAttackBonus` |
 | [[pyke-carry]] (청부 살인마) | TFT17_Pyke | x_shape, dash to_lowest_hp | ✅ | ❌ | tankBonus `0.60` + onKillRecast `0.70` cascade (max 5 chain — Lint #10 stale 정정). 17.3 변경 없음 |
 | [[mordekaiser-carry]] (뜨거운 죽음) | TFT17_Mordekaiser | aoe_circle r=1 | ✅ | ✅ (PR #124: `initialMana: 10, mana: 40`) | `shield [175,200,400]` 17.3 sim 정합 (PR #124 `mordekaiserCarryShield` 필드) + mana item delta 보존 + `passiveDamage`/`empoweredAuraDamage` (passive hook 일부 미구현) |
@@ -131,9 +131,9 @@ augment 전용: `shield, shieldDuration, onAttackBonus, passiveDamage, empowered
 - 17.2b 변경분 (Gragas/Mordekaiser/Leona) 정확 반영
 - **17.3 변경분 (Leona/Mord/Jax/Aatrox/IvernMinion 5건) 정확 반영** (PR #115)
 - **Aatrox 3-skill cycle counter** ✅ (PR7-C: cycle counter % 3 분기 + slamDamage + N.O.V.A. — [[aatrox-carry]])
-- **Pyke X-shape onKill 재시전** ✅ (PR7-A: `combatLoop.ts:6544-6580` cascade max 5 chain — [[pyke-carry]])
-- **Poppy `spiritBounceOnKill`** ✅ (PR7-D: `combatLoop.ts:6648-6680` overkill bounce chain max 50 — [[poppy-carry]])
-- **정령족 잠재력 (미프) `spiritEffectPerStack`** ✅ (`combatLoop.ts:6231-6233` 미프 trait active + astronautMeepsStack 시 적용)
+- **Pyke X-shape onKill 재시전** ✅ (PR7-A: `combatLoop.ts:6606-6708` cascade max 5 chain — [[pyke-carry]])
+- **Poppy `spiritBounceOnKill`** ✅ (PR7-D: `combatLoop.ts:6710-6727` overkill bounce chain max 50 — [[poppy-carry]])
+- **정령족 잠재력 (미프) `spiritEffectPerStack`** ✅ (`combatLoop.ts:6280-6283` 미프 trait active + astronautMeepsStack 시 적용)
 - **자폭 (Gragas) 적군 damage path** ✅ (PR #127: 적군 AOE radius 3 정상 작동 — [[gragas-carry]])
 - **Lint #10/#11/#12/#14/#15/#16 모두 ✅ resolved** (PR #131~#145)
 - **selected single-carry semantics 일반화** (PR #144 + amend): 다중 carry 카피 시 selected 만 carry-specific 분기 진입
