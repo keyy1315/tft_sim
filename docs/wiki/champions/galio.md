@@ -69,7 +69,7 @@ TFT17_Galio: { pattern: 'aoe_circle', radius: 2, heal: true, selfBuff: { durabil
 | 방어 태세 진입 (4초) | ✅ `selfBuff.duration 4초` | DurabilityDuration 정합 |
 | 내구력 (Durability) | ⚠️ **hardcoded 0.3** | raw star별 (★1=0.2, ★2=0.2, ★3=0.6) **미반영** — Lint G1 |
 | heal (cast 1회 lump-sum) | ✅ `heal: true` 분기 진입 + star별 정상 read | `combatLoop.ts:6974-6977` `healVar.value[starIdx]` star별 정확 적용 (★1=900, ★2=1300, ★3=3000). 단 raw desc "지속 시간 동안 회복" (tick-based) vs sim cast 시점 1회 lump-sum 단순화 |
-| 충격파 (종료 시) | ✅ `aoe_circle r=2` | HexRange 2 정합. damage 는 default fallback (`damageVar` 미설정) |
+| 충격파 (종료 시) | ⚠️ `aoe_circle r=2` 진입은 정합, **단 timing gap** | HexRange 2 정합. damage 는 default fallback. **raw**: 4초 방어 태세 **종료 후** 충격파 발동. **sim**: cast loop 진입 즉시 aoe_circle damage 적용 (`combatLoop.ts:6482-6555`) → selfBuff 적용 (`:7001-7019`). delayed event queue 없음 — Lint G8 (Codex P2 catch) |
 | 충격파 damage 계수 (ARMARScaling × armor + MR) | ❌ **미반영** | raw 가 armor + MR scaling 인데 sim 은 default ability damage (champion ability variables) 사용. ARMARScaling [★1=0.8, ★2=1.2, ★3=30] 미반영 — Lint G2 |
 | 방어 태세 시 적 투사체 끌어당김 | ❌ **미반영** | projectile attraction 메커니즘 sim 자체 없음 — Lint G3 |
 
@@ -149,6 +149,7 @@ TFT17_Galio: { pattern: 'aoe_circle', radius: 2, heal: true, selfBuff: { durabil
 - **G5 (P1)**: 메카 trait 변신 메커니즘 + `TransformedPercentHealth +40%` HP 가산 sim 미반영 — Galio 자체가 "변신 후 형태" 라 의도된 단순화 가능성 (보드 배치 시 이미 궁극 상태 가정), 단 다른 메카 unit 의 변신 후 형태 spec 별도 verify 필요
 - **G6 (P1)**: 변신한 메카 = "2 슬롯 + 메카 특성 중첩 2개" sim 미반영 — Galio 가 메카 trait counter 에 1개로만 계산. tier 진입 부정확 가능성 (예: Galio 1명 + 다른 메카 2명 = sim 3개 = (3) tier vs raw 의도 4개 = (4) tier)
 - **G7 (P2)**: `applyMechaEffects` 코드 주석 (line 2151-2154) stale — (4) AD=0.35 주석인데 raw 는 (4) AD=0.45. 코드 동작은 raw vars 직접 read 라 정합
+- **G8 (P2)**: 충격파 (shockwave) timing gap — raw "4초 방어 태세 종료 시 충격파" 인데 sim 은 cast 진입 즉시 aoe_circle damage 적용. delayed event queue 없음 — 4초 동안의 kill / on-cast 효과 trigger 시점 부정확 (Codex P2 catch — PR #161)
 
 ## Lint 신규 등록 후보
 
@@ -158,10 +159,11 @@ TFT17_Galio: { pattern: 'aoe_circle', radius: 2, heal: true, selfBuff: { durabil
 | G2 | 충격파 damage 의 ARMARScaling × (armor + MR) 계수 미반영 | ★3 ARMARScaling 30 spike → sim 충격파 damage 손실 큼. raw 가 armor + MR scaling 인데 sim default ability damage 사용 | **P1** | **(b) per-target loop** — aoe_circle 패턴 damage 는 `combatLoop.ts:6482-6548` per-target loop 에서 처리. 각 target 에 대해 caster `stats.armor + stats.magicResist` snapshot × ARMARScaling[star] 곱셈 적용 (caster stat 기반이라 target 무관 동일 damage) | sim fix 권장 — abilityOverride 에 새 필드 `armorMrScalingVar: 'ARMARScaling'` 신설 후 aoe_circle damage 분기에서 caster armor + MR × var[star] 곱셈 적용 |
 | G3 | 방어 태세 "주변 적 투사체 끌어당김" 미반영 | projectile attraction 메커니즘 sim 자체 없음 | **P2** | (c) cast-time 1회 helper — selfBuff active 동안 적 projectile 의 target redirect. sim 에 projectile 메커니즘 없음 → 단순화 의도 가능성. 도메인 verify 필요 | 의도된 단순화 가능성 — 인게임 효과 측정 후 lint 등급 결정 |
 | G5 | 메카 trait 변신 메커니즘 (일반 형태 ↔ 궁극 형태 전환) + `TransformedPercentHealth +40%` HP 가산 sim 미반영 | sim 은 메카 unit (Galio 포함) 을 항상 단일 형태로 처리. 변신 메커니즘 자체 부재 → +40% HP 가산 누락 + 스킬 업그레이드 분기 없음 | **P1** | (d) combat-start helper — 메카 변신기 사용 시점 / 또는 `applyMechaEffects` 내부에서 메카 unit 의 currentForm 분기 set. 변신 시 maxHp × 1.4 + currentHp 비례 가산 | 의도된 단순화 가능성 — Galio 자체가 "변신 후 형태" 라서 보드 배치 시 이미 궁극 상태로 가정 가능. 인게임 측정 + 도메인 spec verify 필요 |
-| G6 | 변신한 메카 = **2 슬롯 + 메카 특성 중첩 2개로 간주** sim 미반영 | Galio 가 메카 trait counter 에 1개로만 계산 (raw 의도는 2개) → 메카 시너지 tier 진입 부정확 (예: Galio 1명 + 다른 메카 2명 = sim 3개 = (3) tier vs raw 의도 4개 = (4) tier) | **P1** | (d) combat-start helper — `resolveTraits` 단계에서 Galio 가 메카 unit 인 경우 stack ×2 카운트. 또는 unit factory 에서 `traitStackCount: 2` 명시 후 traitresolver 가 read | sim fix 권장 — `resolveTraits` 의 trait stack 카운팅에 Galio 만 +1 추가 (메카 trait 한정) |
+| G6 | 변신한 메카 = **2 슬롯 + 메카 특성 중첩 2개로 간주** sim 미반영 | 메카 변신 unit (Galio + 변신된 Urgot / Aurelion Sol — `node -e` verify 결과 set17 메카 3 챔프) 가 메카 trait counter 에 1개로만 계산 (raw 의도는 변신 상태일 때 2개) → 메카 시너지 tier 진입 부정확 | **P1** | (d) combat-start helper — `resolveTraits` 단계에서 메카 unit 의 **transformation state** 모델링 (`isMechaTransformed` flag 등) 후 transformed === true 일 때 stack ×2 카운트. **Galio 만 +1 권장은 잘못** (Codex P2 catch) — untransformed Galio over-count + transformed Urgot/Aurelion Sol 누락 위험 | sim fix 권장 — transformation state 시스템 도입 후 메카 변신 unit 전체에 stack ×2 적용 (Galio specific 하드코딩 금지) |
 | G7 | `applyMechaEffects` 주석 (line 2151-2154) stale (3) + (4) + (6) tier 모두 | (3) 주석 AD=0.20 AP=20 → raw AD=0.25 AP=25 stale / (4) 주석 AD=0.35 AP=35 → raw AD=0.45 AP=45 stale / (6) 주석 "4와 동일" → raw (4)≠(6) 모순 (실제 (6) AD=0.35 AP=35) | **P2** | 주석 cleanup (코드 동작 자체는 raw vars 직접 read 라 정합 — line 2164 `vars.AD`) | 후속 PR 에서 주석 정리 — 본 wiki PR scope 밖 |
+| G8 | **충격파 (shockwave) timing gap** — raw "4초 방어 태세 종료 시 충격파" 인데 sim 은 cast 진입 즉시 aoe_circle damage 적용 | sim 의 충격파 damage 가 4초 일찍 발동 → 4초 동안의 kill / damage / on-cast 효과 trigger 시점 부정확. 정밀한 sim 회귀 평가 시 영향 (Codex P2 catch — PR #161) | **P2** | (c) cast-time 1회 helper → delayed event queue 패턴으로 변경 — selfBuff 만료 시점 (`+ DurabilityDuration × TICKS_PER_SECOND` 후) 에 shockwave aoe_circle damage 발동 | sim fix 권장 — delayed event 시스템 도입 또는 mordekaiserProcEndTick 식 별도 state field (`galioShockwaveEndTick`) 신설 후 main loop tick 에서 발동 |
 
-**누적 base 미반영 lint**: Jax L1~L5 + Nasus N1~N4 + Mordekaiser M1 자동 무효 + Zed Z1 + Blitzcrank B1/B2/B3 + Poppy P1 + **Galio G1/G2/G3/G5/G6/G7 (6)** = **20건 활성 + 1건 자동 무효** (G4 subagent self-catch 후 제거 — Heal star별 정상 적용 verify).
+**누적 base 미반영 lint**: Jax L1~L5 + Nasus N1~N4 + Mordekaiser M1 자동 무효 + Zed Z1 + Blitzcrank B1/B2/B3 + Poppy P1 + **Galio G1/G2/G3/G5/G6/G7/G8 (7)** = **21건 활성 + 1건 자동 무효** (G4 subagent self-catch 후 제거 + G8 Codex P2 추가 등록 — shockwave timing gap).
 
 > 🎯 **룰 #16/#17 첫 적용 운영 (PR #160 후속) + subagent P1 self-catch 2건**: trait helper grep 전수 verify (룰 #16) → 메카 + 여행자 양쪽 정상 통합 verify 완료. 단 메카 trait 의 변신 메커니즘 / +40% HP / 2 슬롯 + 중첩 2개 (Lint G5/G6) 가 추가 자기-lint 등록됨. fix guidance 분기 명시 (룰 #17) 적용 — G1 (c) cast-time / **G2 (b) per-target loop 단독** (subagent P1-2 catch — 이전 `(a) 또는 (b)` 이중 제시 단일화) / G5/G6 (d) combat-start helper. **subagent P1-1 catch**: G4 (Heal star별 미반영) 오등록 → 실제 `combatLoop.ts:6974-6977` `healVar.value[starIdx]` star별 정상 read 확인 후 제거.
 
