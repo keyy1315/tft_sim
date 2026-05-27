@@ -151,19 +151,20 @@ grep -n "<EntityName>Carry" src/data/carryAugments.ts
 
 # 룰 #11 (PR #155 도입) — self-buff field main pipeline read site
 # 페이지가 abilityData.shield / shieldDuration / heal / damageReduction 정의 시
-grep -n "abilityData\?\.shield\|abilityData\?\.shieldDuration\|abilityData\?\.heal" src/lib/simulator/engine/combatLoop.ts
+# (ERE + 문자 클래스로 optional chaining `?.` 리터럴 매칭 — BRE `\?` 는 quantifier 라 false negative 발생)
+grep -nE "abilityData[?]\.(shield|shieldDuration|heal|damageReduction)" src/lib/simulator/engine/combatLoop.ts
 # entity-specific 필드 (`*CarryShield` 패턴) 또는 일반 분기 우선 read 둘 중 하나 필수
-grep -n "<EntityName>CarryShield\|<EntityName>CarryHeal" src/lib/simulator/engine/combatLoop.ts src/types/index.ts
+grep -nE "<EntityName>Carry(Shield|Heal|DamageReduction)" src/lib/simulator/engine/combatLoop.ts src/types/index.ts
 
 # 룰 #12 (PR #155 도입) — damage modifier 진입 가드 (AND 조합) 전수 확인
 # 페이지가 baseDamageHpFrac / tankBonusMultiplier / armorScale / singleTargetMultiplier / hexReduction 정의 시
-grep -n -A 3 "ad\?\.baseDamageHpFrac\|ad\?\.hexReduction\|ad\?\.tankBonusMultiplier" src/lib/simulator/engine/combatLoop.ts
+grep -nE -A 3 "ad[?]\.(baseDamageHpFrac|hexReduction|tankBonusMultiplier)" src/lib/simulator/engine/combatLoop.ts
 # 진입 가드의 && 조합 확인 — 일부 필드만 정의된 carry 가 분기 진입 가능한지
 
 # 룰 #14 (PR #155 도입) — mechanic page sync (신규 cast roll / trigger 추가 시)
 # 페이지가 신규 carry 면 관련 mechanic 페이지의 호출처 리스트 verify
 grep -n "spellCanCrit && rng.next" src/lib/simulator/engine/combatLoop.ts  # spell-crit 호출처
-grep -n "gainManaOnAttack\|gainManaPerTick" src/lib/simulator/  # mana page 호출처
+grep -rn "gainManaOnAttack\|gainManaPerTick" src/lib/simulator/  # mana page 호출처 (디렉토리 재귀 필수)
 ```
 
 ## 금지 사항
