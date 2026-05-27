@@ -95,7 +95,7 @@ TFT17_Blitzcrank: { pattern: 'aoe_circle', radius: 3, stun: 1.5, stunTargets: 1,
 | 변수 | raw 값 | sim 적용 | 비고 |
 |------|--------|---------|------|
 | `BoltCooldown` | `[2, 2, 2, 0.5, 1, 1, 1]` ★1=2s, ★2=2s, ★3=0.5s | ✅ `applyBlitzcrankBoltPassive` line 1646 `cooldownArr[u.starLevel]` (sentinel ★0 인덱싱) | ★1/★2 동일 2s, ★3 spike 0.5s |
-| `BoltDamage` | `[90, 60, 90, 150, 150, 150, 150]` ★1=60, ★2=90, ★3=150 | ✅ `applyBlitzcrankBoltPassive` line 1647 | sentinel ★0=90 (★1 보다 큰 값) — `?? cooldownArr[1] ?? 0` fallback 으로 안전 |
+| `BoltDamage` | `[90, 60, 90, 150, 150, 150, 150]` ★1=60, ★2=90, ★3=150 | ✅ `applyBlitzcrankBoltPassive` line 1647 | sentinel ★0=90 (★1 보다 큰 값) — `?? damageArr[1] ?? 0` fallback 으로 안전 |
 | `UppercutDamage` | `[170, 150, 225, 999, 2000, 789, 5000]` ★1=150, ★2=225, ★3=999 | ❌ **미반영** | primary target 별도 magic damage. ability.ts:247 abilityOverride 에 별도 필드 없음 |
 | `ExplosionDamage` | `[200, 175, 265, 5000, 5000, 5000, 5000]` ★1=175, ★2=265, ★3=5000 | ✅ `damageVar: 'ExplosionDamage'` (ability.ts:247) → aoe_circle damage 분기에서 raw vars read | ★3 = 5000 대형 spike (5코 5단계) |
 | `GrooveDurationPerTarget` | `[1, 1, 1, 1, 1, 1, 1]` (전부 1초) | ❌ **미반영** | 적중한 적에게 SpaceGroove 상태 부여 미구현 |
@@ -142,11 +142,11 @@ raw desc: "전투당 1회 체력이 `@HealthThreshold*100@%` 아래로 떨어지
 
 | # | 항목 | 의미 | Tier | 처리 |
 |---|------|------|------|------|
-| B1 | UppercutDamage 미반영 — primary target 별도 magic damage 가산 (★1=150 / ★2=225 / ★3=999) | active cast 의 2단계 (디스코 볼 띄움) damage 누락. ★3 = 999 magic damage 1명 영향 | **P1** | 도메인 verify 필요 — 인게임 측정 (UppercutDamage 가 실제 별도 hit 인지, ExplosionDamage 와 합산되는지 확인). sim fix 시 ability config 에 `secondaryDamageVar: 'UppercutDamage'` 추가 패턴 ([[shen]] BonusDamageOnAttack 패턴 / Sona/Vex 의 hitCount 패턴 검토) |
+| B1 | UppercutDamage 미반영 — primary target 별도 magic damage 가산 (★1=150 / ★2=225 / ★3=999) | active cast 의 2단계 (디스코 볼 띄움) damage 누락. ★3 = 999 magic damage 1명 영향 | **P1** | 도메인 verify 필요 — 인게임 측정 (UppercutDamage 가 실제 별도 hit 인지, ExplosionDamage 와 합산되는지 확인). ⚠️ sim fix 시 `secondaryDamageVar` 패턴 사용 금지 — `secondaryDamageVar` 는 per-target loop 적용이라 AoE 모든 target 에 over-damage (PR #158 codex P2 catch). primary target 단독 hit 패턴 필요: [[mordekaiser]] `applyMordekaiserProcCast` 식 전용 helper (primary target 1명에만 추가 magic damage cast 시점 1회), 또는 abilityOverride 에 새 `primaryBonusDamageVar` 필드 신설 후 main cast pipeline 의 primary target 분기에서만 read |
 | B2 | GrooveDurationPerTarget 1초 적 SpaceGroove 상태 미반영 | 적중한 적에 SpaceGroove 상태 부여 (디버프 또는 마킹) 미구현 | **P2** | raw `TFT17_SpaceGroove_TheGroove` 의 적 debuff 의미 verify 필요. 그루비안 buff 인지 적 debuff 인지 raw json 추가 검색 |
 | B3 | combatLoop.ts:1628 주석 stale — "Bolt 4배 미구현" 인데 line 5433 에서 ×4 적용됨 | 주석 vs 코드 모순. 후속 reader 혼동 | **P2** | 후속 PR 에서 주석 정리 (`// PR #65 후속: blitzBoltSpeedMult ×4 적용 완료`). 본 wiki PR scope 밖 (코드 주석 cleanup) |
 
-**Z1 (Zed PR #156) + B1/B2 (Blitzcrank) = 6번째 champion 페이지 누적 base 미반영 lint = Jax L1~L5 + Nasus N1~N4 + Mordekaiser M1(자동 무효) + Zed Z1(P1) + Blitzcrank B1(P1) / B2(P2) / B3(P2) 자기-lint**. 누적 base sim 미반영 11건 활성 + 1건 자동 무효.
+**Z1 (Zed PR #156) + B1/B2/B3 (Blitzcrank) = 6번째 champion 페이지 누적 base 미반영 lint = Jax L1~L5 (5) + Nasus N1~N4 (4) + Mordekaiser M1 자동 무효 (1) + Zed Z1 P1 (1) + Blitzcrank B1 P1 / B2 P2 / B3 P2 (3) 자기-lint**. 누적 base sim 미반영 **13건 활성 + 1건 자동 무효** (PR #158 codex P3 catch — 합계 정정).
 
 ## Lint 체크리스트
 
