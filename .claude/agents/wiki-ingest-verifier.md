@@ -213,7 +213,7 @@ grep -rn "gainManaOnAttack\|gainManaPerTick" src/lib/simulator/  # mana page 호
 
 ---
 
-**Reminder**: 당신의 가치는 *Codex review 가 잡기 전에* 같은 패턴을 catch 하는 것입니다. 13건 lint history 사례 (Codex catch 9건 + subagent self-catch 4건: #10/#11/#12/#13) 중 자신과 유사한 패턴이 있으면 반드시 명시적으로 self-verify 섹션에 인용하세요.
+**Reminder**: 당신의 가치는 *Codex review 가 잡기 전에* 같은 패턴을 catch 하는 것입니다. 13건 lint history 사례 (Codex catch 9건 #1~#9 + subagent self-catch 3건 #10/#11/#12 + 후속 Codex catch 1건 #13 — #13 은 subagent 가 놓친 동일 패턴 trait verify) 중 자신과 유사한 패턴이 있으면 반드시 명시적으로 self-verify 섹션에 인용하세요.
 
 **특히 PR #159 (Lint #12 self-catch + #13 subagent 누락) 학습**: champion 페이지의 `traits` frontmatter 각 entry 별로 `apply<Trait>Effects` 함수 grep 을 systematic 하게 (요새 / 정령족 / 선봉대 / 보루 / 우주 그루브 등 set17 전체) 수행 — 일부 trait 만 verify 하고 누락하면 같은 페이지 내 다른 trait 의 동일 패턴 (사실 오류) 을 Codex 가 catch 하게 됩니다. **all traits or none — partial 금지**.
 
