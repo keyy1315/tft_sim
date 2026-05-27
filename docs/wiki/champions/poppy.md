@@ -112,7 +112,7 @@ function applyPoppyShieldAndResists(unit, allies) {
 
 ### Trait — 정령족 (Astronaut) + 요새 (Bastion)
 
-- **정령족 (`TFT17_Astronaut`)** — 8 챔프 그룹 (`combatLoop.ts:1949`): Bard / Gnar / Fizz / Rammus / **Poppy** / Corki / Veigar / IvernMinion. 정령(Meeps) 효과 → 정령족 활성 시 Astronaut buff 적용. **현재 sim 미반영** (`combatLoop.ts:1946` "Rammus FlatDRPerMeep, Poppy MeepShield 등 — 복잡 → 별도 PR" 의도된 단순화)
+- **정령족 (`TFT17_Astronaut`)** — 8 챔프 그룹 (`combatLoop.ts:1949`): Bard / Gnar / Fizz / Rammus / **Poppy** / Corki / Veigar / IvernMinion. `applyAstronautEffects` (`combatLoop.ts:1951+`) ✅ **base sim 통합** — combat-start 시 정령족 unit (Poppy 포함) 에 `BonusHealth` flat HP 가산 + `astronautMeepsStack` set (carry damage / onAttack 패시브용). ❌ champion-specific Meeps 효과 (`MeepShield` / `MeepsPerAstro` / `Rammus FlatDRPerMeep` 등) 만 의도적 미반영 (`combatLoop.ts:1946` "복잡 → 별도 PR")
 - **요새 (`Bastion`, `TFT17_ResistTank`)** — `applyBastionEffects` (`combatLoop.ts:1817-1850`) ✅ **base sim 통합 완료**. `unitHasTrait(u, '요새')` 분기 (line 1837) 에서 Poppy 포함 요새 챔프 전체에 `stats.armor += bonusArmor` / `stats.magicResist += bonusMr` 가산. `bastionDoubleEndTick` 으로 Duration doubled 만료 처리 완비. combat-start 시 `combatLoop.ts:4580-4581` 양 팀 호출. Tank role 보강 — base Poppy 도 정상 적용
 
 ## PoppyCarry 변환 시 (참조)
@@ -142,8 +142,7 @@ PoppyCarry augment 활성 시:
 - **MeepShield (정령 보호막) 미반영** — 정령(Meeps) unit 자체 sim 미존재 → 가장 가까운 아군 N명에 MeepShield 부여 메커니즘 누락
 - **MeepsPerAstro (정령 N명) 미반영** — 정령족 활성 시 정령 1명 부여 메커니즘 미구현
 
-🔍 **검증 필요**:
-- 정령족 활성 시 Poppy 본인이 받는 buff (정령 1명 own) — Astronaut trait active 분기 sim 적용 여부
+🔍 **검증 필요**: 없음 (정령족 base buff 는 `applyAstronautEffects` 로 통합 완료 — PR #159 codex P2 catch 후 정정).
 
 ## Lint 신규 등록 후보 (champion ingest 발견)
 
@@ -154,6 +153,8 @@ PoppyCarry augment 활성 시:
 **Z1 (Zed) + B1/B2/B3 (Blitzcrank) + P1 (Poppy) = 7번째 champion 페이지 누적 base 미반영 lint** = Jax L1~L5 (5) + Nasus N1~N4 (4) + Mordekaiser M1 자동 무효 (1) + Zed Z1 P1 (1) + Blitzcrank B1 P1 / B2 P2 / B3 P2 (3) + Poppy P1 P1 (1) = **14건 활성 + 1건 자동 무효**.
 
 > ✅ **subagent self-catch metric 1건 기여** (2026-05-27 PR #159): subagent 가 5단계 integration verify 로 "요새 trait base 적용 여부 별도 verify 필요" 잘못 표기를 **P1 self-catch** — 실제 `applyBastionEffects` (`combatLoop.ts:1817-1850`) 정상 통합 완료. 본 commit 에서 5 line 통합 fix.
+>
+> ✅ **codex P2 추가 catch** (2026-05-27 PR #159 fix-2): subagent 가 놓친 동일 패턴 — "정령족 (Astronaut) trait base buff 적용 여부 verify 필요" 도 실제로는 `applyAstronautEffects` (`combatLoop.ts:1951+`) 가 BonusHealth flat HP + astronautMeepsStack base 적용. champion-specific Meeps 효과 (`MeepShield` 등) 만 미반영. 본 fix-2 commit 에서 동일 5단계 verify 패턴 적용 (subagent 룰 보강 후보).
 
 ## Lint 체크리스트
 
@@ -172,7 +173,7 @@ PoppyCarry augment 활성 시:
 - [x] **carry augment cross-ref** — [[poppy-carry]] (TFT17_Augment_PoppyCarry) + Lint #5 (AS 0.7→0.75 augment 영역, base AS 0.65 와 별개 명시)
 - [x] 정령족 8 챔프 그룹 멤버 확인 (`combatLoop.ts:1949`)
 - [x] **요새 (Bastion) trait base Poppy 적용 여부 verify** — `applyBastionEffects` (`combatLoop.ts:1817-1850`) `unitHasTrait(u, '요새')` 분기로 정상 통합 (subagent P1 self-catch, PR #159)
-- [ ] (선택) 정령족 활성 시 Poppy 본인 정령 1명 own buff 적용 여부 verify
+- [x] **정령족 (Astronaut) base buff 적용 여부 verify** — `applyAstronautEffects` (`combatLoop.ts:1951+`) BonusHealth + astronautMeepsStack base 적용 정상 통합 (codex P2 catch, PR #159). MeepShield / MeepsPerAstro champion-specific 만 미반영
 
 ## 관련
 
