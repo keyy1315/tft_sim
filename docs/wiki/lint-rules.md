@@ -4,7 +4,7 @@ purpose: 위키 ingest 직후 lint subagent (`wiki-ingest-verifier`) 가 사용�
 scope: docs/wiki/{champions,mechanics,augments}/*.md (carry-augment 만, 일반 augment 제외)
 based_on: 자기-lint 9건 누적 (모두 Codex catch — self-catch rate 0%)
 goal: self-catch rate ≥ 50% (P0 기준) in 6 PR
-updated: 2026-05-26 (PR #155 룰 보강 #11~#15 적용 — carry self-buff field / damage modifier 진입 가드 / mechanic summary 표 cross-check / carry augment ingest 시 mechanic page sync / frontmatter ↔ P0 lint case 정합)
+updated: 2026-05-27 (PR #160 룰 보강 #16/#17 적용 — traits frontmatter 각 entry 의 `apply<Trait>Effects` 패턴 grep 전수 verify / sim fix guidance 작성 시 적용 분기 명시 필수. PR #158/#159 학습 종합 — subagent 의 trait verify systematic 강화 + Codex domain expert catch 패턴 룰화)
 ---
 
 # Wiki Ingest Lint Rules
@@ -166,6 +166,8 @@ read 위치 없으면 → 본문에 "🔍 sim 효과 검증 필요" 표기 또�
 | Base ability variables 의 starLevel별 sim 적용 여부 (ShieldAP/FlatDR/MaxHealth 등) | 항상 | Jax base 5건 / Nasus base 4건 lint 후보 |
 | **Carry augment 활성 시 abilityData self-buff / damage modifier 가 base raw vars 보다 우선 read 되는지 verify** (룰 #11/#12 cross-ref, PR #155 도입) | carry augment 가진 champ | Mordekaiser shield 는 `mordekaiserCarryShield` 패턴 ✅. Leona / 다른 carry 도 동형 패턴 필요 (#154 #10/#11) |
 | **본문에 P0 lint case (sim 미반영) 등록 시 frontmatter `sim_active: active` 유지 → P1 raise + `partial` 강등 권장** (룰 #15, PR #155 도입) | P0 lint case 등록 시 | champion 페이지에 base ability vars sim 미반영 lint case (Jax L1~L5 등) 등록 시 sim_active 강등 검토 |
+| **`traits` frontmatter 각 entry 에 대해 `apply<Trait>Effects` 함수 / `unitHasTrait(u, '<TraitName>')` 분기 grep 전수 verify** (룰 #16, PR #160 도입) | 항상 (모든 trait entry) | Poppy `traits: [정령족, 요새]` 양쪽 모두 `applyBastionEffects` (`combatLoop.ts:1817`) + `applyAstronautEffects` (`:1951+`) 정상 통합인데 페이지가 "별도 verify 필요" 잘못 표기 (PR #159 self-catch P1 + Codex P2 추가 catch). 모든 trait entry 별 `apply` helper 존재 시 → 그 fact 본문에 반영, 미존재 시만 "verify 필요" 표기 |
+| **sim fix guidance 작성 시 적용 분기 명시 필수** (룰 #17, PR #160 도입) | Lint 후보 fix 항목 작성 시 | Blitzcrank Lint B1 "UppercutDamage 미반영 → `secondaryDamageVar: 'UppercutDamage'` 추가" 권장 잘못 — `secondaryDamageVar` 는 per-target loop 적용이라 AoE 모든 target 에 over-damage (PR #158 Codex P2 catch). fix guidance 는 **(a) primary target 단독 / (b) per-target loop / (c) cast-time 1회 helper** 중 어느 분기인지 명시 필수 |
 
 ### Mechanic (`docs/wiki/mechanics/*.md`)
 
@@ -191,6 +193,7 @@ read 위치 없으면 → 본문에 "🔍 sim 효과 검증 필요" 표기 또�
 | **abilityData damage modifier 필드 (`baseDamageHpFrac` / `tankBonusMultiplier` / `armorScale` / `singleTargetMultiplier` / `hexReduction`) 의 main pipeline read site 진입 가드 (`&&` 조합) 전수 확인** (룰 #12, PR #155 도입) | damage modifier 필드 정의 시 | Leona baseDamageHpFrac → `baseDamageHpFrac && hexReduction` AND 가드로 미진입 (#154 #11) |
 | **신규 carry augment 도입 시 관련 mechanic page (spell-crit / mana / cast path / role-passive) 의 cast roll / trigger / 호출처 리스트 stale 검증 + last_verified 갱신** (룰 #14, PR #155 도입) | 신규 carry / cast path 변경 시 | Jax carry hero augment (PR #135/#147) 가 5번째/6번째 spellCanCrit cast roll 추가 → spell-crit.md last_verified 갱신 누락 (#154 P1-1) |
 | **본문에 P0 lint case (sim 미반영) 등록 시 frontmatter `sim_active: active` 유지 → page-internal contradiction P1 raise + `partial` 강등 권장** (룰 #15, PR #155 도입, 룰 #8 의 carry-augment / champion 일반화) | P0 lint case 등록 시 | leona-carry frontmatter active ↔ 본문 Lint #10/#11 등록 모순 (#154 codex P2) |
+| **sim fix guidance 작성 시 적용 분기 명시 필수** (룰 #17, PR #160 도입, 룰 #11/#12 보강) | Lint 후보 fix 항목 작성 시 | Blitzcrank B1 "UppercutDamage `secondaryDamageVar` 추가" guidance 잘못 — per-target loop 적용 (PR #158 Codex P2 catch). fix guidance 는 적용 분기 (primary single / per-target / cast-time 1회 helper / combat-start helper) 명시 필수 |
 
 ## Page-internal Cross-check (PR #152 retro pilot 도입)
 
@@ -268,12 +271,23 @@ read 위치 없으면 → 본문에 "🔍 sim 효과 검증 필요" 표기 또�
 | 10 | #154 (등록) | augment (carry) | `leona-carry.md`: `shield [200,240,280]` + `shieldDuration 2s` 가 carry abilityData 에만 정의, main pipeline `getAbilityShield` fallback 이 raw vars (`ShieldAmount`) 우선 read → carry 의도 미반영 | 5 (integration verify) + 3 (entity-wide grep) | P0 | 도메인 verify 대기 (인게임 측정 / 패치노트) |
 | 11 | #154 (등록) | augment (carry) | `leona-carry.md`: `baseDamageHpFrac 0.24` sim 분기 (`combatLoop.ts:6329`) 진입 가드 `baseDamageHpFrac && hexReduction` AND 가드로 인해 LeonaCarry (hexReduction 없음) 미진입. maxHP 24% 가산 sim 영향 0 | 4 (호출 순서 / 진입 가드) + 5 (integration verify) | P0 | 도메인 verify 대기 |
 
+### Subagent self-catch 신규 (PR #159 그린필드 운영, 2026-05-27)
+
+| # | PR | Entity type | Finding | 5단계 중 catch 단계 | Tier | 상태 |
+|---|----|-----------|--------|--------------------|------|------|
+| 12 | #159 (등록) | champion | `poppy.md`: 요새 (Bastion) trait `applyBastionEffects` (`combatLoop.ts:1817-1850`) 정상 통합인데 페이지가 5 line 에서 "별도 verify 필요" 잘못 표기 | 5 (integration verify) + Page-internal cross-check (5 line 통합 finding) | **P1** | 본 commit fix 완료 — 🎯 **첫 subagent P1 self-catch** |
+| 13 | #159 fix-2 | champion (Codex 추가 catch) | `poppy.md`: 정령족 (Astronaut) trait `applyAstronautEffects` (`combatLoop.ts:1951+`) 정상 통합인데 페이지가 "별도 verify 필요" 잘못 표기 (#12 와 동일 패턴, subagent 누락 → Codex P2 raise) | 5 (integration verify) — subagent 가 요새는 catch 했으나 정령족 누락 | P2 (Codex) | 본 fix-2 commit fix 완료 — 룰 #16 도입 trigger |
+
 ### Subagent prompt 보강 사례 (P2 catch, infra self-evolution)
 
 | PR | catch 주체 | Finding | Tier | 해소 |
 |----|----------|--------|------|------|
 | #153 | Codex (P2) | lint-rules.md 0-sub 의 grep `-A 20` fallback window 부족 → entry size ≥ 21 line augment (`Weightlifting`) miss. node -e / jq / `-A 50` + `grep -m1` 로 강화 | P2 | PR #153 fix commit `a4c1d90` ✅ |
 | #154 | Codex (P2) | leona-carry frontmatter `sim_active: active` ↔ 본문 P0 Lint #10/#11 등록 (sim 미반영) 모순. 본 룰셋 #8 (PR #146 mechanic-level 보수적 minimum) 의 carry-augment / champion 일반화 누락 | P2 | PR #154 fix commit `3e0412d` + **신규 룰 #15** 등록 (PR #155) ✅ |
+| #155 | Codex (P1+P2) | subagent grep 패턴 3건 — recursive `-r` flag 누락 (silent fail) + BRE `\?` quantifier (optional chaining `?.` 매칭 실패) + `damageReduction` 필드 grep 누락 | P1+P2 | PR #155 fix commit `092ad94` ✅ — ERE `[?]` 문자 클래스로 교체 |
+| #158 | Codex (P2) | blitzcrank.md Lint B1 "UppercutDamage `secondaryDamageVar` 추가" fix guidance 잘못 — `secondaryDamageVar` 는 cast resolution per-target loop 적용이라 AoE 모든 target 에 over-damage. primary-target-only 패턴 필요 (helper 또는 별도 abilityOverride 필드) | P2 | PR #158 fix commit `7125fba` + **신규 룰 #17** 등록 (PR #160) ✅ |
+| #158 | Codex (P3 ×2) | blitzcrank.md (a) 누적 lint count 산술 mismatch (`11건 활성` → `13건` 5+4+1+3 계산 정정) + (b) BoltDamage fallback typo `cooldownArr[1]` → `damageArr[1]` (combatLoop.ts:1647 실제 코드) | P3 | PR #158 fix commit `7125fba` ✅ |
+| #159 | Codex (P2) | poppy.md 정령족 (Astronaut) trait `applyAstronautEffects` (`combatLoop.ts:1951+`) 통합 인지 누락 — subagent 가 요새는 P1 catch 했으나 정령족 누락. 동일 패턴 부정확 표기. trait verify systematic 강화 필요 | P2 | PR #159 fix commit `09e8dc2` + **신규 룰 #16** 등록 (PR #160) ✅ |
 
 ### 룰 보강 #11~#15 (PR #155 적용 완료, 2026-05-26)
 
@@ -287,7 +301,16 @@ read 위치 없으면 → 본문에 "🔍 sim 효과 검증 필요" 표기 또�
 | #14 | 신규 carry augment 도입 시 관련 mechanic page (spell-crit / mana / cast path / role-passive) 의 cast roll / trigger / 호출처 리스트 stale 검증 + last_verified 갱신 | PR #154 spell-crit.md P1-1 (Jax carry 가 cast roll 호출처 2개 추가했으나 mechanic page last_verified 갱신 누락) | Entity-type checklist "Carry augment" |
 | #15 | 본문에 P0 lint case (sim 미반영) 등록 시 frontmatter `sim_active: active` 유지 → P1 raise + `partial` 강등 권장 (룰 #8 의 carry-augment / champion 일반화) | PR #154 codex P2 (leona-carry self-rule violation) | Entity-type checklist "Carry augment" + "Champion" + Page-internal Cross-check 룰 |
 
-> Codex catch 9건 모두 self-catch 0% (PR #111~#149). 본 룰셋 도입 후 PR #154 retro lint 에서 신규 P0 2건 self-catch (Lint #10/#11) + Codex P2 2건 (PR #153/#154) 으로 catch infra 자체가 self-evolving 검증됨. 룰 #11~#15 적용 (PR #155) 후 다음 champion ingest 부터 운영 적용. 6 PR 평가 target ≥ 50% self-catch.
+### 룰 보강 #16/#17 (PR #160 적용 완료, 2026-05-27)
+
+본 2건 보강은 PR #158/#159 그린필드 운영 + Codex catch 학습. lint-rules.md (entity-type checklist Champion + Carry augment 양쪽) + `.claude/agents/wiki-ingest-verifier.md` (핵심 패턴 Champion grep + 금지 사항) 양쪽 동시 갱신.
+
+| # | 룰 | 도입 사례 | 적용 위치 |
+|---|----|----------|-----------|
+| #16 | champion 페이지의 `traits` frontmatter 각 entry 에 대해 `apply<Trait>Effects` 함수 / `unitHasTrait(u, '<TraitName>')` 분기 grep 전수 verify — 각 trait 별 systematic check (요새, 정령족, 선봉대 등) | PR #159 Lint #12 (요새 subagent self-catch P1) + #13 (정령족 Codex P2 추가 catch — subagent 누락) | Entity-type checklist "Champion" + subagent 핵심 패턴 Champion grep section |
+| #17 | sim fix guidance 작성 시 적용 분기 **(a) primary target 단독 / (b) per-target loop / (c) cast-time 1회 helper / (d) combat-start helper)** 명시 필수 — 패턴 잘못 선택 시 over-damage / under-damage 회귀 | PR #158 Codex P2 (Blitzcrank Lint B1 "UppercutDamage `secondaryDamageVar` 추가" guidance per-target loop 적용 → AoE over-damage) | Entity-type checklist "Champion" + "Carry augment" 공통 + subagent 금지 사항 |
+
+> Codex catch 9건 (PR #111~#149) self-catch 0% → 룰셋 도입 후 PR #154 retro 에서 신규 P0 2건 self-catch (Lint #10/#11) + PR #156/#158/#159 그린필드 운영. **PR #159 가 첫 P1 self-catch 발생** (요새 trait Bastion). 룰 #16/#17 적용 (PR #160) 후 다음 champion ingest 부터 운영 적용. 6 PR 평가 target ≥ 50% self-catch (현재 3/6 PR 운영, P0 분모 0 / P1 분자 1).
 
 ## 워크플로우 진화
 
@@ -300,7 +323,10 @@ read 위치 없으면 → 본문에 "🔍 sim 효과 검증 필요" 표기 또�
 | 2026-05-XX | 5단계 actual integration verify | #128 (starLevel별 read site 부재) |
 | 2026-05-XX | 4-sub cast path 3종 전수 | #129 (OOR stun 누락) |
 | 2026-05-21 | 0단계 entity set 소속 (apiName grep) | #149 P2 (Galio 한글 list 누락) |
-| 2026-05-26 | **본 룰셋 single source 화 + lint subagent 도입** | (this) |
+| 2026-05-26 | **본 룰셋 single source 화 + lint subagent 도입** | PR #152 |
+| 2026-05-26 | 룰 #11~#15 도입 (carry self-buff field / damage modifier 진입 가드 / mechanic summary cross-check / mechanic page sync / sim_active partial 강등) | PR #155 |
+| 2026-05-27 | **첫 P1 self-catch metric 발생** (요새 trait Bastion, poppy.md) | PR #159 |
+| 2026-05-27 | 룰 #16/#17 도입 (traits frontmatter `apply<Trait>Effects` grep 전수 verify / sim fix guidance 적용 분기 명시 필수) | PR #160 |
 
 ## Self-catch Metric (6 PR 평가)
 
@@ -317,7 +343,22 @@ read 위치 없으면 → 본문에 "🔍 sim 효과 검증 필요" 표기 또�
 
 **Retro 합계 (6 페이지)**: raised P0 **3** / P1 **5** / P2 **15** / downgraded known **17** / Codex P0 catch **0** (모두 이미 머지된 페이지). 9건 lint history 패턴 catch rate: 100% (false-positive 룰 정상 작동).
 
+### 그린필드 운영 진행도 (2026-05-27 기준, 3 PR)
+
+| 평가 PR | Date | Page | Subagent P0/P1/P2 | Codex P0/P1/P2-3 | Self-catch rate (P0) | 비고 |
+|---------|------|------|-------------------|------------------|----------------------|------|
+| 1 | 2026-05-27 | champions/zed.md (PR #156) | 0 / 0 / 3 (line drift) | 0 / 0 / 0 (응답 없음) | N/A (P0 분모 0) | false-positive 룰 정상 작동 (downgraded known 4). 첫 그린필드 |
+| 2 | 2026-05-27 | champions/blitzcrank.md (PR #158) | 0 / 0 / 3 (metadata: state field count / fixture 라벨 / helper count) | 0 / 0 / 3 (P2 fix guidance + P3 count + P3 typo) | N/A (P0 분모 0) | 룰 #17 trigger (Codex P2 fix guidance) |
+| 3 | 2026-05-27 | champions/poppy.md (PR #159) | 0 / **1 (self-catch ★)** / 1 | 0 / 0 / 1 (정령족 trait 동일 패턴) | N/A (P0 분모 0) | 🎯 **첫 P1 self-catch** (요새 trait Bastion) + 룰 #16 trigger (Codex P2 정령족 동일 패턴 subagent 누락) |
+| 4~6 | 미정 | 다음 champion / mechanic / carry-augment ingest | TBD | TBD | TBD | 3 PR 더 필요 (룰 #16/#17 적용 효과 측정 시작) |
+
+**그린필드 합계 (3 PR)**: subagent P0 **0** / P1 **1** (self-catch) / P2 **7** / downgraded known **15** / Codex P0 **0** / Codex P1 **0** / Codex P2-3 **4** (모두 무해 metadata / fix guidance / typo / 동일 패턴 누락 — P0/P1 회귀 없음).
+
 Target: **self-catch / (self-catch + Codex) ≥ 50%** (P0 기준).
+
+**현 상태 (P0)**: 0/0 = **N/A** (P0 분모 0 — 그린필드 운영 페이지 모두 P0 raise 없음, false-positive 룰 정상 작동 + 작성 단계 자기 verify 효율적).
+
+**현 상태 (P1)**: 1/1 = **100%** (subagent P1 1건, Codex P1 0건 — 단 분모 작음). 룰 #16 적용 (PR #160) 후 동일 패턴 (trait verify 누락) 재발 시 self-catch 비율 유지 예상.
 
 미달 시: subagent prompt 강화 / 5단계 룰 추가 / cast path 4종 이상 확장 검토.
 
