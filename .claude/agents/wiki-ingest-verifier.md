@@ -38,11 +38,12 @@ main agent 가 dispatch 시 다음 중 하나 또는 복수의 페이지 경로�
 4. **5단계 + 0단계 verify 수행**:
    - 0 set 소속 (+ 0-sub conditional augment `disable: true` verify) / 1 좁은 grep / 2 함수 컨텍스트 / 3 entity-wide grep / 4 호출 순서 (+ cast path 3종 sub-rule) / 5 actual integration verify
    - 각 단계마다 코드 grep / 함수 read 결과를 finding 의 근거로 인용
-5. **Entity-type 별 추가 checklist 적용** — lint-rules.md 의 entity-type 표 참조
-6. **Page-internal cross-check** (PR #152 도입) — 같은 entity / fact 가 페이지 여러 line 에서 모순 표기 시 **단일 finding 으로 통합**. frontmatter 와 본문 모순도 동일. lint-rules.md "Page-internal Cross-check" 섹션 참조
+5. **Entity-type 별 추가 checklist 적용** — lint-rules.md 의 entity-type 표 참조 (특히 **carry augment**: 룰 #11 self-buff field / #12 damage modifier 진입 가드 / #14 mechanic page sync, **mechanic**: 룰 #13 summary 표 cross-check)
+6. **Page-internal cross-check** (PR #152 도입 + PR #155 룰 #15 강화) — 같은 entity / fact 가 페이지 여러 line 에서 모순 표기 시 **단일 finding 으로 통합**. frontmatter 와 본문 모순도 동일. **본문에 P0 lint case (sim 미반영) 등록 시 frontmatter `sim_active: active` 유지 → P1 raise + `partial` 강등 권장** (룰 #15). lint-rules.md "Page-internal Cross-check" 섹션 참조
 7. **Line 번호 인용 drift 확인** (선택) — 본문/frontmatter 의 `src/...:NNNN` line 인용에 대해 인용 line 의 함수 여전히 존재하는지 grep. drift > 10 line 시만 P2 informational ("last_verified + line 번호 갱신 권장"), 함수 자체 사라짐은 P0. drift ≤ 10 line 은 finding 불요
-8. **Tiered finding 분류** — P0 / P1 / P2 (Severity Tier 정의는 lint-rules.md). False-positive 방지 룰 적용 (본문 "PR #XYZ resolved" / "🔍 검증 필요" / "disable: true 자동 무효" 표기 + 코드 verify 결과로 downgrade)
-9. **Output 보고** — 아래 형식 준수. `Finding 통계` 라인에 `raised P0/P1/P2 N/M/K + downgraded known D` 필수 명시. `Downgraded known findings` 섹션으로 false-positive 작동 사례 별도 보고
+8. **신규 carry augment ingest 시 mechanic page sync verify** (룰 #14, PR #155 도입) — 페이지가 carry augment 면 관련 mechanic page (spell-crit / mana / cast path / role-passive) 의 cast roll / trigger / 호출처 리스트가 신규 carry 의 분기를 반영하는지 grep 으로 확인. 누락 시 mechanic page 의 P1 finding 으로 raise
+9. **Tiered finding 분류** — P0 / P1 / P2 (Severity Tier 정의는 lint-rules.md). False-positive 방지 룰 적용 (본문 "PR #XYZ resolved" / "🔍 검증 필요" / "disable: true 자동 무효" 표기 + 코드 verify 결과로 downgrade)
+10. **Output 보고** — 아래 형식 준수. `Finding 통계` 라인에 `raised P0/P1/P2 N/M/K + downgraded known D` 필수 명시. `Downgraded known findings` 섹션으로 false-positive 작동 사례 별도 보고
 
 ## 출력 형식 (반드시 준수)
 
@@ -131,6 +132,12 @@ grep -rn "<trigger-identifier>" src/lib/simulator/
 
 # 2단계 — 함수 컨텍스트
 # grep hit line ± 50 line read 또는 함수 전체 read
+
+# 룰 #13 (PR #155 도입) — mechanic 페이지의 entity summary 표 cross-check
+# 페이지가 다른 페이지가 cross-ref 하는 권위 출처 (예: hero-augment-carry / role-passive)
+# 표의 각 entity 값 → entity 페이지 / 코드 ground truth 와 일치 verify
+grep -n "<entity-key>" src/data/carryAugments.ts  # 또는 src/lib/simulator/systems/...
+# 17.2 → 17.2b → 17.3 patch 변경 시 summary 표 sync 누락 catch
 ```
 
 ### Carry augment
@@ -140,7 +147,24 @@ grep -rn "<trigger-identifier>" src/lib/simulator/
 grep -rn "<EntityName>" src/lib/simulator/
 
 # 1단계 — entry
-grep -n "<EntityName>Carry" src/lib/simulator/carryAugments.ts
+grep -n "<EntityName>Carry" src/data/carryAugments.ts
+
+# 룰 #11 (PR #155 도입) — self-buff field main pipeline read site
+# 페이지가 abilityData.shield / shieldDuration / heal / damageReduction 정의 시
+# (ERE + 문자 클래스로 optional chaining `?.` 리터럴 매칭 — BRE `\?` 는 quantifier 라 false negative 발생)
+grep -nE "abilityData[?]\.(shield|shieldDuration|heal|damageReduction)" src/lib/simulator/engine/combatLoop.ts
+# entity-specific 필드 (`*CarryShield` 패턴) 또는 일반 분기 우선 read 둘 중 하나 필수
+grep -nE "<EntityName>Carry(Shield|Heal|DamageReduction)" src/lib/simulator/engine/combatLoop.ts src/types/index.ts
+
+# 룰 #12 (PR #155 도입) — damage modifier 진입 가드 (AND 조합) 전수 확인
+# 페이지가 baseDamageHpFrac / tankBonusMultiplier / armorScale / singleTargetMultiplier / hexReduction 정의 시
+grep -nE -A 3 "ad[?]\.(baseDamageHpFrac|hexReduction|tankBonusMultiplier)" src/lib/simulator/engine/combatLoop.ts
+# 진입 가드의 && 조합 확인 — 일부 필드만 정의된 carry 가 분기 진입 가능한지
+
+# 룰 #14 (PR #155 도입) — mechanic page sync (신규 cast roll / trigger 추가 시)
+# 페이지가 신규 carry 면 관련 mechanic 페이지의 호출처 리스트 verify
+grep -n "spellCanCrit && rng.next" src/lib/simulator/engine/combatLoop.ts  # spell-crit 호출처
+grep -rn "gainManaOnAttack\|gainManaPerTick" src/lib/simulator/  # mana page 호출처 (디렉토리 재귀 필수)
 ```
 
 ## 금지 사항
@@ -155,6 +179,11 @@ grep -n "<EntityName>Carry" src/lib/simulator/carryAugments.ts
 - ❌ **"특정 augment 활성 시 효과 미반영" finding raise 전 augment `disable: true` 확인 누락** — disable 이면 자동 무효 → finding 자체 raise 안 함 (downgrade only)
 - ❌ **같은 entity 의 여러 line 모순을 개별 finding 으로 raise** — page-internal cross-check 후 단일 통합 finding
 - ❌ **Line 번호 인용 자체를 finding 으로 raise** — line 인용은 허용. drift > 10 line + 함수 위치 변경 시만 P2 informational. 함수 자체 사라짐은 P0
+- ❌ **carry abilityData 의 self-buff 필드 (shield/shieldDuration/heal/damageReduction) 의 main pipeline read site verify 누락** (룰 #11, PR #155 도입) — entity-specific 필드 (`*CarryShield`) 또는 일반 분기 우선 read 둘 중 하나 필수. 없으면 P0
+- ❌ **carry abilityData damage modifier 필드의 진입 가드 (`&&` 조합) 전수 확인 누락** (룰 #12, PR #155 도입) — 일부 필드만 정의된 carry 가 의도된 분기 진입 가능한지. 미진입 시 sim 영향 0 → P0
+- ❌ **mechanic 페이지의 entity summary 표 stale 검증 누락** (룰 #13, PR #155 도입) — 표의 각 값 → entity 페이지 / 코드 ground truth cross-check 필수. mechanic 페이지가 다른 페이지의 권위 출처
+- ❌ **신규 carry augment ingest 시 관련 mechanic page (spell-crit / mana / cast path) sync verify 누락** (룰 #14, PR #155 도입) — cast roll / trigger 호출처 리스트 stale 시 P1
+- ❌ **본문 P0 lint case (sim 미반영) 등록 + frontmatter `sim_active: active` 유지** (룰 #15, PR #155 도입) — page-internal contradiction P1 raise + `partial` 강등 권장. 본 룰셋 #8 (mechanic-level 보수적 minimum) 의 carry-augment / champion 일반화
 - ❌ **Pass/fail 단순 판정** — 모든 finding 은 P0/P1/P2 tier + 근거 (grep 결과) + 권장 fix 동반
 - ❌ **Downgraded known findings 보고 누락** — false-positive 방지 작동 사례는 별도 섹션으로 명시 (Finding 통계 D 값에 카운트)
 
