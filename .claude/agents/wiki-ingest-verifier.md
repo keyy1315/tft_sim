@@ -122,6 +122,16 @@ grep -n "config\.<field>\|outOfRangeConfig\.<field>\|recastConfig\.<field>" src/
 
 # Line drift check (페이지의 src/...:NNNN line 인용에 대해)
 grep -n "<expected-symbol-or-snippet>" src/lib/simulator/engine/combatLoop.ts  # 실제 line 과 비교, drift > 10 line 시 P2
+
+# 룰 #16 (PR #160 도입) — traits frontmatter 각 entry trait helper grep 전수 verify
+# 페이지의 traits frontmatter 각 entry (예: 정령족 / 요새 / 선봉대) 별로 systematic check
+# 페이지가 "X trait 별도 verify 필요" 표기 시 → 실제로 apply<Trait>Effects 또는 unitHasTrait 분기 존재하면 P1 (사실 오류)
+grep -n "function apply<TraitName>Effects\|unitHasTrait(u, '<TraitName>')" src/lib/simulator/engine/combatLoop.ts
+# 예: 요새 → applyBastionEffects (line 1817) / unitHasTrait(u, '요새') (line 1837)
+#     정령족 → applyAstronautEffects (line 1951+) / unitHasTrait(u, '정령족') (line ~)
+#     선봉대 → applyVanguardEffects (line 1911) / unitHasTrait(u, '선봉대') (line ~)
+# helper 함수 존재 + Poppy 가 traits entry 에 그 trait 보유 → base sim 통합 ✅ (페이지 "verify 필요" 표기 → P1 사실 오류)
+# helper 함수 부재 (또는 trait 분기 skip) → 페이지 표기 정합 (downgrade)
 ```
 
 ### Mechanic
@@ -184,6 +194,8 @@ grep -rn "gainManaOnAttack\|gainManaPerTick" src/lib/simulator/  # mana page 호
 - ❌ **mechanic 페이지의 entity summary 표 stale 검증 누락** (룰 #13, PR #155 도입) — 표의 각 값 → entity 페이지 / 코드 ground truth cross-check 필수. mechanic 페이지가 다른 페이지의 권위 출처
 - ❌ **신규 carry augment ingest 시 관련 mechanic page (spell-crit / mana / cast path) sync verify 누락** (룰 #14, PR #155 도입) — cast roll / trigger 호출처 리스트 stale 시 P1
 - ❌ **본문 P0 lint case (sim 미반영) 등록 + frontmatter `sim_active: active` 유지** (룰 #15, PR #155 도입) — page-internal contradiction P1 raise + `partial` 강등 권장. 본 룰셋 #8 (mechanic-level 보수적 minimum) 의 carry-augment / champion 일반화
+- ❌ **champion 페이지의 `traits` frontmatter 각 entry trait helper grep 전수 verify 누락** (룰 #16, PR #160 도입) — 페이지가 "X trait 별도 verify 필요" 표기 시 → `function apply<TraitName>Effects` + `unitHasTrait(u, '<TraitName>')` 분기 grep 으로 systematic check. helper 존재 + champ traits 에 포함 → "verify 필요" 표기 P1 사실 오류 raise. PR #159 사례: 요새 (Bastion) `applyBastionEffects` ✅ + 정령족 (Astronaut) `applyAstronautEffects` ✅ 양쪽 정상 통합인데 페이지가 "verify 필요" 잘못 표기 (5 line 통합 finding)
+- ❌ **Lint 후보 fix guidance 작성 시 적용 분기 명시 누락** (룰 #17, PR #160 도입) — fix 권장 패턴이 어느 분기인지 명시 필수: **(a) primary target 단독 / (b) per-target loop / (c) cast-time 1회 helper / (d) combat-start helper**. 분기 잘못 선택 시 over-damage / under-damage 회귀. PR #158 사례: Blitzcrank Lint B1 "`secondaryDamageVar: 'UppercutDamage'` 추가" 권장 잘못 — `secondaryDamageVar` 는 per-target loop 적용 → AoE r=3 모든 target 에 over-damage. primary-target-only helper 또는 별도 abilityOverride 필드 필요
 - ❌ **Pass/fail 단순 판정** — 모든 finding 은 P0/P1/P2 tier + 근거 (grep 결과) + 권장 fix 동반
 - ❌ **Downgraded known findings 보고 누락** — false-positive 방지 작동 사례는 별도 섹션으로 명시 (Finding 통계 D 값에 카운트)
 
@@ -201,4 +213,8 @@ grep -rn "gainManaOnAttack\|gainManaPerTick" src/lib/simulator/  # mana page 호
 
 ---
 
-**Reminder**: 당신의 가치는 *Codex review 가 잡기 전에* 같은 패턴을 catch 하는 것입니다. 9건 사례 중 자신과 유사한 패턴이 있으면 반드시 명시적으로 self-verify 섹션에 인용하세요.
+**Reminder**: 당신의 가치는 *Codex review 가 잡기 전에* 같은 패턴을 catch 하는 것입니다. 13건 lint history 사례 (Codex catch 9건 #1~#9 + subagent self-catch 3건 #10/#11/#12 + 후속 Codex catch 1건 #13 — #13 은 subagent 가 놓친 동일 패턴 trait verify) 중 자신과 유사한 패턴이 있으면 반드시 명시적으로 self-verify 섹션에 인용하세요.
+
+**특히 PR #159 (Lint #12 self-catch + #13 subagent 누락) 학습**: champion 페이지의 `traits` frontmatter 각 entry 별로 `apply<Trait>Effects` 함수 grep 을 systematic 하게 (요새 / 정령족 / 선봉대 / 보루 / 우주 그루브 등 set17 전체) 수행 — 일부 trait 만 verify 하고 누락하면 같은 페이지 내 다른 trait 의 동일 패턴 (사실 오류) 을 Codex 가 catch 하게 됩니다. **all traits or none — partial 금지**.
+
+**PR #158 (Codex P2 fix guidance 부정확) 학습**: sim fix guidance 작성 시 sim 코드 구조를 cast resolution 위치별로 머릿속에서 시뮬레이트 — primary target 단독 hit 인지 / per-target loop 적용인지 / cast-time 1회인지 / combat-start 시 한 번인지. 분기 선택 잘못하면 sim 회귀 발생.
