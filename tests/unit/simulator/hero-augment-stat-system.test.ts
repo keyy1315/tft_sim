@@ -692,8 +692,8 @@ describe('PR7-C — 아트록스 carry 3-skill cycle + N.O.V.A. 추가 발동', 
     );
     // tickDrxNova 안 kindredSelector 검사 (TFT17_Kindred + aatroxNovaStrikeSelector)
     expect(file).toMatch(/kindredSelector\s*=\s*state\.teamUnits\.find\([\s\S]+?'TFT17_Kindred'[\s\S]+?aatroxNovaStrikeSelector/);
-    // damageAmp +5%
-    expect(file).toMatch(/kindredSelector\.damageAmp \+= 0\.05/);
+    // damageAmp +10% (17.4 buff: 5%→10%, PR #166 sequence C-3, Codex P1 PR #162 catch)
+    expect(file).toMatch(/kindredSelector\.damageAmp \+= 0\.10/);
     // mark statusEffect (sourceId='kindred-nova-selector')
     expect(file).toMatch(/sourceId: 'kindred-nova-selector'/);
   });
@@ -886,22 +886,22 @@ describe('PR7-C — 아트록스 carry 3-skill cycle + N.O.V.A. 추가 발동', 
     );
     // tickDrxNova 안 akaliSelector 검사
     expect(file).toMatch(/akaliSelector\s*=\s*state\.teamUnits\.find\([\s\S]+?'TFT17_Akali'[\s\S]+?aatroxNovaStrikeSelector/);
-    // 출혈 starLevel별 [10, 14, 18] per second + burn statusEffect (sourceId='akali-nova-selector')
+    // 출혈 starLevel별 [12, 18, 24] AD per second (17.4 buff: 10/14/18 → 12/18/24, PR #166 sequence C-3, Codex P1 PR #162 catch) + burn statusEffect (sourceId='akali-nova-selector')
     // codex P1 (PR #81): mitigated value 저장 (armor + pen 적용 후, DR 적용 후)
-    expect(file).toMatch(/akaliBleedPerSec\s*=\s*\[10, 14, 18\]/);
+    expect(file).toMatch(/akaliBleedPerSec\s*=\s*\[12, 18, 24\]/);
     expect(file).toMatch(/sourceId: 'akali-nova-selector'[\s\S]+?value: finalPerTick/);
   });
 
-  it('Kindred 5초 주기 mark 갱신 코드 fingerprint (PR7-C.5)', async () => {
+  it('Kindred 4.5초 주기 mark 갱신 코드 fingerprint (PR7-C.5 + 17.4 buff: 5s → 4.5s, PR #166 sequence C-3)', async () => {
     const fs = await import('node:fs');
     const path = await import('node:path');
     const file = fs.readFileSync(
       path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
       'utf8',
     );
-    // tickKindredNovaMark helper + 5초 주기 (5 × TICKS_PER_SECOND)
+    // tickKindredNovaMark helper + 4.5초 주기 (Math.round(4.5 × TICKS_PER_SECOND))
     expect(file).toMatch(/tickKindredNovaMark/);
-    expect(file).toMatch(/periodTicks\s*=\s*5\s*\*\s*TICKS_PER_SECOND/);
+    expect(file).toMatch(/periodTicks\s*=\s*Math\.round\(4\.5\s*\*\s*TICKS_PER_SECOND\)/);
     // surge triggered 후만 발동
     expect(file).toMatch(/drxState\.triggered/);
   });
