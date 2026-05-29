@@ -1710,11 +1710,15 @@ function applyFlexTraitBuffs(activeTraits: ActiveTrait[], ownTeam: CombatUnit[])
  *   (1) tier 0: minUnits=1 placeholder, 효과 null
  *   (3) tier 1: StartOfCombatDuration=3 (3초 동안 그루브 상태 — 매초 효과 미정)
  *   (5) tier 2: ADAPPerSecond=5, StartOfCombatDuration=3
- *   (7) tier 3: ADAPPerSecond=5, EffectBonus=10, StartOfCombatDuration=3
+ *   (7) tier 3: ADAPPerSecond=5, EffectBonus=10 (17.3) / 15 (17.4 PR #163), StartOfCombatDuration=3
  *   (10) prism: ADAPPerSecond=10, EffectBonus=500, StartOfCombatDuration=60 — detectPrismTraits 가
  *               즉시 winner 결정 (별도 처리). 본 함수는 일반 tier 만 set.
  *
- * EffectBonus 의미는 raw 미해석 (단순화 — 미적용).
+ * EffectBonus 통합 (PR #167 sequence C-4, Codex P2 PR #163 catch):
+ *   raw desc "(@MinUnits@) 이 모든 효과가 @EffectBonus@% 증가" → adapPerSec × (1 + EffectBonus/100) 곱셈 적용.
+ *   17.4: tier 7 EffectBonus=15 → boostedAdapPerSec = 5 × 1.15 = 5.75 (17.3: 5 × 1.10 = 5.50).
+ *   tier 5 이하 EffectBonus null/0 → 곱셈 무영향 (5 × 1.0 = 5).
+ *
  * 매 1초 main loop tick 에서 ADAP 가산 — main loop 에서 spaceGrooveDurationSec 초 동안만.
  */
 function applySpaceGrooveBuffs(activeTraits: ActiveTrait[], ownTeam: CombatUnit[]): void {
@@ -1723,12 +1727,15 @@ function applySpaceGrooveBuffs(activeTraits: ActiveTrait[], ownTeam: CombatUnit[
   const v = trait.activeEffect.variables;
   const adapPerSec = (v['ADAPPerSecond'] ?? 0) as number;
   const durationSec = (v['StartOfCombatDuration'] ?? 0) as number;
+  const effectBonus = (v['EffectBonus'] ?? 0) as number;
   if (adapPerSec <= 0 || durationSec <= 0) return;
   // prism (style=6) tier 는 detectPrismTraits 가 즉시 winner 결정 — 본 함수는 일반 tier 만.
   if (trait.style >= 6) return;
+  // EffectBonus 곱셈 (tier 7 의 "이 모든 효과 +N% 증가"). PR #167 sequence C-4 (Codex P2 PR #163 catch).
+  const boostedAdapPerSec = adapPerSec * (1 + effectBonus / 100);
   for (const u of ownTeam) {
     if (!unitHasTrait(u, '우주 그루브')) continue;
-    u.spaceGrooveAdapPerSec = adapPerSec;
+    u.spaceGrooveAdapPerSec = boostedAdapPerSec;
     u.spaceGrooveDurationSec = durationSec;
   }
 }
