@@ -30,9 +30,9 @@ related:
 
 | Asset | 17.4 적용 상태 | PR |
 |-------|----------------|----|
-| **raw data** (`public/data/tft_set17_*.json`) | ⚠️ **sequence B 1차 완료** (PR #163): Zed (initialMana 40, HPPenalty ★3 0.45) + Shen (initialMana 20, BonusDamageOnAttack ★1/★2 25/40) + Jax (FlatDR ★1/★2/★3 20/25/30) + ASTrait (AttackSpeedPercent tier 3/4 28%/42%) + RangedTrait (PercentDamageIncrease tier 3/4 25/35) + SpaceGroove (tier 7 EffectBonus 15) | 본 PR (sequence B 1차) |
+| **raw data** (`public/data/tft_set17_*.json`) | ⚠️ **sequence B 1차 완료** (PR #163): Zed (initialMana 40, HPPenalty ★3=value[2]=0.45 — Codex P1 catch 후 인덱싱 정정) + Shen (initialMana 20, BonusDamageOnAttack ★1/★2 25/40) + Jax (FlatDR value[1]/[2]/[3] 20/25/30) + ASTrait (AttackSpeedPercent tier 3/4 28%/42%) + RangedTrait (PercentDamageIncrease tier 3/4 25/35) + SpaceGroove (tier 7 EffectBonus 15 — ⚠️ sim 미반영, Codex P2 catch) | 본 PR (sequence B 1차) |
 | **raw data 나머지** | ❌ deferred — DarkStar (SupermassivePercentBonus 0.85→0.70, PercentHealth 0.30→0.25, 4 effects vs (6) tier 검증 필요) / DRX (NOVA 챔프별 분기 = sim 코드 hardcoded) / Stargazer (정확한 필드 매핑 verify 필요) + 15 champion 미작성 entity | **sequence B 후속 PR** |
-| **sim 코드** (`combatLoop.ts` trait helpers + ability config) | ⚠️ **자동 반영 + hardcoded 잔존**. raw json 갱신만으로 자동 sim 반영: Shen passive damage / Zed-Shen mana / Sniper amp / Challenger AS / SpaceGroove EffectBonus ✅. 별도 hardcoded 갱신 필요: NOVA 챔프별 / Jax selfBuff.durability / JaxCarry damage / Stargazer 필드 매핑 | **sequence C** — helper 코드 hardcoded 갱신 + 테스트 회귀 |
+| **sim 코드** (`combatLoop.ts` trait helpers + ability config) | ⚠️ **자동 반영 + hardcoded 잔존**. raw json 갱신만으로 자동 sim 반영: Shen passive damage / Zed-Shen mana / Sniper amp / Challenger AS ✅ (4건, PR #163 Codex P2 정정 후 — SpaceGroove EffectBonus 자동 반영 ❌ 정정: helper 미구현). 별도 hardcoded 갱신 필요: NOVA 챔프별 / Jax selfBuff.durability / JaxCarry damage / Stargazer 필드 매핑 / **SpaceGroove EffectBonus helper 통합** | **sequence C** — helper 코드 hardcoded 갱신 + 테스트 회귀 |
 | **Arbiter 시스템** | ❌ 17.3 의 입력/출력 구조 | **sequence D** — 3 카테고리 (일관성/조건부/경제) 개편 |
 | **Psionic 아이템** | ❌ 17.3 stats | sequence D 일부 |
 | **위키 페이지** (champion / mechanic) | ✅ **sequence A 완료** (PR #162) — 17.4 fact 명시 + frontmatter `current_patch_status: active (17.3 LIVE, 17.4 patch pending)` + 본문 패치 히스토리 row | PR #162 |

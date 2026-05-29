@@ -7,9 +7,9 @@
     "patch_version": "17.4 LIVE (partial — sequence B 1차)",
     "fetched_at": "2026-05-29",
     "patch_17_4_changes": [
-      "TFT17_ASTrait (도전자/Challenger): AttackSpeedPercent tier 3=0.22→0.28, tier 4=0.40→0.42",
-      "TFT17_RangedTrait (저격수/Sniper): PercentDamageIncrease tier 3=24→25, tier 4=28→35",
-      "TFT17_SpaceGroove (우주 그루브): tier 7 EffectBonus=10→15"
+      "TFT17_ASTrait (도전자/Challenger): AttackSpeedPercent tier 3=0.22→0.28, tier 4=0.40→0.42 (자동 sim 반영 ✅)",
+      "TFT17_RangedTrait (저격수/Sniper): PercentDamageIncrease tier 3=24→25, tier 4=28→35 (자동 sim 반영 ✅)",
+      "TFT17_SpaceGroove (우주 그루브): tier 7 EffectBonus=10→15 (⚠️ sim 미반영 — applySpaceGrooveBuffs combatLoop.ts:1717-1727 가 ADAPPerSecond/StartOfCombatDuration 만 read, EffectBonus 미구현. raw fact 만 갱신, sequence C 에서 helper 통합 필요. PR #163 codex P2 catch)"
     ],
     "patch_17_4_deferred": [
       "TFT17_DarkStar: SupermassivePercentBonus 0.85→0.70 / PercentHealth 0.30→0.25 (4 effects 모두 영향 vs (6) tier 한정 여부 verify 필요)",
