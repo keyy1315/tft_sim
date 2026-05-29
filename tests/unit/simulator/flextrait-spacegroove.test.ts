@@ -126,8 +126,25 @@ describe('17.2 Hash Audit — 발견 issue meta', () => {
     // tier 2 (5명): ADAPPerSecond=5, StartOfCombatDuration=3
     expect(t.effects[2].variables['ADAPPerSecond']).toBe(5);
     expect(t.effects[2].variables['StartOfCombatDuration']).toBe(3);
+    // tier 3 (7명): ADAPPerSecond=5, EffectBonus=15 (17.4 buff: 10→15, PR #163 sequence B)
+    expect(t.effects[3].variables['ADAPPerSecond']).toBe(5);
+    expect(t.effects[3].variables['EffectBonus']).toBe(15);
+    expect(t.effects[3].variables['StartOfCombatDuration']).toBe(3);
     // tier 4 (10명) prism: style=6
     expect(t.effects[4].style).toBe(6);
     expect(t.effects[4].variables['ADAPPerSecond']).toBe(10);
+  });
+
+  it('SpaceGroove EffectBonus 곱셈 적용 코드 fingerprint (PR #167 sequence C-4, Codex P2 PR #163 catch)', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const file = fs.readFileSync(
+      path.join(process.cwd(), 'src/lib/simulator/engine/combatLoop.ts'),
+      'utf8',
+    );
+    // applySpaceGrooveBuffs 가 EffectBonus 곱셈 적용 (boostedAdapPerSec = adapPerSec × (1 + EffectBonus/100))
+    expect(file).toMatch(/effectBonus\s*=\s*\(v\['EffectBonus'\]\s*\?\?\s*0\)\s*as\s*number/);
+    expect(file).toMatch(/boostedAdapPerSec\s*=\s*adapPerSec\s*\*\s*\(1\s*\+\s*effectBonus\s*\/\s*100\)/);
+    expect(file).toMatch(/u\.spaceGrooveAdapPerSec\s*=\s*boostedAdapPerSec/);
   });
 });
