@@ -1,11 +1,21 @@
 {
   "meta": {
     "set": 17,
-    "source": "CommunityDragon TFT ko_kr.json (PBE 5/12)",
+    "source": "CommunityDragon TFT ko_kr.json (PBE 5/12) + patch-17-4 부분 update",
     "extractedAt": "2026-05-13T00:30:00.000Z",
     "totalTraits": 44,
-    "patch_version": "17.3 LIVE",
-    "fetched_at": "2026-05-13"
+    "patch_version": "17.4 LIVE (partial — sequence B 1차)",
+    "fetched_at": "2026-05-29",
+    "patch_17_4_changes": [
+      "TFT17_ASTrait (도전자/Challenger): AttackSpeedPercent tier 3=0.22→0.28, tier 4=0.40→0.42 (자동 sim 반영 ✅)",
+      "TFT17_RangedTrait (저격수/Sniper): PercentDamageIncrease tier 3=24→25, tier 4=28→35 (자동 sim 반영 ✅)",
+      "TFT17_SpaceGroove (우주 그루브): tier 7 EffectBonus=10→15 (⚠️ sim 미반영 — applySpaceGrooveBuffs combatLoop.ts:1717-1727 가 ADAPPerSecond/StartOfCombatDuration 만 read, EffectBonus 미구현. raw fact 만 갱신, sequence C 에서 helper 통합 필요. PR #163 codex P2 catch)"
+    ],
+    "patch_17_4_deferred": [
+      "TFT17_DarkStar: SupermassivePercentBonus 0.85→0.70 / PercentHealth 0.30→0.25 (4 effects 모두 영향 vs (6) tier 한정 여부 verify 필요)",
+      "TFT17_DRX (N.O.V.A.): Aatrox 50→65% / Akali Bleed 10/14/18→12/18/24 AD / Kindred Damage Amp 5→10% / Mark Timer 5→4.5s — 챔프별 분기 (raw json 직접 매핑 안 됨, sequence C helper 코드)",
+      "TFT17_Stargazer: heal 2.5→3% — 정확한 필드 매핑 verify 필요 (Fountain_HealPercent / Huntress_Heal / Wolf_Health 등 후보 다수)"
+    ]
   },
   "traits": [
     {
@@ -47,7 +57,7 @@
           "minUnits": 3,
           "style": 3,
           "variables": {
-            "AttackSpeedPercent": 0.2199999988079071,
+            "AttackSpeedPercent": 0.2800000011920929,
             "BurstDuration": 2.5,
             "BurstPercent": 0.5,
             "DamageReduction": null,
@@ -59,7 +69,7 @@
           "minUnits": 4,
           "style": 3,
           "variables": {
-            "AttackSpeedPercent": 0.4000000059604645,
+            "AttackSpeedPercent": 0.4199999988079071,
             "BurstDuration": 2.5,
             "BurstPercent": 0.5,
             "DamageReduction": null,
@@ -821,7 +831,7 @@
           "style": 5,
           "variables": {
             "ADAPPerSecond": 5,
-            "EffectBonus": 10,
+            "EffectBonus": 15,
             "StartOfCombatDuration": 3
           }
         },
@@ -1745,7 +1755,7 @@
           "style": 3,
           "variables": {
             "PerHexIncrease": 3,
-            "PercentDamageIncrease": 24
+            "PercentDamageIncrease": 25
           }
         },
         {
@@ -1754,7 +1764,7 @@
           "style": 5,
           "variables": {
             "PerHexIncrease": 4,
-            "PercentDamageIncrease": 28
+            "PercentDamageIncrease": 35
           }
         }
       ]

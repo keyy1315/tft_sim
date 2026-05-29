@@ -3,7 +3,7 @@ id: patch-17-4
 type: patch
 live_date: 2026-05-27
 status: LIVE
-last_verified: 2026-05-29 (raw data 17.3 기준, 17.4 미반영 — 별도 PR sequence 진행 중)
+last_verified: 2026-05-29 (sequence B 1차 — Zed/Shen/Jax + 3 trait raw json 17.4 적용 완료, 나머지 sequence B 후속 + sequence C/D 대기)
 sources:
   - https://teamfighttactics.leagueoflegends.com/en-us/news/game-updates/teamfight-tactics-patch-17-4/ (공식)
   - https://esports.gg/news/teamfight-tactics/tft-patch-17-4-notes-belveth-nerf-reverted-plus-arbiter-and-psionic-buffs/ (esports.gg)
@@ -28,13 +28,14 @@ related:
 
 ## ⚠️ sim 적용 상태 — 미반영 (별도 PR sequence 진행 중)
 
-| Asset | 17.4 적용 상태 | 후속 PR |
-|-------|----------------|---------|
-| **raw data** (`public/data/tft_set17_*.json`) | ❌ 17.3 기준 — `patch_version` 메타데이터 자체 부재 | **PR sequence B** — CDragon fetch 또는 lolchess.gg 기반 갱신 |
-| **sim 코드** (`combatLoop.ts` trait helpers + ability config) | ❌ 17.3 값 hardcoded — 챌린저 burstEndTick / 스나이퍼 damage amp / 다크스타 bonus / N.O.V.A. ratio 등 | **PR sequence C** — trait helper 값 + ability variables 갱신 + 테스트 회귀 |
-| **Arbiter 시스템** | ❌ 17.3 의 입력/출력 구조 | **PR sequence D** — 3 카테고리 (일관성/조건부/경제) 개편 |
-| **Psionic 아이템** | ❌ 17.3 stats | PR sequence D 일부 |
-| **위키 페이지** (champion / mechanic) | ⚠️ **본 PR (sequence A)** — 17.4 fact 명시 + frontmatter `current_patch_status: active (17.3 LIVE, 17.4 patch pending)` 표기 + 본문 패치 히스토리 row 추가 | 본 PR |
+| Asset | 17.4 적용 상태 | PR |
+|-------|----------------|----|
+| **raw data** (`public/data/tft_set17_*.json`) | ⚠️ **sequence B 1차 완료** (PR #163): Zed (initialMana 40, HPPenalty ★3=value[2]=0.45 — Codex P1 catch 후 인덱싱 정정) + Shen (initialMana 20, BonusDamageOnAttack ★1/★2 25/40) + Jax (FlatDR value[1]/[2]/[3] 20/25/30) + ASTrait (AttackSpeedPercent tier 3/4 28%/42%) + RangedTrait (PercentDamageIncrease tier 3/4 25/35) + SpaceGroove (tier 7 EffectBonus 15 — ⚠️ sim 미반영, Codex P2 catch) | 본 PR (sequence B 1차) |
+| **raw data 나머지** | ❌ deferred — DarkStar (SupermassivePercentBonus 0.85→0.70, PercentHealth 0.30→0.25, 4 effects vs (6) tier 검증 필요) / DRX (NOVA 챔프별 분기 = sim 코드 hardcoded) / Stargazer (정확한 필드 매핑 verify 필요) + 15 champion 미작성 entity | **sequence B 후속 PR** |
+| **sim 코드** (`combatLoop.ts` trait helpers + ability config) | ⚠️ **자동 반영 + hardcoded 잔존**. raw json 갱신만으로 자동 sim 반영: Shen passive damage / Zed-Shen mana / Sniper amp / Challenger AS ✅ (4건, PR #163 Codex P2 정정 후 — SpaceGroove EffectBonus 자동 반영 ❌ 정정: helper 미구현). 별도 hardcoded 갱신 필요: NOVA 챔프별 / Jax selfBuff.durability / JaxCarry damage / Stargazer 필드 매핑 / **SpaceGroove EffectBonus helper 통합** | **sequence C** — helper 코드 hardcoded 갱신 + 테스트 회귀 |
+| **Arbiter 시스템** | ❌ 17.3 의 입력/출력 구조 | **sequence D** — 3 카테고리 (일관성/조건부/경제) 개편 |
+| **Psionic 아이템** | ❌ 17.3 stats | sequence D 일부 |
+| **위키 페이지** (champion / mechanic) | ✅ **sequence A 완료** (PR #162) — 17.4 fact 명시 + frontmatter `current_patch_status: active (17.3 LIVE, 17.4 patch pending)` + 본문 패치 히스토리 row | PR #162 |
 
 → 본 페이지 작성 후 후속 PR sequence (B → C → D) 에서 sim 정합 회복.
 
