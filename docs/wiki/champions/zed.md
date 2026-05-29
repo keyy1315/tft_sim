@@ -8,9 +8,9 @@ traits:
   - 은하계 사냥꾼
 role: Fighter   # raw "ADFighter" → mapGameRole() → sim Fighter (types/index.ts:46 includes('Fighter'))
 raw_role: ADFighter
-current_patch_status: active
-sim_active: partial   # 의도된 단순화 — 분신 unit 메커니즘 자체 미반영 (combatLoop.ts:1607 주석). applyZedShadow trait helper 는 active (분신 alive 가정 +40% AD 가산)
-last_verified: 2026-05-27
+current_patch_status: active (17.3 LIVE, 17.4 patch pending — sim 미반영, [[patch-17-4]] 참조)
+sim_active: partial   # 의도된 단순화 — 분신 unit 메커니즘 자체 미반영 (combatLoop.ts:1607 주석). applyZedShadow trait helper 는 active (분신 alive 가정 +40% AD 가산). 17.4 변경 (클론 HP 33/40%→33/45%, 마나 50/100→40/100) raw data + sim 미반영
+last_verified: 2026-05-29 (17.4 patch fact 추가, sim 미반영 명시)
 sources:
   - "public/data/tft_set17_champions.json:5444-5495 (TFT17_Zed entry — cost 5, role ADFighter, traits 은하계 사냥꾼)"
   - "src/types/index.ts:39-48 (mapGameRole — ADFighter → Fighter)"
@@ -26,6 +26,7 @@ related:
   - "[[invader-zed]]"
   - "[[hero-augment-carry]]"
   - "[[shen]]"
+  - "[[patch-17-4]]"
 ---
 
 # 제드 (Zed)
@@ -97,10 +98,21 @@ function applyZedShadow(activeTraits, ownTeam) {
 - 분신이 항상 살아있다고 가정 — 실제 게임에서는 분신이 죽으면 buff 사라지지만 sim 은 항상 active
 - trait active 조건만 만족하면 cast 무관 항상 적용
 
+## 패치 히스토리
+
+| 패치 | 변경 | sim 적용 |
+|------|------|---------|
+| 17.3 base | hp 1300, armor/MR 60, AD 85, AS 0.85, mana 50/100, 분신 HPPenalty `[0.33, 0.33, 0.4]` (★1/★2/★3) | ✅ stats raw json 정합 |
+| [[patch-17-4]] (2026-05-27) | **너프 2건**: 클론 (분신) 체력 `HPPenalty 0.33/0.40` → **`0.33/0.45`** (분신이 약해짐 — Zed 본인이 받는 HPPenalty 가 더 큼). 마나 `50/100` → **`40/100`** (initialMana ↓, **더 늦은 첫 cast** — 첫 cast 에 필요한 추가 mana 50→60 증가) | ❌ **sim 미반영** — raw data + sim 코드 17.3 기준. [[patch-17-4]] sequence B/C 대기 |
+
+⚠️ **17.4 sim 영향 평가**:
+- 분신 HPPenalty 0.40 → 0.45 변경은 sim 미반영 ("분신 unit 자체 sim 없음" — combatLoop.ts:1607 의도된 단순화 영향) → applyZedShadow trait helper 의 BonusAD 0.40 단순화 calibration 자체는 영향 없음 (BonusAD 값 자체 변경 없음)
+- 마나 변경 (50/100 → 40/100) — `initialMana 50→40` 감소로 첫 cast 에 필요한 추가 mana `maxMana - initialMana = 100-50=50` → `100-40=60` (10 증가). **더 늦은 첫 cast** (너프 방향). sim 미반영 시 cast 타이밍 부정확 (raw json `initialMana` 갱신 필요)
+
 ## sim 적용 상태 — `partial`
 
 ✅ **활성**:
-- stats 17.3 정합 (hp 1300, armor/MR 60, AD 85, AS 0.85, range 1, mana 50/100)
+- stats **17.3 정합** (hp 1300, armor/MR 60, AD 85, AS 0.85, range 1, mana 50/100) — ⚠️ **17.4 변경 (마나 40/100, 분신 HPPenalty 0.45) 미반영**
 - `mapGameRole` 결과 Fighter role 룰 적용 (마나 / 타게팅 weight 2 / non-target DR ×0.85)
 - `applyZedShadow` trait helper — `TFT17_ZedUniqueTrait` 활성 시 combat-start 시 Zed 본인에게 +40% AD 가산 (분신 alive 가정)
 - ability override `pattern: 'self_buff'` 분기 진입 정합 (cast path 정합 — main + OOR 모두 진입, 효과 0)
