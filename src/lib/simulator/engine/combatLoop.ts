@@ -7015,7 +7015,19 @@ export function simulateCombat(
               }
               if (config.selfBuff.ad) unit.stats.damage += config.selfBuff.ad;
               if (config.selfBuff.ap) unit.stats.ap += config.selfBuff.ap;
-              if (config.selfBuff.durability) unit.damageReduction += config.selfBuff.durability;
+              if (config.selfBuff.durability !== undefined) {
+                // PR #165 sequence C-2 (Galio G1 fix): selfBuff.durabilityVar 지정 시 raw ability vars
+                // (예: Galio `Durability` [0, 0.2, 0.2, 0.6, ...]) 를 readVarByStar 로 star별 정확 적용.
+                // 미지정 시 기존 hardcoded selfBuff.durability 사용 (fallback). raw 값 단위는 ratio (0~1).
+                const durabilityVal = config.selfBuff.durabilityVar
+                  ? readVarByStar(
+                      unit.champion.ability.variables?.find(v => v.name === config.selfBuff!.durabilityVar)?.value,
+                      unit.starLevel,
+                      config.selfBuff.durability,
+                    )
+                  : config.selfBuff.durability;
+                unit.damageReduction += durabilityVal;
+              }
             }
 
             // === 아군 전체 버프 ===
@@ -7172,6 +7184,19 @@ export function simulateCombat(
             }
             if (outOfRangeConfig.selfBuff.ad) {
               unit.stats.damage += outOfRangeConfig.selfBuff.ad;
+            }
+            // PR #165 sequence C-2: OOR cast path 도 main 과 동일하게 durability 분기 적용.
+            // 이전 OOR 분기에서 durability 처리 누락 (cast path 3종 룰 PR #129 위반 — 본 PR 에서 fix).
+            // durabilityVar 지정 시 raw ability vars star별 read, 미지정 시 hardcoded fallback.
+            if (outOfRangeConfig.selfBuff.durability !== undefined) {
+              const oorDurabilityVal = outOfRangeConfig.selfBuff.durabilityVar
+                ? readVarByStar(
+                    unit.champion.ability.variables?.find(v => v.name === outOfRangeConfig.selfBuff!.durabilityVar)?.value,
+                    unit.starLevel,
+                    outOfRangeConfig.selfBuff.durability,
+                  )
+                : outOfRangeConfig.selfBuff.durability;
+              unit.damageReduction += oorDurabilityVal;
             }
           }
 

@@ -27,11 +27,11 @@ function placed(c: RawChampion, q: number, r: number, star: 1 | 2 | 3 = 2, eqIte
 }
 
 describe('Set 17.3 Shen passive — BonusDamageOnAttack 데이터 가드', () => {
-  it('BonusDamageOnAttack ★1=20 / ★2=30 (17.3 LIVE 너프)', () => {
+  it('BonusDamageOnAttack ★1=25 / ★2=40 (17.4 partial revert from 17.3 nerf: 20/30 → 25/40, PR #163 sequence B)', () => {
     const v = apShen.ability.variables?.find(vv => vv.name === 'BonusDamageOnAttack');
     expect(v).toBeDefined();
-    expect(v!.value[1]).toBe(20);
-    expect(v!.value[2]).toBe(30);
+    expect(v!.value[1]).toBe(25);
+    expect(v!.value[2]).toBe(40);
   });
 
   it('DamageHP=0.01 유지 (최대 체력 1% — lolchess.gg)', () => {
