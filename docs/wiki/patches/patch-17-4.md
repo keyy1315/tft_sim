@@ -61,7 +61,7 @@ Psionic(2) / Psionic(4) 아이템들의 **스탯이 더욱 일반적으로** 변
 |-------|--------------------|----------------|
 | **챌린저** | 공속 `15/22/40/55%` → **`15/28/42/55%`** | `combatLoop.ts` 챌린저 burstEndTick / burstPercent helper |
 | **다크스타 (6)** | 보너스 `85%` → **`70%`**, 미니 블랙홀 HP `30%` → **`25%`** | `combatLoop.ts:2041` 6 챔프 그룹 + Black Hole damage 분기 |
-| **N.O.V.A. (5)** | Aatrox `50%` → **`65%`**, Akali 출혈 `10%` → **`12%`**, Kindred `10%` → **`20%`** | `tickDrxNova` (PR #121 sim 영향) + N.O.V.A. ratio 분기 |
+| **N.O.V.A. (5)** | Aatrox `50%` → **`65%`**, Akali Bleed Damage `10/14/18 AD` → **`12/18/24 AD`**, **Kindred Damage Amp `5%` → `10%`** (이전 `10→20%` 표기 오류), **Kindred Mark Timer `5s` → `4.5s`** (이전 누락) | `tickDrxNova` (PR #121 sim 영향) + N.O.V.A. ratio 분기 + per-tick TRIGGER (PR #162 codex P1 catch — 외부 patch notes fact 정정) |
 | **스나이퍼** | damage amp `18/24/28%` → **`18/25/35%`** | `sniperBaseDA` / `sniperPerHexDA` state field (combatLoop.ts:3866-3867) |
 | **스페이스 그루브 (7)** | 보너스 `10%` → **`15%`** | `applySpaceGrooveBuffs` (combatLoop.ts:1720-1733) ADAP 가산 분기 |
 | **스타게이저** | heal `2.5%` → **`3%`** + 세부 조정 | [[stargazer-fountain]] + stargazerFountainHealPercent 분기 |
@@ -72,7 +72,7 @@ Psionic(2) / Psionic(4) 아이템들의 **스탯이 더욱 일반적으로** 변
 | 챔프 | 변경 | 영향 페이지 | sim 영향 |
 |------|------|-------------|----------|
 | Aatrox | 힐 `300/375/575 AP` → **`325/400/650 AP`** | [[aatrox-carry]] cross-ref (base 미작성) | ability.variables `Heal` 값 갱신 |
-| Twisted Fate | 최소 데미지 `190/285/430/730 AP` → **`180/270/405/690`**, 최대 `380/570/860/1460` → **`360/540/810/1380`** | (base 미작성) | ⚠️ **17.3 patch wiki 와 모순** — 17.3 에서 `190/285/430/730` 로 buff 됐다가 17.4 에서 다시 너프. **17.3 의 buff revert** |
+| Twisted Fate | 최소 데미지 `180/270/405/690 AP` → **`190/285/430/730`**, 최대 `360/540/810/1380` → **`380/570/860/1460`** | (base 미작성) | ✅ **17.3 너프 revert (buff)** — 17.3 에서 한 너프 (380/570/860/1460 → 360/540/810/1380) 를 17.4 에서 reverted (이전 값 복귀). **17.4 = 17.3 patch wiki 의 Twisted Fate row 와 1:1 revert 관계** (PR #162 codex P1 catch — 이전 방향 오기 정정) |
 
 ### Tier 2
 | 챔프 | 변경 | 영향 페이지 | sim 영향 |
@@ -120,11 +120,19 @@ Psionic(2) / Psionic(4) 아이템들의 **스탯이 더욱 일반적으로** 변
 - [[jax-carry]] — Jax base 변경의 carry augment 영향 cross-ref
 - [[stargazer-fountain]] — 17.4 stargazer heal 2.5%→3% trait 변경 cross-ref
 
-## 17.4 ↔ 17.3 모순 사례
+## 17.4 ↔ 17.3 revert 관계
 
-- **Twisted Fate**: 17.3 buff (180/270/405/690 → 190/285/430/730) → 17.4 너프 reverted (180/270/405/690 으로 복귀) — patch wiki 의 17.3 row 와 17.4 row 가 1:1 revert 관계
+PR #162 codex P1 catch — Twisted Fate 방향 정정 + 일관성 회복:
+
+- **Twisted Fate**: 17.3 너프 (380/570/860/1460 → 360/540/810/1380) → 17.4 **reverted (buff)** — 17.3 값 (380/570/860/1460) 복귀. patch wiki 의 17.3 row 와 17.4 row 가 1:1 revert 관계
 - **Bel'Veth**: 17.3 너프 (20/30/45/77 → 18/27/41/69 — 추정) → 17.4 reverted (20/30/45/77 복귀, esports.gg 공식 표기)
 - **Shen**: 17.3 너프 (BonusDamageOnAttack 45/75 → 20/30) → 17.4 partial revert (20/30 → 25/40)
+
+## 17.4 augment 변경 (추가 — PR #162 codex P1 catch)
+
+| Augment | 변경 | 영향 페이지 | sim 영향 |
+|---------|------|-------------|----------|
+| **Reach for the Stars (JaxCarry)** | damage `170/250/450` → **`160/240/420`** 너프 | [[jax-carry]] | ❌ JaxCarry 자체 damage 는 self_buff pattern carry damage override 적용 안 함 (codex P1 PR #71) 이라 sim dead. 단 carryAugments.ts:205-218 entry 정합 위해 sequence B 에서 갱신 필요 |
 
 ## Lint 체크리스트 (mechanic entity-type)
 

@@ -66,7 +66,7 @@ abilityOverride 가 `self_buff` 라서 cast 자체는 damage 없음. 실질 효�
 |------|------|---------|
 | 17.3 이전 | 정확한 도입 패치 미verify (carryAugments.ts entry 외 source 없음) | — |
 | [[patch-17-3]] (2026-05-13) | damage `[155, 230, 375] → [170, 250, 450]` (entry 정합) | ❌ sim 미반영 (self_buff pattern 의 carry damage override 적용 안 함, codex P1 PR #71) |
-| [[patch-17-4]] (2026-05-27) | **base Jax `FlatDR` AP scaling 제거** (`15/20/25 AP` → `20/25/30` flat). JaxCarry augment 자체 변경 없음 — 단 base ability 의 raw vars schema 변경 가능성 (★ 수 + scaling type) | ❌ **간접 영향 sim 미반영** — base Jax 의 `FlatDR` 은 sim dead (selfBuff.durability 0.3 hardcoded 우선) 라 sim 영향 0. 단 raw json fetch 후 schema 정합 verify 필요 (sequence B). carry augment 자체 변경 없음 |
+| [[patch-17-4]] (2026-05-27) | **2건 변경** (PR #162 codex P1 catch — 이전 "carry 변경 없음" 잘못): (1) **JaxCarry damage `170/250/450` → `160/240/420`** 너프 (Reach for the Stars augment 표 명시). (2) base Jax `FlatDR` AP scaling 제거 (`15/20/25 AP` → `20/25/30` flat) — 간접 영향 | ❌ **sim 미반영** — JaxCarry damage 자체는 self_buff pattern 의 carry damage override 적용 안 함 (codex P1 PR #71) 이라 sim dead 단 entry 정합 위해 raw data fetch (sequence B) + carryAugments.ts:205-218 abilityData.damage 갱신 필요. base Jax FlatDR 은 sim dead (selfBuff.durability 0.3 hardcoded 우선) 라 sim 영향 0 |
 
 ## sim 적용 상태 — `partial`
 
