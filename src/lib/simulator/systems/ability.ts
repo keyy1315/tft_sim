@@ -28,7 +28,14 @@ export interface AbilityConfig {
     attackSpeed?: number;
     ad?: number;
     ap?: number;
+    /** 피해 감소 ratio (0~1). damageReduction 에 가산. durabilityVar 미지정 시 사용 */
     durability?: number;
+    /**
+     * raw ability variable name 으로 durability 를 star별 read (예: Galio "Durability" raw [0, 0.2, 0.2, 0.6, ...]).
+     * 지정 시 readVarByStar(unit.champion.ability.variables[name], starLevel, durability fallback) 적용.
+     * raw 값 단위는 ratio (0~1) 이어야 함 — Jax FlatDR (flat 수치 단위) 같이 다른 단위 필요 시 별도 처리.
+     */
+    durabilityVar?: string;
     duration?: number;
   };
   /** 아군 전체 버프 */
@@ -231,7 +238,7 @@ export const CHAMPION_ABILITY_PATTERNS: Record<string, AbilityConfig> = {
   TFT17_Kindred:     { pattern: 'multi', maxTargets: 3, damageVar: 'ADDamage' },  // 제자리에서 화살 3명 ADDamage. 이동은 기본 공격 AI 의 한 칸 이동에 맡긴다 (표식 패시브는 combatLoop)
   TFT17_Karma:       { pattern: 'multi', maxTargets: 3, secondaryDamageVar: 'SecondaryDamage' },  // 블랙홀 3명 분배 + 대상 추가 SecondaryDamage
   TFT17_AurelionSol: { pattern: 'line', damageDecay: 0.15, dot: { duration: 3 } },  // 직선 광선 3초 DOT + 관통 감소
-  TFT17_Galio:       { pattern: 'aoe_circle', radius: 2, heal: true, selfBuff: { durability: 0.3, duration: 4 } },  // 방어 태세 + 충격파
+  TFT17_Galio:       { pattern: 'aoe_circle', radius: 2, heal: true, selfBuff: { durability: 0.3, duration: 4, durabilityVar: 'Durability' } },  // 방어 태세 + 충격파. PR #165 sequence C-2: raw `Durability` [0.2/0.2/0.6] star별 read (G1 fix), hardcoded 0.3 은 fallback
   TFT17_MasterYi:    { pattern: 'self_buff', selfBuff: { attackSpeed: 0.8, duration: 5 } },  // 초필살 AS + 흡혈
   TFT17_Nami:        { pattern: 'aoe_circle', radius: 1, secondaryDamageVar: 'FirstBounceDamage' },  // 디스코 방울 분배 + 작은 방울 3개 추가
   TFT17_Nunu:        { pattern: 'aoe_circle', radius: 2, stun: 1.75, damageVar: 'InitialDamage' },  // 보호막 + 2칸 AOE + 띄움 1.75초

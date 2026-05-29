@@ -10,7 +10,7 @@ traits:
 role: Tank   # raw "ADTank" → mapGameRole() → sim Tank (types/index.ts:41 includes('Tank'))
 raw_role: ADTank
 current_patch_status: active
-sim_active: partial   # ability.ts:234 등록되나 selfBuff.durability hardcoded 0.3 (raw star별 0.2/0.2/0.6 미반영) + ARMARScaling damage 계수 / 투사체 끌어당김 메커니즘 미반영. 메카 + 여행자 trait 양쪽 정상 통합 (룰 #16 verify)
+sim_active: partial   # G1 resolved PR #165 sequence C-2 — selfBuff.durability star별 read 통합. G2 ARMARScaling damage 계수 / G3 투사체 끌어당김 / G5 변신 메커니즘 / G6 2 슬롯 + 중첩 / G7 주석 stale / G8 shockwave timing gap 잔존. 메카 + 여행자 trait 양쪽 정상 통합 (룰 #16 verify)
 last_verified: 2026-05-27
 sources:
   - "public/data/tft_set17_champions.json (TFT17_Galio entry — cost 4, role ADTank, traits 메카/여행자)"
@@ -143,7 +143,7 @@ TFT17_Galio: { pattern: 'aoe_circle', radius: 2, heal: true, selfBuff: { durabil
 - `trySpawnGalio` set 16 잔존 코드 — set 17 무관 (TFT16_Demacia 없으면 immediate return, 무해)
 
 ⚠️ **부정확 / 미반영** (Lint 후보):
-- **G1 (P1)**: `selfBuff.durability hardcoded 0.3` — raw star별 (★1=0.2, ★2=0.2, ★3=0.6) 미반영. ★1/★2 과적용 (0.3 > 0.2), ★3 과소적용 (0.3 < 0.6). sim 영향: damage 감소율 부정확
+- ~~**G1 (P1)**~~ ✅ **resolved PR #165 sequence C-2**: ~~selfBuff.durability hardcoded 0.3 — raw star별 미반영~~. ability.ts `durabilityVar: 'Durability'` 필드 + readVarByStar 통합 (main + OOR cast 양쪽). 추가로 OOR cast durability 분기 누락 (PR #129 cast path 3종 룰 위반) 도 함께 fix → ★1=0.2 / ★2=0.2 / ★3=0.6 정확 적용
 - **G2 (P1)**: 충격파 damage 의 `ARMARScaling × (armor + MR)` 계수 미반영. raw 는 (armor + MR) × ARMARScaling 곱셈자인데 sim 은 default ability damage 사용. ★3 ARMARScaling 30 spike → sim 충격파 damage 손실 큼
 - **G3 (P2)**: 방어 태세 "주변 적 투사체 끌어당김" 미반영 — projectile attraction 메커니즘 sim 자체 없음
 - **G5 (P1)**: 메카 trait 변신 메커니즘 + `TransformedPercentHealth +40%` HP 가산 sim 미반영 — Galio 자체가 "변신 후 형태" 라 의도된 단순화 가능성 (보드 배치 시 이미 궁극 상태 가정), 단 다른 메카 unit 의 변신 후 형태 spec 별도 verify 필요
@@ -155,7 +155,7 @@ TFT17_Galio: { pattern: 'aoe_circle', radius: 2, heal: true, selfBuff: { durabil
 
 | # | 항목 | 의미 | Tier | 적용 분기 (룰 #17) | 처리 |
 |---|------|------|------|---------------------|------|
-| G1 | selfBuff.durability hardcoded 0.3 — star별 (0.2/0.2/0.6) 미반영 | ★1/★2 damage reduction 과적용 / ★3 과소적용. star별 sim 정합 부족 | **P1** | (c) cast-time 1회 helper — selfBuff apply 분기 (`combatLoop.ts:7001-7019` Poppy 패턴 영역) 에서 raw `Durability[starLevel]` read 후 starLevel별 적용 | sim fix 권장 — selfBuff durability 를 star별 raw vars read 로 전환 (`readVarByStar` 사용, [[poppy]] pattern 참고) |
+| G1 | ~~selfBuff.durability hardcoded 0.3 — star별 (0.2/0.2/0.6) 미반영~~ ✅ **resolved PR #165 sequence C-2** | ~~★1/★2 damage reduction 과적용 / ★3 과소적용. star별 sim 정합 부족~~ | ~~P1~~ ✅ | (c) cast-time helper + ability.ts `durabilityVar` 필드 + readVarByStar 통합 (main + OOR cast 양쪽, **OOR durability 분기 누락도 함께 fix** — cast path 3종 룰 PR #129 일관성 회복) | **sim fix 완료** — `ability.ts:206` Galio selfBuff `durabilityVar: 'Durability'` 추가 + `combatLoop.ts:7018-7032` (main) + `:7177-7187` (OOR) 분기 readVarByStar 통합. raw `Durability [0, 0.2, 0.2, 0.6, ...]` star별 정확 적용 (★1=0.2, ★2=0.2, ★3=0.6) |
 | G2 | 충격파 damage 의 ARMARScaling × (armor + MR) 계수 미반영 | ★3 ARMARScaling 30 spike → sim 충격파 damage 손실 큼. raw 가 armor + MR scaling 인데 sim default ability damage 사용 | **P1** | **(b) per-target loop** — aoe_circle 패턴 damage 는 `combatLoop.ts:6482-6548` per-target loop 에서 처리. 각 target 에 대해 caster `stats.armor + stats.magicResist` snapshot × ARMARScaling[star] 곱셈 적용 (caster stat 기반이라 target 무관 동일 damage) | sim fix 권장 — abilityOverride 에 새 필드 `armorMrScalingVar: 'ARMARScaling'` 신설 후 aoe_circle damage 분기에서 caster armor + MR × var[star] 곱셈 적용 |
 | G3 | 방어 태세 "주변 적 투사체 끌어당김" 미반영 | projectile attraction 메커니즘 sim 자체 없음 | **P2** | (c) cast-time 1회 helper — selfBuff active 동안 적 projectile 의 target redirect. sim 에 projectile 메커니즘 없음 → 단순화 의도 가능성. 도메인 verify 필요 | 의도된 단순화 가능성 — 인게임 효과 측정 후 lint 등급 결정 |
 | G5 | 메카 trait 변신 메커니즘 (일반 형태 ↔ 궁극 형태 전환) + `TransformedPercentHealth +40%` HP 가산 sim 미반영 | sim 은 메카 unit (Galio 포함) 을 항상 단일 형태로 처리. 변신 메커니즘 자체 부재 → +40% HP 가산 누락 + 스킬 업그레이드 분기 없음 | **P1** | (d) combat-start helper — 메카 변신기 사용 시점 / 또는 `applyMechaEffects` 내부에서 메카 unit 의 currentForm 분기 set. 변신 시 maxHp × 1.4 + currentHp 비례 가산 | 의도된 단순화 가능성 — Galio 자체가 "변신 후 형태" 라서 보드 배치 시 이미 궁극 상태로 가정 가능. 인게임 측정 + 도메인 spec verify 필요 |

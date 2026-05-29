@@ -95,11 +95,11 @@ describe('Set 17.3 — 2코스트', () => {
     expect(v[4]).toBe(600);
   });
 
-  it('잭스 FlatDR ★1~4 너프', () => {
+  it('잭스 FlatDR ★1~4 — 17.4 (15/20/25/30 → 20/25/30/30, AP scaling 제거 PR #163 sequence B)', () => {
     const v = findVar('TFT17_Jax', 'FlatDR');
-    expect(v[1]).toBe(15);
-    expect(v[2]).toBe(20);
-    expect(v[3]).toBe(25);
+    expect(v[1]).toBe(20);
+    expect(v[2]).toBe(25);
+    expect(v[3]).toBe(30);
     expect(v[4]).toBe(30);
   });
 
@@ -233,10 +233,10 @@ describe('Set 17.3 — 5코스트', () => {
     expect(v[1]).toBeCloseTo(0.15, 5);
   });
 
-  it('쉔 BonusDamageOnAttack ★1=20 / ★2=30 (45/75 → 너프, PR 2 적용)', () => {
+  it('쉔 BonusDamageOnAttack ★1=25 / ★2=40 (17.4 partial revert: 20/30 → 25/40, PR #163 sequence B)', () => {
     const v = findVar('TFT17_Shen', 'BonusDamageOnAttack');
-    expect(v[1]).toBe(20);
-    expect(v[2]).toBe(30);
+    expect(v[1]).toBe(25);
+    expect(v[2]).toBe(40);
   });
 
   it('쉔 DamageHP=0.01 유지 (lolchess.gg "최대 체력 1%")', () => {
