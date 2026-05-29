@@ -9,9 +9,9 @@ traits:
   - 요새
 role: Fighter   # raw "APFighter" → mapGameRole() → sim Fighter (codex P2 PR #148 정정)
 raw_role: APFighter
-current_patch_status: active
+current_patch_status: active (17.3 LIVE, 17.4 patch pending — sim 미반영, [[patch-17-4]] 참조)
 sim_active: active
-last_verified: 2026-05-19 (codex P2 amend)
+last_verified: 2026-05-29 (17.4 patch fact 추가, sim 미반영 명시; 이전: 2026-05-19 codex P2 amend)
 sources:
   - "public/data/tft_set17_champions.json (TFT17_Shen entry)"
   - "src/lib/simulator/systems/ability.ts:250 (abilityOverride aoe_circle r=2 + selfBuff AS+0.3 999)"
@@ -24,6 +24,7 @@ related:
   - "[[role-passive]]"
   - "[[ability-targeting]]"
   - "[[patch-17-3]]"
+  - "[[patch-17-4]]"
 ---
 
 # 쉔 (Shen)
@@ -83,10 +84,15 @@ if (unit.champion.apiName === 'TFT17_Shen') unit.shenPassiveStack++;
 
 ## 패치 히스토리
 
-| 패치 | 변경 |
-|------|------|
-| 17.2 LIVE | base — hp 1200, BonusDamageOnAttack 45/75, ShieldHP 0.10 |
-| [[patch-17-3]] (2026-05-13) | **3건 변경 동시 적용**: hp `1200 → 1300` (PR #107 1차), ShieldHP `0.10 → 0.15` (PR #107 1차), **BonusDamageOnAttack `45/75 → 20/30`** (PR2 passive 구현 + 너프 동시 — Plan 문서 `tft-17-3-shen-passive.plan.md`) |
+| 패치 | 변경 | sim 적용 |
+|------|------|---------|
+| 17.2 LIVE | base — hp 1200, BonusDamageOnAttack 45/75, ShieldHP 0.10 | — (legacy) |
+| [[patch-17-3]] (2026-05-13) | **3건 변경 동시 적용**: hp `1200 → 1300` (PR #107 1차), ShieldHP `0.10 → 0.15` (PR #107 1차), **BonusDamageOnAttack `45/75 → 20/30`** (PR2 passive 구현 + 너프 동시 — Plan 문서 `tft-17-3-shen-passive.plan.md`) | ✅ 모두 sim 적용 |
+| [[patch-17-4]] (2026-05-27) | **2건 변경 (17.3 너프 partial revert)**: 마나 `10/70` → **`20/70`** (initialMana 2배 ↑ — **더 빠른 첫 cast** — 첫 cast 에 필요한 추가 mana 60→50 감소). **BonusDamageOnAttack `20/30` → `25/40`** (17.3 너프 부분 revert, 약간 buff) | ❌ **sim 미반영** — raw data + sim 코드 17.3 기준. [[patch-17-4]] sequence B/C 대기 |
+
+⚠️ **17.4 sim 영향 평가**:
+- 마나 변경 (10/70 → 20/70) — `initialMana 10→20` 증가로 첫 cast 에 필요한 추가 mana `maxMana - initialMana = 70-10=60` → `70-20=50` (10 감소). **더 빠른 첫 cast** (buff 방향). `combatLoop.ts:5710-5748` shenPassiveStack 분기 (첫 cast 타이밍 영향). sim 미반영 시 cast 속도 부정확 (raw json `initialMana` 갱신 필요)
+- BonusDamageOnAttack `20/30 → 25/40` — `combatLoop.ts:5710-5748` 평타 시 stack × BonusDamage 분기에서 raw vars 직접 read. raw json `BonusDamageOnAttack[★]` 갱신 만으로 sim 자동 반영 (helper 분기 정합)
 
 ## sim 적용 상태 — `active`
 
@@ -117,7 +123,7 @@ if (unit.champion.apiName === 'TFT17_Shen') unit.shenPassiveStack++;
 
 ## 관련
 
-- [[role-passive]] — Tank role 마나/타게팅 규칙
+- [[role-passive]] — **Fighter** role 마나/타게팅 규칙 (raw APFighter → sim Fighter, 공격당 10 / on-hit 0 / weight 2 / non-target DR ×0.85 — frontmatter `role: Fighter` 정합, PR #162 subagent P2-1 정정)
 - [[ability-targeting]] — `aoe_circle` 패턴
 - [[patch-17-3]] — 3건 동시 변경 (hp / ShieldHP / BonusDamageOnAttack)
 - 코드: `src/lib/simulator/systems/ability.ts:250`, `src/lib/simulator/engine/combatLoop.ts:1508/5710/6167`

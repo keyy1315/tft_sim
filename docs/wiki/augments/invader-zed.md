@@ -6,9 +6,9 @@ api_name: TFT17_Augment_InvaderZed
 target_champion: TFT17_Zed
 tier: special (스테이지 4-2 전용 획득)
 stage: stage 4-2 only
-current_patch_status: active
+current_patch_status: active (17.3 LIVE, 17.4 patch pending — base Zed 변경, [[patch-17-4]] 참조)
 sim_active: minimal
-last_verified: 2026-05-27 (line drift 갱신 — PR #156 후속, subagent P2-3 finding)
+last_verified: 2026-05-29 (17.4 patch fact 추가 — base Zed 변경 cross-ref; 이전: 2026-05-27 line drift)
 sources:
   - src/data/carryAugments.ts:274-286 (InvaderZed entry)
   - src/lib/simulator/engine/combatLoop.ts:630 (getAbilityConfigForUnit)
@@ -22,6 +22,8 @@ related:
   - "[[hero-augment-carry]]"
   - "[[ability-targeting]]"
   - "[[role-passive]]"
+  - "[[zed]]"
+  - "[[patch-17-4]]"
 ---
 
 # 침략자 제드 (InvaderZed)
@@ -36,7 +38,7 @@ raw Zed 는 이미 `TFT17_ZedUniqueTrait` (은하계 사냥꾼) trait 으로 +40
 
 ## 변환 후 메커니즘
 
-- **role**: `Fighter` (default — `applyHeroCarryTransforms` line 2227)
+- **role**: `Fighter` (default — `applyHeroCarryTransforms` line 2258, drift fix PR #162 subagent P2-2)
 - **abilityOverride**: `{ pattern: 'self_buff' }` (`carryAugments.ts:277`) — `selfBuff` 필드 **없음**
 - **damageTypeOverride**: `physical` (line 278) — damage 자체가 미반영이라 무의미
 - **cast 효과**:
@@ -64,9 +66,10 @@ abilityOverride.selfBuff: **필드 자체 없음** → 어떤 stat buff 도 적�
 
 ## 패치 히스토리
 
-| 패치 | 변경 |
-|------|------|
-| (도입 시점 미verify) | InvaderZed entry 등록 (carryAugments.ts) |
+| 패치 | 변경 | sim 적용 |
+|------|------|---------|
+| (도입 시점 미verify) | InvaderZed entry 등록 (carryAugments.ts) | ✅ entry minimal sim (role Fighter + mana 50/100) |
+| [[patch-17-4]] (2026-05-27) | **base Zed 변경의 간접 영향** (PoppyCarry / InvaderZed augment 자체 변경 없음): base Zed 마나 `50/100` → `40/100` + 분신 HPPenalty `0.40` → `0.45`. InvaderZed augment 의 mana `50/100` 표기는 raw 채택이라 base Zed 변경 시 정합 깨질 가능성 — raw data fetch (sequence B) 후 verify | ❌ **간접 영향 sim 미반영** — base Zed raw json 갱신 후 InvaderZed entry 의 mana override 분기 정합 verify 필요. carry augment 자체 변경 없음 |
 
 패치 변경 이력 verify 안 됨 — 17.3 패치노트 등에서 변경분 미발견. **TODO: stage 4-2 special augment 의 정확한 도입 시점 verify**.
 

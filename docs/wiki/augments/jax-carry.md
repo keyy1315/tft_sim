@@ -6,13 +6,13 @@ api_name: TFT17_Augment_JaxCarry
 target_champion: TFT17_Jax
 tier: (미확인 — 패치노트 verify 필요)
 stage: stage 2 (carry augment 일반)
-current_patch_status: active
-sim_active: active
-last_verified: 2026-05-19 (Lint #11-A + #11-B resolved PR #140 / #136)
+current_patch_status: active (17.3 LIVE, 17.4 patch pending — base Jax 변경, [[patch-17-4]] 참조)
+sim_active: partial   # frontmatter ↔ 본문 정합 (룰 #15) — 본문 `sim 적용 상태 — partial` (MS gain 미반영 + 17.4 base Jax 변경 pending). PR #162 subagent self-catch P1-3 정정
+last_verified: 2026-05-29 (17.4 patch fact 추가 + sim_active partial 강등 (PR #162 룰 #15); 이전: 2026-05-19 Lint #11-A + #11-B resolved PR #140 / #136)
 sources:
   - src/data/carryAugments.ts:205-218 (JaxCarry entry)
   - src/lib/simulator/engine/combatLoop.ts:618-622 (getAbilityConfigForUnit)
-  - src/lib/simulator/engine/combatLoop.ts:2220-2267 (applyHeroCarryTransforms role='Fighter')
+  - src/lib/simulator/engine/combatLoop.ts:2258 (applyHeroCarryTransforms role='Fighter', drift fix PR #162)
   - src/lib/simulator/engine/combatLoop.ts:5618-5660 (onAttackBonus passive)
   - src/lib/simulator/engine/combatLoop.ts:6146-6149 (self_buff carry damage override 미적용 주석)
   - src/lib/simulator/engine/combatLoop.ts:6226 (self_buff → rawAbilityDmgBase=0)
@@ -21,8 +21,10 @@ sources:
 related:
   - "[[hero-augment-carry]]"
   - "[[patch-17-3]]"
+  - "[[patch-17-4]]"
   - "[[ability-targeting]]"
   - "[[role-passive]]"
+  - "[[jax]]"
 ---
 
 # 저 별을 향해 (JaxCarry, Reach for the Stars)
@@ -35,7 +37,7 @@ abilityOverride 가 `self_buff` 라서 cast 자체는 damage 없음. 실질 효�
 
 ## 변환 후 메커니즘
 
-- **role**: `Fighter` (default — `applyHeroCarryTransforms` line 2227)
+- **role**: `Fighter` (default — `applyHeroCarryTransforms` line 2258, drift fix PR #162 subagent P2-3)
 - **abilityOverride**: `{ pattern: 'self_buff', selfBuff: { attackSpeed: 0.15, duration: 999 } }` (`carryAugments.ts:208`)
 - **cast 효과** (`combatLoop.ts:6885-6891`):
   - `unit.stats.attackSpeed *= (1 + 0.15)` — duration:999 무시 (sim 에 expiry 추적 없음 → 영구). 매 cast 마다 multiplicative 누적.
@@ -60,10 +62,11 @@ abilityOverride 가 `self_buff` 라서 cast 자체는 damage 없음. 실질 효�
 
 ## 패치 히스토리
 
-| 패치 | 변경 |
-|------|------|
-| [[patch-17-3]] (2026-05-13) | damage `[155, 230, 375] → [170, 250, 450]` (entry 정합 — 단 sim 미반영) |
-| 17.3 이전 | 정확한 도입 패치 미verify (carryAugments.ts entry 외 source 없음) |
+| 패치 | 변경 | sim 적용 |
+|------|------|---------|
+| 17.3 이전 | 정확한 도입 패치 미verify (carryAugments.ts entry 외 source 없음) | — |
+| [[patch-17-3]] (2026-05-13) | damage `[155, 230, 375] → [170, 250, 450]` (entry 정합) | ❌ sim 미반영 (self_buff pattern 의 carry damage override 적용 안 함, codex P1 PR #71) |
+| [[patch-17-4]] (2026-05-27) | **2건 변경** (PR #162 codex P1 catch — 이전 "carry 변경 없음" 잘못): (1) **JaxCarry damage `170/250/450` → `160/240/420`** 너프 (Reach for the Stars augment 표 명시). (2) base Jax `FlatDR` AP scaling 제거 (`15/20/25 AP` → `20/25/30` flat) — 간접 영향 | ❌ **sim 미반영** — JaxCarry damage 자체는 self_buff pattern 의 carry damage override 적용 안 함 (codex P1 PR #71) 이라 sim dead 단 entry 정합 위해 raw data fetch (sequence B) + carryAugments.ts:205-218 abilityData.damage 갱신 필요. base Jax FlatDR 은 sim dead (selfBuff.durability 0.3 hardcoded 우선) 라 sim 영향 0 |
 
 ## sim 적용 상태 — `partial`
 

@@ -9,9 +9,9 @@ traits:
   - 요새
 role: Tank   # raw "APTank" → mapGameRole() → sim Tank. ⚠️ JaxCarry augment 활성 시 Fighter 로 변환 (applyHeroCarryTransforms)
 raw_role: APTank
-current_patch_status: active
+current_patch_status: active (17.3 LIVE, 17.4 patch pending — sim 미반영, [[patch-17-4]] 참조)
 sim_active: partial
-last_verified: 2026-05-21
+last_verified: 2026-05-29 (17.4 patch fact 추가, sim 미반영 명시; 이전: 2026-05-21)
 sources:
   - "public/data/tft_set17_champions.json (TFT17_Jax entry)"
   - "src/types/index.ts:39 (mapGameRole: 'Tank' 포함 → 'Tank')"
@@ -28,6 +28,7 @@ related:
   - "[[jax-carry]]"
   - "[[stargazer]]"
   - "[[patch-17-3]]"
+  - "[[patch-17-4]]"
 ---
 
 # 잭스 (Jax)
@@ -81,7 +82,7 @@ TFT17_Jax: { pattern: 'aoe_circle', radius: 1, stun: 1.5, selfBuff: { durability
 ### Trait — 별돌보미(Stargazer) + 요새(Bastion)
 
 - **별돌보미**: 강화 칸의 별돌보미 유닛에 별자리 효과 추가 적용 — [[stargazer]] 참조. Jax 는 1코 별돌보미 4명 (나서스/뽀삐/렉사이/리산드라/등) 그룹과 별개 2코.
-- **요새**: Bastion (탱커 시너지) — 6 trait modules (`src/data/traitModules.ts` 등) 통합. Tank role 보강 효과.
+- **요새**: Bastion — `applyBastionEffects` (`combatLoop.ts:1817` 함수 정의 + `:4580-4581` combat-start 호출) 통합. Tank role 보강 효과 (armor/MR 가산 + `bastionDoubleEndTick` Duration doubled 만료 처리). PR #162 subagent P2-4 정정 (이전 `traitModules.ts` 잘못 인용).
 
 ## JaxCarry 변환 시 (참조)
 
@@ -95,10 +96,16 @@ JaxCarry augment 활성 시:
 
 ## 패치 히스토리 (base raw)
 
-| 패치 | 변경 |
-|------|------|
-| [[patch-17-2b]] (2026-04-29) | `ShieldAmount` (=`ShieldAP`): `400/500/625 → 400/470/550` — base ability shield 너프. sim 미반영 (ShieldAP 자체 미적용) |
-| [[patch-17-3]] (2026-05-13) | `FlatDR` (AP): `15/25/35/45 → 15/20/25/30` + `ShieldAP`: `400/470/550 → 400/450/500` — base ability 너프 2건. sim 미반영 (양쪽 변수 모두 dead in sim) |
+| 패치 | 변경 | sim 적용 |
+|------|------|---------|
+| [[patch-17-2b]] (2026-04-29) | `ShieldAmount` (=`ShieldAP`): `400/500/625 → 400/470/550` — base ability shield 너프 | ❌ sim 미반영 (ShieldAP 자체 미적용) |
+| [[patch-17-3]] (2026-05-13) | `FlatDR` (AP): `15/25/35/45 → 15/20/25/30` + `ShieldAP`: `400/470/550 → 400/450/500` — base ability 너프 2건 | ❌ sim 미반영 (양쪽 변수 모두 dead in sim) |
+| [[patch-17-4]] (2026-05-27) | **조정 (Adjustment)**: `FlatDR` **AP 스케일링 제거** — `15/20/25 AP` (★1~★3) → **`20/25/30`** (평탄 수치, AP scaling 제거). raw desc 의 `(scaleAP)` 제거 | ❌ sim 미반영 + **분기 구조 영향**: AP scaling 자체 제거라 단순 수치 변경 아니라 변수 type 변경 (AP 의존 → flat). [[patch-17-4]] sequence B/C 대기 |
+
+⚠️ **17.4 sim 영향 평가**:
+- FlatDR 값 자체는 sim dead (Jax 의 `selfBuff.durability hardcoded 0.3` 우선 적용, [[poppy]] G1 패턴과 동일) → 17.4 변경의 sim 영향 sim dead state 라 0
+- **분기 구조 변경**: raw desc 의 `(scaleAP)` 제거는 raw json 의 ability variable schema 변경 가능성 (variable name 또는 type 변경). raw data fetch (sequence B) 시 schema 정합 verify 필요
+- ★ 수 감소 (4 → 3) — raw vars sentinel filler 패턴 변경 가능성 (이전 `[15, 25, 35, 45]` → 새 `[20, 25, 30]` 등). raw data fetch 시 길이 + sentinel 정합 verify
 
 ## sim 적용 상태 — `partial`
 
