@@ -1,12 +1,15 @@
 {
   "meta": {
     "set": 17,
-    "source": "CommunityDragon TFT ko_kr.json (PBE 5/12)",
+    "source": "CommunityDragon TFT ko_kr.json (PBE 5/12) + patch-17-4 변경 미반영 (sequence C deferred)",
     "extractedAt": "2026-05-13T00:30:00.000Z",
     "totalAugments": 440,
-    "patch_version": "17.3 LIVE",
+    "patch_version": "17.3 LIVE (17.4 augment 변경은 carryAugments.ts hardcoded — sequence C)",
     "fetched_at": "2026-05-13",
-    "set17_active_pool_size": 35
+    "set17_active_pool_size": 35,
+    "patch_17_4_deferred": [
+      "TFT17_Augment_JaxCarry (Reach for the Stars): damage 170/250/450 → 160/240/420 너프 (Codex P1 PR #162 catch). raw augments.json 의 augment desc 는 effects 비어 있고, damage 값은 src/data/carryAugments.ts:205-218 abilityData.damage hardcoded → sequence C 갱신"
+    ]
   },
   "augments": [
     {

@@ -2,10 +2,16 @@
   "meta": {
     "set": 17,
     "name": "Set17",
-    "patch_version": "17.3 LIVE",
-    "fetched_at": "2026-05-13",
-    "source": "CommunityDragon TFT ko_kr.json (PBE 5/12)",
-    "totalChampions": 83
+    "patch_version": "17.4 LIVE (partial — sequence B 1차)",
+    "fetched_at": "2026-05-29",
+    "source": "patch-17-4 외부 patch notes 기반 부분 update (Zed/Shen/Jax 17.4 변경, 다른 15 챔프는 sequence B 후속 PR)",
+    "totalChampions": 83,
+    "patch_history": [
+      "17.2 LIVE (CDragon PBE 5/12 기준, base)",
+      "17.2b (Stargazer Fountain 비활성 등)",
+      "17.3 LIVE (2026-05-13 — Shen passive nerf + 27 챔프 변경 등, fetched_at: 2026-05-13)",
+      "17.4 LIVE (2026-05-27 — Zed/Shen/Jax 본 PR sequence B 1차 적용)"
+    ]
   },
   "champions": [
     {
@@ -4200,9 +4206,9 @@
             "name": "FlatDR",
             "value": [
               0.0,
-              15.0,
               20.0,
               25.0,
+              30.0,
               30.0,
               0.0,
               0.0
@@ -4596,7 +4602,7 @@
         "range": 1,
         "critChance": 0.25,
         "critMultiplier": 1.399999976158142,
-        "initialMana": 10,
+        "initialMana": 20,
         "mana": 70
       },
       "ability": {
@@ -4608,8 +4614,8 @@
             "name": "BonusDamageOnAttack",
             "value": [
               50.0,
-              20.0,
-              30.0,
+              25.0,
+              40.0,
               777.0,
               777.0,
               777.0,
@@ -5457,7 +5463,7 @@
         "range": 1,
         "critChance": 0.25,
         "critMultiplier": 1.399999976158142,
-        "initialMana": 50,
+        "initialMana": 40,
         "mana": 100
       },
       "ability": {
@@ -5471,7 +5477,7 @@
               0.33,
               0.33,
               0.4,
-              0.4,
+              0.45,
               0.4,
               0.33,
               0.33
