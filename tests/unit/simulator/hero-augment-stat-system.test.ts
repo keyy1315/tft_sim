@@ -67,11 +67,11 @@ describe('CARRY_AUGMENTS 카탈로그 — 8 영웅 증강 abilityData 정의', (
     expect(leona?.abilityData?.secondaryDamage).toEqual([200, 300, 480]); // 17.3: [180,270,405] → [200,300,480]
   });
 
-  it('17.3 — 잭스 저 별을 향해: damage [170,250,450] (17.3 buff)', () => {
+  it('17.4 — 잭스 저 별을 향해: damage [160,240,420] (17.4 nerf — PR #164, Codex P1 PR #162 catch)', () => {
     const jax = CARRY_AUGMENTS.find(c => c.augmentApiName === 'TFT17_Augment_JaxCarry');
     expect(jax?.abilityData?.asGain).toEqual([0.15, 0.15, 0.20]);
     expect(jax?.abilityData?.onAttackBonus).toEqual([45, 70, 105]);
-    expect(jax?.abilityData?.damage).toEqual([170, 250, 450]); // 17.3: [155,230,375] → [170,250,450]
+    expect(jax?.abilityData?.damage).toEqual([160, 240, 420]); // 17.4: 170/250/450 → 160/240/420. 17.3: 155/230/375 → 170/250/450
   });
 
   it('파이크 청부 살인마: tankBonus 0.60 + onKillRecast 0.70', () => {

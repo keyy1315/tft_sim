@@ -210,7 +210,7 @@ export const CARRY_AUGMENTS: CarryAugmentConfig[] = [
       name: '저 별을 향해',
       desc: '주문력 전사로 변환. 패시브: 기본 공격당 추가 magic damage. 사용: 대상 magic damage + 영구 AS/MS +15/15/20% (전투 종료까지 누적).',
       mana: '20/80',
-      damage: [170, 250, 450], // 17.3: 155/230/375 → 170/250/450
+      damage: [160, 240, 420], // 17.4: 170/250/450 → 160/240/420 (PR #164 — Codex P1 PR #162 catch). 17.3: 155/230/375 → 170/250/450
       onAttackBonus: [45, 70, 105],
       asGain: [0.15, 0.15, 0.20],
       damageType: 'magic',

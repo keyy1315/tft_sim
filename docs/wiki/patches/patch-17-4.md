@@ -133,7 +133,7 @@ PR #162 codex P1 catch — Twisted Fate 방향 정정 + 일관성 회복:
 
 | Augment | 변경 | 영향 페이지 | sim 영향 |
 |---------|------|-------------|----------|
-| **Reach for the Stars (JaxCarry)** | damage `170/250/450` → **`160/240/420`** 너프 | [[jax-carry]] | ❌ JaxCarry 자체 damage 는 self_buff pattern carry damage override 적용 안 함 (codex P1 PR #71) 이라 sim dead. 단 carryAugments.ts:205-218 entry 정합 위해 sequence B 에서 갱신 필요 |
+| **Reach for the Stars (JaxCarry)** | damage `170/250/450` → **`160/240/420`** 너프 | [[jax-carry]] | ✅ **PR #164 sequence C 적용 완료** — `carryAugments.ts:209` damage 갱신 + test assertion update. ★ sim 효과 자체는 self_buff pattern carry damage override 미적용 (codex P1 PR #71) 이라 entry 정합만 (실 sim 영향 0) |
 
 ## Lint 체크리스트 (mechanic entity-type)
 
