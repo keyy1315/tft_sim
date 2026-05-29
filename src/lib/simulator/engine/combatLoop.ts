@@ -4809,15 +4809,16 @@ export function simulateCombat(
     }
 
     // === PR7-C.6 (17.2b): Akali N.O.V.A. 타격 선택기 추가 효과 ===
-    // 사용자 spec: surge 시 모든 적 출혈 (매초 10/14/18 starLevel별 물리). 영구 적용 (전투 끝까지).
+    // 사용자 spec: surge 시 모든 적 출혈 (매초 12/18/24 starLevel별 물리, 17.4 buff). 영구 적용 (전투 끝까지).
     // burn statusEffect 사용 — value 는 매 tick damage. 매초 damage / TICKS_PER_SECOND.
+    // 17.4 변경 (Codex P1 PR #162 catch): 10/14/18 → 12/18/24 AD (PR #166 sequence C-3).
     const akaliSelector = state.teamUnits.find(u =>
       u.champion.apiName === 'TFT17_Akali'
       && u.aatroxNovaStrikeSelector
       && u.state !== 'dead'
     );
     if (akaliSelector) {
-      const akaliBleedPerSec = [10, 14, 18];
+      const akaliBleedPerSec = [12, 18, 24]; // 17.4: 10/14/18 → 12/18/24 AD (PR #166)
       const akaliBleedSec = akaliBleedPerSec[akaliSelector.starLevel - 1] ?? akaliBleedPerSec[0];
       const akaliBleedRawPerTick = akaliBleedSec / TICKS_PER_SECOND;
       for (const e of state.opposingTeam) {
@@ -4841,15 +4842,16 @@ export function simulateCombat(
       });
     }
 
-    // Kindred selector — Kindred damageAmp +5% (영구) + 모든 적 표식. 5초 주기 mark 갱신은
+    // Kindred selector — Kindred damageAmp +10% (영구, 17.4 buff: 5%→10%) + 모든 적 표식. 4.5초 주기 mark 갱신은
     // main loop tick 별도 처리 (kindredNovaMarkState). Tank shield 는 hasKindred 기존.
+    // 17.4 변경 (Codex P1 PR #162 catch): damageAmp 0.05 → 0.10 (PR #166 sequence C-3).
     const kindredSelector = state.teamUnits.find(u =>
       u.champion.apiName === 'TFT17_Kindred'
       && u.aatroxNovaStrikeSelector
       && u.state !== 'dead'
     );
     if (kindredSelector) {
-      kindredSelector.damageAmp += 0.05;
+      kindredSelector.damageAmp += 0.10; // 17.4: 0.05 → 0.10 (PR #166)
       for (const e of state.opposingTeam) {
         if (e.state === 'dead') continue;
         e.statusEffects.push({
@@ -4859,7 +4861,7 @@ export function simulateCombat(
       }
       logs.push({
         tick, time, type: 'ability', sourceId: 'kindred-nova-selector',
-        message: `Kindred N.O.V.A. 선택기! +5% damage amp + 모든 적 표식`,
+        message: `Kindred N.O.V.A. 선택기! +10% damage amp + 모든 적 표식`,
       });
     }
 
@@ -5194,8 +5196,8 @@ export function simulateCombat(
       if (!drxState || !drxState.triggered) return;
       const elapsedSinceSurge = tick - drxState.delayTicks;
       if (elapsedSinceSurge <= 0) return;
-      const periodTicks = 5 * TICKS_PER_SECOND;
-      // 5초 주기 도달 시점 (surge 직후 첫 발동은 tickDrxNova 에서 처리. 본 helper 는 후속 갱신).
+      const periodTicks = Math.round(4.5 * TICKS_PER_SECOND); // 17.4: 5s → 4.5s mark refresh (PR #166 sequence C-3, Codex P1 PR #162 catch)
+      // 4.5초 주기 도달 시점 (surge 직후 첫 발동은 tickDrxNova 에서 처리. 본 helper 는 후속 갱신).
       if (elapsedSinceSurge % periodTicks !== 0) return;
       const kindredSelector = teamUnits.find(u =>
         u.champion.apiName === 'TFT17_Kindred'
