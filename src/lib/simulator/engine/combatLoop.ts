@@ -3387,12 +3387,13 @@ function applyStargazerEffects(
   // 17.2 LIVE 까지 비활성 → 17.3 LIVE 에서 재활성화 (PR #109).
   // 17.3 LIVE 의 lolchess.gg "(3) 4% / (5) 7% ADAP per 2s" 매핑 17.4 패치 시점 풀림:
   // raw `{13a2a786}` = Fountain_StackingADAP (desc @Fountain_StackingADAP@ 와 1:1 매핑).
-  // sim 통합 본 PR (sequence C-5e) — fountainStackingAdapPerTick state field 활성화.
+  // sim 통합 sequence C-5e (PR #172) — fountainStackingAdapPerTick state field 활성화.
   //
-  // 보류:
-  //   - 17.2 PBE 의 fountainHealPctPerTick (매 tick maxHp 회복) — sim 미반영
-  //     ({f2840aed} = HealthRegen, {d7e6d620} = HealthRegen_Teamwide 로 매핑 추정).
-  //     → sequence C-5a (Fountain Healing periodic) 별도 PR.
+  // periodic heal (2026-06-01 17.4 sequence C-5a 본 PR sim 통합):
+  //   - 강화 칸 아군 (전체): max HP × 1% heal / Interval (raw `{d7e6d620}` = 0.01)
+  //   - 강화 칸 별돌보미: 추가 max HP × 2.5% (17.4 너프 → 3%) heal / Interval (raw `{f2840aed}`)
+  //   - → 별돌보미 합산 fountainHealPctPerTick = teamwide + ownerExtra (1% + 3% = 4%, 17.4)
+  //   - main loop tick (line 5333-5363) 가 `fountainHealPctPerTick > 0` 시 적용
   if (apiName === 'TFT17_Stargazer_Fountain') {
     const healPct = (eff.Fountain_HealPercent ?? 0) as number;
     const teamwideMana = (eff.Fountain_ManaRegen_Teamwide ?? 0) as number;
@@ -3400,15 +3401,27 @@ function applyStargazerEffects(
     // Fountain_StackingADAP — raw hash 키 `{13a2a786}`. percent points (4.0 = 4%) → fraction 변환.
     const stackingAdapPct = (eff['{13a2a786}'] ?? 0) as number;
     const stackingAdapFraction = stackingAdapPct / 100;
-    if (healPct > 0 || teamwideMana > 0 || ownerMana > 0 || stackingAdapFraction > 0) {
+    // periodic heal — raw hash 키 단위 fraction (0.01 = 1%).
+    const teamwidePeriodicHeal = (eff['{d7e6d620}'] ?? 0) as number;
+    const ownerExtraPeriodicHeal = (eff['{f2840aed}'] ?? 0) as number;
+    if (
+      healPct > 0 || teamwideMana > 0 || ownerMana > 0 ||
+      stackingAdapFraction > 0 || teamwidePeriodicHeal > 0 || ownerExtraPeriodicHeal > 0
+    ) {
       for (const u of units) {
         if (!isOnTile(u)) continue;
         if (teamwideMana > 0) u.augmentManaRegen += teamwideMana;
+        // 강화 칸 모든 아군 (별돌보미 포함): teamwide periodic heal.
+        if (teamwidePeriodicHeal > 0) u.fountainHealPctPerTick = teamwidePeriodicHeal;
         if (isStargazerUnit(u)) {
           if (ownerMana > 0) u.augmentManaRegen += ownerMana;
           if (healPct > 0) u.stargazerFountainHealPercent = healPct;
           // 강화 칸 별돌보미만 StackingADAP — main loop tick (Fountain_Interval 마다) 가 적용.
           if (stackingAdapFraction > 0) u.fountainStackingAdapPerTick = stackingAdapFraction;
+          // 강화 칸 별돌보미: 추가 periodic heal 합산 (teamwide + ownerExtra).
+          if (ownerExtraPeriodicHeal > 0) {
+            u.fountainHealPctPerTick = (u.fountainHealPctPerTick || 0) + ownerExtraPeriodicHeal;
+          }
         }
       }
     }

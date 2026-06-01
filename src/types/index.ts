@@ -813,8 +813,10 @@ export interface CombatUnit {
   stargazerFountainHealPercent: number;
   /**
    * 별돌보미 우물(Fountain) — 강화 칸 unit 의 max HP 회복 fraction per Fountain_Interval (2초).
-   * sim 미반영 (sequence C-5a 별도 PR 대기). raw `{f2840aed}`/`{d7e6d620}` 매핑 추정.
+   * raw 매핑: `{d7e6d620}` (teamwide 1%) + `{f2840aed}` (별돌보미 추가 2.5%→3% 17.4).
+   * 강화 칸 모든 아군 = teamwide, 강화 칸 별돌보미 = teamwide + ownerExtra 합산 (1+3=4% 17.4).
    * 0 = 비활성. main loop tick 마다 fountainTickPeriod 만료 시 heal 발동 (line 5352-5356).
+   * sim 통합 sequence C-5a (PR #173).
    */
   fountainHealPctPerTick: number;
   /**
