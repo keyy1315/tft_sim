@@ -945,7 +945,7 @@
           "style": 3,
           "variables": {
             "Mountain_ADAP": 0.15000000596046448,
-            "Mountain_AS": 0.10000000149011612,
+            "Mountain_AS": 0.07999999821186066,
             "Mountain_DR": null,
             "Mountain_Health": 0.15000000596046448,
             "Mountain_Resists": 10,
@@ -961,8 +961,8 @@
           "style": 3,
           "variables": {
             "Mountain_ADAP": 0.15000000596046448,
-            "Mountain_AS": 0.10000000149011612,
-            "Mountain_DR": 0.05999999865889549,
+            "Mountain_AS": 0.07999999821186066,
+            "Mountain_DR": 0.05000000074505806,
             "Mountain_Health": 0.15000000596046448,
             "Mountain_Resists": 10,
             "Mountain_RoundsPerEmblem": 5,
@@ -977,8 +977,8 @@
           "style": 5,
           "variables": {
             "Mountain_ADAP": 0.15000000596046448,
-            "Mountain_AS": 0.10000000149011612,
-            "Mountain_DR": 0.05999999865889549,
+            "Mountain_AS": 0.07999999821186066,
+            "Mountain_DR": 0.05000000074505806,
             "Mountain_Health": 0.15000000596046448,
             "Mountain_Resists": 10,
             "Mountain_RoundsPerEmblem": 5,
@@ -993,8 +993,8 @@
           "style": 5,
           "variables": {
             "Mountain_ADAP": 0.15000000596046448,
-            "Mountain_AS": 0.10000000149011612,
-            "Mountain_DR": 0.05999999865889549,
+            "Mountain_AS": 0.07999999821186066,
+            "Mountain_DR": 0.05000000074505806,
             "Mountain_Health": 0.15000000596046448,
             "Mountain_Resists": 10,
             "Mountain_RoundsPerEmblem": 5,
@@ -1009,8 +1009,8 @@
           "style": 5,
           "variables": {
             "Mountain_ADAP": 0.15000000596046448,
-            "Mountain_AS": 0.10000000149011612,
-            "Mountain_DR": 0.05999999865889549,
+            "Mountain_AS": 0.07999999821186066,
+            "Mountain_DR": 0.05000000074505806,
             "Mountain_Health": 0.15000000596046448,
             "Mountain_Resists": 10,
             "Mountain_RoundsPerEmblem": 5,
@@ -1025,8 +1025,8 @@
           "style": 6,
           "variables": {
             "Mountain_ADAP": 0.15000000596046448,
-            "Mountain_AS": 0.10000000149011612,
-            "Mountain_DR": 0.05999999865889549,
+            "Mountain_AS": 0.07999999821186066,
+            "Mountain_DR": 0.05000000074505806,
             "Mountain_Health": 0.15000000596046448,
             "Mountain_Resists": 10,
             "Mountain_RoundsPerEmblem": 5,

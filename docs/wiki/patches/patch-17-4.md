@@ -3,7 +3,7 @@ id: patch-17-4
 type: patch
 live_date: 2026-05-27
 status: LIVE
-last_verified: 2026-05-29 (sequence B 1차 — Zed/Shen/Jax + 3 trait raw json 17.4 적용 완료, 나머지 sequence B 후속 + sequence C/D 대기)
+last_verified: 2026-06-01 (sequence C-5d — Stargazer Mountain AS/DR 너프 raw json 적용 완료, sequence C-5a/b/c/e 및 sequence B 후속 + D 대기)
 sources:
   - https://teamfighttactics.leagueoflegends.com/en-us/news/game-updates/teamfight-tactics-patch-17-4/ (공식)
   - https://esports.gg/news/teamfight-tactics/tft-patch-17-4-notes-belveth-nerf-reverted-plus-arbiter-and-psionic-buffs/ (esports.gg)
@@ -32,7 +32,7 @@ related:
 |-------|----------------|----|
 | **raw data** (`public/data/tft_set17_*.json`) | ⚠️ **sequence B 1차 완료** (PR #163): Zed (initialMana 40, HPPenalty ★3=value[2]=0.45 — Codex P1 catch 후 인덱싱 정정) + Shen (initialMana 20, BonusDamageOnAttack ★1/★2 25/40) + Jax (FlatDR value[1]/[2]/[3] 20/25/30) + ASTrait (AttackSpeedPercent tier 3/4 28%/42%) + RangedTrait (PercentDamageIncrease tier 3/4 25/35) + SpaceGroove (tier 7 EffectBonus 15 — ⚠️ sim 미반영, Codex P2 catch) | 본 PR (sequence B 1차) |
 | **raw data 나머지** | ❌ deferred — DarkStar (SupermassivePercentBonus 0.85→0.70, PercentHealth 0.30→0.25, 4 effects vs (6) tier 검증 필요) / DRX (NOVA 챔프별 분기 = sim 코드 hardcoded) / Stargazer (정확한 필드 매핑 verify 필요) + 15 champion 미작성 entity | **sequence B 후속 PR** |
-| **sim 코드** (`combatLoop.ts` trait helpers + ability config) | ⚠️ **자동 반영 + hardcoded 잔존**. raw json 갱신만으로 자동 sim 반영: Shen passive damage / Zed-Shen mana / Sniper amp / Challenger AS ✅ (4건). **sequence C 적용 완료**: ✅ JaxCarry damage (PR #164) / ✅ Galio selfBuff.durability star별 read + OOR durability 분기 fix (PR #165) / ✅ NOVA Akali Bleed + Kindred damageAmp + Mark Timer (PR #166) / ✅ SpaceGroove EffectBonus helper 통합 (PR #167). 별도 hardcoded 갱신 필요: Jax selfBuff.durability (raw FlatDR 단위 변환 필요) / Stargazer 필드 매핑 / NOVA Aatrox shredPct (raw 매핑 verify 필요) | **sequence C** (4/5 + 잔존 → 약 80% 진행) — helper 코드 hardcoded 갱신 + 테스트 회귀 |
+| **sim 코드** (`combatLoop.ts` trait helpers + ability config) | ⚠️ **자동 반영 + hardcoded 잔존**. raw json 갱신만으로 자동 sim 반영: Shen passive damage / Zed-Shen mana / Sniper amp / Challenger AS ✅ (4건). **sequence C 적용 완료**: ✅ JaxCarry damage (PR #164) / ✅ Galio selfBuff.durability star별 read + OOR durability 분기 fix (PR #165) / ✅ NOVA Akali Bleed + Kindred damageAmp + Mark Timer (PR #166) / ✅ SpaceGroove EffectBonus helper 통합 (PR #167) / ✅ **Stargazer Mountain AS/DR 너프 (C-5d, 본 PR)** — raw json 만 변경 (sim helper `applyStargazerEffects` Mountain 분기가 raw `Mountain_AS`/`Mountain_DR` 직접 read 라 자동 반영). 별도 hardcoded 갱신 필요: Jax selfBuff.durability (raw FlatDR 단위 변환 필요) / Stargazer Fountain/Huntress/Serpent 필드 매핑 / NOVA Aatrox shredPct (raw 매핑 verify 필요) | **sequence C** (5/8 + 잔존 → 약 63% 진행, C-5 sub 5건 중 1건 완료) — helper 코드 hardcoded 갱신 + 테스트 회귀 |
 | **Arbiter 시스템** | ❌ 17.3 의 입력/출력 구조 | **sequence D** — 3 카테고리 (일관성/조건부/경제) 개편 |
 | **Psionic 아이템** | ❌ 17.3 stats | sequence D 일부 |
 | **위키 페이지** (champion / mechanic) | ✅ **sequence A 완료** (PR #162) — 17.4 fact 명시 + frontmatter `current_patch_status: active (17.3 LIVE, 17.4 patch pending)` + 본문 패치 히스토리 row | PR #162 |
@@ -65,7 +65,7 @@ Psionic(2) / Psionic(4) 아이템들의 **스탯이 더욱 일반적으로** 변
 | **N.O.V.A. (5)** | Aatrox `50%` → **`65%`** (raw spec 매핑 verify 필요 — 별도 PR), Akali Bleed Damage `10/14/18 AD` → **`12/18/24 AD`** ✅, **Kindred Damage Amp `5%` → `10%`** ✅, **Kindred Mark Timer `5s` → `4.5s`** ✅ | ✅ **PR #166 sequence C-3 적용 완료** — `tickDrxNova` 의 Akali Bleed 배열 + Kindred damageAmp + `tickKindredNovaMark` periodTicks 갱신. Aatrox shredPct 는 raw `ShredAndSunder` (현재 0.30) 매핑 불명확 (Codex 정정 fact "50→65%" 와 raw 0.30 차이) — 별도 verify 후 raw json 갱신 (sequence B 후속) |
 | **스나이퍼** | damage amp `18/24/28%` → **`18/25/35%`** | `sniperBaseDA` / `sniperPerHexDA` state field (combatLoop.ts:3866-3867) |
 | **스페이스 그루브 (7)** | 보너스 `10%` → **`15%`** | ✅ **PR #167 sequence C-4 sim 적용 완료** — `applySpaceGrooveBuffs` (`combatLoop.ts:1720-1738`) 에 EffectBonus 곱셈 통합. `boostedAdapPerSec = adapPerSec × (1 + EffectBonus/100)` 적용 (tier 7 EffectBonus=15 → 5 × 1.15 = 5.75 매초 ADAP 가산). raw json 변경 (PR #163 sequence B) + helper 통합 (본 PR) 으로 17.4 sim 적용 |
-| **스타게이저** | heal `2.5%` → **`3%`** + 세부 조정 | [[stargazer-fountain]] + stargazerFountainHealPercent 분기 |
+| **스타게이저** | **Mountain 변종** AS `10%` → **`8%`** + DR `6%` → **`5%`** ✅, Fountain Healing `2.5%` → **`3%`** (C-5a 대기), Fountain (5) ADAP `7%` → **`9%`** (C-5e 대기), Huntress Teamwide AS `15%` → **`12%`** + Stargazer AS `12/35/55` → **`15/45/70`** + Mark `3/5/7` → **`3/5/9`** (C-5c 대기), Serpent Damage ★1 `25%` → **`20%`** (C-5b 대기) | [[stargazer-fountain]] + `applyStargazerEffects` Mountain 분기 (`combatLoop.ts:3220-3235`) ✅ — Fountain/Huntress/Serpent 영역 별도 |
 
 ## Champion 변경 (18건)
 
