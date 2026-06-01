@@ -11,7 +11,8 @@
  * Serpent spec (TFT17_Stargazer_Serpent):
  *   - 강화 칸 별돌보미: 적 데미지 명중 시 dmg × Serpent_Poison 을
  *     Serpent_Duration 초간 magic DOT (poison statusEffect).
- *   - (3) Poison=0.25 / (5) Poison=0.40 / (7) Poison=0.60, Duration=3
+ *   - (3) Poison=0.20 / (5) Poison=0.40 / (7) Poison=0.60, Duration=3
+ *     (17.4: (3) Poison 0.25 → 0.20 너프, (5)/(7) 동일)
  */
 import { describe, it, expect } from 'vitest';
 import { simulateCombat } from '@/lib/simulator/engine/combatLoop';
@@ -103,7 +104,7 @@ describe('Huntress — 강화 칸 별돌보미 healPercent 설정 + 적 표식',
 });
 
 describe('Serpent — 강화 칸 별돌보미 poisonPercent + duration 설정', () => {
-  it('(3) 별돌보미 4명 → poisonPercent=0.25, duration=3', () => {
+  it('(3) 별돌보미 4명 → poisonPercent=0.20, duration=3 (17.4 너프)', () => {
     const tiles = CONSTELLATION_TILE_PATTERN.snake;
     const team = [
       placed(apTwistedFate, tiles[0].q, tiles[0].r),
@@ -117,7 +118,7 @@ describe('Serpent — 강화 칸 별돌보미 poisonPercent + duration 설정', 
       playerStargazerConstellation: 'snake',
     });
     const tf = result.playerUnits.find(u => u.champion.apiName === 'TFT17_TwistedFate')!;
-    expect(tf.stargazerSerpentPoisonPercent).toBeCloseTo(0.25, 2);
+    expect(tf.stargazerSerpentPoisonPercent).toBeCloseTo(0.20, 2);
     expect(tf.stargazerSerpentDurationSec).toBe(3);
   });
 
