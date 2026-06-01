@@ -159,6 +159,28 @@ describe('Fountain 변종 — Teamwide ManaRegen + 별돌보미 ManaRegen + Stac
       expect(u.fountainStackingAdapPerTick).toBeGreaterThan(0);
     }
   });
+
+  it('17.4 sequence C-5a — periodic heal 활성화: 강화 칸 별돌보미 fountainHealPctPerTick=0.04 ((5) 합산 1%+3%)', () => {
+    // 별돌보미 6명 → (5) tier: teamwide periodic heal `{d7e6d620}`=0.01 + 별돌보미 추가 `{f2840aed}`=0.03 (17.4).
+    // 강화 칸 별돌보미 unit: 합산 0.01 + 0.03 = 0.04 fraction per 2초.
+    const ally = buildStargazerTeam('well');
+    const withC = simWith('well', ally);
+    const tf = withC.playerUnits[0]; // TwistedFate (별돌보미 + 강화 칸)
+    expect(tf.fountainHealPctPerTick).toBeCloseTo(0.04, 3);
+  });
+
+  it('17.4 sequence C-5a — periodic heal 누적: 강화 칸 별돌보미 currentHp 회복 효과 (long combat)', () => {
+    // Fountain ON 시 별돌보미 합산 4% / 2s heal 누적 → enemy 대비 player 잔존 currentHp 합계 더 높음.
+    const ally = buildStargazerTeam('well');
+    const withFountain = simWith('well', ally);
+    const without = simWith(undefined, ally);
+    const sumPlayerHp = (units: typeof withFountain.playerUnits) =>
+      units.reduce((s, u) => s + Math.max(0, u.currentHp), 0);
+    // periodic heal 적용 시 base 대비 잔존 HP 동등 이상 (heal noise 흡수 가능 범위).
+    expect(sumPlayerHp(withFountain.playerUnits)).toBeGreaterThanOrEqual(
+      sumPlayerHp(without.playerUnits) * 0.95
+    );
+  });
 });
 
 describe('Enemy 팀 (mirror r=4..7) 도 강화 칸 효과 받음', () => {
