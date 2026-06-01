@@ -1,12 +1,13 @@
 /**
  * 별돌보미 여사냥꾼(Huntress) + 뱀(Serpent) 변종 회귀 가드 (PR-5 옵션 B).
  *
- * Huntress spec (TFT17_Stargazer_Huntress) — 17.2 LIVE:
+ * Huntress spec (TFT17_Stargazer_Huntress) — 17.4 LIVE:
  *   - 전투 시작: 적 maxHp 상위 NumMarks 명에 'mark' statusEffect.
  *   - 강화 칸 별돌보미: 표식된 적 사망 시 maxHp × Huntress_Heal 회복.
- *   - (3) NumMarks=3, Heal=0.15 / (5) NumMarks=5, Heal=0.15 / (7) NumMarks=7, Heal=0.15
- *     (17.2: Heal 0.10 → 0.15)
- *   - AS: (3) 0.12 / (5) 0.35 / (7) 0.55 (17.2: 강화)
+ *   - (3) NumMarks=3, Heal=0.15 / (5) NumMarks=5, Heal=0.15 / (7) NumMarks=9, Heal=0.15
+ *     (17.2: Heal 0.10 → 0.15) (17.4: (7) NumMarks 7 → 9)
+ *   - AS: (3) 0.15 / (5) 0.45 / (7) 0.70 (17.4: (3)/(5)/(7) AS 0.12/0.35/0.55 → 0.15/0.45/0.70 강화)
+ *   - AS_Teamwide: 0.12 (17.4: 0.15 → 0.12 너프, 모든 tier 동일)
  *
  * Serpent spec (TFT17_Stargazer_Serpent):
  *   - 강화 칸 별돌보미: 적 데미지 명중 시 dmg × Serpent_Poison 을

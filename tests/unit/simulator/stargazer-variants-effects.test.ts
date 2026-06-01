@@ -83,7 +83,8 @@ describe('Huntress 변종 — Teamwide AS + 별돌보미 추가 AS', () => {
     const ally = buildStargazerTeam('huntress');
     const withC = simWith('huntress', ally);
     const without = simWith(undefined, ally);
-    // (3) Huntress_AS_Teamwide=0.15 + Huntress_AS=0.10 — 별돌보미 합산: 1.15 × 1.10 = 1.265
+    // 17.4: (5) Huntress_AS_Teamwide=0.12 + Huntress_AS=0.45 — 별돌보미 합산: 1.12 × 1.45 = 1.624
+    // (이전 17.3: AS_Teamwide=0.15 + AS=0.35 = 1.15 × 1.35 = 1.5525)
     const tf = withC.playerUnits[0]; // TwistedFate (별돌보미 + 강화 칸)
     const tfBase = without.playerUnits[0];
     expect(tf.stats.attackSpeed / tfBase.stats.attackSpeed).toBeGreaterThan(1.20);
