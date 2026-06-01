@@ -512,8 +512,8 @@
           "minUnits": 3,
           "style": 1,
           "variables": {
-            "Huntress_AS": 0.11999999731779099,
-            "Huntress_AS_Teamwide": 0.15000000596046448,
+            "Huntress_AS": 0.15000000596046448,
+            "Huntress_AS_Teamwide": 0.11999999731779099,
             "Huntress_Heal": 0.15000000596046448,
             "NumMarks": 3
           }
@@ -523,8 +523,8 @@
           "minUnits": 5,
           "style": 3,
           "variables": {
-            "Huntress_AS": 0.3499999940395355,
-            "Huntress_AS_Teamwide": 0.15000000596046448,
+            "Huntress_AS": 0.44999998807907104,
+            "Huntress_AS_Teamwide": 0.11999999731779099,
             "Huntress_Heal": 0.15000000596046448,
             "NumMarks": 5
           }
@@ -534,10 +534,10 @@
           "minUnits": 7,
           "style": 5,
           "variables": {
-            "Huntress_AS": 0.550000011920929,
-            "Huntress_AS_Teamwide": 0.15000000596046448,
+            "Huntress_AS": 0.699999988079071,
+            "Huntress_AS_Teamwide": 0.11999999731779099,
             "Huntress_Heal": 0.15000000596046448,
-            "NumMarks": 7
+            "NumMarks": 9
           }
         }
       ]
