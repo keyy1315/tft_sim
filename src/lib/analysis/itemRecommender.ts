@@ -80,10 +80,12 @@ function isDataIncomplete(item: RawItem): boolean {
 
 /** 추천 풀에 들어갈 수 있는 카테고리인가.
  *  편집 탭의 아이템 그리드에 실제로 나오는 "완성 아이템" 만 허용.
- *  유물 / 찬란한 / 타락한 / 재료 / 시너지 상징 / 발명품 / 빌지워터 / 비활성 아이템은 모두 제외. */
+ *  유물 / 찬란한 / 타락한 / 재료 / 시너지 상징 / 발명품 / 빌지워터 / 비활성 아이템은 모두 제외.
+ *  Set 17 동물특공대(animasquad) / 초능력(psyops) 전용 아이템도 완성템 취급으로 추천 가능. */
 function isRecommendable(item: RawItem): boolean {
   if (isDisabledItem(item)) return false;
-  return getItemCategory(item) === 'combined';
+  const cat = getItemCategory(item);
+  return cat === 'combined' || cat === 'animasquad' || cat === 'psyops';
 }
 
 /** 역할 + damageType 기반 아이템 풀 필터. ctx 주입 시 트레잇 규칙도 적용. */

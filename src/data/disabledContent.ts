@@ -20,6 +20,7 @@
  *   (회귀 노트: 이전 'Psionic_' 접두사는 raw apiName 과 불일치하여 필터 미적용 — 17.2 fetch 후 발견)
  * - TFT17_Augment_DarkStar_NeutronStar (중성자별) — 17.2 raw 추가, 게임 풀 미반영
  * - TFT17_Augment_ShieldTank_DivinePaladins (신성한 성기사단) — 17.2 raw 추가, 게임 풀 미반영
+ * - TFT17_Augment_PrimordianPrismaticAugment (군체의 심장) — 17.2b 마이크로 패치에서 버그로 비활성화
  */
 export const DISABLED_AUGMENT_API_NAMES: ReadonlySet<string> = new Set([
   'TFT17_Augment_Concentration',
@@ -27,6 +28,7 @@ export const DISABLED_AUGMENT_API_NAMES: ReadonlySet<string> = new Set([
   'TFT17_Augment_EmergencySupplies',
   'TFT17_Augment_DarkStar_NeutronStar',
   'TFT17_Augment_ShieldTank_DivinePaladins',
+  'TFT17_Augment_PrimordianPrismaticAugment',
 ]);
 
 /**
@@ -48,6 +50,9 @@ export const DISABLED_AUGMENT_API_NAMES: ReadonlySet<string> = new Set([
  * - TFT17_Item_Artifact_KayleArtifact (케일의 승천) +
  *   TFT17_Item_Artifact_KayleArtifact_Radiant (케일의 찬란한 승천) —
  *     17.2 패치에서 삭제. 데이터 보존, 차단만 (다음 패치 부활 가능).
+ *
+ * - TFT_Item_Artifact_HorizonFocus (지평선의 초점) — 17.3 패치에서 비활성화.
+ *     데이터 보존, 차단만.
  */
 export const DISABLED_ITEM_API_NAMES: ReadonlySet<string> = new Set([
   'TFT17_MarketOffering_PandorasSeat',
@@ -60,6 +65,7 @@ export const DISABLED_ITEM_API_NAMES: ReadonlySet<string> = new Set([
   'TFT17_Item_PsyOps_SemiconductorMod',
   'TFT17_Item_Artifact_KayleArtifact',
   'TFT17_Item_Artifact_KayleArtifact_Radiant',
+  'TFT_Item_Artifact_HorizonFocus',
 ]);
 
 export function isDisabledAugment(apiName: string): boolean {

@@ -16,7 +16,7 @@ export interface AbilityConfig {
   maxTargets?: number;
   damageDecay?: number;
   /** 스킬 시전 시 이동 유형 */
-  dash?: 'to_target' | 'to_farthest' | 'to_lowest_hp' | 'to_backline';
+  dash?: 'to_target' | 'to_farthest' | 'to_lowest_hp' | 'to_backline' | 'to_largest_cluster';
   /** CC 기절 지속시간 (초). 데미지 대상에 적용 */
   stun?: number;
   /** 기절 대상 수 제한 (기본: 데미지 대상 전원) */
@@ -28,7 +28,14 @@ export interface AbilityConfig {
     attackSpeed?: number;
     ad?: number;
     ap?: number;
+    /** 피해 감소 ratio (0~1). damageReduction 에 가산. durabilityVar 미지정 시 사용 */
     durability?: number;
+    /**
+     * raw ability variable name 으로 durability 를 star별 read (예: Galio "Durability" raw [0, 0.2, 0.2, 0.6, ...]).
+     * 지정 시 readVarByStar(unit.champion.ability.variables[name], starLevel, durability fallback) 적용.
+     * raw 값 단위는 ratio (0~1) 이어야 함 — Jax FlatDR (flat 수치 단위) 같이 다른 단위 필요 시 별도 처리.
+     */
+    durabilityVar?: string;
     duration?: number;
   };
   /** 아군 전체 버프 */
@@ -181,7 +188,7 @@ export const CHAMPION_ABILITY_PATTERNS: Record<string, AbilityConfig> = {
 
   // === 1코스트 ===
   TFT17_Briar:       { pattern: 'single', selfBuff: { attackSpeed: 0.5, duration: 999 } },  // 잃은 체력당 AS + 단일 물리
-  TFT17_Poppy:       { pattern: 'aoe_circle', radius: 2, selfBuff: { durability: 0.2, duration: 4 } },  // 보호막 + 아군 방어력 버프
+  TFT17_Poppy:       { pattern: 'self_buff' },  // 보호막 + 2칸 내 아군 방어력+마법저항 — combatLoop applyPoppyShieldAndResists 헬퍼에서 처리 (Shield/ShieldDuration/Resists 변수 + AP scaling + 만료)
   TFT17_Veigar:      { pattern: 'aoe_circle', radius: 1, secondaryDamageVar: 'MiniDamage' },  // 정령유성 Damage + 미니유성 MiniDamage
   TFT17_Aatrox:      { pattern: 'single', heal: true },  // 회복 + 단일 물리
   TFT17_Caitlyn:     { pattern: 'single' },  // 패시브 헤드샷 (확률)
@@ -207,12 +214,12 @@ export const CHAMPION_ABILITY_PATTERNS: Record<string, AbilityConfig> = {
   TFT17_Milio:       { pattern: 'bounce', maxTargets: 4 },  // 공 튕기기
   TFT17_Zoe:         { pattern: 'line', maxTargets: 4 },  // 통통별 관통 + 방향전환
   TFT17_IvernMinion: { pattern: 'aoe_circle', radius: 1, stun: 1.0, heal: true },  // 회복 + 강타 + 열 피해
-  TFT17_Mordekaiser: { pattern: 'aoe_circle', radius: 1, heal: true, dot: { duration: 4 } },  // 보호막 + 주변 매초 피해 4초
+  TFT17_Mordekaiser: { pattern: 'self_buff' },  // 4초간 매초 펄스 (ShieldPerProc + DamagePerProc) + HealRefund — combatLoop applyMordekaiserProcCast/tickMordekaiserProc 헬퍼
   TFT17_Pantheon:    { pattern: 'cone', radius: 2, selfBuff: { durability: 0.15, duration: 4 }, dot: { duration: 4 } },  // 보호막+내구력 + 원뿔 매초 고정 피해 4초
 
   // === 3코스트 ===
   TFT17_MissFortune: { pattern: 'multi', maxTargets: 3 },  // 모드에 따라 다름 (기본)
-  TFT17_Illaoi:      { pattern: 'aoe_circle', radius: 2, heal: true, dot: { duration: 3 } },  // 보호막 + 3초 체력흡수 DOT + AOE
+  TFT17_Illaoi:      { pattern: 'self_buff' },  // Shield (generic getAbilityShield) + NumEnemies(3) true drain + 3초 후 magic AOE — combatLoop applyIllaoiCast/tickIllaoiAfterShock 헬퍼
   TFT17_Aurora:      { pattern: 'aoe_circle', radius: 2 },  // 균열 해킹 + 저장 피해
   TFT17_Fizz:        { pattern: 'line', dash: 'to_target', secondaryDamageVar: 'BiteDamageAP' },  // 관통 돌진 DashDamage + 3회째 정령 BiteDamageAP
   TFT17_Maokai:      { pattern: 'aoe_circle', radius: 2, stun: 1.5 },  // X자 덩굴 + 기절
@@ -231,7 +238,7 @@ export const CHAMPION_ABILITY_PATTERNS: Record<string, AbilityConfig> = {
   TFT17_Kindred:     { pattern: 'multi', maxTargets: 3, damageVar: 'ADDamage' },  // 제자리에서 화살 3명 ADDamage. 이동은 기본 공격 AI 의 한 칸 이동에 맡긴다 (표식 패시브는 combatLoop)
   TFT17_Karma:       { pattern: 'multi', maxTargets: 3, secondaryDamageVar: 'SecondaryDamage' },  // 블랙홀 3명 분배 + 대상 추가 SecondaryDamage
   TFT17_AurelionSol: { pattern: 'line', damageDecay: 0.15, dot: { duration: 3 } },  // 직선 광선 3초 DOT + 관통 감소
-  TFT17_Galio:       { pattern: 'aoe_circle', radius: 2, heal: true, selfBuff: { durability: 0.3, duration: 4 } },  // 방어 태세 + 충격파
+  TFT17_Galio:       { pattern: 'aoe_circle', radius: 2, heal: true, selfBuff: { durability: 0.3, duration: 4, durabilityVar: 'Durability' } },  // 방어 태세 + 충격파. PR #165 sequence C-2: raw `Durability` [0.2/0.2/0.6] star별 read (G1 fix), hardcoded 0.3 은 fallback
   TFT17_MasterYi:    { pattern: 'self_buff', selfBuff: { attackSpeed: 0.8, duration: 5 } },  // 초필살 AS + 흡혈
   TFT17_Nami:        { pattern: 'aoe_circle', radius: 1, secondaryDamageVar: 'FirstBounceDamage' },  // 디스코 방울 분배 + 작은 방울 3개 추가
   TFT17_Nunu:        { pattern: 'aoe_circle', radius: 2, stun: 1.75, damageVar: 'InitialDamage' },  // 보호막 + 2칸 AOE + 띄움 1.75초
@@ -336,6 +343,23 @@ export function findAbilityTargets(
     case 'self_buff':
       return [caster];
 
+    case 'x_shape': {
+      // PR7-A (17.2b): 파이크 carry "X 모양으로 베기" — 대상 + 4 diagonal hex direction.
+      // axial 6 directions 중 horizontal (E/W = [±1, 0]) 제외, 4 angled direction 선택:
+      //   NE [+1,-1], NW [0,-1], SE [0,+1], SW [-1,+1]
+      // 시각적으로 X 형태. 사용자 결정 (PR #?? 후속) — raw 데이터 비어있어 추정.
+      const tp = primaryTarget.position;
+      const xHexes: { q: number; r: number }[] = [
+        tp, // 대상 본인
+        { q: tp.q + 1, r: tp.r - 1 }, // NE
+        { q: tp.q,     r: tp.r - 1 }, // NW
+        { q: tp.q,     r: tp.r + 1 }, // SE
+        { q: tp.q - 1, r: tp.r + 1 }, // SW
+      ];
+      const xSet = new Set(xHexes.map(h => `${h.q},${h.r}`));
+      return alive.filter(u => xSet.has(`${u.position.q},${u.position.r}`));
+    }
+
     default:
       return [primaryTarget];
   }
@@ -423,7 +447,27 @@ export function getAbilityDamage(
   damageVarOverride?: string,
 ): { damage: number; type: DamageType } {
   const parsed = parseAbility(champion, damageVarOverride);
-  const baseValue = parsed.damageValues[starLevel] ?? parsed.damageValues[1] ?? 0;
+
+  // codex P2 (audit 2026-05-07): shifted indexing fix — `readVarByStar`
+  //   (combatLoop.ts:172) 동일 sentinel filler 판별 logic.
+  //   non-filler raw [200, 250, 375] → ★1=raw[0]=200 (정확)
+  //   filler raw [0, 300, 375] → ★1=raw[1]=300 (정확)
+  //   이전 로직 `damageValues[starLevel]` 는 non-filler 에서 ★+1 over-scaled.
+  const values = parsed.damageValues;
+  let baseValue: number;
+  if (!values || values.length === 0) {
+    baseValue = 0;
+  } else if (values.length === 1) {
+    baseValue = values[0];
+  } else {
+    const v0 = values[0];
+    const v1 = values[1];
+    // codex P1 (PR #99): 작은 sentinel (2.5 등) 도 filler 로 분류.
+    const sentinelRatio = v0 > 0 && v1 / v0 > 5;
+    const isFiller = v0 === 0 || v0 > v1 || sentinelRatio;
+    const idx = isFiller ? starLevel : starLevel - 1;
+    baseValue = values[idx] ?? values[isFiller ? 1 : 0] ?? 0;
+  }
 
   let damage = baseValue;
   if (parsed.scalingType === 'ap') {
@@ -453,7 +497,25 @@ export function getAbilityShield(
   }
   if (!shieldVar || !shieldVar.value) return 0;
 
-  const baseValue = shieldVar.value[starLevel] ?? shieldVar.value[1] ?? 0;
+  // audit P2 후속: shifted indexing fix — `readVarByStar` (combatLoop.ts:172) 와
+  //   동일 sentinel filler 판별 logic 차용 (getAbilityDamage 패턴, PR #104).
+  //   non-filler raw [250, 450, 525] (Illaoi) → ★1=raw[0]=250 (정확)
+  //   filler raw [0, 300, 375] (Mordekaiser) → ★1=raw[1]=300 (정확)
+  //   이전 `shieldVar.value[starLevel]` 는 non-filler 에서 ★+1 over-scaled.
+  const values = shieldVar.value;
+  let baseValue: number;
+  if (values.length === 0) {
+    baseValue = 0;
+  } else if (values.length === 1) {
+    baseValue = values[0];
+  } else {
+    const v0 = values[0];
+    const v1 = values[1];
+    const sentinelRatio = v0 > 0 && v1 / v0 > 5;
+    const isFiller = v0 === 0 || v0 > v1 || sentinelRatio;
+    const idx = isFiller ? starLevel : starLevel - 1;
+    baseValue = values[idx] ?? values[isFiller ? 1 : 0] ?? 0;
+  }
   if (baseValue <= 0) return 0;
 
   const scalesWithAp = desc.includes('scaleAP');

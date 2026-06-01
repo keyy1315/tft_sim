@@ -4,6 +4,7 @@ import type { ParsedParticipant } from '@/lib/riot';
 import type { MatchReconstructionResult, UnsupportedReason, AnalysisConfidence } from '@/types/analysis';
 import { resolveTraits } from '@/lib/simulator/systems/trait';
 import { resolveItemId } from '@/lib/analysis/coverageChecker';
+import { normalizeChampionId } from '@/lib/analysis/championIdAliases';
 
 /**
  * Riot API 전적 데이터를 시뮬레이터 입력으로 변환한다.
@@ -36,7 +37,7 @@ export function reconstructMatch(
       const lowerId = c.id.toLowerCase();
       if (lowerId.includes('summon') || lowerId.includes('dummy') || lowerId.includes('pve_')
         || lowerId.includes('follower') || lowerId.includes('fakeunit') || lowerId.includes('core')) continue;
-      const champ = champMap.get(c.id);
+      const champ = champMap.get(normalizeChampionId(c.id));
       if (!champ) {
         if (!reasons.includes('unsupported_champion')) reasons.push('unsupported_champion');
         continue;

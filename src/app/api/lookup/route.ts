@@ -11,6 +11,7 @@ import {
 import type { ParsedMatch } from '@/lib/riot';
 import { resolveDescription } from '@/lib/utils/text';
 import { getRiotIdAliases } from '@/lib/analysis/itemIdAliases';
+import { getRiotChampionRawIds } from '@/lib/analysis/championIdAliases';
 
 /**
  * 아이템/특성 desc 를 사용자에게 보여주기 전 정리.
@@ -85,7 +86,13 @@ function loadChampsFromFile(filePath: string, result: Record<string, ChampionMet
     Array.isArray(raw) ? raw : raw.champions ?? [];
   for (const c of champs) {
     if (result[c.apiName]) continue;
-    result[c.apiName] = { name: c.name, cost: c.cost, traits: c.traits ?? [] };
+    const meta: ChampionMeta = { name: c.name, cost: c.cost, traits: c.traits ?? [] };
+    result[c.apiName] = meta;
+    // Riot match API 가 다른 raw ID(예: TFT17_RekSai) 를 내려보낼 수 있는 챔피언은
+    // alias 키에도 동일 메타 미러 등록 — 미지원 표시(`?`) 방지.
+    for (const rawAlias of getRiotChampionRawIds(c.apiName)) {
+      if (!result[rawAlias]) result[rawAlias] = meta;
+    }
   }
 }
 
@@ -177,8 +184,17 @@ function getItemMeta(): Record<string, ItemMeta> {
   return cachedItemMeta;
 }
 
-/** Riot + Supabase 매치 조회 최대 개수. 클라이언트 페이지네이션 (페이지당 20) 과 맞물림. */
-const MATCH_FETCH_LIMIT = 60;
+/**
+ * Riot + Supabase 매치 조회 최대 개수. 클라이언트 페이지네이션 (페이지당 20) 과 맞물림.
+ *
+ * Dev API key 한도 (100 req / 2분) 회피용 임시 축소: 60 → 20.
+ * 신규 유저 lookup 1회 = 1(account) + 1(matchIds) + 최대 N(matchDetail) = 22 req.
+ * 60 일 때 신규 2명만 조회해도 즉시 429 발생 (62 + 62 = 124 > 100).
+ *
+ * Production / Personal API key (30k req/10분) 로 전환 시 60 으로 복구할 것.
+ * git blame 으로 본 fix 추적 가능 — 한 줄 변경으로 복원.
+ */
+const MATCH_FETCH_LIMIT = 20;
 
 export async function POST(req: NextRequest) {
   const { gameName, tagLine } = (await req.json()) as {

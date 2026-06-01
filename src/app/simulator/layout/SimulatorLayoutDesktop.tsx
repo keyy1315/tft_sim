@@ -313,6 +313,7 @@ export default function SimulatorLayoutDesktop(props: SimulatorLayoutProps) {
                   onRemoveUnit={() => tm.handleRemoveUnit(tm.selectedUnit!.team, tm.selectedUnit!.index)}
                   onMfModeChange={(mode) => tm.handleMfModeChange(tm.selectedUnit!.team, tm.selectedUnit!.index, mode)}
                   onPermanentStackChange={(value) => tm.handlePermanentStackChange(tm.selectedUnit!.team, tm.selectedUnit!.index, value)}
+                  onNovaStrikeSelectorToggle={(next) => tm.handleNovaStrikeSelectorChange(tm.selectedUnit!.team, tm.selectedUnit!.index, next)}
                   onEditGravesWeapons={onEditGravesWeapons ? () => onEditGravesWeapons(tm.selectedUnit!.team) : undefined}
                   teamGravesPicks={tm.selectedUnit!.team === 'player' ? tm.playerGravesPicks : tm.enemyGravesPicks}
                 />
@@ -351,7 +352,8 @@ export default function SimulatorLayoutDesktop(props: SimulatorLayoutProps) {
                     onRemoveUnit={() => tm.handleRemoveUnit(tm.selectedUnit!.team, tm.selectedUnit!.index)}
                     onMfModeChange={(mode) => tm.handleMfModeChange(tm.selectedUnit!.team, tm.selectedUnit!.index, mode)}
                     onPermanentStackChange={(value) => tm.handlePermanentStackChange(tm.selectedUnit!.team, tm.selectedUnit!.index, value)}
-                  onEditGravesWeapons={onEditGravesWeapons ? () => onEditGravesWeapons(tm.selectedUnit!.team) : undefined}
+                    onNovaStrikeSelectorToggle={(next) => tm.handleNovaStrikeSelectorChange(tm.selectedUnit!.team, tm.selectedUnit!.index, next)}
+                    onEditGravesWeapons={onEditGravesWeapons ? () => onEditGravesWeapons(tm.selectedUnit!.team) : undefined}
                   />
                 </div>
               )}
@@ -424,21 +426,31 @@ export default function SimulatorLayoutDesktop(props: SimulatorLayoutProps) {
                   <div className="shrink-0">
                     <SearchBar value={itemSearch} onChange={setItemSearch} placeholder="아이템 검색..." />
                   </div>
-                  <div className="flex gap-1 shrink-0">
+                  <div className="flex flex-col gap-1 shrink-0">
                     {([
-                      { key: 'all' as ItemFilterTab, label: '전체' },
-                      { key: 'combined' as ItemFilterTab, label: '완성' },
-                      { key: 'artifact' as ItemFilterTab, label: '유물' },
-                      { key: 'radiant' as ItemFilterTab, label: '찬란' },
-                      { key: 'emblem' as ItemFilterTab, label: '상징' },
-                    ]).map(({ key, label }) => (
-                      <button
-                        key={key}
-                        className={`px-2 py-0.5 rounded text-[10px] font-medium ${itemCategoryFilter === key ? 'bg-[#8b5cf6] text-white' : 'bg-[#1f2937] text-gray-400'}`}
-                        onClick={() => setItemCategoryFilter(key)}
-                      >
-                        {label}
-                      </button>
+                      [
+                        { key: 'all' as ItemFilterTab, label: '전체' },
+                        { key: 'combined' as ItemFilterTab, label: '완성' },
+                        { key: 'animasquad' as ItemFilterTab, label: '동물특공대' },
+                        { key: 'psyops' as ItemFilterTab, label: '초능력' },
+                      ],
+                      [
+                        { key: 'artifact' as ItemFilterTab, label: '유물' },
+                        { key: 'radiant' as ItemFilterTab, label: '찬란' },
+                        { key: 'emblem' as ItemFilterTab, label: '상징' },
+                      ],
+                    ] as const).map((row, rowIdx) => (
+                      <div key={rowIdx} className="flex gap-1 flex-wrap">
+                        {row.map(({ key, label }) => (
+                          <button
+                            key={key}
+                            className={`px-2 py-0.5 rounded text-[10px] font-medium ${itemCategoryFilter === key ? 'bg-[#8b5cf6] text-white' : 'bg-[#1f2937] text-gray-400'}`}
+                            onClick={() => setItemCategoryFilter(key)}
+                          >
+                            {label}
+                          </button>
+                        ))}
+                      </div>
                     ))}
                   </div>
                   <div className="grid grid-cols-6 gap-1.5 overflow-y-auto min-h-0 p-1">
@@ -453,7 +465,10 @@ export default function SimulatorLayoutDesktop(props: SimulatorLayoutProps) {
                       }
                       if (itemSearch && !item.name.toLowerCase().includes(itemSearch.toLowerCase())) return false;
                       if (itemCategoryFilter !== 'all') {
-                        if (cat === 'void' || cat === 'darkin') {
+                        // 동물특공대/초능력은 본인 탭 또는 '완성' 통합 탭 둘 다 노출
+                        if (cat === 'animasquad' || cat === 'psyops') {
+                          if (itemCategoryFilter !== 'combined' && itemCategoryFilter !== cat) return false;
+                        } else if (cat === 'void' || cat === 'darkin') {
                           if (itemCategoryFilter !== 'combined') return false;
                         } else if (cat !== itemCategoryFilter) return false;
                       }

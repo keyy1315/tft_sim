@@ -1,6 +1,7 @@
 import type { DragEndEvent } from '@dnd-kit/core';
 import type { DragData, HexCoord, RawItem } from '@/types';
 import type { PlacedUnit, PvPRound } from '@/lib/actualData/types';
+import { NOVA_SELECTOR_APIS } from '@/lib/simulator/novaSelector';
 
 /** Match the cell id scheme used by /simulator overlay (`cell-${row}-${col}`). */
 function parseCellId(id: string): { row: number; col: number } | null {
@@ -65,6 +66,21 @@ export function clearUnitItems(u: PlacedUnit): PlacedUnit {
   return { ...u, items: [undefined, undefined, undefined] as PlacedUnit['items'] };
 }
 
+/**
+ * 같은 팀 내에서 NOVA 타격 선택기는 단일 unit 에만 부여 가능.
+ * 기존 보유자가 있으면 false 로 해제하고 target 에 true 를 부여한 새 배열을 반환한다.
+ * target 이 NOVA 5종이 아니면 null 반환 (호출 측에서 무시).
+ */
+function applyNovaStrikeSelector(units: PlacedUnit[], targetIdx: number): PlacedUnit[] | null {
+  const target = units[targetIdx];
+  if (!target || !NOVA_SELECTOR_APIS.has(target.championId)) return null;
+  return units.map((u, i) => {
+    if (i === targetIdx) return { ...u, novaStrikeSelector: true };
+    if (u.novaStrikeSelector) return { ...u, novaStrikeSelector: false };
+    return u;
+  });
+}
+
 export interface ActualDndContext {
   round: PvPRound;
   roundIndex: number;
@@ -127,6 +143,16 @@ export function createActualDragEndHandler(ctx: () => ActualDndContext | null) {
       return;
     }
 
+    // Tool: nova-selector — assign the NOVA 타격 선택기 flag to the target NOVA unit.
+    // Non-NOVA targets are ignored. Same-team single-instance enforced.
+    if (dragData.type === 'tool' && dragData.toolKind === 'nova-selector') {
+      if (existingDestIdx < 0) return;
+      const next = applyNovaStrikeSelector(destUnits, existingDestIdx);
+      if (!next) return;
+      setDest(next);
+      return;
+    }
+
     // Champion drop (sidebar → empty hex only). Slot id resolves to its parent hex via destHex.
     if (dragData.type === 'champion') {
       if (existingDestIdx >= 0) return;
@@ -152,7 +178,12 @@ export function createActualDragEndHandler(ctx: () => ActualDndContext | null) {
       if (srcTeam !== destTeam) {
         if (existingDestIdx >= 0) return; // no cross-team swap
         const nextSrc = srcUnits.filter((_, i) => i !== srcIdx);
-        const nextDest = [...destUnits, { ...dragged, hex: destHex }];
+        // 팀 이동 시 NOVA 타격 선택기 flag 는 자동 해제 — 양 팀에서 모두 단일성 invariant
+        // 보존 (PR #86 codex P2). 사용자가 dest 팀에서 다시 토글해야 함.
+        const movedUnit: PlacedUnit = dragged.novaStrikeSelector
+          ? { ...dragged, hex: destHex, novaStrikeSelector: false }
+          : { ...dragged, hex: destHex };
+        const nextDest = [...destUnits, movedUnit];
         if (srcTeam === 'player') {
           updatePlayerTeam(roundIndex, { units: nextSrc });
           updateOpponent(roundIndex, { units: nextDest });

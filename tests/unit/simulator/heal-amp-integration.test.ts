@@ -96,9 +96,19 @@ describe('healAmp 적용 사이트 코드 grep — 회귀 안전성', () => {
     const patternA = /\* \(1 \+ \(\w+\.healAmp \?\? 0\)\)/g;
     const matches = file.match(patternA);
     expect(matches, 'healAmp 곱셈 패턴이 코드에 포함되어야 함').toBeDefined();
-    // PR #52: 8 신규 사이트 + 기존 1 (Fountain stacking, line 3122) = 정확 9 매치.
+    // PR #52: 8 신규 사이트 + 기존 1 (Fountain stacking) = 9 매치.
+    // G2 Phase 3A: Nanomachines (`nanoBase * (1 + ...)`) 추가 → 10 매치.
+    // 파티광 (Blitzcrank): heal mode (`partyBase * (1 + ...)`) 추가 → 11 매치.
+    // PR #70 (자폭 codex P1): 자폭 omnivamp heal (`totalSelfDestructDmg * unit.omnivamp * (1 + ...)`)
+    //   추가 → 12 매치. 일반 ability omnivamp 와 동일 패턴, primary target 없어 grievousReduction 생략.
+    // Mordekaiser proc (PR #N): HealRefund 만료 시 잔여 보호막 × 0.4 heal
+    //   (`mordekaiserShieldRemaining * healRefund * (1 + (unit.healAmp ?? 0))`) 추가 → 13 매치.
+    // Illaoi NumEnemies drain heal (audit P3): total drain × (1 + healAmp)
+    //   (`totalDrain * (1 + (unit.healAmp ?? 0))`) 추가 → 14 매치.
+    // PR #141 Lint #15: OOR cast path omnivamp heal (`totalAbilityDmg * unit.omnivamp *
+    //   grievousReductionOOR * (1 + (unit.healAmp ?? 0))`) 추가 — main+OOR 비대칭 해소 → 15 매치.
     // 새 heal 사이트 추가 시 본 카운트도 갱신 필수.
-    expect(matches!.length).toBe(9);
+    expect(matches!.length).toBe(15);
   });
 
   it('각 heal 사이트별 fingerprint — 의미 단위 회귀 가드', async () => {
@@ -120,6 +130,17 @@ describe('healAmp 적용 사이트 코드 grep — 회귀 안전성', () => {
       { name: 'ability self-heal (Heal/APHeal/PercentMaximumHealthHealing)', pattern: /healAmount \* \(1 \+ \(unit\.healAmp \?\? 0\)\)/ },
       // 기존 1곳 (Fountain stacking, line 3122) — `healBase * (1 + (u.healAmp ?? 0))`
       { name: 'Fountain stacking heal (PR #41 기존)', pattern: /healBase \* \(1 \+ \(u\.healAmp \?\? 0\)\)/ },
+      // G2 Phase 3A — Nanomachines 매 1초 maxHp × 3% 회복 (`nanoBase * (1 + (u.healAmp ?? 0))`)
+      { name: 'Nanomachines periodic regen (G2 Phase 3A)', pattern: /nanoBase \* \(1 \+ \(u\.healAmp \?\? 0\)\)/ },
+      // 파티광 (Blitzcrank) — HP 45% 트리거 시 매초 maxHp × 15% 회복 (`partyBase * (1 + (u.healAmp ?? 0))`)
+      { name: '파티광 (Blitzcrank) heal mode', pattern: /partyBase \* \(1 \+ \(u\.healAmp \?\? 0\)\)/ },
+      // PR #70 codex P1 — 자폭 (그라가스) omnivamp heal: 적군 AOE damage 합산 후 omnivamp 적용.
+      // 일반 ability omnivamp 와 동일 패턴이지만 자폭은 primary target 없어 grievousReduction 생략.
+      { name: '자폭 (그라가스 carry) omnivamp heal', pattern: /totalSelfDestructDmg \* unit\.omnivamp \* \(1 \+ \(unit\.healAmp \?\? 0\)\)/ },
+      // Mordekaiser proc 만료 시 HealRefund — 잔여 별도 pool 보호막 × 0.4 회복 (tickMordekaiserProc).
+      { name: 'Mordekaiser proc HealRefund', pattern: /unit\.mordekaiserShieldRemaining \* healRefund \* \(1 \+ \(unit\.healAmp \?\? 0\)\)/ },
+      // Illaoi NumEnemies drain heal — total true damage drained × healAmp (applyIllaoiCast).
+      { name: 'Illaoi NumEnemies drain heal', pattern: /totalDrain \* \(1 \+ \(unit\.healAmp \?\? 0\)\)/ },
     ];
     for (const { name, pattern } of sites) {
       expect(file, `heal 사이트 missing: ${name}`).toMatch(pattern);

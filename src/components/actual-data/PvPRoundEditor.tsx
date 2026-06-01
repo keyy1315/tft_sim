@@ -19,6 +19,9 @@ import ActualBoard from './ActualBoard';
 import ChampionItemSidebar from './ChampionItemSidebar';
 import { createActualDragEndHandler } from './actualDndHandlers';
 import RoundDiffInlineCard from '@/components/validation/RoundDiffInlineCard';
+import { resolveTraits } from '@/lib/simulator/systems/trait';
+import { isNovaStrikeSelectorActive } from '@/lib/simulator/novaSelector';
+import { normalizeChampionId } from '@/lib/analysis/championIdAliases';
 
 export default function PvPRoundEditor({ index, round }: { index: number; round: PvPRound }) {
   const updateRoundMeta = useActualDataStore(s => s.updateRoundMeta);
@@ -26,7 +29,24 @@ export default function PvPRoundEditor({ index, round }: { index: number; round:
   const updatePlayerTeam = useActualDataStore(s => s.updatePlayerTeam);
   const updateOpponent = useActualDataStore(s => s.updateOpponent);
   const gameId = useActualDataStore(s => s.currentGame?.gameId);
-  const { champions, items, loading } = useGameData();
+  const stargazerConstellation = useActualDataStore(s => s.currentGame?.stargazerConstellation ?? null);
+  const { champions, items, traits, loading } = useGameData();
+
+  // NOVA(5) 시너지 활성 검사 — 어느 한 팀이라도 활성이면 ToolsSection 의 NOVA 도구 노출.
+  // resolveTraits 는 inputs 가 비면 빈 배열 반환 → safe.
+  const championMap = useMemo(() => new Map(champions.map(c => [c.apiName, c])), [champions]);
+  const novaTraitActive = useMemo(() => {
+    if (traits.length === 0) return false;
+    const teamHasActive = (units: PlacedUnit[]): boolean => {
+      const inputs = units
+        .map(u => championMap.get(normalizeChampionId(u.championId)))
+        .filter((c): c is RawChampion => !!c)
+        .map(c => ({ champion: c }));
+      if (inputs.length === 0) return false;
+      return isNovaStrikeSelectorActive(resolveTraits(inputs, traits));
+    };
+    return teamHasActive(round.playerTeam.units) || teamHasActive(round.opponent.units);
+  }, [round.playerTeam.units, round.opponent.units, championMap, traits]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -175,6 +195,8 @@ export default function PvPRoundEditor({ index, round }: { index: number; round:
                 roundIndex={index}
                 champions={champions}
                 items={items}
+                traits={traits}
+                stargazerConstellation={stargazerConstellation ?? null}
               />
             )}
           </div>
@@ -242,6 +264,7 @@ export default function PvPRoundEditor({ index, round }: { index: number; round:
           items={items}
           onChampionClick={handleChampionClick}
           onItemClick={handleItemClick}
+          novaTraitActive={novaTraitActive}
         />
       </div>
 

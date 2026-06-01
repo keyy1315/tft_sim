@@ -93,20 +93,18 @@ export default function ReplayBoard({
   }
 
   // 강화 칸 (별돌보미 별자리) — 보라색 테두리.
-  // CONSTELLATION_TILE_PATTERN 은 player half (data row 0-3) 만 정의.
-  // combat 의 applyStargazerEffects 는 r>=4 unit 을 mirrorPosition 으로 r=0..3 변환 후
-  // 패턴 체크 (mirrorPosition: r → 7-r, offset col 보존).
-  // 따라서 player tiles 는 보드 r=7-data_r 위치에 표시해야 실제 효과 적용 위치와 일치.
-  // hover tooltip 위해 player/enemy 별 분리 — 클릭/hover 시 어느 별자리 효과인지 식별.
+  // 표시 매핑 (PR10 — SetupBoardCore 와 동일):
+  //  - A팀: display = (4 + pattern.row, pattern.col)
+  //  - B팀: display = (3 - pattern.row, BOARD_COLS-1 - pattern.col) — 보드 중심 180° 회전
   const playerStargazerTileSet = new Set<string>();
   const enemyStargazerTileSet = new Set<string>();
   for (const t of playerStargazerTiles) {
     const off = axialToOffset(t);
-    playerStargazerTileSet.add(`${7 - off.row}-${off.col}`);
+    playerStargazerTileSet.add(`${4 + off.row}-${off.col}`);
   }
   for (const t of enemyStargazerTiles) {
     const off = axialToOffset(t);
-    enemyStargazerTileSet.add(`${off.row}-${off.col}`);
+    enemyStargazerTileSet.add(`${3 - off.row}-${BOARD_COLS - 1 - off.col}`);
   }
   const stargazerTileSet = new Set([...playerStargazerTileSet, ...enemyStargazerTileSet]);
 

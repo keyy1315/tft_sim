@@ -1,6 +1,8 @@
 import type { RawChampion, RawItem } from '@/types';
 import type { ParsedMatch, ParsedParticipant } from '@/lib/riot';
 import type { CoverageResult, UnsupportedReason, AnalysisConfidence } from '@/types/analysis';
+import { normalizeChampionId } from '@/lib/analysis/championIdAliases';
+import { resolveRenameAlias } from '@/lib/analysis/itemIdAliases';
 
 /** 소환/특수 유닛 — 커버리지 체크에서 무시 */
 function isSpecialUnit(characterId: string): boolean {
@@ -40,6 +42,11 @@ function isSpecialItem(itemId: string): boolean {
 export function resolveItemId(riotItemId: string, availableItems: Map<string, boolean>): string {
   // 이미 매칭되면 그대로
   if (availableItems.has(riotItemId)) return riotItemId;
+
+  // 명시 rename 매핑 우선 (예: TFT5_Item_LeviathanRadiant → TFT_Item_Radiant_NashorsBloodrazor).
+  // 패턴 기반 fallback 으로는 base 가 달라져 매칭 못 잡는 케이스를 보장한다.
+  const renamed = resolveRenameAlias(riotItemId);
+  if (renamed && availableItems.has(renamed)) return renamed;
 
   const SET_PREFIX = String.raw`TFT\d+[a-z_\d]*_Item_`;
 
@@ -124,8 +131,10 @@ export function checkCoverage(
   const supportedChampionIds: string[] = [];
   const unsupportedChampionIds: string[] = [];
   for (const id of allChampionIds) {
-    if (championApiNames.has(id)) {
-      supportedChampionIds.push(id);
+    // Riot raw ID(예: TFT17_RekSai) 는 canonical(예: TFT17_Reksai) 로 정규화 후 카탈로그 조회.
+    const normalized = normalizeChampionId(id);
+    if (championApiNames.has(normalized)) {
+      supportedChampionIds.push(normalized);
     } else {
       unsupportedChampionIds.push(id);
     }

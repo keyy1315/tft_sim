@@ -2,7 +2,7 @@
 
 > **상태**: Design 단계 — 브레인스토밍 완료, 구현 플랜 작성 대기
 > **작성일**: 2026-04-23
-> **선행 문서**: `docs/meta/actual-data-brainstorm.md`, `docs/meta/set17-yasuo-tiles.md`, `docs/meta/set17-gods-system.md`
+> **선행 문서**: `docs/meta/actual-data-brainstorm.md`, `docs/wiki/raw/lolchess/set17-yasuo-tiles.md` (이전 `set17-gods-system.md` 는 2026-05-19 archived — yasuo-tiles raw 가 ground truth)
 > **대상 패치**: Set 17 (패치 17.1)
 
 ## 1. 목적
@@ -687,10 +687,10 @@ interface ActualDataState {
 ## 16. 참고 문서
 
 - `docs/meta/actual-data-brainstorm.md` — 어제까지의 브레인스토밍 WIP (Q1~Q8)
-- `docs/meta/set17-yasuo-tiles.md` — 야스오 칸 수치 확정본 (lolchess.gg 긁기 결과)
-- `docs/meta/set17-gods-system.md` — Set 17 신 시스템 개요 (추정 수치, yasuo-tiles 쪽이 우선)
-- `docs/meta/set17-stargazer-constellations.md` — 별돌보미 7개 별자리 수치
-- `docs/meta/set17-factory-new-arsenal.md` — 최신상 무기고 트리 (DOM 정확 복원 + 영문 key)
+- `docs/wiki/raw/lolchess/set17-yasuo-tiles.md` — 야스오 칸 수치 확정본 (lolchess.gg 긁기 결과)
+- ~~`docs/meta/set17-gods-system.md`~~ — 2026-05-19 archived (추정 수치, yasuo-tiles raw 가 ground truth, git log 참조)
+- `docs/wiki/raw/lolchess/set17-stargazer-constellations.md` — 별돌보미 7개 별자리 수치
+- `docs/wiki/raw/lolchess/set17-factory-new-arsenal.md` — 최신상 무기고 트리 (DOM 정확 복원 + 영문 key)
 - `docs/meta/simulator-synergy-todos.md` — 별돌보미/최신상 시뮬 엔진 구현 TODO (Phase 2 대상)
 - `docs/meta/user_tft_knowledge.md` — 유저 TFT 지식 프로파일
 - `CLAUDE.md` — 프로젝트 전반 규칙

@@ -7,10 +7,11 @@ import DraggableChampionCard from '@/components/builder/DraggableChampionCard';
 import DraggableItemIcon from '@/components/builder/DraggableItemIcon';
 import SearchBar from '@/components/ui/SearchBar';
 import DraggableItemRemoverTool from './DraggableItemRemoverTool';
+import DraggableNovaSelectorTool from './DraggableNovaSelectorTool';
 
 type Tab = 'champions' | 'items' | 'tools';
 type CostFilter = null | 1 | 2 | 3 | 4 | 5;
-type ItemTab = 'combined' | 'artifact' | 'radiant' | 'emblem' | 'all';
+type ItemTab = 'combined' | 'animasquad' | 'psyops' | 'artifact' | 'radiant' | 'emblem' | 'all';
 
 interface Props {
   champions: RawChampion[];
@@ -18,6 +19,12 @@ interface Props {
   /** Click fallback for non-DnD placement — receives either a champion or item selection. */
   onChampionClick?: (c: RawChampion) => void;
   onItemClick?: (i: RawItem) => void;
+  /**
+   * 어느 한 팀(player 또는 opponent)이라도 N.O.V.A.(5) 시너지가 활성이면 true.
+   * true 일 때만 ToolsSection 의 NOVA 타격 선택기 도구가 노출된다.
+   * 미지정 시 기본 false (도구 숨김 — fail-safe).
+   */
+  novaTraitActive?: boolean;
 }
 
 /**
@@ -26,7 +33,7 @@ interface Props {
  * Mirrors /simulator's pool UX: champions + items in tabs, drag to place on board
  * (click also works when DnD activation threshold isn't met).
  */
-export default function ChampionItemSidebar({ champions, items, onChampionClick, onItemClick }: Props) {
+export default function ChampionItemSidebar({ champions, items, onChampionClick, onItemClick, novaTraitActive = false }: Props) {
   const [tab, setTab] = useState<Tab>('champions');
 
   return (
@@ -60,7 +67,7 @@ export default function ChampionItemSidebar({ champions, items, onChampionClick,
       <div className="flex-1 overflow-hidden">
         {tab === 'champions' && <ChampionSection champions={champions} onChampionClick={onChampionClick} />}
         {tab === 'items' && <ItemSection items={items} onItemClick={onItemClick} />}
-        {tab === 'tools' && <ToolsSection />}
+        {tab === 'tools' && <ToolsSection novaTraitActive={novaTraitActive} />}
       </div>
     </aside>
   );
@@ -128,7 +135,7 @@ function ItemSection({ items, onItemClick }: { items: RawItem[]; onItemClick?: (
       if (cat === 'bilgewater') return false;
       if (cat === 'void') return false;
       if (tab === 'all') return true;
-      if (tab === 'combined' && (cat === 'darkin')) return true;
+      if (tab === 'combined' && (cat === 'darkin' || cat === 'animasquad' || cat === 'psyops')) return true;
       return cat === tab;
     });
   }, [items, search, tab]);
@@ -136,6 +143,8 @@ function ItemSection({ items, onItemClick }: { items: RawItem[]; onItemClick?: (
   const tabs: { key: ItemTab; label: string }[] = [
     { key: 'all', label: '전체' },
     { key: 'combined', label: '완성템' },
+    { key: 'animasquad', label: '동물특공대' },
+    { key: 'psyops', label: '초능력' },
     { key: 'artifact', label: '유물' },
     { key: 'radiant', label: '찬란' },
     { key: 'emblem', label: '상징' },
@@ -168,7 +177,7 @@ function ItemSection({ items, onItemClick }: { items: RawItem[]; onItemClick?: (
   );
 }
 
-function ToolsSection() {
+function ToolsSection({ novaTraitActive }: { novaTraitActive: boolean }) {
   return (
     <div className="flex flex-col h-full p-2 space-y-3">
       <p className="text-[11px] text-gray-400 leading-relaxed">
@@ -176,6 +185,7 @@ function ToolsSection() {
       </p>
       <div className="grid grid-cols-5 gap-1.5">
         <DraggableItemRemoverTool size={44} />
+        {novaTraitActive && <DraggableNovaSelectorTool size={44} />}
       </div>
     </div>
   );

@@ -65,28 +65,28 @@ describe('Sniper — (2) tier base 18% + per hex 2%', () => {
   });
 });
 
-describe('Sniper — (3) tier 24% + 3%/hex', () => {
-  it('저격수 3명 → sniperBaseDA=0.24, sniperPerHexDA=0.03', () => {
+describe('Sniper — (3) tier 25% + 3%/hex (17.4 buff: 24→25, PR #163 sequence B)', () => {
+  it('저격수 3명 → sniperBaseDA=0.25, sniperPerHexDA=0.03', () => {
     const team = [placed(apJhin, 0, 0), placed(apEzreal, 1, 0), placed(apSamira, 2, 0)];
     const enemy = [placed(dummyEnemy, 6, 3)];
     const result = simulateCombat(team, enemy, {
       seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
     });
     const jhin = result.playerUnits.find(u => u.champion.apiName === 'TFT17_Jhin')!;
-    expect(jhin.sniperBaseDA).toBeCloseTo(0.24, 2);
+    expect(jhin.sniperBaseDA).toBeCloseTo(0.25, 2);
     expect(jhin.sniperPerHexDA).toBeCloseTo(0.03, 2);
   });
 });
 
-describe('Sniper — (4) tier 28% + 4%/hex', () => {
-  it('저격수 4명 → sniperBaseDA=0.28, sniperPerHexDA=0.04', () => {
+describe('Sniper — (4) tier 35% + 4%/hex (17.4 buff: 28→35, PR #163 sequence B)', () => {
+  it('저격수 4명 → sniperBaseDA=0.35, sniperPerHexDA=0.04', () => {
     const team = [placed(apJhin, 0, 0), placed(apEzreal, 1, 0), placed(apSamira, 2, 0), placed(apGnar, 3, 0)];
     const enemy = [placed(dummyEnemy, 6, 3)];
     const result = simulateCombat(team, enemy, {
       seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
     });
     const jhin = result.playerUnits.find(u => u.champion.apiName === 'TFT17_Jhin')!;
-    expect(jhin.sniperBaseDA).toBeCloseTo(0.28, 2);
+    expect(jhin.sniperBaseDA).toBeCloseTo(0.35, 2);
     expect(jhin.sniperPerHexDA).toBeCloseTo(0.04, 2);
   });
 });

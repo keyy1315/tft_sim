@@ -174,7 +174,18 @@ function ef(effects: Record<string, number>, key: string): number | null {
 
 // === Global stat resolution (applied to all units via ItemEffect) ===
 
-export function resolveAugmentEffects(augments: AugmentWithStacks[]): ItemEffect {
+/**
+ * Augment 의 team-wide stat bonus 를 ItemEffect 형태로 변환.
+ *
+ * @param augments  팀에 적용된 augment 배열 (with stacks)
+ * @param starLevelSum 팀 전체 unit 의 starLevel 합. 일부 augment (바루스의 은총
+ *   = BoonOfStars) 가 "아군 총 별 레벨당 stat" 룰을 사용하므로 호출 측에서 미리 계산해서 전달.
+ *   미지정 시 0 (해당 augment 효과 무효).
+ */
+export function resolveAugmentEffects(
+  augments: AugmentWithStacks[],
+  starLevelSum: number = 0,
+): ItemEffect {
   const result: ItemEffect = {};
 
   for (const { augment, stackCount } of augments) {
@@ -256,8 +267,13 @@ export function resolveAugmentEffects(augments: AugmentWithStacks[]): ItemEffect
     if (teamAS != null) result.as = (result.as ?? 0) + teamAS;
 
     // === HP ===
+    // 일부 augment 는 'Health' key 를 special semantic 으로 사용 → generic 가산 skip.
+    // 예: BoonOfStars 는 Health=18 이 starLevelSum 곱셈자 (per ally) 로만 동작.
+    const HEALTH_OVERRIDE_AUGS = new Set([
+      'TFT17_Augment_VarusGodAugment_BoonOfStars',
+    ]);
     const health = ef(e, 'Health');
-    if (health != null) {
+    if (health != null && !HEALTH_OVERRIDE_AUGS.has(augment.apiName)) {
       // Glass Cannon: Health < 1 is a multiplier (0.8 = -20%), handled in per-unit
       if (health >= 1) result.hp = (result.hp ?? 0) + health;
     }
@@ -328,6 +344,16 @@ export function resolveAugmentEffects(augments: AugmentWithStacks[]): ItemEffect
         const pct = (xpPct / 100) * stacks;
         result.ad = (result.ad ?? 0) + pct;
         result.ap = (result.ap ?? 0) + pct;
+      }
+    }
+
+    // 바루스의 은총 (VarusGodAugment_BoonOfStars): 아군이 (팀 총 별 레벨 합) 당 체력 +Health.
+    // PercentIncrease (5단계 등장 확률) 는 게임-외부 효과 — 시뮬 무관.
+    // 예: starLevelSum=17, Health=18 → 각 아군 +306 flat HP.
+    if (augment.apiName === 'TFT17_Augment_VarusGodAugment_BoonOfStars') {
+      const health = ef(e, 'Health');
+      if (health != null && starLevelSum > 0) {
+        result.hp = (result.hp ?? 0) + health * starLevelSum;
       }
     }
 

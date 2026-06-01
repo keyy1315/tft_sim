@@ -7,11 +7,13 @@
  *   (2) tier (style 1)  : 블랙홀 execute (HP ≤ 8% 적 즉사)
  *   (4) tier (style 3)  : (2) + ADAP 45% 가산
  *   (6) tier (style 5)  : (4) + 가장 강한 darkStar unit Supermassive
- *                          (ADAP × 1.85, maxHp × 1.30)
+ *                          (ADAP × 1.85, ExecuteHPPercent × 1.85)
+ *                          + 소형 블랙홀 maxHp = (아군 darkStar maxHp 합) × 0.30
  */
 import { describe, it, expect } from 'vitest';
 import { simulateCombat } from '@/lib/simulator/engine/combatLoop';
 import { loadServerCatalogs } from '@/lib/validation/serverCatalogs';
+import { DARKSTAR_BLACKHOLE_CHAMPION } from '@/data/specialUnits';
 import type { PlacedChampion, RawChampion, RawItem } from '@/types';
 
 const { champions, traits } = loadServerCatalogs();
@@ -131,9 +133,6 @@ describe('G3 — DarkStar (6) tier Supermassive', () => {
     expect(mord.stats.ap - karma.stats.ap).toBeCloseTo(45 * 0.85, 0);
   });
 
-  // PercentHealth=0.30 raw 변수는 trait desc 에 미사용 → maxHp 효과 미적용
-  // (codex P2 후속 검토 결과). desc 명시 효과만 시뮬에 반영.
-
   it('Supermassive unit 의 ExecuteHPPercent 도 +85% 강화 (codex P1 회귀 가드)', () => {
     // desc: "암흑의 별 효과 +85% 증가" → ADAP + ExecuteHPPercent 둘 다 +85%.
     // base 0.08 × 1.85 ≈ 0.148. 일반 darkStar unit 은 그대로 0.08.
@@ -155,5 +154,85 @@ describe('G3 — DarkStar (6) tier Supermassive', () => {
     expect(mord.darkStarExecuteThreshold).toBeCloseTo(0.08 * 1.85, 3);
     // 일반 (Karma): 0.08
     expect(karma.darkStarExecuteThreshold).toBeCloseTo(0.08, 3);
+  });
+});
+
+describe('G3 — 소형 블랙홀 maxHp 보정 (PercentHealth=0.30, FakeUnit ability desc)', () => {
+  function placedBlackhole(q: number, r: number): PlacedChampion {
+    return { champion: DARKSTAR_BLACKHOLE_CHAMPION, starLevel: 1, position: { q, r }, items: [], isSummon: true };
+  }
+
+  it('(6) DarkStar 활성 + 소형 블랙홀 2개 → maxHp = 아군 darkStar 합 × 30%', () => {
+    const team: PlacedChampion[] = [
+      placed(apKaisa, 0, 0),
+      placed(apKarma, 1, 0),
+      placed(apJhin, 2, 0),
+      placed(apChogath, 3, 0),
+      placed(apLissandra, 4, 0),
+      placed(apMordekaiser, 5, 0),
+      placedBlackhole(0, 1),
+      placedBlackhole(1, 1),
+    ];
+    const enemy = [placed(dummyEnemy, 6, 3)];
+    const result = simulateCombat(team, enemy, {
+      seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
+    });
+    const blackholes = result.playerUnits.filter(u => u.champion.apiName === 'TFT17_DarkStar_FakeUnit');
+    expect(blackholes).toHaveLength(2);
+
+    // 아군 darkStar maxHp 합산 (Brawler/Astronaut 등 buff 적용 후)
+    const darkStarUnits = result.playerUnits.filter(u =>
+      ['TFT17_Kaisa', 'TFT17_Karma', 'TFT17_Jhin', 'TFT17_Chogath', 'TFT17_Lissandra', 'TFT17_Mordekaiser']
+        .includes(u.champion.apiName)
+    );
+    const totalHp = darkStarUnits.reduce((s, u) => s + u.maxHp, 0);
+    const expectedBlackholeMax = 1 + Math.round(totalHp * 0.30);
+
+    for (const bh of blackholes) {
+      expect(bh.maxHp).toBe(expectedBlackholeMax);
+      expect(bh.currentHp).toBe(bh.maxHp);
+    }
+  });
+
+  it('(6) DarkStar 미활성 ((4) tier) → 블랙홀 maxHp 보정 없음 (raw hp=1 그대로)', () => {
+    const team: PlacedChampion[] = [
+      placed(apKaisa, 0, 0),
+      placed(apKarma, 1, 0),
+      placed(apJhin, 2, 0),
+      placed(apChogath, 3, 0),
+      // 4명 only — (4) tier, supermassive 미발동
+      placedBlackhole(0, 1),  // 비정상적이나 가드 목적
+    ];
+    const enemy = [placed(dummyEnemy, 6, 3)];
+    const result = simulateCombat(team, enemy, {
+      seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
+    });
+    const bh = result.playerUnits.find(u => u.champion.apiName === 'TFT17_DarkStar_FakeUnit');
+    if (bh) {
+      // (4) tier — supermassive 비활성 → 블랙홀 hp 보정 안 됨 (base 1)
+      expect(bh.maxHp).toBe(1);
+    }
+  });
+
+  it('블랙홀 maxHp 가 1보다 충분히 커서 첫 공격에 즉사하지 않음 (사용자 보고 회귀 가드)', () => {
+    const team: PlacedChampion[] = [
+      placed(apKaisa, 0, 0),
+      placed(apKarma, 1, 0),
+      placed(apJhin, 2, 0),
+      placed(apChogath, 3, 0),
+      placed(apLissandra, 4, 0),
+      placed(apMordekaiser, 5, 0),
+      placedBlackhole(0, 1),
+      placedBlackhole(1, 1),
+    ];
+    const enemy = [placed(dummyEnemy, 6, 3)];
+    const result = simulateCombat(team, enemy, {
+      seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
+    });
+    const blackholes = result.playerUnits.filter(u => u.champion.apiName === 'TFT17_DarkStar_FakeUnit');
+    // base hp=1 였으면 합산 30% 보정 안 됐다는 신호 — 최소 100 이상 (실제론 darkStar hp 합 30% 라 수천대)
+    for (const bh of blackholes) {
+      expect(bh.maxHp).toBeGreaterThan(100);
+    }
   });
 });

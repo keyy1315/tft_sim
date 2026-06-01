@@ -13,13 +13,16 @@ function findChamp(api: string): RawChampion {
 }
 
 function makeStargazerTeam(team: 'player' | 'enemy'): PlacedChampion[] {
-  // 별돌보미 챔프 3명 — mountain 패턴 row 0 col 2,3,4 (강화 칸 위) 배치.
-  // player 데이터 row 는 0-3 → 보드 row+4 매핑이지만 PlacedChampion.position 은 데이터 좌표.
-  const baseRow = team === 'player' ? 0 : 0;
+  // PR10 spec — A팀 / B팀 각자 own-frame 에서 Mountain 강화 칸에 배치.
+  // Mountain 패턴 r=0 cols {2,3,4,5} (A팀 own-frame).
+  // 180° 회전 → B팀 own-frame tiles: r=3 cols {1,2,3,4}.
+  // 별돌보미 챔프 3명 배치.
+  const cols = team === 'player' ? [2, 3, 4] : [1, 2, 3];
+  const row = team === 'player' ? 0 : 3;
   return [
-    { champion: findChamp('TFT17_TwistedFate'), position: offsetToAxial({ row: baseRow, col: 2 }), starLevel: 2, items: [] },
-    { champion: findChamp('TFT17_Talon'), position: offsetToAxial({ row: baseRow, col: 3 }), starLevel: 2, items: [] },
-    { champion: findChamp('TFT17_Jax'), position: offsetToAxial({ row: baseRow, col: 4 }), starLevel: 2, items: [] },
+    { champion: findChamp('TFT17_TwistedFate'), position: offsetToAxial({ row, col: cols[0] }), starLevel: 2, items: [] },
+    { champion: findChamp('TFT17_Talon'), position: offsetToAxial({ row, col: cols[1] }), starLevel: 2, items: [] },
+    { champion: findChamp('TFT17_Jax'), position: offsetToAxial({ row, col: cols[2] }), starLevel: 2, items: [] },
   ];
 }
 

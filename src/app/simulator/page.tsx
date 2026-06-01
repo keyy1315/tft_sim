@@ -250,6 +250,9 @@ function SimulatorContent() {
         enemyArbiterLaw: tm.enemyArbiterLaw ?? undefined,
         playerStargazerConstellation: tm.playerStargazerConstellation ?? undefined,
         enemyStargazerConstellation: tm.enemyStargazerConstellation ?? undefined,
+        // SelectedUnitPanel NOVA 토글 → 옵션 도출. 미지정 시 autoAssignNovaSelector fallback.
+        playerNovaStrikeSelectorUnit: tm.playerTeam.find(u => u.novaStrikeSelector === true)?.champion.apiName,
+        enemyNovaStrikeSelectorUnit: tm.enemyTeam.find(u => u.novaStrikeSelector === true)?.champion.apiName,
         playerGravesFrame,
         enemyGravesFrame,
         playerGravesUpgrades,
@@ -291,6 +294,8 @@ function SimulatorContent() {
           stageNumber,
           playerStargazerConstellation: tm.playerStargazerConstellation ?? undefined,
           enemyStargazerConstellation: tm.enemyStargazerConstellation ?? undefined,
+          playerNovaStrikeSelectorUnit: tm.playerTeam.find(u => u.novaStrikeSelector === true)?.champion.apiName,
+          enemyNovaStrikeSelectorUnit: tm.enemyTeam.find(u => u.novaStrikeSelector === true)?.champion.apiName,
           playerGravesFrame,
           enemyGravesFrame,
           playerGravesUpgrades,

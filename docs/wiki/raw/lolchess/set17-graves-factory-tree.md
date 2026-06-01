@@ -198,19 +198,54 @@ Set 17 그레이브즈 전용 시너지 **`최신상`(GravesTrait)** 의 핵심 
 | Phase | 범위 | 구현 PR | 상태 |
 |---|---|---|---|
 | **Phase 1** | Frame 3종 (root) — stat / mechanic | #45 | ✅ 머지 완료 (8bccb64) |
-| **Phase 2** | 단순 stat upgrade 18종 | #46 | 🟢 OPEN, codex P2 1건 잔여 |
-| **Phase 3** | 메커닉 필요 31종 (Buckshot/RevUp/GravBooster/EmergencyShielding 등) | — | ❌ 미구현 |
-| **Phase 4** | tree 시각화 + round-by-round 선택 UI + 라운드 진행 시뮬레이션 | — | ❌ 미구현 |
+| **Phase 2** | 단순 stat upgrade 18종 | #46 | ✅ 머지 완료 (41d561f) |
+| **Phase 3A** | 메커닉 단순 트리거 / periodic 8종 | #54 | ✅ 머지 완료 |
+| **Phase 3B-1** | 공격 횟수 변종 + sticky stack 4종 | #55 | ✅ 머지 완료 |
+| **Phase 3B-2** | onKill / dash / 누적 폭발 3종 | #56 | ✅ 머지 완료 |
+| **Phase 3C-1** | 평타 base AOE 7종 | #57 | ✅ 머지 완료 |
+| **Phase 3C-2** | ability AOE 4종 | #58 | ✅ 머지 완료 |
+| **Phase 3D** | 복합 메커닉 3종 (VoidCoefficient/Choke/AimAssistant) | (본 PR) | 🟢 작업 중 |
+| **Phase 4** | tree 시각화 + round-by-round 선택 UI | #49,50,51 | ✅ 머지 완료 |
 
 ### Phase 1 + 2 누적 18종 (raw effects 직접 가산)
 LeechingImplants/2, HeavyPlating, PrecisionScope/2/3, Fission/2/3, Heartseeker/2/3,
 Tankbuster, Coolant/2, APRounds/2, SheerMass
 
-### Phase 3 메커닉 잔여 31종 분류
-- **단순 트리거 (~6)**: EmergencyShielding/2, LatentExplosion, Shockwave, ReactiveArmor, Backup
-- **공격 동작 변경 (~10)**: Buckshot/2/3, LaserBallistics, TripleTap, DoubleTap2, RipperBullets/2, FragmentationRounds/2
-- **stacking / 영구효과 (~7)**: RevUp/2, Nanomachines, BlastRadius/2/3, Meltthrough, VoidCoefficient
-- **복합 메커닉 (~8)**: GravBooster/2, Choke, AimAssistant, SympatheticDetonation, Heartseeker3 확장
+### Phase 3A 8종 (단순 트리거 + periodic; Backup 은 lolchess 미표시 → 시뮬 미구현)
+- **periodic / passive**: Nanomachines (매 1초 maxHp×3% heal), ReactiveArmor (피격 시 armor/MR +4 stack, max 50)
+- **저체력 1회 trigger**: EmergencyShielding/2 (HP 40% 시 shield 50/75% × 2.5/4s)
+- **전투 시작 1회**: Shockwave (가까운 적 2명 maxHp×15% 마법 + 2s stun)
+- **onAttack debuff stack**: RipperBullets/2 (평타 시 적 armor/MR -1/-2)
+
+### Phase 3B-1 4종 (공격 횟수 변종 + sticky stack)
+- DoubleTap2 (35% chance — Frame DoubleTap 25% 와 max() override)
+- TripleTap (18% chance × 추가 2 hit, DoubleTap 와 mutual exclusive roll)
+- RevUp/2 (sticky target 연속 공격 stack — AS +8/15% per stack, max +80/150%)
+
+### Phase 3B-2 3종 (onKill / dash / 누적 폭발)
+- GravBooster (BonusMultAS=0.40, NumAttacks=2 — 처치 시 dash + AS +40% × 2 attacks)
+- GravBooster2 (NumAttacks=3 — 동상 raw 미정의 → 시뮬 미구현)
+- LatentExplosion (StoredDamage=0.15 — 입힌 피해 15% 누적, 처치 시 2hex splash)
+
+### Phase 3C-1 7종 (평타 base AOE)
+- Buckshot/2/3 (NumBonusProjectiles 2/4/6, SpreadIncrease 0.20/0.30/0.40 — 타겟+주변 혼합 multi-hit)
+- LaserBallistics (BonusHexes=1, DamageReductionPerTarget=0.5 — 관통 1명)
+- FragmentationRounds/2 (FragmentDamage 0.15/0.20, Projectiles 2/3 — 평타 시 주변 파편)
+- Meltthrough (ArmorMRReduction=4 — 매초 graves 주변 2hex 적 armor/MR -4)
+
+### Phase 3C-2 4종 (ability AOE)
+- BlastRadius/2/3 (IncreasedRadius=1/2/3, DamageReductionPerHex=0.5/0.30/0.30 — primary hit 위치 N hex 안 추가 폭발, 거리 비례 감소)
+- SympatheticDetonation (SympatheticDamageReduction=0.30 — primary hit 적 인접 가까운 1명 -30% 추가 폭발)
+
+### Phase 3D 3종 (복합 메커닉)
+- VoidCoefficient (PercentManaReductionPerCast=0.15 — 매 cast 직후 maxMana × 0.85, min 10)
+- Choke (SpreadDecrease=0.75 — Buckshot spread 75% 감소, 단일 타겟 집중)
+- AimAssistant (BonusDamagePerHex=0.05 — 평타 distance × 5% damage amp)
+
+> Heartseeker3 는 raw 가 BonusCritChance/BonusCritDamage 만 — Phase 2 에서 이미 처리.
+
+## G2 Phase 3 전체 31종 완료 ✅
+- 3A 8종 + 3B-1 4종 + 3B-2 3종 + 3C-1 7종 + 3C-2 4종 + 3D 3종 + Heartseeker3 (Phase 2 재사용) = 30 + 1 → 31
 
 ---
 

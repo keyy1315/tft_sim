@@ -6,9 +6,18 @@ import GameDiffSummaryCard from '@/components/validation/GameDiffSummaryCard';
 import RoundDiffTable from '@/components/validation/RoundDiffTable';
 import RoundDiffDetailPanel from '@/components/validation/RoundDiffDetailPanel';
 import RunCompareButton from '@/components/validation/RunCompareButton';
+import AdminGuard from '@/components/AdminGuard';
 
 export default function ComparePage({ params }: { params: Promise<{ gameId: string }> }) {
   const { gameId } = use(params);
+  return (
+    <AdminGuard>
+      <CompareContent gameId={gameId} />
+    </AdminGuard>
+  );
+}
+
+function CompareContent({ gameId }: { gameId: string }) {
   const { state, run } = useCompareDiff(gameId);
   const [selectedRoundName, setSelectedRoundName] = useState<string | null>(null);
 

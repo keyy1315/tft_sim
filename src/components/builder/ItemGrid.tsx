@@ -13,7 +13,7 @@ interface ItemGridProps {
   champion?: PlacedChampion;
 }
 
-type ItemTab = 'all' | 'component' | 'combined' | 'artifact' | 'emblem' | 'radiant';
+type ItemTab = 'all' | 'component' | 'combined' | 'artifact' | 'emblem' | 'radiant' | 'animasquad' | 'psyops';
 
 export default function ItemGrid({ items, onSelect, activeTraits, champion }: ItemGridProps) {
   const [search, setSearch] = useState('');
@@ -48,7 +48,7 @@ export default function ItemGrid({ items, onSelect, activeTraits, champion }: It
     }
 
     if (tab === 'all') return true;
-    if (tab === 'combined' && (cat === 'bilgewater' || cat === 'void' || cat === 'darkin')) return true;
+    if (tab === 'combined' && (cat === 'bilgewater' || cat === 'void' || cat === 'darkin' || cat === 'animasquad' || cat === 'psyops')) return true;
     return cat === tab;
   });
 
@@ -66,6 +66,8 @@ export default function ItemGrid({ items, onSelect, activeTraits, champion }: It
   const tabs: { key: ItemTab; label: string }[] = [
     { key: 'all', label: '전체' },
     { key: 'combined', label: '완성템' },
+    { key: 'animasquad', label: '동물특공대' },
+    { key: 'psyops', label: '초능력' },
     { key: 'artifact', label: '유물' },
     { key: 'radiant', label: '찬란' },
     { key: 'emblem', label: '상징' },

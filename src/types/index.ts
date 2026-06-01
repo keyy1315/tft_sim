@@ -98,6 +98,8 @@ export type ItemCategory =
   | 'bilgewater'   // 빌지워터 아이템
   | 'void'         // 공허 돌연변이
   | 'darkin'       // 다르킨
+  | 'animasquad'   // 동물특공대 전용 아이템 (TFT17_AnimaSquadItem_*)
+  | 'psyops'       // 초능력 전용 아이템 (TFT17_Item_PsyOps_*)
   | 'special';     // 특수 (비전투)
 
 export interface EquipValidation {
@@ -347,6 +349,13 @@ export interface PlacedChampion {
   permanentStacks?: PermanentStack | null;
   isDummy?: boolean;
   isSummon?: boolean;
+  /**
+   * N.O.V.A. (DRX 5+) "타격 선택기" 수동 지정 플래그.
+   * true 인 NOVA 유닛(Aatrox/Caitlyn/Akali/Maokai/Kindred) 1명만 팀당 허용.
+   * undefined/false 인 경우 combatLoop 의 autoAssignNovaSelector fallback 이 동작.
+   * 시뮬 옵션 변환 시 이 boolean 을 SimulateOptions.{player|enemy}NovaStrikeSelectorUnit 의 apiName 으로 매핑.
+   */
+  novaStrikeSelector?: boolean;
 }
 
 // === Arbiter Law (중재자 법률) ===
@@ -384,16 +393,6 @@ export interface TeamComp {
 // === Role & Status Types ===
 export type UnitRole = 'Tank' | 'Fighter' | 'Marksman' | 'Caster' | 'Assassin' | 'Specialist';
 
-export type AbilityTargetingType =
-  | 'current_target'
-  | 'farthest'
-  | 'nearest'
-  | 'lowest_hp'
-  | 'lowest_hp_ally'
-  | 'random'
-  | 'self'
-  | 'aoe_center';
-
 export type AbilityPattern =
   | 'single'      // 타겟 1명
   | 'line'        // 직선 관통
@@ -402,34 +401,16 @@ export type AbilityPattern =
   | 'multi'       // 지정 다수
   | 'bounce'      // 튕김
   | 'global'      // 전체 적
-  | 'self_buff';  // 자기 버프
+  | 'self_buff'   // 자기 버프
+  | 'x_shape';    // X 모양 (대상 + 4 diagonal hex direction) — 파이크 carry
 
-export type StatusEffectType = 'stun' | 'slow' | 'burn' | 'shield' | 'invulnerable' | 'disarm' | 'taunt' | 'mark' | 'poison';
+export type StatusEffectType = 'stun' | 'slow' | 'burn' | 'shield' | 'invulnerable' | 'disarm' | 'taunt' | 'mark' | 'poison' | 'resists-buff';
 
 export interface StatusEffect {
   type: StatusEffectType;
   sourceId: string;
   remainingTicks: number;
   value?: number;
-}
-
-// === Ability Types (Structured) ===
-export type EffectType = 'damage' | 'heal' | 'shield' | 'stun' | 'slow' | 'burn' | 'knockup';
-
-export interface AbilityEffect {
-  type: EffectType;
-  value: number;
-  durationTicks?: number;
-  damageType?: 'physical' | 'magic' | 'true';
-}
-
-export interface Ability {
-  name: string;
-  type: 'active' | 'passive';
-  targeting: AbilityTargetingType;
-  damageType: 'physical' | 'magic' | 'true';
-  effects: AbilityEffect[];
-  castTimeTicks: number;
 }
 
 // === Augment Types (Structured) ===
@@ -491,8 +472,50 @@ export interface CombatUnit {
   augmentGrievousWounds: number;
   augmentExecuteThreshold: number;
   augmentBurnPercent: number;
+  /**
+   * 아이템에서 부여되는 공격당 추가 마나 (집계). 쇼진의 창 FlatManaRestore=5 등.
+   * gainManaOnAttack 에서 role 기본값에 더해진다. 기본 0.
+   */
+  itemFlatManaPerAttack: number;
   /** 발명품 탱커 대상 추가 피해증폭 (ArmorNullifier) */
   inventionTankDamageAmp: number;
+  /**
+   * 매드레드의 검 (TFT_Item_MadredsBloodrazor) 탱커 대상 +DamageAmp (PR101).
+   * TFT17 메커닉: 탱커를 상대로 +15% 피해 증폭. 본 unit 의 평타+스킬 모두 적용.
+   * 아이템 1개당 0.15 누적 (다중 부착 시 누적). target.role === 'Tank' 일 때 damageAmp 가산.
+   */
+  madredsTankDamageAmp: number;
+  /**
+   * Mordekaiser proc 시스템 (TFT17_Mordekaiser) — proc 종료 tick.
+   * 0 = 비활성. cast 시점에 (currentTick + Duration × TICKS_PER_SECOND) 로 set.
+   * 매 tick `tickMordekaiserProc` 에서 만료 체크 (HealRefund 적용 후 0 reset).
+   */
+  mordekaiserProcEndTick: number;
+  /**
+   * Mordekaiser proc 다음 펄스 발동 tick.
+   * 0 = 비활성. cast 시 (currentTick + 1 × TICKS_PER_SECOND) — 첫 펄스 t=1.
+   * 펄스 발동 후 += TICKS_PER_SECOND (다음 1초 후).
+   */
+  mordekaiserNextProcTick: number;
+  /**
+   * Mordekaiser 스킬 보호막 별도 pool (general unit.shield 와 분리 추적).
+   * InitialShield + 매 펄스 ShieldPerProc 가산. damage 흡수 시 우선 차감.
+   * 만료 시 HealRefund (잔여 × 0.4) → currentHp 회복 후 0.
+   */
+  mordekaiserShieldRemaining: number;
+  /**
+   * Illaoi 시험 (TFT17_Illaoi) AfterShock — Duration(3초) 후 2칸 magic AOE 발동 tick.
+   * 0 = 비활성. applyIllaoiCast 가 (currentTick + Duration × TICKS_PER_SECOND) 로 set.
+   * 매 tick `tickIllaoiAfterShock` 이 만료 체크 (AOE 발동 후 0 reset).
+   * 사망 시 cancel (state cleanup, AOE 미발동).
+   */
+  illaoiAfterShockEndTick: number;
+  /**
+   * Illaoi AfterShock AP snapshot — cast 시점의 stats.ap 저장.
+   * 만료 시 Damage × (1 + apSnapshot/100) × healAmp 계산에 사용
+   * (cast 시 받은 AP buff 가 만료 시까지 유효, 중간 AP 변동 무관).
+   */
+  illaoiAfterShockApSnapshot: number;
   /**
    * 회복량 증폭 (additive bonus). 0 = base 1.0, 0.22 = 회복량 +22%.
    * primitive execHeal / heal site 에서 (1 + healAmp) 곱셈으로 적용.
@@ -542,16 +565,242 @@ export interface CombatUnit {
    */
   gravesTankDamageAmp: number;
   /**
-   * 자폭(TFT17_Augment_GragasCarry) 활성 + 가장 강한 그라가스로 선정된 unit 만 true.
-   * 그라가스 ability 가 거대한 폭발 (자기 자신 데미지, 다른 아군 X) 로 변환되며,
-   * 자폭 데미지로 hp 가 1 미만으로 떨어지지 않음 (HP floor=1).
+   * Nanomachines 업그레이드 — 매초 maxHp × N% 자가 회복. 0 = 미활성, 0.03 = 활성.
+   * main loop 의 1초 주기 tick 에서 누적 적용 (TICKS_PER_SECOND 마다).
    */
-  gragasCarryActive: boolean;
+  gravesNanoRegenPct: number;
   /**
-   * 방패 여전사(TFT17_Augment_LeonaCarry) 활성 + 가장 강한 레오나로 선정된 unit 만 true.
-   * 레오나 ability 가 적 가로질러 dash (line 패턴) + 첫 적중 대상 기절 (CC) 로 변환.
+   * RipperBullets/2 업그레이드 — 평타 명중 시 대상 armor/MR -N. 0 = 미활성, 1/2 = tier.
+   * 영구 누적 (전투 종료 시까지). on_attack hook 후 즉시 적용.
    */
-  leonaCarryActive: boolean;
+  gravesRipperReduce: number;
+  /**
+   * EmergencyShielding/2 — 저체력 시 1회 maxHp×ShieldPct shield 부여 (Duration 초).
+   * 0 = 미활성 / 0.4 (40%) = trigger HP fraction. 매 tick 의 hp/maxHp 체크.
+   */
+  gravesEmergencyTriggerHpFrac: number;
+  /** EmergencyShielding/2 — shield 양 = maxHp × N. 0.5 = 50% (tier 1) / 0.75 = 75% (tier 2). */
+  gravesEmergencyShieldFrac: number;
+  /** EmergencyShielding/2 — shield 지속 시간 (초). 2.5 (tier 1) / 4 (tier 2). */
+  gravesEmergencyDurationSec: number;
+  /** EmergencyShielding/2 — 1회 한정 가드. trigger 발동 시 true 로 전환. */
+  gravesEmergencyUsed: boolean;
+  /**
+   * Shockwave 업그레이드 — 전투 시작 시 그레이브즈 정면 가까운 적 N명에게
+   * maxHp×0.15 마법 + 2초 stun. true = 활성. on_combat_start 시 1회 처리.
+   */
+  gravesShockwaveActive: boolean;
+  /**
+   * ReactiveArmor 업그레이드 — 피격 시 armor/MR +N stack (perStack), 최대 50회.
+   * 0 = 미활성 / 4 = 활성 (per-hit 증가량). on_hit_taken hook 에서 stack.
+   */
+  gravesReactivePerStack: number;
+  /** ReactiveArmor 누적 stack 수. 0..50 사이 제한. */
+  gravesReactiveStackCount: number;
+  /**
+   * TripleTap (한 발에 세 놈) 업그레이드 — N% 확률 추가 2 hit (총 3회).
+   * 0 = 미활성 / 0.18 = 활성. DoubleTap Frame / DoubleTap2 와 별개 roll —
+   * TripleTap 발동 시 DoubleTap path skip (중복 방지).
+   */
+  gravesTripleAttackChance: number;
+  /**
+   * RevUp/2 (엔진 가동) 업그레이드 — 같은 대상 연속 공격마다 AS +N% stack.
+   * 0 = 미활성 / 0.08 = RevUp / 0.15 = RevUp2.
+   */
+  gravesRevUpPerStack: number;
+  /** RevUp/2 누적 AS bonus 한도. 0 / 0.80 (RevUp) / 1.50 (RevUp2). */
+  gravesRevUpMaxBonus: number;
+  /** RevUp/2 sticky target id — 마지막 공격 대상. 다른 대상 공격 시 stack reset. */
+  gravesRevUpStickyTargetId: string | null;
+  /** RevUp/2 누적 stack 수. 같은 target 연속 공격 시 ++, 다른 target 시 0. */
+  gravesRevUpStackCount: number;
+  /**
+   * GravBooster/2 (중력 증폭기) — 처치 관여 시 다음 적으로 dash + AS +N% (M attacks 동안).
+   * 0 = 미활성 / 0.40 = 활성. raw BonusMultAS=0.40 (tier 동일).
+   */
+  gravesGravBoosterBonusAS: number;
+  /** GravBooster/2 — 처치 시 활성화될 max attacks (kill trigger 시 attacksRemaining=N). */
+  gravesGravBoosterMaxAttacks: number;
+  /**
+   * GravBooster/2 — 현재 남은 boosted attacks. >0 일 때 AS bonus 활성.
+   * Attack hit 후 -- → 0 시 boost 만료.
+   */
+  gravesGravBoosterAttacksRemaining: number;
+  /**
+   * LatentExplosion (지연 폭발) — 입힌 피해 N% 저장. 0 = 미활성 / 0.15 = 활성.
+   * graves attacker 측 unit 에 set. damage 적용 시 target 의 stored 에 가산.
+   */
+  gravesLatentStoredPct: number;
+  /**
+   * LatentExplosion — 적 unit 에 누적 저장된 damage. graves 가 hit 한 만큼 누적.
+   * target 사망 시 (graves 처치 관여) stored 만큼 2 hex 반경 splash.
+   */
+  gravesLatentStored: number;
+  /**
+   * Buckshot/2/3 — 평타 시 추가 발사 projectile 수 (N-1 nearby hits).
+   * 0 = 미활성 / 2 / 4 / 6. raw NumBonusProjectiles.
+   */
+  gravesBuckshotProjectiles: number;
+  /**
+   * Buckshot/2/3 — spread 정도 (nearby radius 영향). 0 / 0.20 / 0.30 / 0.40.
+   * radius = 1 + round(spread × 2.5) → 1 / 2 / 2 / 2 hex (단순화).
+   */
+  gravesBuckshotSpread: number;
+  /**
+   * LaserBallistics — 관통 hex 수 (다음 적까지 1칸). 0 / 1.
+   * 단일 tier 만 존재 (LaserBallistics2/3 raw 는 tree 미표시 — Riot 미구현).
+   */
+  gravesLaserPenetrationHexes: number;
+  /** LaserBallistics — 관통 적당 damage reduction. 0 / 0.5. */
+  gravesLaserDmgReductionPerTarget: number;
+  /**
+   * FragmentationRounds/2 — 평타 시 주변 파편 fraction. 0 / 0.15 / 0.20.
+   * raw FragmentDamage. magic damage type.
+   */
+  gravesFragDamage: number;
+  /** FragmentationRounds/2 — 파편 개수 (nearby targets). 0 / 2 / 3. */
+  gravesFragProjectiles: number;
+  /**
+   * Meltthrough — 매 1초 graves 주변 2 hex 적군 armor/MR -N (영구 누적, floor 0).
+   * 0 = 미활성 / 4 = 활성. raw ArmorMRReduction.
+   */
+  gravesMeltthroughArmorMR: number;
+  /**
+   * BlastRadius/2/3 — ability primary hit 위치 기준 N hex 추가 폭발 반경.
+   * 0 = 미활성 / 1 / 2 / 3. raw IncreasedRadius.
+   */
+  gravesBlastIncreasedRadius: number;
+  /**
+   * BlastRadius/2/3 — 거리당 데미지 감소. distance × N% 만큼 감소.
+   * 0 / 0.5 (BlastRadius) / 0.30 (BlastRadius2/3). raw DamageReductionPerHex.
+   */
+  gravesBlastDmgReductionPerHex: number;
+  /**
+   * SympatheticDetonation — ability hit 한 적 인접 1 hex 가까운 적 1명에 추가 폭발.
+   * 0 = 미활성 / 0.30 = 활성 (30% damage = -70% reduction; raw 변수명/의미 반전).
+   * raw SympatheticDamageReduction — 실제 의미는 dealt fraction (codex P1 PR #58).
+   */
+  gravesSympatheticReduction: number;
+  /**
+   * VoidCoefficient — graves 매 cast 직후 maxMana × (1 - N) 적용 (min 10).
+   * 0 = 미활성 / 0.15 = 활성. raw PercentManaReductionPerCast.
+   */
+  gravesVoidCoefficientPct: number;
+  /**
+   * Choke — Buckshot spread 를 N% 감소. triggerBuckshot 에서 spread × (1 - N) 적용.
+   * 0 = 미활성 / 0.75 = 활성. raw SpreadDecrease.
+   */
+  gravesChokeSpreadDecrease: number;
+  /**
+   * AimAssistant — 평타 시 distance × N 만큼 damage amp.
+   * 0 = 미활성 / 0.05 = 활성 (5% per hex). raw BonusDamagePerHex.
+   */
+  gravesAimAssistBonusPerHex: number;
+  /**
+   * 파티광 (TFT17_BlitzcrankUniqueTrait) — 전투당 1회 트리거.
+   * HP < threshold 도달 시 invulnerable + 매초 maxHp × healRate heal.
+   * HP 100% 도달 시 heal 종료 (invulnerable 제거).
+   *
+   * 0 = 미활성 / 0.15 = 활성 (per-second heal rate). raw PercentHealthHeal.
+   */
+  partyHealRate: number;
+  /** 파티광 트리거 HP 비율. 0 = 미활성 / 0.45 = 활성. raw HealthThreshold. */
+  partyHpThreshold: number;
+  /** 파티광 트리거 사용 여부 (전투당 1회 가드). */
+  partyUsed: boolean;
+  /** 파티광 heal 진행 중 (true 동안 invulnerable + heal). */
+  partyHealing: boolean;
+  /**
+   * 복제자 (TFT17_APTrait) — MF replicator mode 한정.
+   * 스킬 한 번 더 발동, N% 위력. 0 = 미활성 / 0.22 (2-3) / 0.45 (4+).
+   * raw Effectiveness.
+   */
+  mfReplicatorEffectiveness: number;
+  /**
+   * 우주 그루브 (TFT17_SpaceGroove) 일반 tier — 그루비안 unit 한정.
+   * raw ADAPPerSecond. 0 = 미활성 / 5 / 10. 매 1초 ADAP +N% 가산 (StartOfCombatDuration 초 동안).
+   */
+  spaceGrooveAdapPerSec: number;
+  /**
+   * 우주 그루브 일반 tier — 그루비안 unit 한정 ADAP 적용 종료 시점 (combat seconds).
+   * raw StartOfCombatDuration. 0 = 미활성 / 3 (일반) / 60 (prism — 별도 처리).
+   */
+  spaceGrooveDurationSec: number;
+  /**
+   * 도전자 Burst — 새 대상 dash 발동 시 burst 종료 tick.
+   * dash 시점에 tick + BurstDuration × TICKS_PER_SECOND 로 set.
+   * tick < endTick 동안 getEffectiveAttackSpeed 에 BurstPercent 가산.
+   * 0 = 미활성 / 비활성. raw BurstDuration=2.5, BurstPercent=0.50.
+   */
+  challengerBurstEndTick: number;
+  /** 도전자 Burst — 활성 시 AS multiplicative bonus. 0 = 미활성 / 0.50 (50%). */
+  challengerBurstPercent: number;
+  /**
+   * 전달자 InnateManaGain — 모든 mana gain × (1 + N).
+   * 0 = 미활성 / 0.20 (20% 증가). raw InnateManaGain.
+   */
+  channelerInnateManaGain: number;
+  /**
+   * 습격자 흡혈→보호막 — 흡혈 초과량 (currentHp == maxHp) 을 보호막으로 변환.
+   * 보호막 cap: maxHp × meleeMaxShieldPct. 0 = 미활성 / 0.25 = 25%. raw MaxPercentHealthShield.
+   */
+  meleeMaxShieldPct: number;
+  /**
+   * 습격자 (6) tier ShieldAD — 보호막 활성 시 추가 AD %.
+   * 0 = 미활성 / 0.20 (20%). raw ShieldAD.
+   */
+  meleeShieldADBonus: number;
+  /**
+   * Blitzcrank Bolt passive — 매 BoltCooldown 초마다 가장 체력 높은 적에 magic damage.
+   * 0 = 미활성 / >0 = 활성 cooldown sec. raw star-scaled.
+   * partyHealing 종료 시 boltSpeedMult ×4 적용 (effective = boltCooldownSec / boltSpeedMult).
+   */
+  blitzBoltCooldownSec: number;
+  /** Blitzcrank Bolt — magic damage value (star-scaled). 0 = 미활성. */
+  blitzBoltDamage: number;
+  /** Blitzcrank Bolt — last fire tick. 다음 fire 시점 = lastFireTick + (cooldownSec / mult) × TPS. */
+  blitzBoltLastFireTick: number;
+  /** 파티광 후속 효과 — 회복 완료 후 Bolt 발사 속도 multiplier. 1 default / 4 (회복 완료 후). */
+  blitzBoltSpeedMult: number;
+  // PR #147 deprecate: gragasCarryActive / leonaCarryActive 필드 제거됨.
+  // selectedCarryAugment === 'TFT17_Augment_GragasCarry' / 'TFT17_Augment_LeonaCarry'
+  // 비교로 대체. sim 코드 read 0건이었음 (test assertion 만 갱신).
+  /**
+   * 뜨거운 죽음(TFT17_Augment_MordekaiserCarry) 활성 시 carry abilityData.shield override.
+   * null = 비활성, 배열 = augment 활성 (starLevel 별 [1성, 2성, 3성]).
+   * applyMordekaiserProcCast 가 raw InitialShield 대신 본 override 우선 read.
+   * 위키 lint #7 (PR #123 검출): 17.3 patch note Heat Death shield 175/200/400 sim 정합.
+   */
+  mordekaiserCarryShield: readonly number[] | null;
+  /**
+   * 별빛 연계(TFT17_Augment_AatroxCarry) 3-skill cycle counter — PR7-C.
+   * cast 마다 +1, (counter % 3) 으로 분기:
+   *   0 = 타격 (single AD)
+   *   1 = 휩쓸기 (cone AD + armor 감소 10)
+   *   2 = 찍기 (aoe_circle radius 1 + 공중 띄움 + 단독 적중 ×2.5)
+   * 사용자 결정: unit 사망 후 resurrect 시 counter 0 reset.
+   */
+  aatroxCycleCounter: number;
+  /**
+   * Aatrox carry resurrect 검사용 — 이전 tick state 가 'dead' 였는지 추적. PR7-C.
+   * dead → alive 전환 시 aatroxCycleCounter 0 reset (사용자 결정).
+   */
+  aatroxPreviouslyDead: boolean;
+  /**
+   * N.O.V.A. 타격 선택기 적용 unit 표시 — PR7-C.
+   * SimulateOptions.novaStrikeSelectorUnit (apiName) 와 일치하는 NOVA unit 만 true.
+   * carry Aatrox + true 시 cycle 패턴이 global 로 확장 + 모든 적 knockup.
+   */
+  aatroxNovaStrikeSelector: boolean;
+  /**
+   * 정령족 (Astronaut) trait Meeps stack — PR7-E.
+   * applyAstronautEffects 가 trait 활성 tier 기준 Meeps 변수 (2/3/4/6) 저장.
+   * 정령족 unit (Bard/Gnar/Fizz/Rammus/Poppy/Corki/Veigar/IvernMinion) 만 > 0.
+   * 사용처:
+   *   - 뽀삐 carry: damage × (1 + Meeps × spiritEffectPerStack=0.15)
+   *   - 후속 PR (Meeps 챔프별 메커니즘): Bard MeepsPerMeep 등
+   */
+  astronautMeepsStack: number;
   /** MF 특성 선택 등으로 치환된 실제 트레이트 목록 */
   resolvedTraits?: string[];
   /** 스킬 치명타 가능 여부. 전투 시작 시 보건/무대 착용 또는 정밀 계열 시너지로 결정. */
@@ -586,6 +835,38 @@ export interface CombatUnit {
   stargazerSerpentPoisonPercent: number;
   /** Serpent 의 중독 지속시간 (초). poison statusEffect 의 remainingTicks 계산용. */
   stargazerSerpentDurationSec: number;
+  /**
+   * 쉔(TFT17_Shen) passive — cast 누적 stack.
+   * 매 cast 시 +1. 평타 시점에 stack × (BonusDamageOnAttack[★] + DamageHP × maxHp) × (1 + AP/100) 추가.
+   * stack < 3: magic damage. stack >= 3: true damage 전환.
+   * 0 = passive 미발동 (cast 0회).
+   */
+  shenPassiveStack: number;
+  /**
+   * NasusCarry (꽁! / Bonk!) — cast kill 누적 stack (Lint #12 해소).
+   * desc: "이 스킬로 적을 처치하면 스킬 피해량이 영구적으로 증가".
+   * cast loop 의 markTargetDead 직후 (nasusCarryActive 가드) +1 누적.
+   * basic attack kill 은 stack 미증가 (cast 로만 누적 — desc 정합).
+   * Read site: applyCarryDamageModifiers 의 bonusPerKill modifier — baseDmg += stack × bonusPerKill[starLevel-1].
+   */
+  nasusBonkStack: number;
+  // PR #147 deprecate: nasusCarryActive 필드 제거됨. selectedCarryAugment 비교로 대체
+  // (cast loop bonusPerKill modifier + stack hook 두 read site 모두 갱신됨).
+  /**
+   * Selected single-carry semantics 일반화 helper (PR #144 foundation, Lint #14).
+   * `applyHeroCarryTransforms` 가 "가장 강한 1명" selector 결과 target 에 본 필드 set
+   * (해당 carry augment 의 apiName 저장). non-selected 카피는 null.
+   *
+   * **사용**: `getAbilityConfigForUnit` 에서 selected 확인 후 carry abilityOverride 반환,
+   * 아니면 raw `CHAMPION_ABILITY_PATTERNS` fallback. carry-specific cast loop hook /
+   * helper 에서도 동일 가드 가능.
+   *
+   * **xxxCarryActive 와의 관계**: 기존 boolean flag (jax/nasus/leona/gragas) 는 legacy.
+   * 신규 가드는 `selectedCarryAugment === '<augment_api>'` 사용 권장. 점진 deprecate.
+   */
+  selectedCarryAugment: string | null;
+  // PR #147 deprecate: jaxCarryActive 필드 제거됨. selectedCarryAugment 비교로 대체
+  // (selfBuff asGain 분기 main + OOR + Jax damage 분기 main + OOR 4 read site 갱신됨).
   /**
    * 요새 (Bastion/ResistTank) — 첫 N초 doubled BonusArmor.
    * 0 = 비활성. 양수면 그 tick 에 도달 시 doubled 부분 (bastionDoubleArmorBonus)
@@ -685,7 +966,7 @@ export type DragData =
   | { type: 'champion'; champion: RawChampion }
   | { type: 'placed-unit'; team: 'player' | 'enemy'; position: HexCoord }
   | { type: 'item'; item: RawItem }
-  | { type: 'tool'; toolKind: 'remove-all' };
+  | { type: 'tool'; toolKind: 'remove-all' | 'nova-selector' };
 
 export const STAR_SCALING: Record<number, number> = {
   1: 1,

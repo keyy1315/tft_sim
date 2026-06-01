@@ -1,20 +1,26 @@
 'use client';
 
 import { useMemo, MouseEvent } from 'react';
-import type { RawChampion, RawItem, PlacedChampion } from '@/types';
+import type { RawChampion, RawItem, RawTrait, PlacedChampion } from '@/types';
 import { axialToOffset } from '@/types';
 import { BOARD_COLS } from '@/lib/simulator/models/constants';
 import SetupBoardCore from '@/components/battle/SetupBoardCore';
 import DroppableHexCell from '@/components/battle/DroppableHexCell';
 import { useActualDataStore } from '@/store/actualDataSlice';
 import { toPlacedChampion } from '@/lib/actualData/unitAdapter';
-import type { PlacedUnit, TeamSnapshot, OpponentSnapshot } from '@/lib/actualData/types';
+import type { PlacedUnit, TeamSnapshot, OpponentSnapshot, StargazerConstellationId } from '@/lib/actualData/types';
+import { resolveTraits } from '@/lib/simulator/systems/trait';
+import { CONSTELLATION_TILE_PATTERN } from '@/lib/actualData/stargazerMapping';
 import ActualItemSlotsOverlay from './ActualItemSlotsOverlay';
 
 interface ActualBoardProps {
   roundIndex: number;
   champions: RawChampion[];
   items: RawItem[];
+  /** 트레잇 활성 검사용 — 별돌보미(3+) 시너지 발동 여부 판정. */
+  traits: RawTrait[];
+  /** 게임-level 별자리 (각 팀에 동일 적용). 미설정 또는 별돌보미 미활성 팀은 강화 칸 미표시. */
+  stargazerConstellation: StargazerConstellationId | null;
   cellSize?: number;
 }
 
@@ -29,7 +35,7 @@ interface ActualBoardProps {
  * to be re-wired via prop drilling. Emits changes through updatePlayerTeam /
  * updateOpponent.
  */
-export default function ActualBoard({ roundIndex, champions, items, cellSize = 44 }: ActualBoardProps) {
+export default function ActualBoard({ roundIndex, champions, items, traits, stargazerConstellation, cellSize = 44 }: ActualBoardProps) {
   const round = useActualDataStore(s => {
     const r = s.currentGame?.rounds[roundIndex];
     return r && r.type === 'pvp' ? r : null;
@@ -53,6 +59,36 @@ export default function ActualBoard({ roundIndex, champions, items, cellSize = 4
       .map(u => toPlacedChampion(u, championCatalog, itemCatalog))
       .filter((p): p is PlacedChampion => p !== null);
   }, [round, championCatalog, itemCatalog]);
+
+  // 별돌보미(3+) 활성 시 강화 칸 표시 (게임-level 별자리 + 팀별 활성 검사).
+  // resolveTraits 에 stargazerConstellation 옵션을 넘기면 base 'TFT17_Stargazer' 가 변종
+  // (TFT17_Stargazer_Wolf 등) 으로 mapping 되어 activeEffect.variables 에 별자리별 수치 포함.
+  const playerStargazerActive = useMemo(() => {
+    if (!stargazerConstellation || traits.length === 0 || playerPlaced.length === 0) return null;
+    const active = resolveTraits(playerPlaced, traits, { stargazerConstellation });
+    const sg = active.find(t => t.trait.name === '별돌보미' && t.style > 0);
+    return sg && sg.count >= 3 ? sg : null;
+  }, [stargazerConstellation, traits, playerPlaced]);
+
+  const enemyStargazerActive = useMemo(() => {
+    if (!stargazerConstellation || traits.length === 0 || enemyPlaced.length === 0) return null;
+    const active = resolveTraits(enemyPlaced, traits, { stargazerConstellation });
+    const sg = active.find(t => t.trait.name === '별돌보미' && t.style > 0);
+    return sg && sg.count >= 3 ? sg : null;
+  }, [stargazerConstellation, traits, enemyPlaced]);
+
+  const playerStargazerTiles = useMemo(
+    () => (playerStargazerActive && stargazerConstellation
+      ? CONSTELLATION_TILE_PATTERN[stargazerConstellation]
+      : []),
+    [playerStargazerActive, stargazerConstellation],
+  );
+  const enemyStargazerTiles = useMemo(
+    () => (enemyStargazerActive && stargazerConstellation
+      ? CONSTELLATION_TILE_PATTERN[stargazerConstellation]
+      : []),
+    [enemyStargazerActive, stargazerConstellation],
+  );
 
   if (!round) return null;
 
@@ -100,6 +136,14 @@ export default function ActualBoard({ roundIndex, champions, items, cellSize = 4
         onUnitClick={handleRemoveUnit}
         onUnitRightClick={handleRemoveUnit}
         onUnitCycleStars={handleCycleStars}
+        playerStargazerTiles={playerStargazerTiles}
+        enemyStargazerTiles={enemyStargazerTiles}
+        playerStargazerConstellation={playerStargazerActive ? stargazerConstellation : null}
+        enemyStargazerConstellation={enemyStargazerActive ? stargazerConstellation : null}
+        playerStargazerEffectVariables={playerStargazerActive?.activeEffect?.variables ?? null}
+        enemyStargazerEffectVariables={enemyStargazerActive?.activeEffect?.variables ?? null}
+        playerStargazerCount={playerStargazerActive?.count ?? 0}
+        enemyStargazerCount={enemyStargazerActive?.count ?? 0}
         cellSize={cellSize}
       />
 

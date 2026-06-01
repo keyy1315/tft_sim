@@ -72,7 +72,18 @@ warning 경로 (schemaAdapter) 가 missing 값을 graceful 처리. UI 추가 비
 
 ---
 
-## 후속 — Set 17 trait 시스템 미구현 (2026-04-27 발견)
+## 후속 — Set 17 trait 시스템 미구현 (2026-04-27 발견 → 2026-05-06 종결)
+
+> **2026-05-06 업데이트**: 본 섹션의 4개 trait 우선순위 (별돌보미 / 운명술사 / N.O.V.A. capstone /
+> 정령족) **모두 17.2b PR 시리즈(PR #67-85) 진행 중 구현 완료**. 검증 위치:
+> - 별돌보미 7 별자리 → `combatLoop.ts:2716+`
+> - 운명술사 → `combatLoop.ts:1305+`, `applyFateweaverEffects`
+> - N.O.V.A. capstone (Caitlyn mark+headshot) → `combatLoop.ts:960+` (PR7-C.6)
+> - 정령족 (Astronaut Meeps) → `combatLoop.ts:1483+`, `spiritEffectPerStack`
+>
+> 그러나 PR9 commit (`72ad060`) 기준 game-20260423-001 (N=10) 재측정 결과 여전히
+> winnerMatchRate **45.5%** (50% 목표 미달), avgPlayerDamageErrorPct **-52.2%** (악화).
+> trait 구현만으로는 부족한 잔여 오차 — 챔프별 ability/타겟팅/마나 획득 등 다른 축 진단 필요.
 
 v1 측정 도구로 game-20260423-001 (N=10) 돌려본 결과 **모든 player 챔프가
 sim 에서 -50% ~ -94% 데미지** (TwistedFate 만 +28% 예외). 이 systemic 적자의

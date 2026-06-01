@@ -154,7 +154,17 @@ export function useCombatAnalysis() {
       const result = simulateCombat(
         reconstruction.playerTeam,
         reconstruction.enemyTeam,
-        { seed: 42, skipMirror: true, allTraits: reconstruction.options.allTraits },
+        {
+          seed: 42,
+          skipMirror: true,
+          allTraits: reconstruction.options.allTraits,
+          // 사용자가 PlacedChampion 에 novaStrikeSelector 를 표시한 경우 옵션으로 전달.
+          // Riot API 재구성 결과는 일반적으로 미지정 → autoAssignNovaSelector fallback.
+          playerNovaStrikeSelectorUnit: reconstruction.playerTeam
+            .find((u) => u.novaStrikeSelector === true)?.champion.apiName,
+          enemyNovaStrikeSelectorUnit: reconstruction.enemyTeam
+            .find((u) => u.novaStrikeSelector === true)?.champion.apiName,
+        },
       );
 
       const defeatReport = result.winner !== 'player'
@@ -186,7 +196,16 @@ export function useCombatAnalysis() {
       const modifiedResult = simulateCombat(
         modifiedPlayerTeam,
         state.reconstruction.enemyTeam,
-        { seed: 42, skipMirror: true, allTraits: state.reconstruction.options.allTraits },
+        {
+          seed: 42,
+          skipMirror: true,
+          allTraits: state.reconstruction.options.allTraits,
+          // What-if 에서 사용자가 NOVA 선택기 토글 가능 → modifiedPlayerTeam 우선 스캔.
+          playerNovaStrikeSelectorUnit: modifiedPlayerTeam
+            .find((u) => u.novaStrikeSelector === true)?.champion.apiName,
+          enemyNovaStrikeSelectorUnit: state.reconstruction.enemyTeam
+            .find((u) => u.novaStrikeSelector === true)?.champion.apiName,
+        },
       );
 
       // 유닛별 DPS/생존 비교

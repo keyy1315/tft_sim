@@ -526,6 +526,20 @@ export function useTeamManagement({ traits }: UseTeamManagementArgs) {
     setPendingMfPlacement(null);
   };
 
+  /**
+   * N.O.V.A. (DRX) 타격 선택기 토글. 같은 팀에서 단 한 명만 보유 가능 (단일성 강제).
+   *  - next === true  : target 에 set, 같은 팀의 다른 보유자는 자동 해제
+   *  - next === false : target 만 해제
+   */
+  const handleNovaStrikeSelectorChange = (team: 'player' | 'enemy', index: number, next: boolean) => {
+    const setTeam = team === 'player' ? updatePlayerTeam : updateEnemyTeam;
+    setTeam(prev => prev.map((p, i) => {
+      if (i === index) return { ...p, novaStrikeSelector: next };
+      if (next && p.novaStrikeSelector) return { ...p, novaStrikeSelector: false };
+      return p;
+    }));
+  };
+
   const handlePermanentStackChange = (team: 'player' | 'enemy', index: number, value: number) => {
     const setTeam = team === 'player' ? updatePlayerTeam : updateEnemyTeam;
     setTeam(prev => prev.map((p, i) => {
@@ -755,6 +769,7 @@ export function useTeamManagement({ traits }: UseTeamManagementArgs) {
     pendingMfPlacement,
     setPendingMfPlacement,
     handleMfModeChange,
+    handleNovaStrikeSelectorChange,
     handlePermanentStackChange,
 
     // Handlers

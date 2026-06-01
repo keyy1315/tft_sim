@@ -1,9 +1,15 @@
 {
   "meta": {
     "set": 17,
-    "source": "CommunityDragon TFT ko_kr.json",
-    "extractedAt": "2026-04-29T00:27:54.652Z",
-    "totalAugments": 435
+    "source": "CommunityDragon TFT ko_kr.json (PBE 5/12) + patch-17-4 변경 미반영 (sequence C deferred)",
+    "extractedAt": "2026-05-13T00:30:00.000Z",
+    "totalAugments": 440,
+    "patch_version": "17.3 LIVE (17.4 augment 변경은 carryAugments.ts hardcoded — sequence C)",
+    "fetched_at": "2026-05-13",
+    "set17_active_pool_size": 35,
+    "patch_17_4_deferred": [
+      "TFT17_Augment_JaxCarry (Reach for the Stars): damage 170/250/450 → 160/240/420 너프 (Codex P1 PR #162 catch). raw augments.json 의 augment desc 는 effects 비어 있고, damage 값은 src/data/carryAugments.ts:205-218 abilityData.damage hardcoded → sequence C 갱신"
+    ]
   },
   "augments": [
     {
@@ -8371,6 +8377,109 @@
       "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/ConstructaCompanion_III.TFT_Set16.tex",
       "associatedTraits": [],
       "tags": [],
+      "disable": false
+    },
+    {
+      "name": "신병",
+      "apiName": "TFT6_Augment_ForceOfNature",
+      "desc": "최대 팀 규모가 +@MaxArmySizeIncrease@ 증가하고 4단계 챔피언 @NumUnits@명을 획득합니다.",
+      "effects": {
+        "MaxArmySizeIncrease": 1,
+        "NumUnits": 3
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/NewRecruit3.tex",
+      "associatedTraits": [],
+      "tags": [
+        "{cf1fd3af}",
+        "{b72bd3bf}",
+        "{d02ae323}"
+      ],
+      "disable": false
+    },
+    {
+      "apiName": "TFT17_Augment_DarkStar_WhiteHole",
+      "name": "전리품 특이점",
+      "desc": "블랙홀이 적을 집어삼키면 해당 적이 우주 물질로 변합니다. 충분한 양을 모으면 블랙홀이 우주 물질을 전리품으로 바꿉니다! 초가스와 리산드라를 획득합니다.<br><ShowIf.TFT17_Augment_DarkStar_WhiteHole_IsActive><rules>매번 우주 물질 양과 전리품 품질이 증가합니다. 암흑의 별 특성 구간에 따라 우주 물질 @TwoPiecePoints@/@FourPiecePoints@/@SixPiecePoints@개를 획득합니다.</rules><br>우주 물질: @TFTUnitProperty.item:TFT17_Augment_DarkStar_WhiteHole_CurrentStacks@ / @TFTUnitProperty.item:TFT17_Augment_DarkStar_WhiteHole_StacksToNextCashout@</ShowIf.TFT17_Augment_DarkStar_WhiteHole_IsActive>",
+      "icon": "whitehole_ii.tft_17_3.png",
+      "effects": {
+        "{98d937e6}": 3,
+        "{b7d58b40}": 4,
+        "{de7067ca}": 2
+      },
+      "associatedTraits": [
+        "TFT17_DarkStar"
+      ],
+      "tags": [
+        "{ce1fd21c}",
+        "{b72bd3bf}",
+        "{3754d0ae}",
+        "{d12ae4b6}",
+        "{d22ae649}",
+        "{84a6d904}"
+      ],
+      "disable": false
+    },
+    {
+      "name": "재빠른 무장",
+      "apiName": "TFT11_Augment_Slammin",
+      "desc": "@Gold@골드를 획득합니다. 플레이어 대상 전투를 마친 후 대기석에 아이템(소모품 제외)이 없을 때마다 @XP@의 경험치를 획득합니다.",
+      "effects": {
+        "Gold": 3,
+        "XP": 2
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Slammin_II.TFT_Set17.tex",
+      "associatedTraits": [],
+      "tags": [
+        "{ce1fd21c}",
+        "{b72bd3bf}",
+        "{d22ae649}",
+        "{d12ae4b6}",
+        "{7aaa3b47}",
+        "{c5c463aa}",
+        "{77b330ea}",
+        "{24d36c27}",
+        "{4529fead}"
+      ],
+      "disable": false
+    },
+    {
+      "name": "재빠른 무장+",
+      "apiName": "TFT11_Augment_Slammin_Plus",
+      "desc": "즉시 @Gold@골드를 획득하고 경험치를 @XPNow@ 얻습니다. 플레이어 대상 전투를 마친 후 대기석에 아이템(소모품 제외)이 없을 때마다 @XP@의 경험치를 획득합니다.",
+      "effects": {
+        "Gold": 8,
+        "XP": 2,
+        "XPNow": 10
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/Slammin_II.TFT_Set17.tex",
+      "associatedTraits": [],
+      "tags": [
+        "{ce1fd21c}",
+        "{b72bd3bf}",
+        "{d22ae649}",
+        "{d02ae323}",
+        "{7aaa3b47}",
+        "{77b330ea}",
+        "{24d36c27}"
+      ],
+      "disable": false
+    },
+    {
+      "name": "태양불꽃판",
+      "apiName": "TFT6_Augment_SunfireBoard",
+      "desc": "전투 시작: 모든 적을 불태워 @Duration@초 동안 대상 최대 체력의 @TotalBurnPercent@%만큼 피해를 입히고 받는 회복 효과를 @GrievousWoundsPercent@% 감소시킵니다.",
+      "effects": {
+        "Duration": 15,
+        "GrievousWoundsPercent": 33,
+        "TotalBurnPercent": 15
+      },
+      "icon": "ASSETS/Maps/TFT/Icons/Augments/Hexcore/SunfireBoard2.TFT_Set17.tex",
+      "associatedTraits": [],
+      "tags": [
+        "{b72bd3bf}",
+        "{ce1fd21c}",
+        "{ee04db7b}"
+      ],
       "disable": false
     }
   ]
