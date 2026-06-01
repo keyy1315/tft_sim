@@ -812,14 +812,16 @@ export interface CombatUnit {
    */
   stargazerFountainHealPercent: number;
   /**
-   * 별돌보미 우물(Fountain) 변종 17.2 — 강화 칸 unit 의 max HP 회복 % per tick.
-   * teamwide (강화 칸 아군) = 0.02, 별돌보미 추가 = 0.04 → 별돌보미 합산 0.06.
-   * 0 = 비활성. main loop tick 마다 fountainTickInterval 만료 시 heal 발동.
+   * 별돌보미 우물(Fountain) — 강화 칸 unit 의 max HP 회복 fraction per Fountain_Interval (2초).
+   * sim 미반영 (sequence C-5a 별도 PR 대기). raw `{f2840aed}`/`{d7e6d620}` 매핑 추정.
+   * 0 = 비활성. main loop tick 마다 fountainTickPeriod 만료 시 heal 발동 (line 5352-5356).
    */
   fountainHealPctPerTick: number;
   /**
-   * 별돌보미 우물(Fountain) 변종 17.2 — 강화 칸 별돌보미 stacking AD/AP % per tick.
-   * (3) tier = 0.02, (5) tier = 0.04 — desc StackingADAP. 매 tick 누적 AD/AP 가산.
+   * 별돌보미 우물(Fountain) — 강화 칸 별돌보미 stacking AD/AP fraction per Fountain_Interval (2초).
+   * (3) tier = 0.04, (5) tier = 0.09 (17.4 너프 0.07 → 0.09) — desc `@Fountain_StackingADAP@`.
+   * raw `{13a2a786}` (percent points) ÷ 100 으로 fraction 변환 후 set.
+   * 매 interval 마다 누적: damage *= (1 + fraction), ap += fraction * 100.
    * 0 = 비활성 (강화 칸 별돌보미 아닌 unit).
    */
   fountainStackingAdapPerTick: number;

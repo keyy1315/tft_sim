@@ -132,9 +132,12 @@ describe('Fountain 17.3 LIVE active — sim 동작', () => {
     expect(aatrox.stargazerFountainHealPercent).toBe(0);
   });
 
-  it('PR 3 보류 — 매초 효과 (fountainHealPctPerTick / fountainStackingAdapPerTick) 는 0 유지', () => {
-    // 17.3 LIVE 메커니즘은 cast 시 heal + 마나 재생 위주.
-    // 17.2 PBE 의 매초 효과는 spec 다름 → 활성화 안 함.
+  it('PR sequence C-5e — Stacking ADAP 활성화 ((3) tier=0.04), HealPctPerTick 0 유지 (C-5a 대기)', () => {
+    // 17.3 LIVE: cast 시 heal + 마나 재생 위주.
+    // sequence C-5e (본 PR) 부터 raw `{13a2a786}` (Fountain_StackingADAP) sim 통합 →
+    //   강화 칸 별돌보미 unit 에 매 2초 누적 ADAP 적용 (main loop tick 5357-5361).
+    // (3) tier = 4.0% → fraction 0.04 set.
+    // Fountain Healing periodic (fountainHealPctPerTick) 는 sequence C-5a 별도 PR.
     const tiles = CONSTELLATION_TILE_PATTERN.well;
     const team = [
       placed(apTwistedFate, tiles[0].q, tiles[0].r),
@@ -147,9 +150,15 @@ describe('Fountain 17.3 LIVE active — sim 동작', () => {
       seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
       playerStargazerConstellation: 'well',
     });
-    for (const u of result.playerUnits) {
+    // 별돌보미 4명 → (3) tier 활성. 강화 칸 안 별돌보미 unit 들 fountainStackingAdapPerTick=0.04.
+    const stargazerUnits = result.playerUnits.filter(
+      (u) => u.champion.traits.includes('별돌보미') ||
+             u.items.some((it) => it.apiName === 'TFT17_Item_StargazerEmblemItem'),
+    );
+    for (const u of stargazerUnits) {
+      expect(u.fountainStackingAdapPerTick).toBeCloseTo(0.04, 3);
+      // C-5a (Fountain Healing periodic) 대기 — 0 유지.
       expect(u.fountainHealPctPerTick).toBe(0);
-      expect(u.fountainStackingAdapPerTick).toBe(0);
     }
   });
 });

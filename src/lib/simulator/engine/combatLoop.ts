@@ -3367,38 +3367,48 @@ function applyStargazerEffects(
   //
   // 메커니즘 (lolchess.gg 17.3 LIVE 명시 + desc 기반):
   //   - 강화된 칸 아군 → augmentManaRegen += Fountain_ManaRegen_Teamwide (1.0/s)
-  //   - 강화된 칸 별돌보미 → 추가 augmentManaRegen += Fountain_ManaRegen (3.0~5.0/s)
+  //   - 강화된 칸 별돌보미 → 추가 augmentManaRegen += Fountain_ManaRegen (1.0~5.0/s)
   //   - 강화된 칸 별돌보미 → ability 시전 시 가장 낮은 체력 아군 회복
   //                          (totalAbilityDmg × Fountain_HealPercent, 18~25%)
   //                          → triggerFountainHeal 헬퍼가 cast pipeline 에서 호출
+  //   - 강화된 칸 별돌보미 → Fountain_Interval ({8d19f5db}, 2초) 마다 누적 ADAP
+  //                          (Fountain_StackingADAP {13a2a786}, percent points)
+  //                          → main loop tick 의 fountainStackingAdapPerTick 활용 (line 5357-5361)
   //
-  // 변수 값 (Latest 5/9 정식 이름):
+  // 변수 값 (CDragon Latest):
   //   - TFT17_Stargazer_Fountain (변종):
-  //       (3-4) HealPct=0.18 / ManaRegen=1.0 / Teamwide=1.0
-  //       (5+)  HealPct=0.25 / ManaRegen=5.0 / Teamwide=1.0
+  //       (3-4) HealPct=0.18 / ManaRegen=1.0 / Teamwide=1.0 / StackingADAP=4.0% (per 2s)
+  //       (5+)  HealPct=0.25 / ManaRegen=5.0 / Teamwide=1.0 / StackingADAP=9.0% (per 2s, 17.4 너프 7→9)
   //   - TFT17_Stargazer (전체 trait, 모든 변종 공통):
   //       (3-4) HealPct=0.18 / ManaRegen=3.0 / Teamwide=1.0
   //       (5-6) HealPct=0.25 / ManaRegen=4.0 / Teamwide=1.0
   //       (7+)  HealPct=0.20 / ManaRegen=5.0 / Teamwide=1.0
   //
-  // 17.2 LIVE 까지 비활성 → 17.3 LIVE 에서 재활성화 (PR #109 / 본 PR 3).
+  // 17.2 LIVE 까지 비활성 → 17.3 LIVE 에서 재활성화 (PR #109).
+  // 17.3 LIVE 의 lolchess.gg "(3) 4% / (5) 7% ADAP per 2s" 매핑 17.4 패치 시점 풀림:
+  // raw `{13a2a786}` = Fountain_StackingADAP (desc @Fountain_StackingADAP@ 와 1:1 매핑).
+  // sim 통합 본 PR (sequence C-5e) — fountainStackingAdapPerTick state field 활성화.
   //
-  // 보류 (17.3 LIVE 명시 but 데이터 미노출):
-  //   - lolchess.gg "(3) 공격력/주문력 4%, (5) 공격력/주문력 7%" — 별도 변수 미노출
-  //   - 17.2 PBE 의 매초 효과 (fountainHealPctPerTick / fountainStackingAdapPerTick)
-  //     — 17.3 LIVE 메커니즘과 다른 PBE spec, 활성화 안 함. raw hash 변수
-  //     ({8d19f5db} / {d7e6d620} / {f2840aed} / {13a2a786}) 는 보존만.
+  // 보류:
+  //   - 17.2 PBE 의 fountainHealPctPerTick (매 tick maxHp 회복) — sim 미반영
+  //     ({f2840aed} = HealthRegen, {d7e6d620} = HealthRegen_Teamwide 로 매핑 추정).
+  //     → sequence C-5a (Fountain Healing periodic) 별도 PR.
   if (apiName === 'TFT17_Stargazer_Fountain') {
     const healPct = (eff.Fountain_HealPercent ?? 0) as number;
     const teamwideMana = (eff.Fountain_ManaRegen_Teamwide ?? 0) as number;
     const ownerMana = (eff.Fountain_ManaRegen ?? 0) as number;
-    if (healPct > 0 || teamwideMana > 0 || ownerMana > 0) {
+    // Fountain_StackingADAP — raw hash 키 `{13a2a786}`. percent points (4.0 = 4%) → fraction 변환.
+    const stackingAdapPct = (eff['{13a2a786}'] ?? 0) as number;
+    const stackingAdapFraction = stackingAdapPct / 100;
+    if (healPct > 0 || teamwideMana > 0 || ownerMana > 0 || stackingAdapFraction > 0) {
       for (const u of units) {
         if (!isOnTile(u)) continue;
         if (teamwideMana > 0) u.augmentManaRegen += teamwideMana;
         if (isStargazerUnit(u)) {
           if (ownerMana > 0) u.augmentManaRegen += ownerMana;
           if (healPct > 0) u.stargazerFountainHealPercent = healPct;
+          // 강화 칸 별돌보미만 StackingADAP — main loop tick (Fountain_Interval 마다) 가 적용.
+          if (stackingAdapFraction > 0) u.fountainStackingAdapPerTick = stackingAdapFraction;
         }
       }
     }
