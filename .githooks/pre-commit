@@ -14,7 +14,9 @@
 # 상세:  docs/wiki/lint-rules.md
 # ──────────────────────────────────────────────────────────────
 
-staged=$(git diff --cached --name-only --diff-filter=ACM)
+# --diff-filter=ACMR: R(rename) 포함 — git mv 로 wiki 페이지 이동/도입 시 ACM 만으로는
+# 누락되어 gate 우회 가능 (PR #181 Codex P2). name-only 는 rename 시 destination 경로 출력.
+staged=$(git diff --cached --name-only --diff-filter=ACMR)
 
 # scope (CLAUDE.md dispatch 규칙과 동일):
 #   docs/wiki/champions/*.md        (모든 champion)
