@@ -1,6 +1,7 @@
 .bkit
 .claude/*
 !.claude/agents/
+!.claude/plugins/
 .worktrees
 .next
 .superpowers
