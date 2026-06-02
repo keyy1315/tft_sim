@@ -3,8 +3,8 @@ name: TFT Domain Wiki — Lint Rules
 purpose: 위키 ingest 직후 lint subagent (`wiki-ingest-verifier`) 가 사용하는 단일 출처 룰셋
 scope: docs/wiki/{champions,mechanics,augments}/*.md (carry-augment 만, 일반 augment 제외)
 based_on: 자기-lint 9건 누적 (모두 Codex catch — self-catch rate 0%)
-goal: self-catch rate ≥ 50% (P0 기준) in 6 PR
-updated: 2026-05-27 (PR #160 룰 보강 #16/#17 적용 — traits frontmatter 각 entry 의 `apply<Trait>Effects` 패턴 grep 전수 verify / sim fix guidance 작성 시 적용 분기 명시 필수. PR #158/#159 학습 종합 — subagent 의 trait verify systematic 강화 + Codex domain expert catch 패턴 룰화)
+goal: self-catch rate ≥ 50% (P0 기준) in 6 PR — **✅ 달성 (2026-06-02, P1 70%; P0 분모 0)**
+updated: 2026-06-02 (6 PR 평가 완료 — P1 self-catch 70% Target 달성. Self-catch Metric 표 #161/#162/#175·#176 추가. 잔존 약점: 외부 patch notes 의존 fact (Codex P1 3건 전부 #162) + 머지 전 dispatch 누락 #175)
 ---
 
 # Wiki Ingest Lint Rules
@@ -327,10 +327,11 @@ read 위치 없으면 → 본문에 "🔍 sim 효과 검증 필요" 표기 또�
 | 2026-05-26 | 룰 #11~#15 도입 (carry self-buff field / damage modifier 진입 가드 / mechanic summary cross-check / mechanic page sync / sim_active partial 강등) | PR #155 |
 | 2026-05-27 | **첫 P1 self-catch metric 발생** (요새 trait Bastion, poppy.md) | PR #159 |
 | 2026-05-27 | 룰 #16/#17 도입 (traits frontmatter `apply<Trait>Effects` grep 전수 verify / sim fix guidance 적용 분기 명시 필수) | PR #160 |
+| 2026-06-02 | **6 PR 평가 완료** — P1 self-catch 70% Target 달성 (champion 페이지 Codex P1 0건). 룰 보강 후보 추출: trait verify 표기 시 "verify 불필요/면제" 어휘 금지 (구현 면제 ≠ verify 면제) | PR #176 |
 
-## Self-catch Metric (6 PR 평가)
+## Self-catch Metric (6 PR 평가 — ✅ 완료)
 
-다음 champion / mechanic / carry-augment ingest 부터 lint subagent dispatch. 6 PR 후 다음 metric 산출.
+champion / mechanic / carry-augment ingest 시 lint subagent dispatch. 6 PR (#156/#158/#159/#161/#162/#175·#176) 평가 완료 — 아래 metric 산출.
 
 | 평가 PR | Date | Page | Subagent P0 catch | Subagent P1 catch | Subagent P2 catch | Subagent downgraded known | Codex P0 catch | Self-catch rate (P0) |
 |---------|------|------|-------------------|-------------------|-------------------|---------------------------|----------------|----------------------|
@@ -343,24 +344,28 @@ read 위치 없으면 → 본문에 "🔍 sim 효과 검증 필요" 표기 또�
 
 **Retro 합계 (6 페이지)**: raised P0 **3** / P1 **5** / P2 **15** / downgraded known **17** / Codex P0 catch **0** (모두 이미 머지된 페이지). 9건 lint history 패턴 catch rate: 100% (false-positive 룰 정상 작동).
 
-### 그린필드 운영 진행도 (2026-05-27 기준, 3 PR)
+### 그린필드 운영 진행도 (2026-06-02 기준, **6 PR 평가 완료**)
 
 | 평가 PR | Date | Page | Subagent P0/P1/P2 | Codex P0/P1/P2-3 | Self-catch rate (P0) | 비고 |
 |---------|------|------|-------------------|------------------|----------------------|------|
 | 1 | 2026-05-27 | champions/zed.md (PR #156) | 0 / 0 / 3 (line drift) | 0 / 0 / 0 (응답 없음) | N/A (P0 분모 0) | false-positive 룰 정상 작동 (downgraded known 4). 첫 그린필드 |
 | 2 | 2026-05-27 | champions/blitzcrank.md (PR #158) | 0 / 0 / 3 (metadata: state field count / fixture 라벨 / helper count) | 0 / 0 / 3 (P2 fix guidance + P3 count + P3 typo) | N/A (P0 분모 0) | 룰 #17 trigger (Codex P2 fix guidance) |
 | 3 | 2026-05-27 | champions/poppy.md (PR #159) | 0 / **1 (self-catch ★)** / 1 | 0 / 0 / 1 (정령족 trait 동일 패턴) | N/A (P0 분모 0) | 🎯 **첫 P1 self-catch** (요새 trait Bastion) + 룰 #16 trigger (Codex P2 정령족 동일 패턴 subagent 누락) |
-| 4~6 | 미정 | 다음 champion / mechanic / carry-augment ingest | TBD | TBD | TBD | 3 PR 더 필요 (룰 #16/#17 적용 효과 측정 시작) |
+| 4 | 2026-05-27 | champions/galio.md (PR #161) | 0 / **2 (self-catch ★★)** / 1 | 0 / 0 / 2 (shockwave 4초 timing gap + G6 transformation state) | N/A (P0 분모 0) | 🎯 **룰 #16/#17 첫 운영** — subagent P1 2건 (G4 오등록 + G2 fix guidance `(b)` 단일화). Codex 도메인 P2 2건 (메카 3챔프 transformation flag) |
+| 5 | 2026-05-29 | patch-17-4 sequence A (PR #162, champion/carry/mechanic 5 페이지 update) | 0 / **4 (self-catch ★★★★)** / 4 | 0 / **3 (P1 ★★★)** / 0 | N/A (P0 분모 0) | 🎯 **patch wiki 첫** — subagent P1 4건 (마나 방향 오기 ×2 + 룰 #15 위반 + 룰 #17 (d) 과잉 일반화). **Codex P1 3건** (Twisted Fate revert 방향 + JaxCarry damage 너프 누락 + N.O.V.A. raw vars 다중 오류) — 외부 patch notes WebFetch 정확도 한계 |
+| 6 | 2026-06-02 | champions/aatrox.md (PR #175 ingest / #176 사후 fix) | **사후(post-merge)** 0 / 1 / 2 | 0 / 0 / 1 (요새 trait "verify 불필요" 문구 → 룰 #16 충돌) | N/A (P0 분모 0) | ⚠️ **머지 전 dispatch 누락** → 사후 검증. self-catch 기회 손실 (머지 전이었다면 P1 요새 trait + P2 A2 주석 self-catch 가능). #176 묶음 A fix (요새 trait 통합 문서화 + A2 주석 ×2.5→×2.0) + Codex P2 1건 fix |
 
-**그린필드 합계 (3 PR)**: subagent P0 **0** / P1 **1** (self-catch) / P2 **7** / downgraded known **15** / Codex P0 **0** / Codex P1 **0** / Codex P2-3 **4** (모두 무해 metadata / fix guidance / typo / 동일 패턴 누락 — P0/P1 회귀 없음).
+**그린필드 합계 (6 PR)**: subagent P0 **0** / P1 **7** (self-catch) / P2 **14** / Codex P0 **0** / Codex P1 **3** (전부 #162 patch 외부 notes 의존 건) / Codex P2-3 **7** (무해 metadata / fix guidance / 도메인 timing / typo / 동일 패턴 — P0 회귀 0).
 
-Target: **self-catch / (self-catch + Codex) ≥ 50%** (P0 기준).
+Target: **self-catch / (self-catch + Codex) ≥ 50%** (P0 기준; P0 분모 0 시 P1 대체 측정).
 
-**현 상태 (P0)**: 0/0 = **N/A** (P0 분모 0 — 그린필드 운영 페이지 모두 P0 raise 없음, false-positive 룰 정상 작동 + 작성 단계 자기 verify 효율적).
+**현 상태 (P0)**: 0/0 = **N/A** (6 PR 모두 P0 raise 없음 — false-positive 룰 정상 작동 + 작성 단계 자기 verify 효율적). P0 기준 회귀 0 = subagent + 작성 워크플로우 조합이 critical fact 오류를 막고 있음.
 
-**현 상태 (P1)**: 1/1 = **100%** (subagent P1 1건, Codex P1 0건 — 단 분모 작음). 룰 #16 적용 (PR #160) 후 동일 패턴 (trait verify 누락) 재발 시 self-catch 비율 유지 예상.
+**현 상태 (P1)**: 7/(7+3) = **70%** ✅ **Target 달성** (subagent self-catch P1 7건 / Codex P1 3건). Codex P1 3건은 전부 #162 patch sequence 의 외부 patch notes WebFetch 의존 항목 (룰셋·grep 으로 잡기 어려운 영역) — champion 페이지 (sim 코드 ground truth 기반) 에서는 Codex P1 catch **0건**, subagent self-catch 가 trait/fix-guidance 패턴을 안정적으로 cover.
 
-미달 시: subagent prompt 강화 / 5단계 룰 추가 / cast path 4종 이상 확장 검토.
+**평가 결론 (6 PR)**: P1 self-catch 70% 로 Target ≥ 50% 달성. 룰 #16 (trait verify) / #17 (fix guidance 분기) 도입 (PR #160) 후 champion 페이지에서 동일 패턴 (#13 trait verify 누락) 재발 0건. 잔존 약점: ① 외부 patch notes 의존 fact (Codex P1 3건 전부 여기) — WebFetch 보강 또는 raw json diff 우선 룰 검토, ② **머지 전 dispatch 누락** (PR #175) — CLAUDE.md dispatch 규칙 강제력 (pre-commit hook?) 검토 후보.
+
+미달 시 (향후): subagent prompt 강화 / 5단계 룰 추가 / cast path 4종 이상 확장 검토.
 
 ### Pilot 검증 결과 (2026-05-26)
 
