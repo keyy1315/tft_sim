@@ -316,12 +316,12 @@ read 위치 없으면 → 본문에 "🔍 sim 효과 검증 필요" 표기 또�
 
 ### 룰 보강 #18/#19 (PR #179 적용, 2026-06-02)
 
-본 2건 보강은 PR #176/#178 (Aatrox 사후 검증 후속) 학습. PR #176 Codex P2 + PR #178 subagent P1 catch.
+본 2건 보강은 PR #176/#178 (Aatrox 사후 검증 후속) 학습. PR #176 Codex P2 + PR #178 subagent P1 catch. lint-rules.md (entity-type checklist) + `.claude/plugins/wiki-ingest-verifier/agents/wiki-ingest-verifier.md` (금지 사항 ❌ 2건) **양쪽 동시 갱신** (#11~#17 동일 패턴).
 
 | # | 룰 | 도입 사례 | 적용 위치 |
 |---|----|----------|-----------|
-| #18 | mechanic 페이지 "코드 위치 정리" / 모듈 책임 표의 수치·count (예: "N cast crit roll") → 본문 본체 (호출처 목록 / 레이어 설명) 와 **page-internal cross-check** (룰 #13 의 표↔본문 확장) | PR #178 subagent P1 (spell-crit.md "3 cast crit roll" 표 stale — Jax carry 2분기 도입 후 갱신 누락, 본문 "5 cast" 와 모순) | Entity-type checklist "Mechanic" |
-| #19 | trait verify 결과 표기 시 "verify 불필요 / 면제" 어휘 금지 — 구현 면제 ≠ verify 면제 (룰 #16 보강) | PR #176 Codex P2 (Aatrox 요새 trait "후속 ingest 시 중복 verify 불필요" → 룰 #16 충돌, 미래 verify skip 유도) | Entity-type checklist "Champion" |
+| #18 | mechanic 페이지 "코드 위치 정리" / 모듈 책임 표의 수치·count (예: "N cast crit roll") → 본문 본체 (호출처 목록 / 레이어 설명) 와 **page-internal cross-check** (룰 #13 의 표↔본문 확장) | PR #178 subagent P1 (spell-crit.md "3 cast crit roll" 표 stale — Jax carry 2분기 도입 후 갱신 누락, 본문 "5 cast" 와 모순) | Entity-type checklist "Mechanic" + subagent 금지 사항 |
+| #19 | trait verify 결과 표기 시 "verify 불필요 / 면제" 어휘 금지 — 구현 면제 ≠ verify 면제 (룰 #16 보강) | PR #176 Codex P2 (Aatrox 요새 trait "후속 ingest 시 중복 verify 불필요" → 룰 #16 충돌, 미래 verify skip 유도) | Entity-type checklist "Champion" + subagent 금지 사항 |
 
 > **6 PR 평가 완료 (2026-06-02)**: P1 self-catch 70% Target 달성 (상세 "Self-catch Metric" 섹션). 룰 #18/#19 는 평가 과정에서 추출된 후속 보강 — 다음 ingest 부터 운영 적용.
 
