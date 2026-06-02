@@ -7,10 +7,10 @@ cost: 1
 traits:
   - N.O.V.A.
   - 요새
-role: Fighter   # (carry) applyHeroCarryTransforms → Fighter / (base, no augment) raw ADTank → mapGameRole → Tank
+role: Tank   # raw "ADTank" → mapGameRole() → sim Tank (types/index.ts:41 includes('Tank')). ⚠️ TFT17_Augment_AatroxCarry 활성 시 Fighter 로 변환 (applyHeroCarryTransforms) — Jax/Nasus/Poppy 와 동일 규칙 (frontmatter 는 base/canonical role)
 raw_role: ADTank
 current_patch_status: active
-sim_active: partial   # carry 3-skill cycle + N.O.V.A. 타격 + shredPct(trait) 정합. A1 base heal(HealHP/HealAP) healVar 미매칭 → 미발동 / A2 주석 단독 ×2.5 stale(실제 2.0) / A3 armorReduction "AP 스케일" 주석 vs flat 코드 / A4 base NOVAModifier(비-carry NOVA 타격) sim 부재
+sim_active: partial   # carry 3-skill cycle + N.O.V.A. 타격 + shredPct(trait) 정합. A1 base heal(HealHP/HealAP) healVar 미매칭 → 미발동 / A2 주석 단독 ×2.5 stale(실제 2.0) / A3 armorReduction "AP 스케일" 주석 vs flat 코드 / A4 base NOVAModifier(비-carry NOVA 타격) sim 부재 / A5 base ModifiedDamage 의 DamagePercentArmor(scaleArmor) sim 미소비 (DamageAD scaleAD 만)
 last_verified: 2026-06-02
 sources:
   - "public/data/tft_set17_champions.json (TFT17_Aatrox entry — cost 1, role ADTank, traits N.O.V.A./요새, ability '별빛 베기' variables HealHP/HealAP/DamageAD/DamagePercentArmor/NOVAModifier)"
@@ -84,7 +84,7 @@ TFT17_Aatrox: { pattern: 'single', heal: true }
 
 | 요소 | sim 적용 | 비고 |
 |------|---------|------|
-| 단일 물리 피해 | ✅ `pattern: 'single'` → `resolveAbilityDamage` default damageVar | base 단일 타격 |
+| 단일 물리 피해 (ModifiedDamage = scaleAD + scaleArmor) | ⚠️ **부분** — `resolveAbilityDamage` → `getAbilityDamage` default 가 `DamageAD` (scaleAD) 선택. `DamagePercentArmor` (scaleArmor) **sim 미소비** (repo-wide grep 0 hit) | base 단일 타격. armor scaling 누락 — **Lint A5** |
 | 체력 회복 (ModifiedHeal) | ❌ **미발동** | `config.heal` 분기 (`combatLoop.ts:7002`) 진입은 하나, healVar lookup (`:7006`) 이 `'Heal'\|'APHeal'\|'PercentMaximumHealthHealing'\|'HealthDrain'` 이름만 검색 → Aatrox 변수명 `HealHP`/`HealAP` **미매칭** → `healVar` undefined → heal 0. **Lint A1** |
 | N.O.V.A. 타격 (base, NOVAModifier) | ❌ **미반영** | base (비-carry) Aatrox 의 NOVA 타격 (`ModifiedNovaDamage` = NOVAModifier 0.5 계수) sim 부재. NOVA 타격 추가 발동은 carry (`isAatroxCarry`) 경로에만 존재. **Lint A4** |
 
@@ -174,6 +174,7 @@ cycle ability 와 **별개의 추가 효과** (사용자 정정 spec: "기존 �
 - **A2 (P2)**: `combatLoop.ts:6239` 주석 "찍기 ... 단독 적중 ×2.5" stale — 실제 `singleTargetMultiplier 2.0` (17.3 nerf). 코드 동작은 abilityData 직접 read 라 정합, 주석만 stale
 - **A3 (P2)**: `carryAugments.ts:143` `armorReduction: 10, // 휩쓸기 armor 감소 (AP 스케일)` 주석은 AP 스케일 표기인데 코드 (`:6996`) 는 flat -10 (AP scaling 없음). 주석 vs 코드 불일치 (도메인상 AP 스케일이 맞는지 인게임 verify 필요)
 - **A4 (P2)**: base (비-carry) Aatrox 의 N.O.V.A. 타격 (`NOVAModifier 0.5` × `ModifiedNovaDamage`) sim 부재 — NOVA 타격 추가 발동은 `isAatroxCarry` 경로 한정. base 1코스트 Aatrox 가 carry 없이 NOVA selector 받는 경우 추가 타격 없음 (의도된 단순화 가능성)
+- **A5 (P2)**: base 단일 물리 피해의 `DamagePercentArmor` (scaleArmor) sim 미소비 — raw `ModifiedDamage` 는 scaleAD + scaleArmor 인데 `resolveAbilityDamage` default 가 `DamageAD` (scaleAD) 만 선택, `DamagePercentArmor` 는 repo-wide grep 0 hit. base damage 가 armor scaling 만큼 과소 적용 (carry 는 cycle damage 직접 사용이라 무관)
 
 ## Lint 신규 등록 후보
 
@@ -183,6 +184,7 @@ cycle ability 와 **별개의 추가 효과** (사용자 정정 spec: "기존 �
 | A2 | `:6239` 주석 단독 적중 "×2.5" stale | 실제 `singleTargetMultiplier 2.0` (17.3 nerf 2.5→2.0). 코드 동작 정합, 주석만 과거 값 | **P2** | 주석 cleanup (코드 동작은 abilityData 직접 read) | 후속 PR 주석 정리 — 본 wiki PR scope 밖 |
 | A3 | `carryAugments.ts:143` armorReduction 주석 "AP 스케일" vs 코드 flat -10 | 코드는 flat 차감인데 주석은 AP 스케일 표기 — 도메인 의도 (raw 가 AP scaling 인지) 확인 필요 | **P2** | (b) per-target — 휩쓸기 cone hit 시 armor 감소. AP 스케일 맞으면 `armorReduction × (1 + ap/100)` 적용 후 차감 | 인게임 측정 후 결정. 현재 flat -10 (낮은 영향) |
 | A4 | base (비-carry) NOVAModifier 0.5 N.O.V.A. 타격 sim 부재 | NOVA 타격 추가 발동이 `isAatroxCarry` 한정 — base Aatrox 가 NOVA selector 받아도 추가 타격 없음 | **P2** | (c) cast-time — base Aatrox NOVA selector 시 `ModifiedNovaDamage` (NOVAModifier × ModifiedDamage) 발동 분기 추가 | 의도된 단순화 가능성 (carry 중심 메타) — 인게임 spec verify 후 결정 |
+| A5 | base 단일 피해 `DamagePercentArmor` (scaleArmor) sim 미소비 | raw `ModifiedDamage` = scaleAD + scaleArmor 인데 `getAbilityDamage` default 가 `DamageAD` (scaleAD) 만 선택 → base damage 가 armor scaling 만큼 과소. `DamagePercentArmor` repo-wide grep 0 hit | **P2** | (b) per-target — base single hit damage 에 caster armor × `DamagePercentArmor[star]` 가산. 단 base ability 가 abilityOverride 없는 generic resolve 경로라 champion-specific 분기 필요 | carry (별빛 연계) 는 cycle damage 직접 사용이라 무관. base Aatrox 한정 — 인게임 측정 후 결정 |
 
 > 📌 **shredPct 는 sim 정합 (lint 아님)**: 메모리 후속 후보 "sequence C-7 NOVA Aatrox shredPct" 검토 결과 — `ShredAndSunder 0.30` 이 `combatLoop.ts:4721` read → `:4749-4753` 적용으로 **이미 정확히 구현**. armor/MR 양쪽 ×0.7. C-7 후속 작업은 shredPct 외 다른 항목 (별도 verify) 또는 이미 해소됨.
 
@@ -201,6 +203,7 @@ cycle ability 와 **별개의 추가 효과** (사용자 정정 spec: "기존 �
 - [x] **cast path 3종 (PR #129 룰)** — main (cycle ✅) / OOR (`:7342-7348` cycle 미적용 명시 ✅) / recast (N/A). [[ability-targeting]] 3 호출처 참조
 - [x] **본문 Lint A1~A4 등록 → frontmatter `sim_active: partial` 강등** (룰 #15)
 - [x] **룰 #17 fix guidance 적용 분기 명시** — A1 (c) cast-time / A3 (b) per-target / A4 (c) cast-time
+- [x] **base 단일 damage scaleArmor verify** (Codex P2) — `DamagePercentArmor` repo-wide grep 0 hit → sim 미소비 확인. `getAbilityDamage` default `DamageAD` (scaleAD) 만 적용 → **Lint A5 등록**, 단일 피해 ⚠️ 부분 강등
 - [ ] (선택) base 단일 물리 damage 의 default damageVar (DamageAD) star별 매핑 정밀 verify
 
 ## 관련
