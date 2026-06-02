@@ -4,7 +4,7 @@ purpose: 위키 ingest 직후 lint subagent (`wiki-ingest-verifier`) 가 사용�
 scope: docs/wiki/{champions,mechanics,augments}/*.md (carry-augment 만, 일반 augment 제외)
 based_on: 자기-lint 9건 누적 (모두 Codex catch — self-catch rate 0%)
 goal: self-catch rate ≥ 50% (P0 기준) in 6 PR — **✅ 달성 (2026-06-02, P1 70%; P0 분모 0)**
-updated: 2026-06-02 (6 PR 평가 완료 — P1 self-catch 70% Target 달성. Self-catch Metric 표 #161/#162/#175·#176 추가. 룰 #18/#19 도입 [mechanic 모듈 책임 표 cross-check / trait verify 어휘 금지]. 잔존 약점: 외부 patch notes 의존 fact (Codex P1 3건 전부 #162) + 머지 전 dispatch 누락 #175)
+updated: 2026-06-02 (6 PR 평가 완료 — P1 self-catch 70% Target 달성. 룰 #18/#19/#20 도입 [mechanic 표 cross-check / trait verify 어휘 금지 / patch 변경 = raw json diff ground truth]. 룰 #20 으로 "외부 patch notes 의존" 잔존 약점 해소. 미해소: 머지 전 dispatch 누락 #175 [pre-commit hook 인프라 후보, rule 영역 밖])
 ---
 
 # Wiki Ingest Lint Rules
@@ -152,6 +152,10 @@ read 위치 없으면 → 본문에 "🔍 sim 효과 검증 필요" 표기 또�
 ## Entity-type 별 추가 Checklist
 
 5단계 공통 룰에 더해 entity type 별 특이 fail mode.
+
+> **룰 #20 (PR #180 도입) — patch 변경 fact 는 raw json diff 가 ground truth (모든 entity type 공통)**: patch 너프/버프 수치·변경 방향(증가/감소)을 페이지에 반영 시, 외부 patch notes (WebFetch) 가 아닌 **raw json diff — 이전 패치 raw 값 vs 현재 패치 raw 값 직접 비교** 를 ground truth 로 한다. WebFetch (공식 패치노트 URL) 는 **맥락·한글 표현 보조용** 일 뿐, 수치·방향 fact 의 근거가 될 수 없음. 모든 변경 수치·방향은 raw json 두 버전 비교로 verify. patch sequence 가 champion / carry / mechanic 페이지를 update 할 때 적용.
+>
+> 도입 사례 (PR #162 Codex P1 3건 — **전부 외부 notes 의존**): ① Twisted Fate revert **방향 오독** (notes 표현만 보고 변경 방향 반대로 기재) ② JaxCarry damage **너프 누락** (notes 에 항목 부재 → raw diff 였으면 즉시 감지) ③ N.O.V.A. raw vars **다중 오류** (Kindred 5→10% / Mark Timer 신설 / Akali AD flat — notes 요약이 불완전). raw json diff 우선이었다면 3건 모두 self-catch 가능했던 항목. → patch wiki 작성 워크플로우: **raw json diff 먼저, WebFetch 는 보조**.
 
 ### Champion (`docs/wiki/champions/*.md`)
 
@@ -325,6 +329,16 @@ read 위치 없으면 → 본문에 "🔍 sim 효과 검증 필요" 표기 또�
 
 > **6 PR 평가 완료 (2026-06-02)**: P1 self-catch 70% Target 달성 (상세 "Self-catch Metric" 섹션). 룰 #18/#19 는 평가 과정에서 추출된 후속 보강 — 다음 ingest 부터 운영 적용.
 
+### 룰 보강 #20 (PR #180 적용, 2026-06-02)
+
+6 PR 평가의 **유일한 잔존 약점** (외부 patch notes 의존 fact — Codex P1 3건 전부 #162) 해소. lint-rules.md (entity-type checklist 공통 룰 + 허용/금지) + plugin subagent (금지 사항 ❌) 양쪽 동시 갱신.
+
+| # | 룰 | 도입 사례 | 적용 위치 |
+|---|----|----------|-----------|
+| #20 | **patch 변경 fact (너프/버프 수치·방향) 는 raw json diff (이전 패치 raw vs 현재 raw) 가 ground truth**. 외부 patch notes (WebFetch) 는 맥락·한글 표현 보조용 — 수치·방향 fact 근거 ❌ | PR #162 Codex P1 3건 (전부 외부 notes 의존: Twisted Fate revert 방향 오독 + JaxCarry damage 너프 누락 + N.O.V.A. raw vars 다중 오류) | Entity-type checklist 공통 룰 (모든 type) + 허용/금지 섹션 + subagent 금지 사항 |
+
+> **평가 잔존 약점 해소 현황 (2026-06-02)**: ① 외부 patch notes 의존 → **룰 #20 으로 해소** ✅. ② 머지 전 dispatch 누락 (#175) → CLAUDE.md dispatch 강제력 (pre-commit hook) 검토 — 미도입 (rule 영역 밖, 인프라 후보).
+
 ## 워크플로우 진화
 
 | 시점 | 룰 추가 | 도입 PR |
@@ -342,6 +356,7 @@ read 위치 없으면 → 본문에 "🔍 sim 효과 검증 필요" 표기 또�
 | 2026-05-27 | 룰 #16/#17 도입 (traits frontmatter `apply<Trait>Effects` grep 전수 verify / sim fix guidance 적용 분기 명시 필수) | PR #160 |
 | 2026-06-02 | **6 PR 평가 완료** — P1 self-catch 70% Target 달성 (champion 페이지 Codex P1 0건). 룰 보강 후보 추출: trait verify 표기 시 "verify 불필요/면제" 어휘 금지 (구현 면제 ≠ verify 면제) | PR #176 |
 | 2026-06-02 | 룰 #18/#19 도입 (mechanic 모듈 책임 표 count ↔ 본문 page-internal cross-check / trait verify "불필요·면제" 어휘 금지) — PR #176/#178 학습 | PR #179 |
+| 2026-06-02 | 룰 #20 도입 (patch 변경 수치·방향 = raw json diff ground truth, 외부 patch notes 는 보조) — PR #162 Codex P1 3건 학습, 6 PR 평가 잔존 약점 해소 | PR #180 |
 
 ## Self-catch Metric (6 PR 평가 — ✅ 완료)
 
@@ -407,8 +422,8 @@ mordekaiser.md retro pilot 으로 subagent 동작 검증:
 ### ✅ 허용
 
 - 코드 ground truth (`src/...:identifier`) — **함수명 + line 번호 둘 다 허용** (이동 편의성). 단 line drift 시 P2 informational lint 가능 (아래 정책 참조)
-- Raw source (`public/data/tft_set17_*.json`, `docs/wiki/raw/`)
-- 패치노트 공식 URL
+- Raw source (`public/data/tft_set17_*.json`, `docs/wiki/raw/`) — **patch 변경 수치·방향은 raw json diff (이전 vs 현재) 가 ground truth** (룰 #20)
+- 패치노트 공식 URL — **맥락·한글 표현 보조용으로만** (수치·변경 방향 fact 의 근거 ❌ — 반드시 raw json diff 로 verify, 룰 #20)
 - PR/commit 참조 (`#PR번호`, short hash)
 - PDCA plan/design — **도입 시점/동기 기록용으로만** (도메인 fact 는 코드 verify)
 
