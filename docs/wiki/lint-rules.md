@@ -4,7 +4,7 @@ purpose: 위키 ingest 직후 lint subagent (`wiki-ingest-verifier`) 가 사용�
 scope: docs/wiki/{champions,mechanics,augments}/*.md (carry-augment 만, 일반 augment 제외)
 based_on: 자기-lint 9건 누적 (모두 Codex catch — self-catch rate 0%)
 goal: self-catch rate ≥ 50% (P0 기준) in 6 PR — **✅ 달성 (2026-06-02, P1 70%; P0 분모 0)**
-updated: 2026-06-02 (6 PR 평가 완료 — P1 self-catch 70% Target 달성. Self-catch Metric 표 #161/#162/#175·#176 추가. 잔존 약점: 외부 patch notes 의존 fact (Codex P1 3건 전부 #162) + 머지 전 dispatch 누락 #175)
+updated: 2026-06-02 (6 PR 평가 완료 — P1 self-catch 70% Target 달성. Self-catch Metric 표 #161/#162/#175·#176 추가. 룰 #18/#19 도입 [mechanic 모듈 책임 표 cross-check / trait verify 어휘 금지]. 잔존 약점: 외부 patch notes 의존 fact (Codex P1 3건 전부 #162) + 머지 전 dispatch 누락 #175)
 ---
 
 # Wiki Ingest Lint Rules
@@ -168,6 +168,7 @@ read 위치 없으면 → 본문에 "🔍 sim 효과 검증 필요" 표기 또�
 | **본문에 P0 lint case (sim 미반영) 등록 시 frontmatter `sim_active: active` 유지 → P1 raise + `partial` 강등 권장** (룰 #15, PR #155 도입) | P0 lint case 등록 시 | champion 페이지에 base ability vars sim 미반영 lint case (Jax L1~L5 등) 등록 시 sim_active 강등 검토 |
 | **`traits` frontmatter 각 entry 에 대해 `apply<Trait>Effects` 함수 / `unitHasTrait(u, '<TraitName>')` 분기 grep 전수 verify** (룰 #16, PR #160 도입) | 항상 (모든 trait entry) | Poppy `traits: [정령족, 요새]` 양쪽 모두 `applyBastionEffects` (`combatLoop.ts:1817`) + `applyAstronautEffects` (`:1951+`) 정상 통합인데 페이지가 "별도 verify 필요" 잘못 표기 (PR #159 self-catch P1 + Codex P2 추가 catch). 모든 trait entry 별 `apply` helper 존재 시 → 그 fact 본문에 반영, 미존재 시만 "verify 필요" 표기 |
 | **sim fix guidance 작성 시 적용 분기 명시 필수** (룰 #17, PR #160 도입) | Lint 후보 fix 항목 작성 시 | Blitzcrank Lint B1 "UppercutDamage 미반영 → `secondaryDamageVar: 'UppercutDamage'` 추가" 권장 잘못 — `secondaryDamageVar` 는 per-target loop 적용이라 AoE 모든 target 에 over-damage (PR #158 Codex P2 catch). fix guidance 는 **(a) primary target 단독 / (b) per-target loop / (c) cast-time 1회 helper / (d) combat-start helper** 중 어느 분기인지 명시 필수 |
+| **trait verify 결과 표기 시 "verify 불필요 / 면제" 어휘 금지** (룰 #19, PR #179 도입) — 구현 면제 ≠ verify 면제 | trait 통합 사실 본문 작성 시 | Aatrox 요새 (Bastion) trait 통합 표기에 "후속 champion 인제스트 시 요새 trait 중복 verify 불필요" 기재 → 룰 #16 (각 trait entry grep 전수 verify) 과 충돌. "불필요" 가 미래 ingest 의 verify skip 유도 → `applyBastionEffects` wiring 변경 / line drift 감지 누락 위험 (PR #176 Codex P2). **올바른 표기**: "champion-specific **구현(분기 추가)** 은 불필요하나, generic 경로 (`apply<Trait>Effects` / `unitHasTrait`) 존재 여부 verify 는 매 champion 마다 grep 재검증·line 인용 필수" |
 
 ### Mechanic (`docs/wiki/mechanics/*.md`)
 
@@ -178,6 +179,7 @@ read 위치 없으면 → 본문에 "🔍 sim 효과 검증 필요" 표기 또�
 | `<field>` "미사용 같음" 추정 표기 시 grep 전수 확인 | 추정 표기 시 | `damageDecay` "미사용 추정" → 실제 6 챔프 + combatLoop active (#2) |
 | 패치별 active/inactive 분기 (current_patch_status frontmatter 와 본문 정합) | 항상 | Stargazer Fountain 17.2 inactive → 17.3 active |
 | **Entity summary 표 (carry 표 / 시너지 표 / 챔프 표) → entity 페이지 / 코드 ground truth cross-check** (룰 #13, PR #155 도입) | 항상 | hero-augment-carry `IvernMinion hexReduction 0.45` 표 stale → 코드 0.35 (#154 P0-3) |
+| **"코드 위치 정리" / 모듈 책임 표의 수치·count (예: "N cast crit roll") → 본문 본체 (호출처 목록 / 레이어 설명) 와 page-internal cross-check** (룰 #18, PR #179 도입) — 룰 #13 의 page-internal (표↔본문) 확장 | 항상 (특히 line drift only PR) | spell-crit.md "코드 위치 정리" 표가 "3 cast crit roll" stale — Jax carry 2분기 도입 (PR #135/#147) 후 표 갱신 누락, 본문 "5 cast 호출처" 목록과 모순 (PR #178 subagent P1). 모듈 책임 표의 count 는 본문 본체 수치와 항상 동기 verify |
 | `[[other-page]]` 링크 깨짐 / orphan | 항상 | dead link lint |
 
 ### Carry augment (`docs/wiki/augments/*-carry.md`)
@@ -312,6 +314,17 @@ read 위치 없으면 → 본문에 "🔍 sim 효과 검증 필요" 표기 또�
 
 > Codex catch 9건 (PR #111~#149) self-catch 0% → 룰셋 도입 후 PR #154 retro 에서 신규 P0 2건 self-catch (Lint #10/#11) + PR #156/#158/#159 그린필드 운영. **PR #159 가 첫 P1 self-catch 발생** (요새 trait Bastion). 룰 #16/#17 적용 (PR #160) 후 다음 champion ingest 부터 운영 적용. 6 PR 평가 target ≥ 50% self-catch (현재 3/6 PR 운영, P0 분모 0 / P1 분자 1).
 
+### 룰 보강 #18/#19 (PR #179 적용, 2026-06-02)
+
+본 2건 보강은 PR #176/#178 (Aatrox 사후 검증 후속) 학습. PR #176 Codex P2 + PR #178 subagent P1 catch. lint-rules.md (entity-type checklist) + `.claude/plugins/wiki-ingest-verifier/agents/wiki-ingest-verifier.md` (금지 사항 ❌ 2건) **양쪽 동시 갱신** (#11~#17 동일 패턴).
+
+| # | 룰 | 도입 사례 | 적용 위치 |
+|---|----|----------|-----------|
+| #18 | mechanic 페이지 "코드 위치 정리" / 모듈 책임 표의 수치·count (예: "N cast crit roll") → 본문 본체 (호출처 목록 / 레이어 설명) 와 **page-internal cross-check** (룰 #13 의 표↔본문 확장) | PR #178 subagent P1 (spell-crit.md "3 cast crit roll" 표 stale — Jax carry 2분기 도입 후 갱신 누락, 본문 "5 cast" 와 모순) | Entity-type checklist "Mechanic" + subagent 금지 사항 |
+| #19 | trait verify 결과 표기 시 "verify 불필요 / 면제" 어휘 금지 — 구현 면제 ≠ verify 면제 (룰 #16 보강) | PR #176 Codex P2 (Aatrox 요새 trait "후속 ingest 시 중복 verify 불필요" → 룰 #16 충돌, 미래 verify skip 유도) | Entity-type checklist "Champion" + subagent 금지 사항 |
+
+> **6 PR 평가 완료 (2026-06-02)**: P1 self-catch 70% Target 달성 (상세 "Self-catch Metric" 섹션). 룰 #18/#19 는 평가 과정에서 추출된 후속 보강 — 다음 ingest 부터 운영 적용.
+
 ## 워크플로우 진화
 
 | 시점 | 룰 추가 | 도입 PR |
@@ -328,6 +341,7 @@ read 위치 없으면 → 본문에 "🔍 sim 효과 검증 필요" 표기 또�
 | 2026-05-27 | **첫 P1 self-catch metric 발생** (요새 trait Bastion, poppy.md) | PR #159 |
 | 2026-05-27 | 룰 #16/#17 도입 (traits frontmatter `apply<Trait>Effects` grep 전수 verify / sim fix guidance 적용 분기 명시 필수) | PR #160 |
 | 2026-06-02 | **6 PR 평가 완료** — P1 self-catch 70% Target 달성 (champion 페이지 Codex P1 0건). 룰 보강 후보 추출: trait verify 표기 시 "verify 불필요/면제" 어휘 금지 (구현 면제 ≠ verify 면제) | PR #176 |
+| 2026-06-02 | 룰 #18/#19 도입 (mechanic 모듈 책임 표 count ↔ 본문 page-internal cross-check / trait verify "불필요·면제" 어휘 금지) — PR #176/#178 학습 | PR #179 |
 
 ## Self-catch Metric (6 PR 평가 — ✅ 완료)
 
