@@ -6236,7 +6236,7 @@ export function simulateCombat(
             // cast 마다 cycle counter % 3 으로 분기:
             //   0 = 타격 (single AD)
             //   1 = 휩쓸기 (cone radius 1, AD + armor 감소 10)
-            //   2 = 찍기 (aoe_circle radius 1, AD + knockup + 단독 적중 ×2.5)
+            //   2 = 찍기 (aoe_circle radius 1, AD + knockup + 단독 적중 ×2.0; 17.3: 2.5→2.0)
             // N.O.V.A. 타격 (carry Aatrox + aatroxNovaStrikeSelector=true): pattern → global
             // + 모든 적 knockup. cycle damage 그대로 적용 (사용자 spec).
             // 사망 시 cycle reset: aatroxPreviouslyDead 검사 (resurrect 메커니즘 연동, 미래 대비).
