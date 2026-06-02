@@ -156,7 +156,7 @@ Aatrox 는 frontmatter `traits: [N.O.V.A., 요새]` 의 **두 번째 trait 으�
 | 첫 `Duration`초 doubled buff | ✅ | setup 시 2배 적용 → `:5197` main loop tick 에서 만료 시 차감 (`:1860` helper) |
 | (6) tier 비-요새 unit `EnhancedTeamwideArmor` | ✅ | `isHighTier && !unitHasTrait(u, '요새')` 분기 (`:1840`) — Aatrox 는 요새라 해당 없음 |
 
-> ✅ **sim 통합 완료 — Aatrox-specific 처리 불필요**. 요새는 `unitHasTrait` 기반 **generic Bastion 경로** 이므로 carry/base 무관하게 동일 적용 (N.O.V.A. 와 달리 champion-specific 분기 없음). 후속 champion 인제스트 시 요새 trait 중복 verify 불필요.
+> ✅ **sim 통합 완료 — champion-specific 구현 불필요**. 요새는 `unitHasTrait` 기반 **generic Bastion 경로** 이므로 carry/base 무관하게 동일 적용 (N.O.V.A. 와 달리 champion-specific 분기 없음). 단 **룰 #16 verify 자체는 면제 아님** — 후속 요새 champion 인제스트 시에도 `applyBastionEffects` / `unitHasTrait('요새')` wiring 을 grep 재검증·line 인용해야 함 (line drift / trait wiring 변경 감지). "champion-specific 분기를 추가할 필요가 없다" 는 의미일 뿐, generic Bastion 경로 존재 여부 verify 는 매 champion 마다 수행.
 
 ## Cast path 분석 (PR #129 룰 — 3종 전수)
 
