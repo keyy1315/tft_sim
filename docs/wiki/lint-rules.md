@@ -355,15 +355,19 @@ champion / mechanic / carry-augment ingest 시 lint subagent dispatch. 6 PR (#15
 | 5 | 2026-05-29 | patch-17-4 sequence A (PR #162, champion/carry/mechanic 5 페이지 update) | 0 / **4 (self-catch ★★★★)** / 4 | 0 / **3 (P1 ★★★)** / 0 | N/A (P0 분모 0) | 🎯 **patch wiki 첫** — subagent P1 4건 (마나 방향 오기 ×2 + 룰 #15 위반 + 룰 #17 (d) 과잉 일반화). **Codex P1 3건** (Twisted Fate revert 방향 + JaxCarry damage 너프 누락 + N.O.V.A. raw vars 다중 오류) — 외부 patch notes WebFetch 정확도 한계 |
 | 6 | 2026-06-02 | champions/aatrox.md (PR #175 ingest / #176 사후 fix) | **사후(post-merge)** 0 / 1 / 2 | 0 / 0 / 1 (요새 trait "verify 불필요" 문구 → 룰 #16 충돌) | N/A (P0 분모 0) | ⚠️ **머지 전 dispatch 누락** → 사후 검증. self-catch 기회 손실 (머지 전이었다면 P1 요새 trait + P2 A2 주석 self-catch 가능). #176 묶음 A fix (요새 trait 통합 문서화 + A2 주석 ×2.5→×2.0) + Codex P2 1건 fix |
 
-**그린필드 합계 (6 PR)**: subagent P0 **0** / P1 **7** (self-catch) / P2 **14** / Codex P0 **0** / Codex P1 **3** (전부 #162 patch 외부 notes 의존 건) / Codex P2-3 **7** (무해 metadata / fix guidance / 도메인 timing / typo / 동일 패턴 — P0 회귀 0).
+> ⚠️ **집계 정의 (PR #177 Codex P2 반영)**: self-catch metric 은 **머지 전(pre-merge) dispatch 로 ingest PR 자체를 catch** 한 건만 numerator 에 산입. #175 aatrox 는 **post-merge audit** (머지 후 사후 검증) 이므로 ingest 를 pre-merge 에 self-catch 한 게 아님 → numerator 제외, 별도 보고.
+
+**pre-merge 합계 (5 PR: #156/#158/#159/#161/#162)**: subagent P0 **0** / P1 **7** (self-catch) / P2 **12** / Codex P0 **0** / Codex P1 **3** (전부 #162 patch 외부 notes 의존 건) / Codex P2-3 **6** (무해 metadata / fix guidance / 도메인 timing / typo / 동일 패턴 — P0 회귀 0).
+
+**post-merge audit (별도, #175·#176 aatrox)**: subagent P1 **1** (요새 trait 미언급) / P2 **2** (A2 주석 + spell-crit drift) / Codex P2 **1** (verify 면제 어휘) — **pre-merge self-catch numerator 미포함**. 머지 전 dispatch 였다면 self-catch 가능했던 건이라 "기회 손실" 사례로 기록.
 
 Target: **self-catch / (self-catch + Codex) ≥ 50%** (P0 기준; P0 분모 0 시 P1 대체 측정).
 
-**현 상태 (P0)**: 0/0 = **N/A** (6 PR 모두 P0 raise 없음 — false-positive 룰 정상 작동 + 작성 단계 자기 verify 효율적). P0 기준 회귀 0 = subagent + 작성 워크플로우 조합이 critical fact 오류를 막고 있음.
+**현 상태 (P0)**: 0/0 = **N/A** (pre-merge 5 PR 모두 P0 raise 없음 — false-positive 룰 정상 작동 + 작성 단계 자기 verify 효율적). P0 기준 회귀 0 = subagent + 작성 워크플로우 조합이 critical fact 오류를 막고 있음.
 
-**현 상태 (P1)**: 7/(7+3) = **70%** ✅ **Target 달성** (subagent self-catch P1 7건 / Codex P1 3건). Codex P1 3건은 전부 #162 patch sequence 의 외부 patch notes WebFetch 의존 항목 (룰셋·grep 으로 잡기 어려운 영역) — champion 페이지 (sim 코드 ground truth 기반) 에서는 Codex P1 catch **0건**, subagent self-catch 가 trait/fix-guidance 패턴을 안정적으로 cover.
+**현 상태 (P1)**: 7/(7+3) = **70%** ✅ **Target 달성** (pre-merge subagent self-catch P1 7건 / Codex P1 3건). Codex P1 3건은 전부 #162 patch sequence 의 외부 patch notes WebFetch 의존 항목 (룰셋·grep 으로 잡기 어려운 영역) — champion 페이지 (sim 코드 ground truth 기반) 에서는 Codex P1 catch **0건**, subagent self-catch 가 trait/fix-guidance 패턴을 안정적으로 cover.
 
-**평가 결론 (6 PR)**: P1 self-catch 70% 로 Target ≥ 50% 달성. 룰 #16 (trait verify) / #17 (fix guidance 분기) 도입 (PR #160) 후 champion 페이지에서 동일 패턴 (#13 trait verify 누락) 재발 0건. 잔존 약점: ① 외부 patch notes 의존 fact (Codex P1 3건 전부 여기) — WebFetch 보강 또는 raw json diff 우선 룰 검토, ② **머지 전 dispatch 누락** (PR #175) — CLAUDE.md dispatch 규칙 강제력 (pre-commit hook?) 검토 후보.
+**평가 결론 (pre-merge 5 PR + post-merge 1 audit)**: P1 self-catch 70% 로 Target ≥ 50% 달성. 룰 #16 (trait verify) / #17 (fix guidance 분기) 도입 (PR #160) 후 champion 페이지에서 동일 패턴 (#13 trait verify 누락) 재발 0건. 잔존 약점: ① 외부 patch notes 의존 fact (Codex P1 3건 전부 여기) — WebFetch 보강 또는 raw json diff 우선 룰 검토, ② **머지 전 dispatch 누락** (PR #175 — post-merge audit 으로 강등된 원인) — CLAUDE.md dispatch 규칙 강제력 (pre-commit hook?) 검토 후보.
 
 미달 시 (향후): subagent prompt 강화 / 5단계 룰 추가 / cast path 4종 이상 확장 검토.
 
