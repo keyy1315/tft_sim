@@ -1,0 +1,24 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "tft-sim-local",
+  "description": "TFT Combat Simulator repo-local plugins (project-specific, git-tracked).",
+  "owner": {
+    "name": "tft_sim"
+  },
+  "plugins": [
+    {
+      "name": "wiki-ingest-verifier",
+      "description": "TFT Domain Wiki ingest lint subagent — champion / mechanic / carry-augment 페이지의 fact·코드 참조·sim 효과 주장을 코드 ground truth (grep + 함수 read) 로 검증해 P0/P1/P2 finding 반환. project-local plugin (tft_sim repo 전용).",
+      "version": "1.0.0",
+      "source": "./wiki-ingest-verifier",
+      "category": "development",
+      "keywords": [
+        "tft",
+        "wiki",
+        "lint",
+        "ingest",
+        "verifier"
+      ]
+    }
+  ]
+}
