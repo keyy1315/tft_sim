@@ -396,7 +396,7 @@ Target: **self-catch / (self-catch + Codex) ≥ 50%** (P0 기준; P0 분모 0 �
 
 **현 상태 (P1)**: 7/(7+3) = **70%** ✅ **Target 달성** (pre-merge subagent self-catch P1 7건 / Codex P1 3건). Codex P1 3건은 전부 #162 patch sequence 의 외부 patch notes WebFetch 의존 항목 (룰셋·grep 으로 잡기 어려운 영역) — champion 페이지 (sim 코드 ground truth 기반) 에서는 Codex P1 catch **0건**, subagent self-catch 가 trait/fix-guidance 패턴을 안정적으로 cover.
 
-**평가 결론 (pre-merge 5 PR + post-merge 1 audit)**: P1 self-catch 70% 로 Target ≥ 50% 달성. 룰 #16 (trait verify) / #17 (fix guidance 분기) 도입 (PR #160) 후 champion 페이지에서 동일 패턴 (#13 trait verify 누락) 재발 0건. 잔존 약점: ① 외부 patch notes 의존 fact (Codex P1 3건 전부 여기) — WebFetch 보강 또는 raw json diff 우선 룰 검토, ② **머지 전 dispatch 누락** (PR #175 — post-merge audit 으로 강등된 원인) — CLAUDE.md dispatch 규칙 강제력 (pre-commit hook?) 검토 후보.
+**평가 결론 (pre-merge 5 PR + post-merge 1 audit)**: P1 self-catch 70% 로 Target ≥ 50% 달성. 룰 #16 (trait verify) / #17 (fix guidance 분기) 도입 (PR #160) 후 champion 페이지에서 동일 패턴 (#13 trait verify 누락) 재발 0건. 약점 해소 현황: ① 외부 patch notes 의존 fact (Codex P1 3건 전부 여기) → **룰 #20 도입 (PR #180) 으로 해소** ✅ — patch 변경 수치·방향은 raw json diff ground truth, 외부 notes 는 보조. ② **머지 전 dispatch 누락** (PR #175 — post-merge audit 으로 강등된 원인) → CLAUDE.md dispatch 규칙 강제력 (pre-commit hook) 미도입 (rule 영역 밖, 인프라 후보).
 
 미달 시 (향후): subagent prompt 강화 / 5단계 룰 추가 / cast path 4종 이상 확장 검토.
 
