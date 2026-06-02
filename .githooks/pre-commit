@@ -1,0 +1,58 @@
+#!/bin/sh
+# ──────────────────────────────────────────────────────────────
+# pre-commit: TFT Domain Wiki ingest-verify gate
+#
+# champion / mechanic / carry-augment 페이지가 staged 되면 wiki-ingest-verifier
+# subagent dispatch 를 강제하는 reminder gate (CLAUDE.md "TFT Domain Wiki Ingest 검증").
+#
+# 한계: git hook(별개 shell 프로세스)은 Claude Code 세션 내부의 subagent dispatch
+# 실행 여부를 직접 검증할 수 없다. 따라서 "verify 를 의식적으로 거쳤다는 명시적
+# 신호"(WIKI_VERIFIED env)가 없으면 차단하여 무의식적 누락(#175 사례)을 막는다.
+#
+# 통과:  dispatch + P0 fix 완료 후  →  WIKI_VERIFIED=1 git commit ...
+# 우회:  git commit --no-verify ...  (비권장 — dispatch 누락 재발 위험)
+# 상세:  docs/wiki/lint-rules.md
+# ──────────────────────────────────────────────────────────────
+
+staged=$(git diff --cached --name-only --diff-filter=ACM)
+
+# scope (CLAUDE.md dispatch 규칙과 동일):
+#   docs/wiki/champions/*.md        (모든 champion)
+#   docs/wiki/mechanics/*.md        (모든 mechanic)
+#   docs/wiki/augments/*-carry.md   (carry augment 만, 일반 augment 제외)
+matched=$(printf '%s\n' "$staged" | grep -E '^docs/wiki/(champions/[^/]+\.md|mechanics/[^/]+\.md|augments/[^/]+-carry\.md)$')
+
+# 대상 페이지 없음 → 통과
+[ -z "$matched" ] && exit 0
+
+# verify 신호 존재 → 통과
+if [ -n "$WIKI_VERIFIED" ]; then
+  echo "✅ wiki-ingest-verify gate: WIKI_VERIFIED 신호 확인 — 통과"
+  echo "   verified pages:"
+  printf '%s\n' "$matched" | sed 's/^/     - /'
+  exit 0
+fi
+
+# 신호 없음 → 차단
+{
+  echo "──────────────────────────────────────────────────────────────"
+  echo "🚫 wiki-ingest-verify gate — 커밋 차단"
+  echo ""
+  echo "다음 wiki 페이지가 staged 되어 있습니다 (champion / mechanic / carry-augment):"
+  printf '%s\n' "$matched" | sed 's/^/     - /'
+  echo ""
+  echo "CLAUDE.md 규칙: 이 페이지들은 commit 전 wiki-ingest-verifier subagent"
+  echo "dispatch 가 필수입니다. P0 finding 은 commit 전 반드시 fix."
+  echo ""
+  echo "  1) dispatch:"
+  echo "       Agent(subagent_type=\"wiki-ingest-verifier:wiki-ingest-verifier\")"
+  echo "  2) P0 finding fix 완료 후 통과:"
+  echo "       WIKI_VERIFIED=1 git commit ..."
+  echo ""
+  echo "  우회 (비권장 — dispatch 누락 #175 재발 위험):"
+  echo "       git commit --no-verify ..."
+  echo ""
+  echo "상세: docs/wiki/lint-rules.md"
+  echo "──────────────────────────────────────────────────────────────"
+} >&2
+exit 1

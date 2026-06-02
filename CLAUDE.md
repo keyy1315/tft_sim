@@ -222,15 +222,26 @@ MVP에서 제외하는 것:
 ### Dispatch 호출 예시
 
 ```
-Agent (subagent_type=wiki-ingest-verifier) — dispatch with page paths
+Agent (subagent_type=wiki-ingest-verifier:wiki-ingest-verifier) — dispatch with page paths
 ```
+
+> ⚠️ subagent_type 은 **plugin namespaced 이름** `wiki-ingest-verifier:wiki-ingest-verifier` (PR #174 plugin install 후). 짧은 `wiki-ingest-verifier` 은 "Agent type not found" 에러.
 
 Subagent 는 read-only. P0/P1/P2 finding 을 tiered 로 반환하며, **P0 finding 은 commit 전 반드시 fix**. P1 은 본 PR 내 가능하면 fix, P2 는 다음 사이클 허용.
 
+### Pre-commit hook 강제 (`.githooks/pre-commit`)
+
+dispatch 누락(#175 사례)을 막기 위해 `.githooks/pre-commit` gate 가 champion / mechanic / carry-augment 페이지 staged 시 커밋을 **차단**한다.
+
+- **통과**: dispatch + P0 fix 완료 후 → `WIKI_VERIFIED=1 git commit ...`
+- **우회** (비권장 — dispatch 누락 재발 위험): `git commit --no-verify ...`
+- **설치**: `core.hooksPath .githooks` — clone+install 시 `prepare` script (`package.json`) 가 자동 설정
+- **한계**: git hook(별개 프로세스)은 subagent 실제 실행 여부를 검증 못 함 → `WIKI_VERIFIED` 신호로 "의식적 verify" 를 강제하는 **reminder gate** (무의식적 누락 방지, 마음먹은 우회는 불가능)
+
 ### Single source of truth
 
-- 룰셋: `docs/wiki/lint-rules.md` — 5단계 verify rule + entity-type checklist + 9건 lint history + Severity Tier 정의. 룰 진화 시 본 파일만 수정 (git diff 추적).
-- Subagent: `.claude/agents/wiki-ingest-verifier.md` — lint-rules.md 를 dispatch 첫 단계에서 Read 하여 룰 로드.
+- 룰셋: `docs/wiki/lint-rules.md` — 5단계 verify rule + entity-type checklist + lint history + Severity Tier 정의. 룰 진화 시 본 파일만 수정 (git diff 추적).
+- Subagent: `.claude/plugins/wiki-ingest-verifier/agents/wiki-ingest-verifier.md` (PR #174 plugin 패키징) — lint-rules.md 를 dispatch 첫 단계에서 Read 하여 룰 로드.
 - 메모리 `feedback_wiki_ingest_verify` (user-local) — main agent 작성 워크플로우 (positive verify). lint subagent (negative verify) 와 책임 분리.
 
 ### 평가
