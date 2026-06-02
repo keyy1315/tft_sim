@@ -10,7 +10,7 @@ traits:
 role: Assassin   # raw "ADReaper" → mapGameRole() → sim Assassin (types/index.ts:42 includes('Reaper')). ⚠️ TFT17_Augment_PykeCarry 활성 시 Fighter 로 변환 (applyHeroCarryTransforms, statOverrides.role 없으면 default Fighter)
 raw_role: ADReaper
 current_patch_status: active
-sim_active: partial   # carry 청부 살인마 (X-shape + onKill recast cascade + tankBonus + secondary) 정합 / 여행자(FlexTrait) trait 정합. P1 base "죽음의 표식" 작살 단계(SpearDamage scaleAP) sim 부재 (repo grep 0 hit) — base config 는 TargetDamage(scaleAD)/AoEDamage(scaleAD) 만 / P2 base desc "가장 먼 적" vs config dash 'to_target' targeting 불일치 / P2 base 작살 pull(1칸 끌어당김) 메커니즘 미반영
+sim_active: partial   # carry 청부 살인마 (X-shape + tankBonus + secondary + main onKill recast cascade) 정합 / 여행자(FlexTrait) trait 정합. P1 base "죽음의 표식" 작살 단계(SpearDamage scaleAP) sim 부재 (repo grep 0 hit) — base config 는 TargetDamage(scaleAD)/AoEDamage(scaleAD) 만 (둘 다 filler 배열, ★1=210/120) / P2 carry onKill recast OOR 비대칭 (recast main 전용, OOR kill 미발동) / P2 base desc "가장 먼 적" vs config dash 'to_target' targeting 불일치 / P2 base 작살 pull(1칸 끌어당김) 메커니즘 미반영
 last_verified: 2026-06-02
 sources:
   - "public/data/tft_set17_champions.json (TFT17_Pyke entry — cost 2, role ADReaper, traits 초능력/여행자, ability '죽음의 표식' variables SpearDamage/AoEDamage/TargetDamage)"
@@ -83,8 +83,8 @@ TFT17_Pyke: { pattern: 'aoe_circle', radius: 1, dash: 'to_target', damageVar: 'T
 |-----------|---------|---------|------|
 | 작살 피해 (`ModifiedDamage`, scaleAP) | `SpearDamage` | ❌ **미반영** | `SpearDamage` repo-wide grep **0 hit**. base config 에 미포함 → 작살 단계 sim 부재. **Lint P1** |
 | 작살 끌어당김 (1칸 pull) | — | ❌ **미반영** | reposition 메커니즘 sim 부재. **Lint P2** |
-| 순간이동 베기 (`ModifiedTargetDamage`, scaleAD) | `TargetDamage` | ✅ `damageVar` | primary target 단일. ★1 `TargetDamage[0]=0` (raw 특성 — base ★1 베기 무피해) |
-| 주변 적 (`ModifiedAreaDamage`, scaleAD) | `AoEDamage` | ✅ `secondaryDamageVar` | `aoe_circle radius 1` 주변 적 |
+| 순간이동 베기 (`ModifiedTargetDamage`, scaleAD) | `TargetDamage` | ✅ `damageVar` | primary target 단일. raw `[0,210,315,720,...]` 는 **filler 배열** (`readVarByStar` `v0===0` → idx=starLevel): **★1=210 / ★2=315 / ★3=720** (leading 0 은 sentinel, ★1 값 아님) |
+| 주변 적 (`ModifiedAreaDamage`, scaleAD) | `AoEDamage` | ✅ `secondaryDamageVar` | `aoe_circle radius 1` 주변 적. raw `[150,120,180,360,...]` filler (`v0>v1`): **★1=120 / ★2=180 / ★3=360** |
 
 > ⚠️ base desc 는 "가장 멀리 있는 적" 에 작살인데 sim config `dash: 'to_target'` 은 현재 타겟으로 dash → targeting 불일치 (**Lint P2**). carry (X-shape, dash to_lowest_hp) 는 별도 override 라 base 와 무관.
 
@@ -137,8 +137,8 @@ raw desc: "모든 아군에게 장착시킬 수 있는 초능력 아이템을 �
 | cast path | Pyke 처리 | 근거 |
 |-----------|------------|------|
 | **main pipeline** | ✅ carry X-shape (`applyCarryDamageModifiers` secondary + tankBonus) + dash to_lowest_hp + onKill recast cascade | `:1312`, `:6638-6740` |
-| **OOR (out-of-range dash)** | ✅ `applyCarryDamageModifiers` **동일 helper** (in-range 일관, codex P1 #76) | `:1312` caller 2 site (main + OOR) |
-| **recast (onKill)** | ✅ **cascade loop** — primary 처치 시 새 dash + X-shape 재 cast ×0.70, MAX_CHAIN 5 | `:6638-6740` |
+| **OOR (out-of-range dash)** | ✅ damage 는 `applyCarryDamageModifiers` **동일 helper** (in-range 일관, codex P1 #76) / ⚠️ **단 onKill recast cascade 는 main 전용 — OOR kill 시 미발동** (`:7152-7442` 에 recastMul 분기 없음, markTargetDead 만) | `:1312` (damage) / recast 부재 `:7152-7442` |
+| **recast (onKill)** | ⚠️ **cascade loop — main cast 한정** — primary 처치 시 새 dash + X-shape 재 cast ×0.70, MAX_CHAIN 5. **OOR cast 진입 시 미발동 (main/OOR 비대칭, 아래 Lint P2)** | `:6638-6740` (main only) |
 
 > **dash retarget** (`:6952` 주석): Pyke carry main pipeline dash (to_lowest_hp) 진입 시 `target` 은 pre-dash, `abilityTarget` 은 dash 결과. omnivamp / grievousReduction 은 `abilityTarget` (실제 primary hit) 기준. main+OOR 양쪽 `abilityTarget` 사용 (PR #141/#142 일관).
 
@@ -150,10 +150,10 @@ raw desc: "모든 아군에게 장착시킬 수 있는 초능력 아이템을 �
 - carry 청부 살인마 — X-shape pattern + dash to_lowest_hp + damage [220/330/500] star별
 - secondaryDamage (X-shape 주변) [60/90/135] (`applyCarryDamageModifiers` `:1312`)
 - tankBonusMultiplier 0.60 (primary Tank 시 ×1.60)
-- **onKill recast cascade** 0.70 — primary 처치 시 재 cast, MAX_CHAIN 5, primary/secondary/tankBonus 재계산 + full damage amp (`:6638-6740`)
+- **onKill recast cascade** 0.70 — primary 처치 시 재 cast, MAX_CHAIN 5, primary/secondary/tankBonus 재계산 + full damage amp (`:6638-6740`) — **main cast 한정 (OOR kill 미발동, 아래 Lint P2)**
 - dash retarget abilityTarget 기준 (omnivamp/grievous)
 - **여행자 (FlexTrait)** — 전투 시작 비탱커 BonusDA / 탱커 ShieldHP + 여행자 챔프 ×2 (`:1678`)
-- base 순간이동 베기 (TargetDamage) + 주변 (AoEDamage)
+- base 순간이동 베기 (TargetDamage filler ★1=210/★2=315/★3=720) + 주변 (AoEDamage filler ★1=120/★2=180/★3=360)
 
 ⚠️ **부정확 / 미반영** (Lint 후보):
 - **P1**: base "죽음의 표식" 작살 단계 (`SpearDamage`, scaleAP) sim 부재 — `SpearDamage` repo-wide grep 0 hit. base config 는 `damageVar: 'TargetDamage'` + `secondaryDamageVar: 'AoEDamage'` 만 → 작살(scaleAP) 피해 미소비. carry (X-shape) 는 abilityData 직접 사용이라 무관 / base Pyke 빈도 낮아 P1
@@ -167,8 +167,9 @@ raw desc: "모든 아군에게 장착시킬 수 있는 초능력 아이템을 �
 | P1 | base 작살 `SpearDamage` (scaleAP) sim 부재 | base config 가 `TargetDamage`/`AoEDamage` 만 read → 작살(scaleAP) 단계 미반영. `SpearDamage` grep 0 hit | **P1** | (c) cast-time — base ability resolve 에 작살 hit 단계 추가 (SpearDamage scaleAP, 가장 먼 적 단일). 또는 multi-stage ability 분기 필요 | base Pyke 빈도 낮음. carry (X-shape) 무관. 문서 미반영 명시로 처리 |
 | P2 | base 작살 pull (1칸 끌어당김) 미반영 | reposition 메커니즘 sim 부재 — hex 위치 이동 | **P2** | (c) cast-time — dash/reposition 분기. 단 sim 이동 모델 단순화 가능성 | 의도된 단순화 가능성. 인게임 영향 측정 후 결정 |
 | P2 | base desc "가장 먼 적" vs config `dash: 'to_target'` | desc 는 가장 먼 적 작살인데 config 는 현재 타겟 dash. base targeting 불일치 | **P2** | base config `dash` 값 검토 (to_farthest 분기 존재 시 교체) | base ability 한정. carry override 무관 |
+| P2 | carry onKill recast cascade **OOR 비대칭** | recast cascade 는 main cast (`:6638-6740`) 전용. OOR cast path (`:7152-7442`) 는 kill 시 markTargetDead 만, recast 미발동 → OOR 에서 primary 처치 시 cascade 안 됨 (PR #182 Codex P2) | **P2** | main/OOR 비대칭 가드 — OOR cast loop 에 recast cascade 분기 추가, 또는 의도된 단순화 (OOR dash cast 빈도 낮음) | Pyke carry abilityOverride dash to_lowest_hp 라 보통 in-range cast. OOR 진입 빈도 낮아 P2. 인게임 영향 측정 후 결정 |
 
-> 📌 **carry / 여행자 trait 는 sim 정합 (lint 아님)**: onKill recast cascade + tankBonus + secondaryDamage + dash retarget + 여행자 FlexTrait 모두 코드 ground truth 와 일치. Lint 후보는 모두 **base ability (작살 단계)** 한정 — carry 중심 메타에서 영향 제한적.
+> 📌 **carry / 여행자 trait 는 대체로 sim 정합**: tankBonus + secondaryDamage + dash retarget + 여행자 FlexTrait + **main** onKill recast cascade 모두 코드 ground truth 와 일치. **단 onKill recast 는 main cast 한정 (OOR kill 미발동 — 위 Lint P2)**. 나머지 Lint 후보는 base ability (작살 단계) 한정 — carry 중심 메타에서 영향 제한적.
 
 ## Lint 체크리스트
 
