@@ -11,7 +11,7 @@ traits:
 role: Tank   # raw "APTank" → mapGameRole() → sim Tank (types/index.ts:41 includes('Tank')). carry augment 없음 → role 변환 분기 없음
 raw_role: APTank
 current_patch_status: active
-sim_active: partial   # ability "영혼의 시험" 전체 정합 (self_buff Shield generic + NumEnemies 3 true drain heal + 3초 후 2칸 magic AOE AP snapshot, main+OOR cast 2종 대칭) / 선봉대(ShieldTank) 전투 시작 shield 정합. P1 선봉대 Durability +5% DR / HealthThreshold 재발동 미구현 (applyVanguardEffects shield 만, :1913-1914 후속 PR) / P2 길잡이(SummonTrait) 고유 효과 전투 엔진 미반영 (소환체는 빌더 autoSummons 배치 후 일반 CombatUnit 참여, 길잡이 tier별 buff 만 gap) / 동물특공대(AnimaSquad) 경제 trait — 전투 stat 분기 없음 (전투 패배 시 Tech, item 카테고리만)
+sim_active: partial   # ability "영혼의 시험" 값/대상 정합 (self_buff Shield generic 3초 + NumEnemies 3 true drain heal + 3초 후 2칸 magic AOE AP snapshot, main+OOR cast 2종 대칭). P2 drain/heal timing instant 근사 — cast 즉시 Duration 전체 총량 일괄 (:1072 simplified instant, shield/AfterShock 만 시간축, 3초 사이 target/Illaoi death 미모델링) / 선봉대(ShieldTank) 전투 시작 shield 정합. P1 선봉대 Durability +5% DR / HealthThreshold 재발동 미구현 (applyVanguardEffects shield 만, :1913-1914 후속 PR) / P2 길잡이(SummonTrait) 고유 효과 전투 엔진 미반영 (소환체는 빌더 autoSummons 배치 후 일반 CombatUnit 참여, 길잡이 tier별 buff 만 gap) / 동물특공대(AnimaSquad) 경제 trait — 전투 stat 분기 없음 (전투 패배 시 Tech, item 카테고리만)
 last_verified: 2026-06-04
 sources:
   - "public/data/tft_set17_champions.json (TFT17_Illaoi entry — cost 3, role APTank, traits [동물특공대/선봉대/길잡이], ability '영혼의 시험' variables Shield/Duration/HealthDrain/NumEnemies/Damage)"
@@ -20,7 +20,7 @@ sources:
   - "src/lib/simulator/systems/mana.ts:23 (Tank manaPerAttack 5 / manaPerSecond 0 / manaFromDamage true)"
   - "src/lib/simulator/systems/ability.ts:222 (TFT17_Illaoi: { pattern: 'self_buff' } — Shield generic getAbilityShield + applyIllaoiCast/tickIllaoiAfterShock 헬퍼)"
   - "src/lib/simulator/systems/ability.ts:502 (getAbilityShield Illaoi Shield no-filler [250,450,525] → ★1=250 판정, codex P1 PR #102/104)"
-  - "src/lib/simulator/engine/combatLoop.ts:1079-1139 (applyIllaoiCast — NumEnemies(3) 가장 가까운 적 true drain × ap, Illaoi heal=totalDrain×(1+healAmp), AfterShock state 등록 endTick=tick+Duration×TICKS / apSnapshot=stats.ap, drain damage totalAbilityDmg 합산 codex P2 PR #106)"
+  - "src/lib/simulator/engine/combatLoop.ts:1079-1139 (applyIllaoiCast — NumEnemies(3) 가장 가까운 적 true drain × ap [cast 즉시 Duration 전체 총량 1회 일괄, :1072 'simplified instant' 사용자 결정], Illaoi heal=totalDrain×(1+healAmp) 동시 즉시, AfterShock state 등록 endTick=tick+Duration×TICKS / apSnapshot=stats.ap, drain damage totalAbilityDmg 합산 codex P2 PR #106)"
   - "src/lib/simulator/engine/combatLoop.ts:1150-1208 (tickIllaoiAfterShock — 만료 시 2칸 magic AOE Damage × apSnapshot, per-target amp tank3종+sniper, 사망 cancel state cleanup)"
   - "src/lib/simulator/engine/combatLoop.ts:7088 (main cast) / :7250 (OOR cast) — applyIllaoiCast 양쪽 호출 (cast path 2종 대칭)"
   - "src/lib/simulator/engine/combatLoop.ts:6459 (main) / :7197 (OOR) — getAbilityShield self_buff shield 적용 양쪽"
@@ -41,7 +41,9 @@ related:
 3코스트 **동물특공대 (`TFT17_AnimaSquad`)** + **선봉대 (`TFT17_ShieldTank`)** + **길잡이 (`TFT17_SummonTrait`)** trait. raw role `APTank`.
 
 - **role**: `mapGameRole('APTank')` → sim **Tank** ([[role-passive]]). carry augment 없음 → role 변환 분기 없음.
-- **ability "영혼의 시험"**: `self_buff` — ① 보호막(scaleAP) + ② 3초간 가장 가까운 적 3명 체력 흡수(true damage → 본인 heal) + ③ 3초 후 땅 내려찍어 2칸 magic AOE. **delayed AOE 는 cast 시점 AP snapshot** 으로 고정.
+- **ability "영혼의 시험"**: `self_buff` — ① 보호막(scaleAP, 3초) + ② 가장 가까운 적 3명 체력 흡수(true damage → 본인 heal) + ③ 3초 후 땅 내려찍어 2칸 magic AOE. **delayed AOE 는 cast 시점 AP snapshot** 으로 고정.
+
+> ⚠️ **drain/heal timing 근사**: desc 는 "Duration(3초) 동안 흡수" (점진) 이나 sim 은 **cast 즉시 Duration 전체 총량을 1회 일괄 적용** (`applyIllaoiCast` 주석 `:1072` "simplified instant", 사용자 결정). shield(3초)·AfterShock(3초 delayed)만 시간축 모델링되고, drain/heal 은 instant 근사 → 3초 사이 target/Illaoi death 시 흡수 중단은 미모델링 (아래 Lint P2).
 
 > 🎯 **Illaoi 는 "drain-tank + delayed nuke"** — cast 시 즉시 shield/drain/heal 로 생존, 3초 뒤 AfterShock 으로 광역 폭발. [[mordekaiser]] (4초 펄스 + HealRefund) 와 유사한 **state-driven delayed effect** 패턴 (endTick + apSnapshot 필드, 매 tick 만료 체크).
 
@@ -80,8 +82,8 @@ raw variables: `Shield` [250,450,525,650,775,...] / `Duration` [3,...] / `Health
 | desc 요소 | sim 적용 | 근거 |
 |-----------|---------|------|
 | 보호막 (`Shield`, scaleAP) | ✅ generic | `getAbilityShield(champion, starLevel, ap)` (`:6459` main / `:7197` OOR). no-filler `[250,450,525]` → **★1=250 / ★2=450 / ★3=525** (`ability.ts:502`, codex P1 PR #102/104 shifted indexing fix) |
-| 적 3명 체력 흡수 (`HealthDrain`, scaleAP, true) | ✅ | `applyIllaoiCast` — 가장 가까운 alive 적 `NumEnemies`(3)명 (distance ASC lock) 에 `HealthDrain × (1+ap/100)` true damage. **true 도 `applyAbilityMitigation` 통과** (resistance/pen 0, shield/invuln/DR 만 적용, codex P1 PR #106). ★1=40 / ★2=55 / ★3=85 |
-| 흡수 → 본인 heal | ✅ | `unit.currentHp += totalDrain × (1 + healAmp)` (mitigated drain 합). maxHp cap (`:1128-1131`) |
+| 적 3명 체력 흡수 (`HealthDrain`, scaleAP, true) | ⚠️ **값 정합 / timing 근사** | `applyIllaoiCast` — 가장 가까운 alive 적 `NumEnemies`(3)명 (distance ASC lock) 에 `HealthDrain × (1+ap/100)` true damage. **true 도 `applyAbilityMitigation` 통과** (resistance/pen 0, shield/invuln/DR 만 적용, codex P1 PR #106). ★1=40 / ★2=55 / ★3=85. **단 cast 즉시 Duration 전체 총량 1회 일괄** (`:1072` "simplified instant", 사용자 결정) — desc "3초 동안 흡수" 점진 vs sim instant. **Lint P2** |
+| 흡수 → 본인 heal | ⚠️ **값 정합 / timing 근사** | `unit.currentHp += totalDrain × (1 + healAmp)` (mitigated drain 합). maxHp cap (`:1128-1131`). drain 과 **동시 즉시** (3초 점진 heal 아님). 3초 사이 Illaoi death 시 채널 중단 미모델링 (drain instant 라 회복도 이미 완료) |
 | 3초 후 2칸 magic AOE (`Damage`, scaleAP) | ✅ delayed | `tickIllaoiAfterShock` — 만료 (`tick >= endTick`) 시 2칸 내 alive 적 전체 `Damage × AP snapshot` magic. ★1=80 / ★2=80 / ★3=120 (no-filler, ★1=★2 동일은 raw) |
 | AP snapshot | ✅ | drain 은 **cast 시점 live ap** (`1+stats.ap/100`), AOE 는 **cast 시점 snapshot** (`illaoiAfterShockApSnapshot`, `:1135`). 3초 사이 ap 변동(item proc 등) 있어도 AOE 는 snapshot 사용 |
 
@@ -114,13 +116,14 @@ raw variables: `Shield` [250,450,525,650,775,...] / `Duration` [3,...] / `Health
 ✅ **활성**:
 - stats 17.4 정합 (hp 1100, armor/MR 50, AD 50, AS 0.65, mana 40/100, range 1)
 - role Tank (`mapGameRole('APTank')`) + Tank 마나 규칙 (공격당 5 / 피격 ✅)
-- ability "영혼의 시험" **전체 정합**: shield (generic getAbilityShield, ★1=250/★2=450/★3=525) + 3명 true drain (HealthDrain × ap, ★1=40/★2=55/★3=85) + 본인 heal (×healAmp) + 3초 후 2칸 magic AOE (Damage × AP snapshot, ★1=80/★2=80/★3=120)
+- ability "영혼의 시험" **값/대상 정합**: shield (generic getAbilityShield, ★1=250/★2=450/★3=525, 3초) + 3명 true drain (HealthDrain × ap, ★1=40/★2=55/★3=85) + 본인 heal (×healAmp) + 3초 후 2칸 magic AOE (Damage × AP snapshot, ★1=80/★2=80/★3=120)
 - AfterShock state-driven (endTick + apSnapshot, 매 tick 만료 체크, 사망 cancel)
 - cast path main + OOR 대칭 (drain/shield/AfterShock 양쪽 발동)
 - drain damage on_cast accumulator 합산 (omnivamp/Fountain 정합)
 - **선봉대 (ShieldTank)** trait — 전투 시작 shield (10초) 정합
 
 ⚠️ **부정확 / 미반영** (Lint 후보):
+- **P2**: drain/heal **timing instant 근사** — desc "Duration(3초) 동안 흡수" 점진 vs sim cast 즉시 Duration 전체 총량 1회 일괄 (`:1072` "simplified instant", 사용자 결정). 3초 사이 target death (이미 full drain) / Illaoi death (이미 full heal) 시 채널 중단 미모델링. shield(3초)·AfterShock(3초 delayed)만 시간축 모델링
 - **P1**: 선봉대 (ShieldTank) Durability +5% DR / HealthThreshold(50% HP) 재발동 미구현 — `applyVanguardEffects` 는 전투 시작 shield 만 (`:1913-1914` 주석 "후속 PR"). Illaoi 외 mordekaiser/poppy 등 선봉대 보유 챔프 공통
 - **P2**: 길잡이 (SummonTrait) 고유 효과 전투 엔진 미반영 — 소환체는 빌더(`autoSummons.ts`)가 팀 배치 후 일반 CombatUnit 으로 전투 참여, 길잡이 trait tier별 고유 buff 만 gap (`TFT17_Summon` sim 엔진 grep 0)
 - (informational): 동물특공대 (AnimaSquad) 경제 trait — 전투 stat 분기 없음 (의도된 — 전투 외 경제/Tech 메커니즘, item 카테고리만)
@@ -129,11 +132,12 @@ raw variables: `Shield` [250,450,525,650,775,...] / `Duration` [3,...] / `Health
 
 | # | 항목 | 의미 | Tier | 적용 분기 (룰 #17) | 처리 |
 |---|------|------|------|---------------------|------|
+| P2 | drain/heal timing instant 근사 | desc "Duration(3초) 동안 흡수" 점진이나 sim 은 cast 즉시 Duration 전체 총량 1회 일괄 (`applyIllaoiCast:1072` "simplified instant"). 3초 사이 target/Illaoi death 시 흡수·회복 중단 미모델링 — 값/대상은 정합, 시간축만 근사 | **P2** | (c) cast-time — drain 을 Duration 동안 per-tick 분산 (tickIllaoi 에 drain 단계 추가). 단 사용자 결정 instant 단순화 | 사용자 결정 단순화 (`:1072` 주석). early-death edge case 외 총 damage/heal 동일. 인게임 영향 측정 후 결정 |
 | P1 | 선봉대 Durability / HealthThreshold 미구현 | `applyVanguardEffects` 는 전투 시작 shield 만 구현 (`:1928-1933`). Spec 의 보호막 활성 중 Durability +5% DR (`DamageReductionPct`) + (6) +8% / HealthThreshold(50% HP) 재발동 shield 미구현 (`:1913-1914` 주석 "후속 PR 분리") | **P1** | (a) combat-start + (tick 감시) — Durability 는 보호막 보유 중 `damageReduction` 가산 + HealthThreshold 는 매 tick HP% 감시 후 재shield | 선봉대 보유 챔프 공통 (mordekaiser/poppy 등). 별도 trait sim PR 로 일괄 처리 — codex catch (PR illaoi) |
 | P2 | 길잡이 summon 고유 효과 미반영 | 빌더 레이어 (`autoSummons.ts` `syncVoyagerSummon`) 가 소환체(비아/바이엔)를 팀 배치 → 전투엔 일반 CombatUnit 으로 참여 (stat 동작). 단 길잡이 trait tier별 고유 효과 (소환수 강화 등) 는 전투 엔진 미처리 (`TFT17_Summon` sim grep 0) | **P2** | (a) combat-start — 길잡이 tier별 소환수 강화 효과 적용. 소환체 배치 자체는 빌더 레이어 기구현 | 소환체 stat 전투 참여는 동작. 길잡이 고유 buff 만 gap. 별도 trait sim PR |
 | info | 동물특공대 경제 trait 전투 미반영 | `TFT17_AnimaSquad` 는 전투 패배 시 Tech 획득 (경제) — 전투 내 stat 효과 없음 | info | 해당 없음 (경제/augment 레벨) | 의도된 — champion 전투 페이지 범위 외. 명시만 |
 
-> 📌 **Illaoi 본인 ability 는 full sim 정합**: shield / 3명 true drain / heal / delayed 2칸 AOE (AP snapshot) 모두 코드 ground truth 와 일치. `partial` 사유는 **trait 레벨 gap** — 선봉대 Durability/HealthThreshold 미구현 (P1, 선봉대 보유 챔프 공통) + 길잡이 summon 미구현 (P2, sim 전반 summon 시스템 부재). Illaoi 고유 전투 메커니즘 (영혼의 시험) 자체의 gap 은 아님.
+> 📌 **Illaoi 본인 ability 는 값/대상 정합** (shield / 3명 true drain / heal / delayed 2칸 AOE AP snapshot 모두 코드 ground truth 일치). 단 **drain/heal 은 timing instant 근사** (cast 즉시 일괄, P2 — 사용자 결정 단순화). `partial` 사유는 ① ability timing 근사 (drain/heal instant) + ② trait 레벨 gap (선봉대 Durability P1 / 길잡이 summon P2). 값·대상은 정확.
 
 ## Lint 체크리스트
 
@@ -143,7 +147,7 @@ raw variables: `Shield` [250,450,525,650,775,...] / `Duration` [3,...] / `Health
 - [x] **raw role `APTank` → mapGameRole → Tank** — `includes('Tank')` (`types/index.ts:41`). carry augment 없음 → 변환 없음
 - [x] **함수 컨텍스트 read (2단계)** — `applyIllaoiCast` 전체 (drain lock + true mitigation + heal + AfterShock 등록 + on_cast 반환) + `tickIllaoiAfterShock` 전체 (만료/사망 cancel/AOE/cleanup) + 호출 site (`:5569` 가드, `:7088`/`:7250` cast)
 - [x] **변수 filler 판정** — Shield `[250,450,525]` no-filler ★1=250 (`ability.ts:502` 주석) / HealthDrain `[40,55,85]` no-filler ★1=40 / Damage `[80,80,120]` no-filler ★1=80 (★1=★2 raw) / Duration·NumEnemies 상수 3
-- [x] **actual sim integration verify (5단계)** — shield `getAbilityShield` (`:6459`/`:7197`) / drain `applyIllaoiCast` HealthDrain read / AOE `tickIllaoiAfterShock` Damage read 모두 main pipeline read 확인. AP snapshot (drain=live ap / AOE=snapshot) 분리 확인
+- [x] **actual sim integration verify (5단계)** — shield `getAbilityShield` (`:6459`/`:7197`) / drain `applyIllaoiCast` HealthDrain read / AOE `tickIllaoiAfterShock` Damage read 모두 main pipeline read 확인. AP snapshot (drain=live ap / AOE=snapshot) 분리 확인. **drain/heal timing = cast 즉시 일괄 (`:1072` 주석 read — "simplified instant", Duration 점진 아님) → "전체 정합" 과장 금지, 값/대상 정합 + timing 근사 분리 표기** (codex PR #184 P2)
 - [x] **cast path 3종 (PR #129 룰)** — main (`:7088` ✅) / OOR (`:7250` ✅ 대칭) / recast (carry 없음 ➖). self_buff 라 main/OOR drain 비대칭 위험 없음 명시
 - [x] **`traits` frontmatter 각 entry trait helper grep 전수 verify (룰 #16/#19)** — 선봉대 `applyVanguardEffects`(`:1918`, `unitHasTrait '선봉대'`) ⚠️ **함수 본문 read 결과 shield 만 구현, Durability/HealthThreshold 미구현** (`:1913-1914` 주석 — 함수 주석 Spec 만 보고 구현 단정 금지, codex P1 catch) / 동물특공대 `TFT17_AnimaSquad` 경제 trait 전투 분기 없음 (`unitHasTrait` 목록 미포함, item 카테고리만) / 길잡이 `TFT17_SummonTrait` summon grep 0 → 미구현 (P2). 각 trait apiName grep + helper 본문 read 로 실제 구현 범위 확인
 - [x] **본문 Lint P1 1건 + P2 1건 + info 1건 등록 → frontmatter `sim_active: partial` 강등** (룰 #15) — Illaoi 본인 ability 는 full, partial 사유는 trait 레벨 gap (선봉대 Durability P1 / 길잡이 summon P2)
