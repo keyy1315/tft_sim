@@ -9,7 +9,7 @@ traits:
 role: Marksman   # raw "APCarry" → mapGameRole() → sim Marksman (types/index.ts:43 includes('Carry')). ⚠️ 실제 AP 메이지지만 mapGameRole string-match 가 Carry → Marksman 으로 분류 (Caster 아님). carry augment 없음 → role 변환 분기 없음
 raw_role: APCarry
 current_patch_status: active
-sim_active: partial   # passive 그림자(ShadowHandDamage scaleAP + spread + amp + lethal) / active 강화타격(ShadowHandMagicDamage scaleAP hitCount 3 split) / 파멸자(VexUniqueTrait ADAP 12% 강탈 양팀 snapshot) 핵심 정합. P2 passive NumStrikesForPassive=5 그림자 재타격 미반영 (grep 0 read) / P2 파멸자 표식 트리거 단순화 (combat-start 즉시 일괄 강탈, "적 첫 피해 시" 표식 소모 생략) / P2 active "강화 타격 3회" desc vs sim aoe_circle split (총피해 base×3 / aliveTargets 분배) + NumActiveStrikes raw var 직접 read 아님 (hardcoded 3) / P2 passive "주변 적" spread = 최근접 1명 보수 해석 (raw 반경 변수 없음)
+sim_active: partial   # passive 그림자(ShadowHandDamage scaleAP + spread + amp + lethal) / active 강화타격(ShadowHandMagicDamage scaleAP hitCount 3 split, spell crit 가능) / 파멸자(VexUniqueTrait ADAP 12% 강탈 양팀 snapshot) 핵심 정합. P2 passive NumStrikesForPassive=5 그림자 재타격 미반영 (grep 0 read) / P2 파멸자 표식 트리거 단순화 (combat-start 즉시 일괄 강탈, "적 첫 피해 시" 표식 소모 생략) / P2 active "강화 타격 3회" desc vs sim aoe_circle split (총피해 base×3 / aliveTargets 분배) + NumActiveStrikes raw var 직접 read 아님 (hardcoded 3) / P2 passive "주변 적" spread = 최근접 1명 보수 해석 (raw 반경 변수 없음) / P2 passive 그림자 spell crit 미지원 (평타 hook crit 분기 부재, active cast :6581 만 crit, codex PR #183)
 last_verified: 2026-06-02
 sources:
   - "public/data/tft_set17_champions.json (TFT17_Vex entry — cost 5, role APCarry, traits [파멸자], ability '그림자야, 도와줘!' variables ShadowHandDamage/ShadowHandMagicDamage/NumActiveStrikes/NumStrikesForPassive)"
@@ -19,6 +19,7 @@ sources:
   - "src/lib/simulator/systems/ability.ts:256 (TFT17_Vex active config: { pattern: 'aoe_circle', radius: 1, damageVar: 'ShadowHandMagicDamage', hitCount: 3 })"
   - "src/lib/simulator/engine/combatLoop.ts:6005-6050 (passive 그림자 — 평타마다 ShadowHandDamage scaleAP, target + 최근접 1명 spread, target-conditional amp + applyAbilityMitigation magic + markTargetDead lethal)"
   - "src/lib/simulator/engine/combatLoop.ts:6437/6485 (hitCount split — hitCountTotal = rawAbilityDmg × config.hitCount, aoe_circle(≠single) → isSplitDamage → hitCountTotal / aliveTargets.length 분배)"
+  - "src/lib/simulator/engine/combatLoop.ts:6581 (active cast spell crit 분기 — spellCanCrit && rng < critChance → ×critMultiplier. passive 평타 hook :6022-6030 에는 동일 분기 부재 → passive 비크리, codex PR #183 P2)"
   - "src/lib/simulator/engine/combatLoop.ts:1547-1601 (applyVexDoomBothSides — 파멸자 ADAP1 12% 강탈, 양팀 snapshot 동시 처리 codex P1 PR #60, combat-start 즉시 일괄, findStrongestUnitByApi)"
   - "src/lib/simulator/engine/combatLoop.ts:4577 (applyVexDoomBothSides 호출 — combat-start, 다른 unique trait 와 동위치)"
   - "src/lib/simulator/engine/combatLoop.ts:172-182 (readVarByStar filler 판정 — v0>v1 또는 v1/v0>5 → filler, idx=starLevel)"
@@ -80,6 +81,7 @@ raw variables: `ShadowHandDamage` [2.5, 30, 45, 250, 1000, 2.5, 2.5] / `NumStrik
 | "주변 적" 타격 | ⚠️ **최근접 1명 spread (보수 해석)** | `applyShadow(target)` (평타 대상) + alive 다른 적 중 **Vex 본인 기준 가장 가까운 1명** (`:6040-6049`). raw 에 명시적 반경 변수 없어 1명 한정 (codex P1 PR #101 옵션 c). **Lint P2** |
 | target-conditional amp | ✅ | invention / madreds / graves Tank amp (victim Tank 시) + `computeSniperDamageAmp` 모두 평타와 동일 (`:6025-6028`, codex P2 PR #101) |
 | 피해 적용 | ✅ | `applyAbilityMitigation(..., 'magic')` → currentHp 차감 + lethal 시 `markTargetDead` (중재자/arbiter state 연계, `:6036`) |
+| spell crit | ❌ **미지원** | 평타 hook `applyShadow` (`:6022-6030`) 는 `spellCanCrit` 분기 없이 amp → `applyAbilityMitigation` 직접 호출. active cast (`:6581`) 와 달리 crit roll 부재 → 운명술사/spell-crit item 셋업 시에도 passive 는 비크리. **Lint P2** (codex PR #183) |
 | 적 `NumStrikesForPassive`(5)회 누적 시 그림자 **재타격** | ❌ **미반영** | `NumStrikesForPassive` repo-wide grep **0 read** (주석 line 만). 적 누적 타격 카운트 → 재타격 메커니즘 sim 부재. **Lint P2** |
 
 ### Active — 강화 타격 (`ability.ts:256`)
@@ -100,6 +102,8 @@ TFT17_Vex: { pattern: 'aoe_circle', radius: 1, damageVar: 'ShadowHandMagicDamage
 | 3회 × AOE | ⚠️ **split damage** | `hitCountTotal = rawAbilityDmg × 3` (`:6437`) 후 `aoe_circle`(≠single) → `isSplitDamage` (`:6438`) → **`hitCountTotal / aliveTargets.length` 로 타겟 수 분배** (`:6485`). "3회 타격" 의 의미가 sim 상 "base×3 총피해를 반경 1칸 적에게 분배" 로 처리됨 (Kaisa/Corki 동일 AOE hitCount 컨벤션). **Lint P2** |
 
 > active 강화타격은 `aoe_circle radius 1` 라 반경 1칸 내 적에게 총피해(base×3)를 분배한다. 단일 타겟만 있으면 전부 그 타겟에 적중 = base×3, 여러 적이면 나눠짐. desc 의 "3회 타격" 직역(타겟당 3회)과는 다른 sim 해석.
+
+> ✅ **active 는 spell crit 가능** — cast loop (`combatLoop.ts:6581`) `if (unit.spellCanCrit && rng.next() < critChance) dmg *= critMultiplier`. 운명술사 trait / SharpshooterModule / spell-crit item 으로 `spellCanCrit` 활성 시 active 강화타격 크리. **단 passive 그림자는 동일 분기 없어 비크리** (위 passive 표 참조, codex PR #183 P2).
 
 ### 파멸자 (`TFT17_VexUniqueTrait`) trait — 적 AD/AP 강탈
 
@@ -140,6 +144,7 @@ raw effects: 단일 effect (style 4, minUnits 1) `ADAP1` = 12 (12%). **단일 un
 - **P2**: 파멸자 표식 트리거 단순화 — combat-start 즉시 일괄 강탈 (desc "적 첫 피해 시 표식 소모" 트리거 생략)
 - **P2**: active "강화 타격 3회" desc vs sim aoe_circle split (총피해 base×3 / aliveTargets 분배). `NumActiveStrikes` raw var 직접 read 아님 (hitCount 3 하드코딩)
 - **P2**: passive "주변 적" spread = 최근접 1명 보수 해석 (raw 반경 변수 없음, PR #101 옵션 c)
+- **P2**: passive 그림자 spell crit 미지원 — 평타 hook (`:6022-6030`) 이 crit 분기 없이 mitigation 직접 호출. active cast (`:6581`) 만 spell crit 가능 (codex PR #183)
 
 ## Lint 신규 등록 후보
 
@@ -149,6 +154,7 @@ raw effects: 단일 effect (style 4, minUnits 1) `ADAP1` = 12 (12%). **단일 un
 | P2 | 파멸자 표식 트리거 단순화 | desc "각 전투에서 적이 처음 피해 입으면 표식 소모 강탈" vs sim combat-start 즉시 일괄. 적이 피해 전 사망 시 강탈 못하는 게 정확 | **P2** | (a) combat-start — 현재 즉시 일괄. 정확히는 첫 피해 트리거 deferred steal | 의도된 단순화 (`:1545` 주석). 대부분 적이 피해 받으므로 결과 동일. edge case 한정 |
 | P2 | active hitCount 3 split vs "3회 타격" | sim `hitCount 3` × aoe_circle → 총피해 base×3 을 aliveTargets 로 분배. desc "강화 타격 3회" 직역과 해석 차이. `NumActiveStrikes` raw var 미read (하드코딩 3) | **P2** | AOE hitCount 컨벤션 (Kaisa/Corki 동일). 데이터 변경 시 drift 가능성 — `NumActiveStrikes` 동적 read 검토 | sim AOE 컨벤션 일관. 값 raw 와 일치. 문서 명시로 처리 |
 | P2 | passive "주변 적" = 최근접 1명 | raw "주변 적" 명시 반경 변수 없어 평타 target + 가장 가까운 1명 한정 (보수) | **P2** | (b) attack-hook — 반경 기반 spread 검토. 단 raw 반경 변수 부재로 추정 위험 | codex P1 PR #101 옵션 c 결정. raw 변수 확정 시 재검토 |
+| P2 | passive 그림자 spell crit 미지원 | 평타 hook (`:6022-6030`) 이 `spellCanCrit` 분기 없이 `applyAbilityMitigation` 직접 호출 → active cast (`:6581`) 와 달리 운명술사/spell-crit item 셋업 시에도 passive 비크리. **codex PR #183 catch** (당초 본문 "active/passive 모두 crit 가능" 오기) | **P2** | (b) attack-hook — passive 에 active 와 동일 `if (spellCanCrit && rng.next() < critChance) raw *= critMultiplier` 분기 추가 검토. 단 게임 내 passive crit 여부 raw 미명시 — 인게임 측정 후 결정 | sim ground truth 기준 현재 passive 비크리. 효과 주장 시 actual integration verify (read site 확인) 누락 self-lint 사례 |
 
 > 📌 **passive·active·파멸자 trait 핵심은 sim 정합**: 평타 그림자(scaleAP+amp+lethal) / active 강화타격(scaleAP×3 split) / 파멸자 ADAP 12% 강탈(양팀 snapshot) 모두 코드 ground truth 와 일치. Lint 후보는 모두 P2 (추가 메커니즘 미반영 / 단순화 / 컨벤션 해석) — 메인 딜링 파이프라인 영향 제한적.
 
@@ -161,6 +167,7 @@ raw effects: 단일 effect (style 4, minUnits 1) `ADAP1` = 12 (12%). **단일 un
 - [x] **함수 컨텍스트 read (2단계)** — `applyVexDoomBothSides` 전체 (snapshot/apply 2단계, 양팀 동시) + passive 그림자 블록 (`applyShadow` helper + spread + amp + lethal)
 - [x] **변수 filler 판정** — `ShadowHandDamage` [2.5,30,45,250] v1/v0>5 → filler ★1=30/★2=45/★3=250 / `ShadowHandMagicDamage` [200,130,195,1000] v0>v1 → filler ★1=130/★2=195/★3=1000 (`readVarByStar:172-182`)
 - [x] **actual sim integration verify (5단계)** — active damageVar `ShadowHandMagicDamage` 가 `resolveAbilityDamage`(`:6299`) → `getAbilityDamage(config.damageVar)`(`:686`) main pipeline read 확인. passive `ShadowHandDamage` 평타 hook read 확인. **`NumStrikesForPassive` / `NumActiveStrikes` grep 0 read → 미반영/하드코딩 확인** (효과 주장 전 read site 검증)
+- [x] **spell crit read site verify (codex PR #183 catch 반영)** — active cast loop (`:6581`) `spellCanCrit && rng < critChance` 분기 존재 / passive 평타 hook (`:6022-6030`) 동일 분기 **부재** → **active 만 crit, passive 비크리**. 당초 본문 "active/passive 모두 crit 가능" 오기 정정 (효과 주장 시 read site 확인 누락 self-lint)
 - [x] **cast path 3종 (PR #129 룰)** — main (active aoe_circle ✅) / OOR (dash 없음 ➖) / recast (carry 없음 ➖). passive 그림자는 평타 hook 별개 경로 명시
 - [x] **`traits` frontmatter 각 entry trait helper grep 전수 verify (룰 #16/#19)** — 파멸자 `applyVexDoomBothSides`(`:1547`, 호출 `:4577`) ✅ 정상 통합. 단일 unique trait (minUnits 1)
 - [x] **본문 Lint P2 4건 등록 → frontmatter `sim_active: partial` 강등** (룰 #15)
@@ -170,7 +177,7 @@ raw effects: 단일 effect (style 4, minUnits 1) `ADAP1` = 12 (12%). **단일 un
 
 - [[role-passive]] — Marksman role 마나·타게팅 규칙 (공격당 10 / 초당 0 / 피격 ❌)
 - [[ability-targeting]] — `aoe_circle` 패턴 + hitCount split (총피해/타겟수 분배). cast path 3종 (Vex 는 main 중심, dash/recast 없음)
-- [[spell-crit]] — Vex active/passive 마법 피해도 spell crit 경로 사용 가능 (운명술사/조건 충족 시)
+- [[spell-crit]] — Vex **active 강화타격만** spell crit 가능 (`combatLoop.ts:6581` cast loop `spellCanCrit` 분기). **passive 그림자는 spell crit 미지원** — 평타 hook (`:6022-6030`) 이 crit 분기 없이 `applyAbilityMitigation` 직접 호출 → 운명술사/spell-crit item 셋업 시 passive 는 비크리 (codex PR #183 P2)
 - [[zed]] — 동일 단일 unique trait 패턴 (은하계 사냥꾼 self-buff +40% AD vs 파멸자 적 stat 강탈)
 - [[jhin]] — 동일 hitCount multi-strike ability (Jhin APDamage ×4 multi vs Vex ShadowHandMagicDamage ×3 aoe split)
 - 코드: `src/lib/simulator/systems/ability.ts:256`, `src/lib/simulator/engine/combatLoop.ts:1547/4577/6005/6437`, `src/types/index.ts:43`, `src/lib/simulator/systems/mana.ts:25`
