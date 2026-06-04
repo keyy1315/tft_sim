@@ -10,7 +10,7 @@ traits:
 role: Marksman   # raw "ADCarry" → mapGameRole() → sim Marksman (types/index.ts:43 includes('Carry')). carry augment 없음 → role 변환 분기 없음
 raw_role: ADCarry
 current_patch_status: active
-sim_active: partial   # active multi 화살(ADDamage scaleAD ★1=115/175/900) + 3표식 passive(SpellDamage) + N.O.V.A.(DRX) surge/Tank shield 800/selector +10% damageAmp/4.5초 주기 mark + 도전자(ASTrait) 정합. P2 passive 표식 평타만(desc "기본공격+스킬" 중 스킬 표식 미반영) / P2 passive mark 피해 SpellDamage flat (desc TotalDamage scaleAD+scaleAP — ad/ap scaling 미적용) / P2 active HexDistance(1) 도약 미구현 (기본 공격 AI 이동 위임) / info raw NovaDamageAmp 0.05·NovaRepeatTimer 5 미사용 (sim 17.4 하드코딩 0.10·4.5초, PR #166) / info NumTargets ★4=5 미반영 (★1-3=3, 4코 ★3까지)
+sim_active: partial   # active multi 화살(ADDamage scaleAD ★1=115/175/900) + 3표식 passive(SpellDamage) + N.O.V.A.(DRX) surge/Tank shield 800/selector +10% damageAmp/4.5초 주기 mark + 도전자(ASTrait) Burst 정합. P2 도전자 AS 인덱싱 off-by-one (applySet17SynergyBuffs findIndex 0-based vs scaling.json leading-0 → 2도전자 AS 0, 상위 한 칸씩 낮게, 도전자 전반 sim 버그). P2 passive 표식 평타만(desc "기본공격+스킬" 중 스킬 표식 미반영) / P2 passive mark 피해 SpellDamage flat (desc TotalDamage scaleAD+scaleAP — ad/ap scaling 미적용) / P2 active HexDistance(1) 도약 미구현 (기본 공격 AI 이동 위임) / info raw NovaDamageAmp 0.05·NovaRepeatTimer 5 미사용 (sim 17.4 하드코딩 0.10·4.5초, PR #166) / info NumTargets ★4=5 미반영 (★1-3=3, 4코 ★3까지)
 last_verified: 2026-06-04
 sources:
   - "public/data/tft_set17_champions.json (TFT17_Kindred entry — cost 4, role ADCarry, traits [N.O.V.A./도전자], ability '우주의 추적' variables MaxMarks/NumTargets/SpellDamage/ADDamage/APDamage/HexDistance/NovaRepeatTimer/NovaDamageAmp)"
@@ -116,7 +116,7 @@ generic 도전자 통합 경로 (Kindred-specific 추가 분기 없음) — sim 
 
 | 효과 | sim 적용 | 근거 |
 |------|---------|------|
-| 아군 AS + 도전자 추가 AS | ✅ | `applySet17SynergyBuffs` (`:458-466`) — `sc.teamwideAS[ti]` (모든 아군 `×(1+teamAS)`) + `sc.championAS[ti]` (도전자 unit 추가 `×(1+champAS)`). **sim 수치 = `scaling.json`**: teamwideAS [0,0.1,0.15,0.2,0.3] / championAS [0,0.2,0.35,0.55,0.9] (tier별). ⚠️ raw trait vars `AttackSpeedPercent` [0.15/0.28/0.42/0.55] 는 **sim 미사용** (scaling.json championAS 우선) |
+| 아군 AS + 도전자 추가 AS | ⚠️ **인덱싱 off-by-one 버그** | `applySet17SynergyBuffs` (`:458-466`) — `sc.teamwideAS[ti]` + `sc.championAS[ti]`, `ti = effects.findIndex(activeEffect)` (**0-based**, `:453`). 그런데 `scaling.json` 배열은 leading inactive `0` 포함 5개 (teamwideAS [**0**,0.1,0.15,0.2,0.3] / championAS [**0**,0.2,0.35,0.55,0.9]). raw effects 는 [minUnits 2/3/4/5] **4개** → 2도전자 시 `ti=0` → `teamwideAS[0]=0` / `championAS[0]=0` → **AS 0 부여** (효과 없음), 3/4/5도전자도 한 칸씩 낮게 (ti=1/2/3 → scaling[1/2/3], 의도는 [2/3/4]). desc 의도값과 불일치. **Lint P2 — sim off-by-one (별도 fix 필요)** |
 | Burst (대상 처치 후 재돌진 시 +50% AS) | ✅ | combat-start `:517-520` 도전자 unit `challengerBurstPercent = BurstPercent`(0.5) set → `challengerIds` 집합 (`:5541-5551`, **Burst dash 트리거 조건용 id 집합** — AS 적용 아님) → prev target 사망 후 새 대상 dash 시 `challengerBurstEndTick = tick + 2.5초` (`:5613`) → AS read `:3529-3530` `as *= (1 + challengerBurstPercent)`. ⚠️ burst duration 코드 하드코딩 **2.5초**, `scaling.json burstDuration: 3` 은 **dead config** (sim 미read, P2) |
 
 > champion-specific 구현(분기 추가)은 불필요하나 generic 경로 grep verify 는 매 champion 필수 (룰 #16/#19). **AS 적용 경로(`:458` applySet17SynergyBuffs)와 Burst 트리거 경로(`:5541` challengerIds)는 별개** — 혼동 금지. Kindred 는 도전자라 추가 AS (championAS) + Burst (새 대상 돌진 시 +50% AS, 2.5초) 수령. range 6 marksman 이라 대상 처치 후 재타겟 시 AS 폭발.
@@ -139,9 +139,10 @@ generic 도전자 통합 경로 (Kindred-specific 추가 분기 없음) — sim 
 - active multi 화살 — ADDamage scaleAD (★1=115/★2=175/★3=900), maxTargets 3
 - passive 3표식 늑대 — 평타 표식 누적 + SpellDamage (★1=75/★2=115/★3=600) physical
 - **N.O.V.A. (DRX)**: surge Tank shield 800 + selector +10% damageAmp (17.4 buff) + 모든 적 표식 즉시 + 4.5초 주기 갱신 (17.4)
-- **도전자 (ASTrait)** — 아군 AS + 도전자 추가 AS (`applySet17SynergyBuffs` scaling.json championAS) + Burst (대상 처치 후 재돌진 시 +50% AS 2.5초)
+- **도전자 (ASTrait)** Burst (대상 처치 후 재돌진 시 +50% AS 2.5초) 정합
 
 ⚠️ **부정확 / 미반영** (Lint 후보):
+- **P2**: 도전자 AS **인덱싱 off-by-one** — `applySet17SynergyBuffs` `ti = findIndex(activeEffect)` (0-based) vs `scaling.json` leading-0 배열 → 2도전자 AS 0 (teamwideAS/championAS 모두 [0] = 0), 3/4/5도전자도 한 칸씩 낮게. 모든 도전자 보유 unit 공통 sim 버그 (별도 fix)
 - **P2**: passive 표식 평타만 (desc "기본공격+스킬" 중 active 스킬 표식 미반영)
 - **P2**: passive mark 피해 SpellDamage flat — desc `TotalDamage`(scaleAD+scaleAP) 인데 ad/ap scaling 미적용 (raw ADDamage/APDamage 미사용)
 - **P2**: active HexDistance(1) 도약 미구현 (기본 공격 AI 이동 위임)
@@ -154,6 +155,7 @@ generic 도전자 통합 경로 (Kindred-specific 추가 분기 없음) — sim 
 
 | # | 항목 | 의미 | Tier | 적용 분기 (룰 #17) | 처리 |
 |---|------|------|------|---------------------|------|
+| P2 | 도전자 AS 인덱싱 off-by-one | `applySet17SynergyBuffs:453` `ti = findIndex(activeEffect)` (0-based) vs `scaling.json` leading-0 배열 (teamwideAS/championAS 5개 `[0,...]`). raw effects 4개 [minUnits 2/3/4/5] → 2도전자 `ti=0` → `scaling[0]=0` → AS 0, 3/4/5도전자 한 칸씩 낮게 (의도 [2/3/4], 실제 [1/2/3]) | **P2** | (a) combat-start — `ti+1` 또는 scaling.json leading-0 제거. **모든 도전자 unit 공통** | sim off-by-one 버그 — Kindred-specific 아님 (도전자 trait 전반). 별도 sim fix PR. Codex PR #185 catch |
 | P2 | passive 표식 평타만 (스킬 표식 미반영) | desc "기본공격+스킬이 표식" 인데 sim 은 평타 hook (`:6069`) 에서만 `_kindredMarks+1`. active multi 화살 (`ability.ts:238`) 경로에 mark 부여 없음 → 3표식 도달 속도 과소 | **P2** | (c) cast-time — active cast 후 hit target 에 `_kindredMarks+1` 추가 | active 빈도만큼 표식 누적 누락. 평타 위주라 영향 제한적. 측정 후 결정 |
 | P2 | passive mark 피해 SpellDamage flat | desc `TotalDamage`(scaleAD+scaleAP) vs sim `SpellDamage × (1+damageAmp)` flat (ad/ap scaling 없음, `:6077`). raw ADDamage/APDamage 미사용 | **P2** | (b) attack-hook — mark 피해에 ad/ap scaling 추가 (ADDamage scaleAD + APDamage scaleAP). 단 raw TotalDamage 산식 확인 필요 | scaling 누락으로 후반 under-damage 가능. raw 산식 verify 후 결정 |
 | P2 | active HexDistance(1) 도약 미구현 | 도약 reposition sim 부재 — 제자리 화살 (`ability.ts:238` 주석, 이동은 평타 AI 위임) | **P2** | (c) cast-time — dash/reposition 분기 | 1칸 도약이라 영향 작음. sim 이동 모델 단순화 의도 가능 |
@@ -171,7 +173,7 @@ generic 도전자 통합 경로 (Kindred-specific 추가 분기 없음) — sim 
 - [x] **변수 filler 판정** — SpellDamage `[0,75,115,600]` zero filler ★1=75 / ADDamage `[0,115,175,900]` zero filler ★1=115 / APDamage `[0,10,15,100]` zero filler ★1=10 / NumTargets `[3,3,3,5,5]` no-filler ★1-3=3 / MaxMarks·HexDistance·NovaRepeatTimer 상수
 - [x] **actual sim integration verify (5단계)** — active ADDamage `resolveAbilityDamage` read / passive SpellDamage `:6076` read / NOVA kindredShield `setupDrxNova:4724` → surge `:4781` read / selector damageAmp `:4884` read. **17.4 buff (0.10/4.5초) sim 하드코딩 vs raw json (0.05/5) 분리 확인** / **scaleAD/AP scaling: passive mark 는 SpellDamage flat (ad/ap 미적용) 확인 → P2**
 - [x] **cast path 3종 (PR #129 룰)** — main (multi 화살 ✅) / OOR (dash 없음 ➖) / recast (carry 없음 ➖). passive·NOVA mark/surge 별개 경로 명시
-- [x] **`traits` frontmatter 각 entry trait helper grep 전수 verify (룰 #16/#19)** — N.O.V.A. `TFT17_DRX` setupDrxNova/surge/selector ✅ ([[aatrox]] 공통) / 도전자 `TFT17_ASTrait` ✅ — **AS 적용 `applySet17SynergyBuffs :458-466` (scaling.json teamwideAS/championAS) ↔ Burst 트리거 `:5541` challengerIds 별개 경로 구분** + Burst (`:517` set → `:5613` endTick → `:3529` AS×1.5). raw AttackSpeedPercent vs sim championAS 불일치 명시. 각 trait apiName grep + 통합 경로 본문 명시 (단순 "generic 위임" / 경로 혼동 금지 — 룰 #16 P1 2회 학습)
+- [x] **`traits` frontmatter 각 entry trait helper grep 전수 verify (룰 #16/#19)** — N.O.V.A. `TFT17_DRX` setupDrxNova/surge/selector ✅ ([[aatrox]] 공통) / 도전자 `TFT17_ASTrait`: AS 적용 `applySet17SynergyBuffs :458-466` ↔ Burst 트리거 `:5541` challengerIds 별개 경로 구분 + Burst (`:517` set → `:5613` endTick → `:3529` AS×1.5). **⚠️ AS 인덱싱 off-by-one 버그 검출** — `ti=findIndex` 0-based vs scaling.json leading-0 배열 → 2도전자 AS 0 (P2, Codex #185). 각 trait apiName grep + 통합 경로 본문 명시 + **scaling.json 배열 인덱싱 정합까지 verify** (단순 "값 존재 → 정합" 단정 금지 — 룰 #16 P1 2회 + Codex P2 학습)
 - [x] **본문 Lint P2 3건 + info 등록 → frontmatter `sim_active: partial` 강등** (룰 #15)
 - [x] **함수 주석 stale 확인** — `tickKindredNovaMark` 상단 주석 "5초" vs 코드 `:5229` 4.5초 → 코드 ground truth (4.5초) 기준 작성 (함수 주석 ≠ 코드, PR #184 학습 적용)
 - [ ] (선택) passive 스킬 표식 / mark scaleAD·AP scaling / active 도약 sim 도입 인게임 측정
