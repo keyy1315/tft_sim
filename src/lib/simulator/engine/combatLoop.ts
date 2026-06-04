@@ -5217,9 +5217,9 @@ export function simulateCombat(
     tickDrxNova(playerDrxState, tick, time);
     tickDrxNova(enemyDrxState, tick, time);
 
-    // PR7-C.5 (17.2b): Kindred N.O.V.A. 선택기 — surge 후 5초 주기로 모든 적 표식 갱신.
-    // 사용자 spec: surge (6초) → 5초 주기 (11초, 16초, ...) 로 모든 적 표식 부여.
-    // 표식은 statusEffect 'mark' (영구). 5초 주기 = 5 × TICKS_PER_SECOND.
+    // PR7-C.5 (17.2b): Kindred N.O.V.A. 선택기 — surge 후 4.5초 주기로 모든 적 표식 갱신.
+    // 사용자 spec: surge (6초) → 4.5초 주기 (10.5초, 15초, ...) 로 모든 적 표식 부여 (17.4: 5s→4.5s, PR #166).
+    // 표식은 statusEffect 'mark' (영구). 4.5초 주기 = 4.5 × TICKS_PER_SECOND (아래 periodTicks).
     const tickKindredNovaMark = (
       drxState: ReturnType<typeof setupDrxNova>,
       teamUnits: CombatUnit[],
