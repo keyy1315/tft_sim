@@ -449,7 +449,9 @@ function applySet17SynergyBuffs(traits: ActiveTrait[], units: CombatUnit[]): voi
     const sc = getSynergyScaling(at.trait.apiName);
     if (!sc) continue;
 
-    // 활성 티어 인덱스 (effects 배열에서 몇 번째)
+    // 활성 티어 인덱스 (effects 배열에서 몇 번째, 0-based)
+    // ⚠️ scaling.json synergies 배열은 effects 와 1:1 정렬 (idx 0 = 첫 tier). leading-0 금지.
+    //    (PR #185 발견: 도전자/전달자/구원자/불한당 배열에 leading inactive 0 있어 첫 tier 에 0 적용되던 off-by-one → scaling.json 데이터 수정으로 정렬)
     const tierIdx = at.trait.effects.findIndex(e => e === at.activeEffect);
     const ti = Math.max(0, tierIdx);
 

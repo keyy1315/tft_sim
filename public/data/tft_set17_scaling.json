@@ -90,8 +90,8 @@
     "TFT17_ASTrait": {
       "name": "도전자",
       "desc": "아군 AS + 도전자 추가 AS, 대상 사망 시 버스트",
-      "teamwideAS": [0, 0.1, 0.15, 0.2, 0.3],
-      "championAS": [0, 0.2, 0.35, 0.55, 0.9],
+      "teamwideAS": [0.1, 0.15, 0.2, 0.3],
+      "championAS": [0.2, 0.35, 0.55, 0.9],
       "burstDuration": 3,
       "burstPercent": 0.5
     },
@@ -107,20 +107,20 @@
     "TFT17_ManaTrait": {
       "name": "전달자",
       "desc": "아군 마나 재생 + 전달자 추가",
-      "teamManaRegen": [0, 2, 4, 8, 15],
-      "channelerManaRegen": [0, 5, 10, 18, 30],
+      "teamManaRegen": [2, 4, 8, 15],
+      "channelerManaRegen": [5, 10, 18, 30],
       "innateManaGain": 0.15
     },
     "TFT17_RhaastUniqueTrait": {
       "name": "구원자",
       "desc": "활성 특성당 AS/방어력/마저",
-      "offensiveStat": [0, 0.03, 0.05, 0.08],
-      "defensiveStat": [0, 3, 5, 8]
+      "offensiveStat": [0.03, 0.05, 0.08],
+      "defensiveStat": [3, 5, 8]
     },
     "TFT17_AssassinTrait": {
       "name": "불한당",
       "desc": "AD/AP 획득, 체력 50% 이하 시 은신",
-      "adap": [0, 15, 30, 45, 60],
+      "adap": [15, 30, 45, 60],
       "healthThreshold": 0.5
     }
   }
