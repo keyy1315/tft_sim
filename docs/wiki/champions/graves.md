@@ -9,7 +9,7 @@ traits:
 role: Marksman   # raw "ADCarry" → mapGameRole() → sim Marksman (types/index.ts includes('Carry')). ⚠️ 최신상 CloseQuarters(맹공) Frame 선택 시 role → Fighter (applyGravesFrameEffects). carry augment 는 아니고 trait 무기고 Frame
 raw_role: ADCarry
 current_patch_status: active
-sim_active: partial   # active cone Damage(scaleAD filler ★1=390/★2=585) + 인접 SecondaryDamageAD(no-filler ★1=120/135/200) + 최신상(GravesTrait) 무기고 Frame 3종(CloseQuarters/SharpshooterModule/DoubleTap) + stat upgrade 30+ + Shockwave 정합. P1 평타 원뿔 투사체 passive(NumProjectiles 5 × baseAD×PassivePercentBAD 0.33) 미반영 (grep 0 — carry 평타 핵심) / P2 active 인접 SecondaryDamageAP(scaleAP) 미사용 (config secondaryDamageVar=SecondaryDamageAD 만) / info Damage ★3=5555 sentinel (5코 3성 placeholder, ★1=390/★2=585 정상)
+sim_active: partial   # active cone Damage(scaleAD filler ★1=390/★2=585) + SecondaryDamageAD(no-filler ★1=120/135/200) + 최신상(GravesTrait) 무기고 Frame 3종(CloseQuarters/SharpshooterModule/DoubleTap) + stat upgrade 30+ + Shockwave 정합. P1 평타 원뿔 투사체 passive(NumProjectiles 5 × baseAD×PassivePercentBAD 0.33) 미반영 (grep 0 — carry 평타 핵심) / P2 active SecondaryDamageAD cone 전체 합산 (:6598 각 target baseDmg+=, desc primary/인접 구분과 불일치) / P2 active 인접 SecondaryDamageAP(scaleAP) 미사용 (config secondaryDamageVar=SecondaryDamageAD 만) / info Damage ★3=5555 sentinel (5코 3성 placeholder, ★1=390/★2=585 정상)
 last_verified: 2026-06-05
 sources:
   - "public/data/tft_set17_champions.json (TFT17_Graves entry — cost 5, role ADCarry, traits [최신상], ability '무고한 희생자' variables NumProjectiles/PassivePercentBAD/Damage/SecondaryDamageAD/SecondaryDamageAP)"
@@ -86,7 +86,7 @@ TFT17_Graves: { pattern: 'cone', radius: 2, secondaryDamageVar: 'SecondaryDamage
 |-----------|---------|------|
 | 폭발탄 damage (`Damage`, scaleAD) | ✅ | `damageVar` 없음 → `DAMAGE_VAR_PRIORITY` first **'Damage'**. **filler** `[400,390,585,5555]` (v0>v1) → ★1=390 / ★2=585 / **★3=5555 sentinel** (5코 3성 placeholder, 비정상값 — 실전 ★1 위주) |
 | cone radius 2 | ✅ | 원뿔 범위 |
-| 인접 적 (`SecondaryDamageAD`, scaleAD) | ✅ | `secondaryDamageVar: 'SecondaryDamageAD'` **no-filler** `[120,135,200]` → ★1=120 / ★2=135 / ★3=200 (`combatLoop.ts:162` 주석 — Graves SecondaryDamageAD no-filler) |
+| 인접 적 (`SecondaryDamageAD`, scaleAD) | ⚠️ **cone 전체 합산 (인접 한정 아님)** | `config.secondaryDamageVar` (`:6598`) 는 cast loop **각 cone target `t` 루프 안에서 `baseDmg += SecondaryDamageAD` 무조건 합산** (no-filler `[120,135,200]` → ★1=120/★2=135/★3=200). **desc "대상 Damage + 인접한 적 SecondaryDamage" 의 primary/인접 구분과 불일치 — sim 은 cone 모든 적이 `Damage + SecondaryDamageAD` 합산 수령** (primary 도 secondary 추가, 인접 한정 아님). **Lint P2** |
 | 인접 적 scaleAP (`SecondaryDamageAP`) | ❌ **미사용** | config `secondaryDamageVar` 는 `SecondaryDamageAD` 만 → `SecondaryDamageAP` [30,30,45] (scaleAP 추가분) 미read. desc 인접 = scaleAD+scaleAP 인데 sim 은 scaleAD 만. **Lint P2** |
 
 ### 최신상 (`TFT17_GravesTrait`) trait — 무기고
@@ -128,11 +128,12 @@ TFT17_Graves: { pattern: 'cone', radius: 2, secondaryDamageVar: 'SecondaryDamage
 ✅ **활성**:
 - stats 17.4 정합 (hp 900, armor/MR 40, AD 60, AS 0.7, mana 0/60, range 4)
 - role Marksman (`mapGameRole('ADCarry')`) / CloseQuarters Frame 시 Fighter 변환
-- active cone — Damage (scaleAD filler ★1=390/★2=585) + 인접 SecondaryDamageAD (no-filler ★1=120/★2=135/★3=200)
+- active cone — Damage (scaleAD filler ★1=390/★2=585) + SecondaryDamageAD (no-filler ★1=120/★2=135/★3=200, ⚠️ cone 전체 합산 — 아래 P2)
 - **최신상 무기고**: Frame 3종 (CloseQuarters/SharpshooterModule/DoubleTap) + stat upgrade 30+ (`applyGravesStatUpgrades`) + Shockwave (가장 강한 Graves 1명)
 
 ⚠️ **부정확 / 미반영** (Lint 후보):
 - **P1**: 평타 원뿔 투사체 passive (`NumProjectiles` 5 × baseAD × `PassivePercentBAD` 0.33) 미반영 — grep 0, 5코 carry 평타 핵심 DPS 누락
+- **P2**: active `SecondaryDamageAD` **cone 전체 합산** (`:6598` 각 target `baseDmg +=`) — desc "primary Damage + 인접 SecondaryDamage" 구분과 불일치 (primary 도 secondary 합산, 인접 한정 아님)
 - **P2**: active 인접 `SecondaryDamageAP` (scaleAP 추가분) 미사용 — config `secondaryDamageVar` 는 `SecondaryDamageAD` 만
 - (info): Damage ★3=5555 sentinel (5코 3성 placeholder, ★1=390/★2=585 정상)
 
@@ -141,6 +142,7 @@ TFT17_Graves: { pattern: 'cone', radius: 2, secondaryDamageVar: 'SecondaryDamage
 | # | 항목 | 의미 | Tier | 적용 분기 (룰 #17) | 처리 |
 |---|------|------|------|---------------------|------|
 | P1 | 평타 원뿔 투사체 passive 미반영 | desc "평타 시 원뿔 5투사체 각 baseAD×0.33 물리". `NumProjectiles`/`PassivePercentBAD` grep 0. 5코 carry 평타 추가 DPS (5×0.33=1.65×baseAD/평타) 누락 | **P1** | (b) attack-hook — 평타 시 원뿔 범위 적에게 5 × (baseAD×0.33) 물리 (Corki/Vex spread 패턴 유사) | 5코 carry 평타 핵심. DPS 영향 큼 — 우선 fix 권장 |
+| P2 | active SecondaryDamageAD cone 전체 합산 | desc "대상 Damage + 인접한 적 SecondaryDamage" (primary/인접 구분) vs sim cast loop 각 cone target `baseDmg += SecondaryDamageAD` (`:6598`, 조건 없음). primary 도 secondary 합산 + 인접 한정 미반영 → cone 모든 적이 Damage+SecondaryDamageAD 수령 | **P2** | secondaryDamageVar 처리 — primary=Damage / 인접만 SecondaryDamage 분기 (현재 generic secondaryDamageVar 는 전체 합산). 단 config 구조 변경 필요 (Pyke/Leona 등 동일 generic 경로) | targeting 단순화 (generic secondaryDamageVar 전체 합산). raw 의도(인접 한정) 영향 측정 후. Codex PR #193 catch |
 | P2 | active 인접 SecondaryDamageAP 미사용 | config `secondaryDamageVar='SecondaryDamageAD'` 만 → SecondaryDamageAP(scaleAP) 미read. desc 인접 = scaleAD+scaleAP | **P2** | secondaryDamageVar — AD+AP 합산 분기 (Fizz BiteDamageAP 등 패턴). 단 secondaryDamageVar 단일 string 제약 | scaleAP 추가분만 누락. scaleAD 주력은 반영. 구조 변경 필요 |
 | info | Damage ★3=5555 sentinel | filler 배열 ★3 placeholder (5코 3성 데이터 미정의). ★1=390/★2=585 정상 | info | 해당 없음 | 5코 3성 거의 없어 실전 무관. 명시만 |
 
