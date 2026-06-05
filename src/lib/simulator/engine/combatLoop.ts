@@ -7047,6 +7047,15 @@ export function simulateCombat(
                   const numEnemies = Math.min(numCap, Math.max(1, aliveTargets.length));
                   healAmount *= numEnemies;
                 }
+                // Reksai (TFT17_Reksai) 'APHealing' scaleAP heal 합산 — desc TotalHealing = scaleHealth + scaleAP.
+                // healVar find 후보에 'APHealing' 없어 (raw 'APHealing' vs find 'APHeal' 미스매치) scaleAP heal 누락되던 것 보강.
+                // APHealing 은 Reksai 전용 변수 (다른 champion 영향 없음). healVar(PercentMaximumHealthHealing maxHp%) 와 합산.
+                const apHealingVar = unit.champion.ability.variables.find(v => v.name === 'APHealing');
+                if (apHealingVar) {
+                  const apSi = Math.min(unit.starLevel, apHealingVar.value.length - 1);
+                  const apHealVal = (apHealingVar.value[apSi] ?? apHealingVar.value[0] ?? 0) as number;
+                  healAmount += Math.round(apHealVal * (1 + unit.stats.ap / 100));
+                }
                 if (healAmount > 0) {
                   // healAmp 곱셈 적용 — ability self-heal 도 회복량 증폭 효과 대상.
                   const finalHeal = healAmount * (1 + (unit.healAmp ?? 0));
