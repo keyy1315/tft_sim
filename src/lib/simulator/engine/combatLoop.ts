@@ -2034,6 +2034,26 @@ function applyBrawlerEffects(activeTraits: ActiveTrait[], units: CombatUnit[]): 
 }
 
 /**
+ * 마오카이 (TFT17_Maokai) passive "교차의 마수" — 모든 요소로부터 maxHp +PassiveRatio(50%).
+ *
+ * raw: PassiveRatio=0.5 (전 star 동일). desc "모든 요소로부터 최대 체력을 50% 더" →
+ * item/trait(싸움꾼 등) maxHp 적용 후 최종 ×1.5. Astronaut(flat) + Brawler(×) 이후,
+ * Stargazer(Huntress) maxHp 기준 mark 선택 전에 적용 (호출 순서 — combat-start).
+ * Note: maxHp 증폭 시 currentHp 비례 (전투 시작 풀체). applyBrawlerEffects 와 동일 패턴 (round 없음).
+ */
+function applyMaokaiPassive(units: CombatUnit[]): void {
+  for (const u of units) {
+    if (u.champion.apiName !== 'TFT17_Maokai') continue;
+    const ratio = readVarByStar(
+      u.champion.ability.variables?.find(v => v.name === 'PassiveRatio')?.value, u.starLevel, 0.5
+    );
+    if (ratio <= 0) continue;
+    u.maxHp *= (1 + ratio);
+    u.currentHp *= (1 + ratio);
+  }
+}
+
+/**
  * 암흑의 별 (DarkStar) — tier 별 효과:
  *
  * Spec (TFT17_DarkStar) 17.2 raw (모든 tier 동일 변수):
@@ -4603,6 +4623,10 @@ export function simulateCombat(
   // 정령족+싸움꾼 동시 보유 챔프 없어 corner case 영향 없음.
   applyBrawlerEffects(playerActiveTraits, playerUnits);
   applyBrawlerEffects(enemyActiveTraits, enemies);
+  // 마오카이 passive maxHp +50% — 모든 요소(item/Astronaut/Brawler 등) 적용 후 ×1.5.
+  // Stargazer(Huntress) maxHp 상위 N명 mark 선택 전에 적용해야 정확 (Brawler 와 동일 이유).
+  applyMaokaiPassive(playerUnits);
+  applyMaokaiPassive(enemies);
   applyStargazerEffects(playerActiveTraits, playerUnits, enemies, options.playerStargazerConstellation, true);
   applyStargazerEffects(enemyActiveTraits, enemies, playerUnits, options.enemyStargazerConstellation, false);
   applyMorganaDarklight(playerActiveTraits, playerUnits);
