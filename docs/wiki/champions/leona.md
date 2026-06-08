@@ -11,7 +11,7 @@ role: Tank   # raw "APTank" → mapGameRole() → sim Tank (types/index.ts inclu
 raw_role: APTank
 current_patch_status: active
 carry_augment: TFT17_Augment_LeonaCarry   # 방패 여전사 — abilityOverride line dash (conditional)
-sim_active: partial   # base 여명의 방패 single + Damage(★별 100/150/225 flat) + stun + selfBuff durability 0.3(ShieldAmount 근사) + 선봉대 전투시작 shield + 중재자 arbiter law 정합. carry augment(LeonaCarry) line dash + firstHitOnlyStun + stunDuration[1.0,1.25,1.5]★별 + secondaryDamage[200,300,480] 정합. P1 carry baseDamageHpFrac 0.24(첫 적중 maxHp 24%) 미반영(selfDamage 분기 전용, applyCarryDamageModifiers 누락) / P2 carry abilityData.shield[200,240,280] 미반영(mordekaiser만 처리) / P2 base stun 1.5 하드코딩 vs raw StunDuration ★1=1.75/★2=1.75/★3=2(★별 무시·과소) / P2 base ShieldAmount flat(420~620)→durability 0.3 근사 / P2 DefenseToDamageRatio(scaleArmor/MR) 미반영(grep 0) / P2 선봉대 HealthThreshold+Durability 미구현(후속 PR, Illaoi #184 동형)
+sim_active: partial   # base 여명의 방패 single + Damage(★별 100/150/225 flat) + stun + selfBuff durability 0.3(ShieldAmount 근사) + 선봉대 전투시작 shield + 중재자 arbiter law 정합. carry augment(LeonaCarry) line dash + firstHitOnlyStun + stunDuration[1.0,1.25,1.5]★별 + secondaryDamage[200,300,480] 정합. ✅ carry baseDamageHpFrac 0.24(첫 적중 maxHp 24%) #203 수정 완료(applyCarryDamageModifiers primary 가산) / P2 carry abilityData.shield[200,240,280] 미반영(mordekaiser만 처리) / P2 base stun 1.5 하드코딩 vs raw StunDuration ★1=1.75/★2=1.75/★3=2(★별 무시·과소) / P2 base ShieldAmount flat(420~620)→durability 0.3 근사 / P2 DefenseToDamageRatio(scaleArmor/MR) 미반영(grep 0) / P2 선봉대 HealthThreshold+Durability 미구현(후속 PR, Illaoi #184 동형)
 last_verified: 2026-06-08
 sources:
   - "public/data/tft_set17_champions.json (TFT17_Leona entry — cost 1, role APTank, traits [중재자/선봉대], mana 50/110, ability '여명의 방패' variables ShieldAmount/Damage/StunDuration/DefenseToDamageRatio/ShieldDuration)"
@@ -20,7 +20,7 @@ sources:
   - "src/types/index.ts (mapGameRole — 'APTank' includes 'Tank' → Tank)"
   - "src/lib/simulator/systems/ability.ts:200 (TFT17_Leona: { pattern: 'single', stun: 1.5, selfBuff: { durability: 0.3, duration: 4 } })"
   - "src/lib/simulator/systems/ability.ts:400 (findDamageVariable — default 'Damage' 매칭) / :442 (getAbilityDamage — filler + ap/ad scaling만)"
-  - "src/lib/simulator/engine/combatLoop.ts:1315 (applyCarryDamageModifiers — secondaryDamage :1337, baseDamageHpFrac 분기 없음) / :1921 (applyVanguardEffects 선봉대 shield)"
+  - "src/lib/simulator/engine/combatLoop.ts:1315 (applyCarryDamageModifiers — secondaryDamage :1337, baseDamageHpFrac primary 가산 :1349 [#203 fix, hexReduction==undefined 가드]) / :1921 (applyVanguardEffects 선봉대 shield)"
   - "src/lib/simulator/engine/combatLoop.ts:6995/7002/7370/7416 (LeonaCarry stunDuration ★별 + firstHitOnlyStun main+OOR) / :6695 (secondaryDamage recast) / :6387 (baseDamageHpFrac 자폭 전용) / :2340 (abilityData.shield mordekaiser 전용)"
 related:
   - "[[role-passive]]"
@@ -40,7 +40,7 @@ related:
 - **base ability "여명의 방패"**: `ShieldDuration`(4)초 `ShieldAmount`(scaleAP) 보호막 + 현재 대상 강타 `Damage`(scaleArmor scaleMR) 마법 피해 + `StunDuration`초 기절.
 - **carry augment "방패 여전사"**: line 돌진 → 첫 적중 AD + 24% 최대체력 + 기절, 추가 대상 secondary 피해.
 
-> 🎯 **Leona 는 보호막 + 기절 1코 탱커** (선봉대/중재자). base 는 단일 강타 + 자버프 보호막, carry augment 시 line 돌진 광역 CC carry 로 변환. base/carry 모두 sim 반영하나 carry baseDamageHpFrac(maxHp 24%)·shield + base stun ★별·DefenseToDamageRatio 등 P1/P2 gap.
+> 🎯 **Leona 는 보호막 + 기절 1코 탱커** (선봉대/중재자). base 는 단일 강타 + 자버프 보호막, carry augment 시 line 돌진 광역 CC carry 로 변환. base/carry 모두 sim 반영. carry baseDamageHpFrac(maxHp 24%)은 #203 해소, 잔존 P2 = carry shield·base stun ★별·DefenseToDamageRatio 등 P1/P2 gap.
 
 > ⚠️ **set17 entity confirm**: `TFT17_Leona` apiName 으로 소속 확인 (cost 1, traits 중재자/선봉대, role APTank). 한글명 list 만으로 후보 선정 금지 (룰 #149 P2 학습).
 
@@ -101,7 +101,7 @@ abilityData: { damage: [90,135,225], shield: [200,240,280], shieldDuration: 2,
 | 기절 시간 (`stunDuration` [1.0,1.25,1.5]) | ✅ ★별 | `:6995` main pipeline + `:7416` OOR — starLevel별 정확 적용 (이전 fixed 1.0 회귀 해소) |
 | 추가 대상 secondary 피해 (`secondaryDamage` [200,300,480]) | ✅ | `applyCarryDamageModifiers` `:1337` (`!isPrimaryTarget`) + recast `:6695` |
 | primary damage (`damage` [90,135,225]) | ✅ | abilityData.damage cast |
-| **첫 적중 maxHp 24% (`baseDamageHpFrac` 0.24)** | ❌ **미반영** | `baseDamageHpFrac` 처리는 `:6387` (그라가스 자폭 `selfDamage`+`hexReduction` 가드) 전용. `applyCarryDamageModifiers` (`:1315`) 6종 modifier 에 baseDamageHpFrac 분기 없음 (주석 `:1306` "selfDamage special path 라 helper 무관"). LeonaCarry 첫 적중 maxHp 가산 누락. **Lint P1** |
+| **첫 적중 maxHp 24% (`baseDamageHpFrac` 0.24)** | ✅ **#203 수정** | `applyCarryDamageModifiers` (`:1336`) 에 primary target `maxHp × baseDamageHpFrac` 가산 추가 (`hexReduction === undefined` 가드 — 자폭형 GragasCarry 는 selfDamage continue 로 미진입). 회귀 가드 `leona-basedamagehpfrac.test.ts` |
 | 보호막 (`shield` [200,240,280], `shieldDuration` 2) | ❌ **미반영** | abilityOverride 에 selfBuff 없음 → base durability 도 소거. `abilityData.shield` 처리는 `:2340` `mordekaiserCarryShield` 전용. LeonaCarry shield 미참조. **Lint P2** |
 
 > carry augment 는 [[feedback_selected_single_carry]] — `findSelectedCarryAugment` 가 selected 1명만 carryCfg 반환. secondaryDamage/stunDuration 은 selected 카피만 적용 (비-carry 회귀 방지).
@@ -133,7 +133,7 @@ abilityData: { damage: [90,135,225], shield: [200,240,280], shieldDuration: 2,
 - **선봉대** 전투 시작 shield + **중재자** arbiter law
 
 ⚠️ **부정확 / 미반영** (Lint 후보):
-- **P1**: carry `baseDamageHpFrac` 0.24 (첫 적중 maxHp 24%) 미반영 — selfDamage 분기 전용, applyCarryDamageModifiers 누락
+- ✅ **#203 수정 완료**: carry `baseDamageHpFrac` 0.24 (첫 적중 maxHp 24%) — applyCarryDamageModifiers primary 가산 (hexReduction 없는 carry 한정)
 - **P2**: carry `abilityData.shield` [200,240,280] 미반영 — mordekaiser 만 처리
 - **P2**: base stun 1.5 하드코딩 vs raw StunDuration ★1=1.75/★2=1.75/★3=2 (★별 무시 + 과소)
 - **P2**: base ShieldAmount flat(420~620) → durability 0.3 근사
@@ -144,13 +144,13 @@ abilityData: { damage: [90,135,225], shield: [200,240,280], shieldDuration: 2,
 
 | # | 항목 | 의미 | Tier | 적용 분기 (룰 #17) | 처리 |
 |---|------|------|------|---------------------|------|
-| P1 | carry baseDamageHpFrac 미반영 | LeonaCarry 첫 적중 "AD + 24% 최대체력". `baseDamageHpFrac` 처리는 `:6387` 자폭(selfDamage) 전용 → line carry 미적용. applyCarryDamageModifiers 6 modifier 에 분기 없음 | **P1** | cast-time — primary target(첫 적중)에 `maxHp × baseDamageHpFrac` 가산 (applyCarryDamageModifiers 또는 line cast primary 분기) | carry primary 핵심 데미지 누락. 회귀 가드 동반 |
+| ✅ #203 | carry baseDamageHpFrac 미반영 → **수정 완료** | `applyCarryDamageModifiers`(`:1336`)에 primary `maxHp × baseDamageHpFrac` 가산 (hexReduction 없는 carry 한정 — GragasCarry 자폭 selfDamage continue 로 미진입) | ~~P1~~ resolved | cast-time 적용 | 회귀 가드 `leona-basedamagehpfrac.test.ts` |
 | P2 | carry abilityData.shield 미반영 | LeonaCarry shield [200,240,280]/2초. abilityOverride selfBuff 없음 + abilityData.shield 는 `:2340` mordekaiser 전용 → carry Leona shield 전무 | **P2** | cast-time — carry cast 시 abilityData.shield[★] 보호막 부여 | carry 방어 효과 누락 |
 | P2 | base stun ★별 무시 + 과소 | sim `stun: 1.5` 고정 vs raw StunDuration ★1=1.75/★2=1.75/★3=2. CC 0.25~0.5초 과소 + ★별 무시 | **P2** | config stun 을 raw StunDuration readVarByStar 로 전환 | base 강타 CC 과소. 의도적 근사 가능성(패치노트 확인) |
 | P2 | DefenseToDamageRatio 미반영 | desc Damage `(scaleArmor scaleMR)` → 방어 비례 추가. `getAbilityDamage` ap/ad scaling 만, grep 0 | **P2** | cast-time — Damage 에 (armor+MR)×DefenseToDamageRatio 가산 | base 강타 피해 과소 (탱빌드 시 큼) |
 | P2 | 선봉대 HealthThreshold/Durability 미구현 | `applyVanguardEffects` 전투시작 shield 만. HealthThreshold(50%) 추가 shield + Durability 미구현 | **P2** | tick — HealthThreshold 발동 감시 + 보호막 활성 중 Durability 가산 | trait 차원 후속 PR (Illaoi #184 동형) |
 
-> 📌 **base Damage(★별)+stun+durability shield + carry line+firstHitOnlyStun+stunDuration★별+secondaryDamage + 선봉대 shield + 중재자 law 는 sim 정합**. `partial` 사유는 carry baseDamageHpFrac(P1)·shield + base stun ★별·ShieldAmount·DefenseToDamageRatio + 선봉대 부분구현 등.
+> 📌 **base Damage+stun+durability shield + carry line+firstHitOnlyStun+stunDuration★별+secondaryDamage+baseDamageHpFrac(#203) + 선봉대 shield + 중재자 law 는 sim 정합**. `partial` 잔존 사유는 carry shield + base stun ★별·ShieldAmount·DefenseToDamageRatio + 선봉대 부분구현 (전부 P2) — baseDamageHpFrac P1 은 #203 해소.
 
 ## Lint 체크리스트
 

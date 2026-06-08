@@ -11,7 +11,7 @@ traits:
 role: Fighter   # raw "ADFighter" → mapGameRole() → sim Fighter (types/index.ts includes('Fighter')). carry augment 없음
 raw_role: ADFighter
 current_patch_status: active
-sim_active: partial   # base 물고기 광분 single + 액티브 물리(ADDamage sentinel filler ★1=120/180/285 scaleAD) + 탱커 50% 추가(PercentBonusDamage) + 패시브 잃은체력 비례 AS(getEffectiveAttackSpeed scaling.json asPerMissingHpPercent+apScaling) + 태고족(Primordian) 정합. P1 패시브 AS 단위 과소 의심 (missingPct(비율 0~1) × asPerMissingHpPercent/100 → 잃은체력 50% 시 +1% AS, raw "1%당 2%" 의도 +100% 대비 ~100배 과소) / P2 config selfBuff attackSpeed 0.5(영구) raw 액티브 AS 버프 없음 — 패시브와 별도 추가/이중 / P2 APDamage[0,10,15,25] 미반영(DAMAGE_VAR_PRIORITY ADDamage 우선, desc scaleAD만) / P2 동물특공대(AnimaSquad) trait sim 전투효과 미반영(synergies/helper 없음) / P2 불한당 은신(healthThreshold stealth) 미반영
+sim_active: partial   # base 물고기 광분 single + 액티브 물리(ADDamage sentinel filler ★1=120/180/285 scaleAD) + 탱커 50% 추가(PercentBonusDamage) + 패시브 잃은체력 비례 AS(getEffectiveAttackSpeed scaling.json asPerMissingHpPercent+apScaling) + 태고족(Primordian) 정합. ✅ 패시브 AS 단위 + selfBuff #204 수정 완료 (:3530 /100 이중 변환 제거 + config selfBuff 제거 → 잃은체력 50% +100% AS raw 정합, golden 5건 갱신) / P2 APDamage[0,10,15,25] 미반영(DAMAGE_VAR_PRIORITY ADDamage 우선, desc scaleAD만) / P2 동물특공대(AnimaSquad) trait sim 전투효과 미반영(synergies/helper 없음) / P2 불한당 은신(healthThreshold stealth) 미반영
 last_verified: 2026-06-08
 sources:
   - "public/data/tft_set17_champions.json (TFT17_Briar entry — cost 1, role ADFighter, traits [동물특공대/태고족/불한당], mana 0/40, ability '물고기 광분' variables PercentMissingHealth/ADDamage/APDamage/PercentBonusDamage/AS)"
@@ -77,9 +77,9 @@ as *= (1 + missingPct * asPerPct * apScale);
 | desc 요소 | sim 적용 | 근거 |
 |-----------|---------|------|
 | 잃은 체력 비례 AS (동적) | ✅ 동적 + scaleAP | `getEffectiveAttackSpeed` 매 공격 계산. scaling.json `asPerMissingHpPercent` [2,2,2,2.5] + `apScaling` |
-| AS 수치 단위 | ❌ **~100배 과소 의심** | `missingPct`(비율 0~1) × `asPerPct`(raw/100). 잃은체력 50% ★1: `0.5 × (2/100) = 0.01` → **+1% AS**. raw "1%당 2%" = 50% 잃으면 +100% AS (×2.0). missingPct 를 percent-point(×100) 변환 누락 의심. **Lint P1** |
+| AS 수치 단위 | ✅ **#204 수정** | `:3530` `/100` 이중 변환 제거 (scaling.json 값 [2,2,2,2.5] 가 이미 percent-point). 잃은체력 50% ★1: `0.5 × 2 = 1.0` → **+100% AS** (raw "1%당 2%" 정합). golden snapshot 5건 갱신 |
 
-> ⚠️ **패시브 AS 가 거의 무효** — 잃은체력 50% 에 +1% AS (raw 의도 +100%). 광폭화 1코 핵심 메커니즘 과소. `missingPct × 100` (pp 변환) 또는 `asPerPct` 단위 재검토 필요.
+> ✅ **패시브 AS #204 수정 완료** — `:3530` `/100` 제거로 잃은체력 50% → +100% AS (raw 정합). 광폭화 1코 핵심 정상 작동 (회귀 가드 `briar-passive-as.test.ts` + golden 5건).
 
 ### Active — 물고기 광분 (`ability.ts:190`)
 
@@ -97,9 +97,9 @@ TFT17_Briar: { pattern: 'single', selfBuff: { attackSpeed: 0.5, duration: 999 } 
 | 단일 대상 물리 피해 (`ADDamage`) | ✅ ★별 + scaleAD | `DAMAGE_VAR_PRIORITY` 'ADDamage' 매칭 (`:392`). sentinel filler → ★1=120/★2=180/★3=285. detectScaling 물리 → 'ad' |
 | 탱커 시 +50% (`PercentBonusDamage`) | ✅ | `:6590` `if Briar && t.role === 'Tank' → baseDmg *= (1 + 0.5)` |
 | `APDamage` ([0,10,15,25]) | ❌ **미반영** | `DAMAGE_VAR_PRIORITY` 에서 'ADDamage' 가 'APDamage' 보다 우선 → ADDamage 만 선택. APDamage 는 별도 추가 마법 피해 변수이나 ADDamage 에 가려 미선택 (AS·apScaling 과 무관). **Lint P2** |
-| config `selfBuff: attackSpeed 0.5` (duration 999) | ⚠️ **raw 근거 없음 + 매 cast 누적** | `:7081` `unit.stats.attackSpeed *= (1+0.5)` — raw 액티브는 **물리 피해만** (AS 버프 없음). `duration` 필드는 코드 미참조 (`config.selfBuff.duration` grep 0) → 만료 없이 **매 cast 마다 ×1.5 영구 누적** (mana 0/40, 전투당 복수 cast → 기하급수). 패시브 AS 는 getEffectiveAttackSpeed 별도 처리 → 이중. **Lint P2** |
+| config `selfBuff` → **제거** (#204) | ✅ **#204 수정** | config 에서 `selfBuff` 제거 — raw 액티브는 물리 피해만(AS 버프 없음) + `duration` 미참조 매 cast ×1.5 누적 버그였음. 패시브 AS 는 getEffectiveAttackSpeed 전담 |
 
-> config `selfBuff attackSpeed 0.5` 는 [[graves]] 와 같은 set16 Briar 광폭화(selfBuff AS+AD) 패턴 잔재 추정 — TFT17 raw 액티브엔 AS 버프 없음. 패시브 AS 과소(P1)와 별개로 cast 시 영구 +50% AS over-application.
+> config `selfBuff` 는 [[graves]] 와 같은 set16 Briar 광폭화 패턴 잔재였고, TFT17 raw 액티브엔 AS 버프 없음 → **#204 에서 제거** (패시브 AS 단위 fix 와 함께 AS 정합 완성).
 
 ### 3 trait — 동물특공대 / 태고족 / 불한당
 
@@ -113,7 +113,7 @@ TFT17_Briar: { pattern: 'single', selfBuff: { attackSpeed: 0.5, duration: 999 } 
 
 | cast path | Briar 처리 | 근거 |
 |-----------|------------|------|
-| **main pipeline** | ✅ single 물리 피해 + selfBuff AS + 탱커 50% | `ability.ts:190` / `:6590` |
+| **main pipeline** | ✅ single 물리 피해 + 탱커 50% | `ability.ts:190` / `:6590` |
 | **OOR (out-of-range dash)** | ➖ dash 없음 (single non-dash) | config dash 미지정 |
 | **recast (onKill)** | ➖ 없음 — carry augment 없음 | — |
 
@@ -124,13 +124,12 @@ TFT17_Briar: { pattern: 'single', selfBuff: { attackSpeed: 0.5, duration: 999 } 
 ✅ **활성**:
 - stats 17.4 정합 (hp 650, armor/MR 35, AD 35, AS 0.75, range 1, mana 0/40)
 - role Fighter (`mapGameRole('ADFighter')`)
-- 패시브 잃은체력 비례 AS (getEffectiveAttackSpeed 동적, scaling.json + apScaling) — 단 단위 과소(P1)
+- 패시브 잃은체력 비례 AS (getEffectiveAttackSpeed 동적, scaling.json + apScaling) — **#204 단위 fix** (잃은체력 50% → +100% AS, raw 정합)
 - 액티브 물리 피해 (ADDamage sentinel filler ★1=120/★2=180/★3=285 scaleAD) + 탱커 50% 추가
 - 태고족 (Primordian) trait
 
 ⚠️ **부정확 / 미반영** (Lint 후보):
-- **P1**: 패시브 AS 단위 ~100배 과소 의심 — missingPct(비율) × asPerPct(raw/100), 잃은체력 50% 시 +1% AS (raw 의도 +100%)
-- **P2**: config selfBuff attackSpeed 0.5 (영구) raw 액티브 AS 버프 없음 — 패시브와 별도 추가/이중
+- ✅ **#204 수정 완료**: 패시브 AS 단위 (`:3530` /100 제거) + config selfBuff 제거 — 잃은체력 50% → +100% AS (raw 정합), golden 5건 갱신
 - **P2**: APDamage 미반영 (DAMAGE_VAR_PRIORITY ADDamage 우선)
 - **P2**: 동물특공대 trait 전투 효과 미반영 (synergies/helper 없음)
 - **P2**: 불한당 은신(healthThreshold stealth) 미반영
@@ -139,12 +138,11 @@ TFT17_Briar: { pattern: 'single', selfBuff: { attackSpeed: 0.5, duration: 999 } 
 
 | # | 항목 | 의미 | Tier | 적용 분기 (룰 #17) | 처리 |
 |---|------|------|------|---------------------|------|
-| P1 | 패시브 AS 단위 ~100배 과소 (lint 확정) | `getEffectiveAttackSpeed` (`:3530`) `missingPct(0~1) × (asPerMissingHpPercent/100)`. scaling.json 값 [2,2,2,2.5] 는 이미 percent-point("2%") 인데 `/100` 재변환 → **이중 변환 버그**. 잃은체력 50% → +1% AS (raw 의도 +100%) | **P1** | runtime — `:3530` 의 `/ 100` 제거 (scaling.json 값 percent-point 그대로). selfBuff 0.5(P2) 와 묶어 fix → AS 정합 완성 | 광폭화 핵심 AS 무력화. fix 전 패치노트/실측 cross-check |
-| P2 | selfBuff 0.5 raw 근거 없음 | config `selfBuff attackSpeed 0.5` (영구) — raw 액티브 AS 버프 없음 (물리 피해만). 패시브 AS 와 별도 cast 시 +50% AS | **P2** | config — Briar config 에서 selfBuff 제거 (패시브가 AS 담당) | cast 시 과대 AS. set16 잔재 추정 |
+| ✅ #204 | 패시브 AS 단위 + selfBuff → **수정 완료** | `:3530` `/100` 이중 변환 제거 (scaling.json 값 percent-point 그대로) + config selfBuff 제거. 잃은체력 50% → +100% AS (raw "1%당 2%" 정합) | ~~P1+P2~~ resolved | runtime+config | 회귀 가드 `briar-passive-as.test.ts` + golden snapshot 5건 |
 | P2 | APDamage 미반영 | ADDamage 만 DAMAGE_VAR_PRIORITY 선택. APDamage [0,10,15,25] 미참조 (desc scaleAD 만) | **P2** | cast-time — ModifiedDamage 에 APDamage 합산 여부 raw 확인 후 | minor (desc scaleAD 주력) |
 | P2 | 동물특공대 trait 미반영 | AnimaSquad 전투 효과 sim 0 (synergies/helper 없음) | **P2** | trait — 동물특공대 synergy 효과 구현 | trait 차원 별도 (다수 동물특공대 champion 공통) |
 
-> 📌 **액티브 물리(ADDamage)+탱커 50% + 태고족 trait 는 sim 정합**. `partial` 사유는 패시브 AS 단위 과소(P1) + selfBuff 이중·APDamage·동물특공대·불한당 은신 등 P2.
+> 📌 **패시브 AS(#204)+액티브 물리(ADDamage)+탱커 50% + 태고족 trait 는 sim 정합**. `partial` 잔존 사유는 APDamage·동물특공대·불한당 은신 (전부 P2) — 패시브 AS P1 + selfBuff 는 #204 해소.
 
 ## Lint 체크리스트
 
@@ -155,11 +153,12 @@ TFT17_Briar: { pattern: 'single', selfBuff: { attackSpeed: 0.5, duration: 999 } 
 - [x] **raw role `ADFighter` → mapGameRole → Fighter** — `includes('Fighter')`. carry augment 없음
 - [x] **함수 컨텍스트 read (2단계)** — `getEffectiveAttackSpeed` briarSc 블록 (`:3527`, missingPct × asPerPct × apScale) + scaling.json Briar (asPerMissingHpPercent [2,2,2,2.5] apScaling) + selfBuff 처리 (`:7077`) + 탱커 50% (`:6590`) + DAMAGE_VAR_PRIORITY (`:392`)
 - [x] **변수 filler 판정** — ADDamage [3.3,120,180,285] sentinel(v1/v0=36>5) filler → ★1=120/★2=180/★3=285 / APDamage [0,10,15,25] v0=0 filler / PercentMissingHealth/PercentBonusDamage 상수 / AS [2,2,2,2.5] no-filler (v0===v1)
-- [x] **actual sim integration verify (5단계)** — **패시브 AS 단위: missingPct(비율) × asPerPct(raw/100) → 잃은체력 50% +1% AS, raw +100% 대비 과소 P1** / ADDamage DAMAGE_VAR_PRIORITY 선택 (APDamage 미반영 P2) / 탱커 50% `:6590` 확인 / **config selfBuff 0.5 raw 액티브 AS 버프 없음 — 이중 P2**
-- [x] **cast path 3종 (PR #129 룰)** — main (single 물리 + selfBuff + 탱커 50% ✅) / OOR (dash 없음 ➖) / recast (carry 없음 ➖). 패시브 AS·trait 별개
+- [x] **actual sim integration verify (5단계)** — **패시브 AS 단위: missingPct × asPerPct (scaling.json percent-point 그대로, `:3530` /100 제거) — #204 fix ✅** / ADDamage DAMAGE_VAR_PRIORITY 선택 (APDamage 미반영 P2) / 탱커 50% `:6590` 확인 / **config selfBuff 제거 — #204 fix ✅**
+- [x] **cast path 3종 (PR #129 룰)** — main (single 물리 + 탱커 50% ✅, selfBuff 제거 #204) / OOR (dash 없음 ➖) / recast (carry 없음 ➖). 패시브 AS·trait 별개
 - [x] **`traits` frontmatter 각 entry trait helper grep 전수 verify (룰 #16/#19)** — 태고족 `TFT17_Primordian` `applyPrimordianEffects` (`:2166`) ✅ / 불한당 `TFT17_AssassinTrait` scaling.json synergies adap ✅ 은신 ❌ (P2) / 동물특공대 `TFT17_AnimaSquad` combatLoop+synergies 0 → 미반영 (P2)
 - [x] **본문 Lint P1 1건 + P2 4건 등록 → frontmatter `sim_active: partial`** (P1 sim 부정확 → 룰 #15)
-- [ ] (선택) 패시브 AS 단위(P1) / selfBuff 제거 / APDamage / 동물특공대 trait sim 도입
+- [x] **패시브 AS 단위(P1) + selfBuff 제거 → #204 수정 완료**
+- [ ] (선택) APDamage / 동물특공대 trait sim 도입
 
 ## 관련
 
