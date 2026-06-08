@@ -3534,7 +3534,10 @@ function getEffectiveAttackSpeed(unit: CombatUnit): number {
   const briarSc = unit.champion.apiName === 'TFT17_Briar' ? getChampionScaling('TFT17_Briar') : null;
   if (briarSc) {
     const missingPct = 1 - (unit.currentHp / unit.maxHp);
-    const asPerPct = starValue(briarSc.asPerMissingHpPercent as number[] | undefined, unit.starLevel) / 100;
+    // scaling.json asPerMissingHpPercent [2,2,2,2.5] 는 이미 "missing 비율당 AS 배수" 단위.
+    // (잃은체력 50% × 2 = +100% AS, raw "1%당 2%" 정합). 기존 `/100` 은 이중 변환 버그(~100배 과소).
+    // Briar ingest (PR #201) lint P1 fix.
+    const asPerPct = starValue(briarSc.asPerMissingHpPercent as number[] | undefined, unit.starLevel);
     const apScale = briarSc.apScaling ? (1 + unit.stats.ap / 100) : 1;
     as *= (1 + missingPct * asPerPct * apScale);
   }

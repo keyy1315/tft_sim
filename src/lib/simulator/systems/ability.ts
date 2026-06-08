@@ -187,7 +187,7 @@ export const CHAMPION_ABILITY_PATTERNS: Record<string, AbilityConfig> = {
   // =====================================================
 
   // === 1코스트 ===
-  TFT17_Briar:       { pattern: 'single', selfBuff: { attackSpeed: 0.5, duration: 999 } },  // 잃은 체력당 AS + 단일 물리
+  TFT17_Briar:       { pattern: 'single' },  // 단일 물리. 패시브 잃은체력 비례 AS 는 getEffectiveAttackSpeed, 탱커 50% 는 :6590 (selfBuff 0.5 제거 — raw 액티브 AS 버프 없음, duration 미참조 매 cast 누적 버그)
   TFT17_Poppy:       { pattern: 'self_buff' },  // 보호막 + 2칸 내 아군 방어력+마법저항 — combatLoop applyPoppyShieldAndResists 헬퍼에서 처리 (Shield/ShieldDuration/Resists 변수 + AP scaling + 만료)
   TFT17_Veigar:      { pattern: 'aoe_circle', radius: 1, secondaryDamageVar: 'MiniDamage' },  // 정령유성 Damage + 미니유성 MiniDamage
   TFT17_Aatrox:      { pattern: 'single', heal: true },  // 회복 + 단일 물리
