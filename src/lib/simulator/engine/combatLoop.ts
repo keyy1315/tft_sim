@@ -6669,6 +6669,21 @@ export function simulateCombat(
                     unit.nasusBonkStack++;
                   }
                 }
+                // 초가스 응축: cast 시 maxHp 영구 증가 (처치 시 BonusHealthOnKill, 아니면 BonusHealthPerCast).
+                // desc "최대 체력 영구 BonusHealthPerCast 획득. 이 효과로 처치하면 대신 BonusHealthOnKill 획득".
+                // maxHp + currentHp 둘 다 가산 (거대화 — applyPermanentStacks chogath_hp :359 와 일관).
+                // single pattern → target 1명, cast 당 1회. Chogath ingest (PR #207) lint P1: 전투 중 영구 체력 성장 미반영 보강.
+                if (unit.champion.apiName === 'TFT17_Chogath') {
+                  const killed = t.currentHp <= 0;   // 사망 처리 블록(:6644) 과 동일 판정 — markTargetDead 후 유지
+                  const hpVar = unit.champion.ability.variables?.find(
+                    v => v.name === (killed ? 'BonusHealthOnKill' : 'BonusHealthPerCast'),
+                  );
+                  const hpGain = readVarByStar(hpVar?.value, unit.starLevel, 0);
+                  if (hpGain > 0) {
+                    unit.maxHp += hpGain;
+                    unit.currentHp += hpGain;
+                  }
+                }
               }
 
               // === PR7-A (17.2b) — 파이크 carry onKillRecast cascade ===
