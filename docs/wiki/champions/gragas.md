@@ -11,7 +11,7 @@ role: Tank   # raw "APTank" → mapGameRole() → sim Tank (types/index.ts inclu
 raw_role: APTank
 current_patch_status: active
 carry_augment: TFT17_Augment_GragasCarry   # 자폭 — abilityOverride aoe_circle selfDamage (conditional)
-sim_active: partial   # base 화학적 분노 aoe_circle Damage(★별 200/300/450 scaleAP) + 싸움꾼(Brawler) maxHp + 초능력(PsyOps) + carry augment(GragasCarry 자폭 selfDamage+baseDamageHpFrac+hexReduction+tankBonus 전부) 정합. P1 base heal 완전 미반영 (HEALING 변수 healVar find 후보['Heal'/'APHeal'/'PercentMaximumHealthHealing'/'HealthDrain']와 이름 미스매치 — Reksai #195 APHealing 동형이나 main heal 자체 누락) + HealingPercentHealth(maxHp 8.5%) 미반영 / P2 CCDuration 2초 냉각(ASSlow 30%)→stun 0.5 근사(CC 종류·시간 불일치) / P2 ASSlow 공속감소 미반영(stun 대체)
+sim_active: partial   # base 화학적 분노 aoe_circle Damage(★별 200/300/450 scaleAP) + 싸움꾼(Brawler) maxHp + 초능력(PsyOps) + carry augment(GragasCarry 자폭 selfDamage+baseDamageHpFrac+hexReduction+tankBonus 전부) 정합. ✅ base heal #202 수정 완료 (find 후보 'HEALING' 추가 + HealingPercentHealth maxHp 8.5% 별도 합산) / P2 CCDuration 2초 냉각(ASSlow 30%)→stun 0.5 근사(CC 종류·시간 불일치) / P2 ASSlow 공속감소 미반영(stun 대체)
 last_verified: 2026-06-08
 sources:
   - "public/data/tft_set17_champions.json (TFT17_Gragas entry — cost 2, role APTank, traits [초능력/싸움꾼], mana 30/80, ability '화학적 분노' variables DURATION/HEALING/Damage/CCDuration/HealingPercentHealth/ASSlow)"
@@ -20,7 +20,7 @@ sources:
   - "src/types/index.ts (mapGameRole — 'APTank' includes 'Tank' → Tank)"
   - "src/lib/simulator/systems/ability.ts:211 (TFT17_Gragas: { pattern: 'aoe_circle', radius: 1, heal: true, stun: 0.5 })"
   - "src/lib/simulator/systems/ability.ts:379 (detectScaling — desc scaleAP → 'ap') / :442 (getAbilityDamage — Damage ★별 + ap scaling)"
-  - "src/lib/simulator/engine/combatLoop.ts:7028-7064 (config.heal — healVar find ['Heal'/'APHeal'/'PercentMaximumHealthHealing'/'HealthDrain'], Gragas 'HEALING' 미매칭 → heal 누락)"
+  - "src/lib/simulator/engine/combatLoop.ts:7028-7082 (config.heal — healVar find 후보에 'HEALING' 포함 + HealingPercentHealth 별도 합산 — #202 fix 완료)"
   - "src/lib/simulator/engine/combatLoop.ts:2020 (applyBrawlerEffects 싸움꾼 maxHp, Gragas 7명 중) / :2234 (applyPsyOpsRadiantSwap 초능력) / :6353-6390 (GragasCarry 자폭 selfDamage 공식)"
 related:
   - "[[role-passive]]"
@@ -40,7 +40,7 @@ related:
 - **base ability "화학적 분노"**: `DURATION`(2)초 체력 `ModifiedHeal`(scaleHealth scaleAP) 회복 → 대상+인접 적 `Damage`(scaleAP) 마법 피해 + `CCDuration`(2)초 `ASSlow`(30%) 냉각.
 - **carry augment "자폭"**: 반경 3칸 자폭 (maxHp 20% 희생 + maxHp 10% + AP, 1칸당 45% 감소, 탱커 +60%).
 
-> 🎯 **Gragas 는 회복 + 광역 냉각 2코 탱커** (초능력/싸움꾼). carry augment 시 자폭 nuke 로 변환. base Damage·싸움꾼·carry 자폭은 sim 정합하나 **base heal 이 변수명 미스매치로 완전 미반영 (P1)** — [[reksai]] #195 와 동형.
+> 🎯 **Gragas 는 회복 + 광역 냉각 2코 탱커** (초능력/싸움꾼). carry augment 시 자폭 nuke 로 변환. base Damage·heal(#202)·싸움꾼·carry 자폭 sim 정합. base heal 은 변수명 미스매치를 **#202 로 해소** ([[reksai]] #195 APHealing 패턴).
 
 > ⚠️ **set17 entity confirm**: `TFT17_Gragas` apiName 으로 소속 확인 (cost 2, traits 초능력/싸움꾼, role APTank). 한글명 list 만으로 후보 선정 금지 (룰 #149 P2 학습).
 
@@ -78,12 +78,12 @@ TFT17_Gragas: { pattern: 'aoe_circle', radius: 1, heal: true, stun: 0.5 }
 | desc 요소 | sim 적용 | 근거 |
 |-----------|---------|------|
 | 대상+인접 마법 피해 (`Damage`) | ✅ ★별 + scaleAP | `findDamageVariable` → `Damage` (filler → ★1=200/★2=300/★3=450). `detectScaling` desc `scaleAP` → `'ap'` → `getAbilityDamage` `× (1+ap/100)` (`:379`/`:442`). aoe_circle radius 1 = 대상+인접 각각 full |
-| 체력 회복 (`HEALING` flat 415~630, scaleHealth+scaleAP) | ❌ **완전 미반영** | `config.heal: true` 이나 `healVar` find 후보 `['Heal','APHeal','PercentMaximumHealthHealing','HealthDrain']` (`:7032`) 에 **`HEALING` 없음** → find 실패 → heal 0. [[reksai]] #195 (APHealing 미스매치) 동형이나 **main heal var 자체 누락** (더 심각). **Lint P1** |
-| 회복 maxHp 비례 (`HealingPercentHealth` 8.5%) | ❌ **미반영** | find 후보 `PercentMaximumHealthHealing` ≠ raw `HealingPercentHealth`. heal 누락에 포함. **Lint P1** |
+| 체력 회복 (`HEALING` flat 415~630, scaleHealth+scaleAP) | ✅ **#202 수정** | `config.heal` find 후보에 `HEALING` 추가 (`:7032`) → `HEALING × (1+ap/100)` 합산. [[reksai]] #195 APHealing 패턴 |
+| 회복 maxHp 비례 (`HealingPercentHealth` 8.5%) | ✅ **#202 수정** | `HealingPercentHealth` 별도 read → `maxHp × 0.085` 합산 (if healVar 블록 내, HEALING 가진 Gragas만 진입) |
 | 냉각 (`CCDuration` 2초, `ASSlow` 30% 공속감소) | ⚠️ **stun 0.5 근사** | sim `stun: 0.5` 고정. raw 는 ASSlow 30%(공속 감소)를 CCDuration 2초간 → sim 은 기절(완전 행동불가) 0.5초로 대체. **CC 종류(냉각≠기절) + 시간(2초→0.5초) 모두 불일치**. **Lint P2** |
 | 공속 감소 효과 (`ASSlow` 30%) | ❌ 미반영 | stun 0.5 대체 (위 P2 에 포함) — ASSlow 정확 적용 시 별도 |
 
-> ⚠️ **base heal 미반영이 핵심 gap** — 2코 탱커 생존 핵심기(HEALING 415~630 + maxHp 8.5%)가 변수명 미스매치로 완전 누락. heal find 후보 확장(`HEALING`/`HealingPercentHealth` 추가) 시 해소.
+> ✅ **base heal #202 수정 완료** — heal find 후보에 `HEALING` 추가 + `HealingPercentHealth` 별도 합산. 2코 탱커 생존 핵심기 정합 (회귀 가드 `gragas-heal.test.ts`).
 
 ### Conditional — 자폭 (carry augment `TFT17_Augment_GragasCarry`, `carryAugments.ts:258`)
 
@@ -132,7 +132,7 @@ abilityData: { damage: [280,420,630], healthCost: 0.20, hexReduction: 0.45,
 - **싸움꾼** maxHp 증폭 + **초능력** PsyOps item
 
 ⚠️ **부정확 / 미반영** (Lint 후보):
-- **P1**: base heal 완전 미반영 — `HEALING` 변수가 healVar find 후보와 이름 미스매치 (+ `HealingPercentHealth` maxHp 8.5% 미반영). 2코 탱커 생존 핵심기 누락
+- ✅ **#202 수정 완료**: base heal (HEALING + HealingPercentHealth maxHp 8.5%) — find 후보 확장 + 별도 합산
 - **P2**: CCDuration 2초 냉각(ASSlow 30%) → stun 0.5 근사 (CC 종류 + 시간 불일치)
 - **P2**: ASSlow 공속감소 미반영 (stun 대체)
 
@@ -140,10 +140,10 @@ abilityData: { damage: [280,420,630], healthCost: 0.20, hexReduction: 0.45,
 
 | # | 항목 | 의미 | Tier | 적용 분기 (룰 #17) | 처리 |
 |---|------|------|------|---------------------|------|
-| P1 | base heal 완전 미반영 | `config.heal: true` 이나 healVar find 후보 `['Heal','APHeal','PercentMaximumHealthHealing','HealthDrain']` 에 raw `HEALING` 없음 → find 실패. + `HealingPercentHealth`(maxHp 8.5%) 미반영. [[reksai]] #195 (APHealing) 동형이나 main heal 자체 누락 | **P1** | cast-time — healVar find 후보에 `HEALING` 추가 + `HealingPercentHealth`(maxHp%) 합산 (Reksai APHealing 패턴). heal find 후보 확장 별도 과제와 연결 | 2코 탱커 생존 핵심기. 회귀 가드 동반 |
+| ✅ #202 | base heal 미반영 → **수정 완료** | healVar find 후보에 `HEALING` 추가 + `HealingPercentHealth`(maxHp 8.5%) 별도 합산 (Reksai APHealing 패턴) | ~~P1~~ resolved | cast-time — `:7032` 적용 | 회귀 가드 `gragas-heal.test.ts`. IvernMinion 등 heal find 일반화는 별도 과제 |
 | P2 | 냉각→stun 근사 (CC 종류·시간) | sim `stun: 0.5` vs raw ASSlow 30% 공속감소 CCDuration 2초. 기절(완전 행동불가)≠냉각(공속 감소) + 0.5초≠2초 | **P2** | config — ASSlow 30% slow status 를 CCDuration 2초 적용 (stun 대체) | CC 종류·시간 부정확. stun 이 더 강한 CC 라 과대평가 가능 |
 
-> 📌 **base Damage(scaleAP)+냉각 근사 + carry 자폭 전체 + 싸움꾼/초능력 trait 는 sim 정합**. `partial` 사유는 base heal 완전 미반영(P1) + 냉각 근사(P2). carry augment 자폭은 selfDamage 분기로 완전 반영.
+> 📌 **base Damage+heal(#202)+carry 자폭+싸움꾼/초능력 trait 는 sim 정합**. `partial` 잔존 사유는 냉각→stun 근사(P2)뿐 — base heal P1 은 #202 로 해소.
 
 ## Lint 체크리스트
 
