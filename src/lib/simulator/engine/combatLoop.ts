@@ -1342,6 +1342,13 @@ function applyCarryDamageModifiers(
       ? secBase * (1 + unit.stats.ap / 100)
       : secBase;
   }
+  // 2.5. baseDamageHpFrac (LeonaCarry '방패 여전사' line 첫 적중 maxHp% 가산) — primary target 한정.
+  //   자폭형(그라가스 GragasCarry)의 baseDamageHpFrac 은 selfDamage 분기(:6359)에서 continue →
+  //   본 helper 미진입. 추가 안전 가드: hexReduction 있는 자폭형 제외 (이중 가산 방지).
+  //   Leona ingest (PR #199) lint P1: 첫 적중 "AD + 24% 최대체력" 의 maxHp 가산 누락 보강.
+  if (isPrimaryTarget && ad.baseDamageHpFrac !== undefined && ad.hexReduction === undefined) {
+    baseDmg += unit.maxHp * ad.baseDamageHpFrac;
+  }
   // 3. tankBonusMultiplier (primary target 이 Tank 일 때만 +N%)
   if (isPrimaryTarget && ad.tankBonusMultiplier && t.role === 'Tank') {
     baseDmg *= (1 + ad.tankBonusMultiplier);
