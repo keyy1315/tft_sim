@@ -48,35 +48,35 @@ exports[`golden — anomaly (role-based) > Anomaly: Aurora(Caster) vs Rammus 1`]
 
 exports[`golden — anomaly (role-based) > Anomaly: Briar(Fighter) vs Illaoi 1`] = `
 {
-  "duration": 10.1,
+  "duration": 16.3,
   "logCounts": {
-    "ability": 3,
-    "attack": 19,
+    "ability": 6,
+    "attack": 27,
     "death": 1,
     "move": 6,
   },
   "scenarioName": "Anomaly: Briar(Fighter) vs Illaoi",
   "seed": 7,
-  "snapshotCount": 305,
+  "snapshotCount": 491,
   "units": [
     {
       "alive": true,
-      "attackCount": 13,
-      "castCount": 3,
+      "attackCount": 16,
+      "castCount": 4,
       "championApi": "TFT17_Briar",
-      "finalHp": 925.81,
+      "finalHp": 539.81,
       "id": "player-0",
       "killCount": 1,
       "maxHp": 1170,
       "starLevel": 2,
       "team": "player",
-      "totalDamageDealt": 2019.72,
-      "totalDamageTaken": 480,
+      "totalDamageDealt": 2310.72,
+      "totalDamageTaken": 900.93,
     },
     {
       "alive": false,
-      "attackCount": 6,
-      "castCount": 0,
+      "attackCount": 11,
+      "castCount": 1,
       "championApi": "TFT17_Illaoi",
       "finalHp": 0,
       "id": "enemy-0",
@@ -84,8 +84,8 @@ exports[`golden — anomaly (role-based) > Anomaly: Briar(Fighter) vs Illaoi 1`]
       "maxHp": 1980,
       "starLevel": 2,
       "team": "enemy",
-      "totalDamageDealt": 480,
-      "totalDamageTaken": 2019.72,
+      "totalDamageDealt": 900.93,
+      "totalDamageTaken": 2310.72,
     },
   ],
   "winner": "player",
@@ -232,7 +232,7 @@ exports[`golden — anomaly specialist (star orbit) > Anomaly: Gnar(Specialist) 
 
 exports[`golden — basic > 1v1 Briar mirror (대칭) 1`] = `
 {
-  "duration": 11.1,
+  "duration": 16.3,
   "logCounts": {
     "ability": 6,
     "attack": 31,
@@ -241,7 +241,7 @@ exports[`golden — basic > 1v1 Briar mirror (대칭) 1`] = `
   },
   "scenarioName": "1v1 Briar mirror (대칭)",
   "seed": 42,
-  "snapshotCount": 335,
+  "snapshotCount": 491,
   "units": [
     {
       "alive": true,
@@ -278,47 +278,47 @@ exports[`golden — basic > 1v1 Briar mirror (대칭) 1`] = `
 
 exports[`golden — basic > 1v1 Jinx+IE vs Briar (단일 스탯 아이템) 1`] = `
 {
-  "duration": 10.1333,
+  "duration": 10.9,
   "logCounts": {
     "ability": 3,
-    "attack": 20,
+    "attack": 19,
     "death": 1,
     "move": 6,
   },
   "scenarioName": "1v1 Jinx+IE vs Briar (단일 스탯 아이템)",
   "seed": 42,
-  "snapshotCount": 306,
+  "snapshotCount": 329,
   "units": [
     {
-      "alive": false,
-      "attackCount": 8,
+      "alive": true,
+      "attackCount": 9,
       "castCount": 1,
       "championApi": "TFT17_Jinx",
-      "finalHp": 0,
+      "finalHp": 144,
       "id": "player-0",
-      "killCount": 0,
+      "killCount": 1,
       "maxHp": 990,
       "starLevel": 2,
       "team": "player",
-      "totalDamageDealt": 1154.43,
-      "totalDamageTaken": 993,
+      "totalDamageDealt": 1293.03,
+      "totalDamageTaken": 846,
     },
     {
-      "alive": true,
-      "attackCount": 12,
-      "castCount": 3,
+      "alive": false,
+      "attackCount": 10,
+      "castCount": 2,
       "championApi": "TFT17_Briar",
-      "finalHp": 134.73,
+      "finalHp": 0,
       "id": "enemy-0",
-      "killCount": 1,
+      "killCount": 0,
       "maxHp": 1170,
       "starLevel": 2,
       "team": "enemy",
-      "totalDamageDealt": 993,
-      "totalDamageTaken": 1154.43,
+      "totalDamageDealt": 846,
+      "totalDamageTaken": 1293.03,
     },
   ],
-  "winner": "enemy",
+  "winner": "player",
 }
 `;
 
@@ -490,35 +490,35 @@ exports[`golden — combined items > Aurora+Rabadon vs Rammus 1`] = `
 
 exports[`golden — combined items > Belveth+Deathblade vs Briar 1`] = `
 {
-  "duration": 10.9,
+  "duration": 9.8,
   "logCounts": {
-    "ability": 4,
-    "attack": 25,
+    "ability": 3,
+    "attack": 18,
     "death": 1,
     "move": 6,
   },
   "scenarioName": "Belveth+Deathblade vs Briar",
   "seed": 42,
-  "snapshotCount": 329,
+  "snapshotCount": 296,
   "units": [
     {
       "alive": true,
-      "attackCount": 10,
-      "castCount": 2,
+      "attackCount": 9,
+      "castCount": 1,
       "championApi": "TFT17_Belveth",
-      "finalHp": 378.92,
+      "finalHp": 820.44,
       "id": "player-0",
       "killCount": 1,
       "maxHp": 1350,
       "starLevel": 2,
       "team": "player",
-      "totalDamageDealt": 1417.94,
-      "totalDamageTaken": 1128.41,
+      "totalDamageDealt": 1311.1,
+      "totalDamageTaken": 674.07,
     },
     {
       "alive": false,
-      "attackCount": 15,
-      "castCount": 3,
+      "attackCount": 9,
+      "castCount": 2,
       "championApi": "TFT17_Briar",
       "finalHp": 0,
       "id": "enemy-0",
@@ -526,8 +526,8 @@ exports[`golden — combined items > Belveth+Deathblade vs Briar 1`] = `
       "maxHp": 1170,
       "starLevel": 2,
       "team": "enemy",
-      "totalDamageDealt": 1128.41,
-      "totalDamageTaken": 1417.94,
+      "totalDamageDealt": 674.07,
+      "totalDamageTaken": 1311.1,
     },
   ],
   "winner": "player",
@@ -536,7 +536,7 @@ exports[`golden — combined items > Belveth+Deathblade vs Briar 1`] = `
 
 exports[`golden — combined items > Briar+Titans vs Jinx 1`] = `
 {
-  "duration": 4.2333,
+  "duration": 4.4667,
   "logCounts": {
     "ability": 2,
     "attack": 14,
@@ -545,7 +545,7 @@ exports[`golden — combined items > Briar+Titans vs Jinx 1`] = `
   },
   "scenarioName": "Briar+Titans vs Jinx",
   "seed": 101,
-  "snapshotCount": 129,
+  "snapshotCount": 136,
   "units": [
     {
       "alive": true,
