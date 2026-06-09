@@ -5434,6 +5434,7 @@ export function simulateCombat(
     }
 
     // 최신상 Meltthrough — 매 1초 graves 주변 2hex 적군 armor/MR -N (영구 누적, floor 0).
+    // raw desc: "doubled for adjacent enemies" → 인접(hexDistance===1)은 2배 감소.
     if (tick > 0 && tick % TICKS_PER_SECOND === 0) {
       for (const u of allUnits) {
         if (u.state === 'dead') continue;
@@ -5441,9 +5442,11 @@ export function simulateCombat(
         const enemyTeam = u.team === 'player' ? enemies : playerUnits;
         for (const e of enemyTeam) {
           if (e.state === 'dead') continue;
-          if (hexDistance(u.position, e.position) > 2) continue;
-          e.stats.armor = Math.max(0, e.stats.armor - u.gravesMeltthroughArmorMR);
-          e.stats.magicResist = Math.max(0, e.stats.magicResist - u.gravesMeltthroughArmorMR);
+          const dist = hexDistance(u.position, e.position);
+          if (dist > 2) continue;
+          const reduction = dist === 1 ? u.gravesMeltthroughArmorMR * 2 : u.gravesMeltthroughArmorMR;
+          e.stats.armor = Math.max(0, e.stats.armor - reduction);
+          e.stats.magicResist = Math.max(0, e.stats.magicResist - reduction);
         }
       }
     }
