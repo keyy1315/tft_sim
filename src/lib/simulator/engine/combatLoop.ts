@@ -181,6 +181,25 @@ function readVarByStar(value: number[] | undefined, starLevel: number, fallback 
   return value[idx] ?? value[isFiller ? 1 : 0] ?? fallback;
 }
 
+/**
+ * ability 변수명이 self-heal 변수인지 분류 (positive 패턴 + exclusion).
+ * 'drain' = HealthDrain (×NumEnemies special) / 'amount' = 일반 heal 금액
+ * (maxHp% vs AP-scaled 는 resolveSelfHeal 가 값 크기로 결정) / null = heal 아님.
+ *
+ * ⚠️ "Health" 가 "heal" 을 포함하므로 (HealthDamage/HealthOnKill 등) exclusion 을
+ *   positive 매칭보다 먼저 적용 — Chogath PercentMaximumHealthDamage(피해)/
+ *   BonusHealthOnKill(HP성장) 같은 non-heal 변수 false-positive 차단.
+ * spec: docs/superpowers/specs/2026-06-11-heal-find-generalization-design.md
+ */
+export function classifyHealVar(name: string): 'drain' | 'amount' | null {
+  if (/Duration|Shield|Shielding|ToShield|PerAstro|Aura|Cooldown|Ratio|Threshold|Damage|OnKill|PerCast|Reduction|Ally|Increase/i.test(name)) {
+    return null;
+  }
+  if (/^HealthDrain$/i.test(name)) return 'drain';
+  if (/Healing|^(AP)?Heal(HP|AP|Amount)?$|HealthGain|PercentHealing/i.test(name)) return 'amount';
+  return null;
+}
+
 function createCombatUnit(
   placed: PlacedChampion,
   team: 'player' | 'enemy',
