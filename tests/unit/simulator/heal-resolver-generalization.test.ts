@@ -3,7 +3,23 @@
  * spec: docs/superpowers/specs/2026-06-11-heal-find-generalization-design.md
  */
 import { describe, it, expect } from 'vitest';
-import { classifyHealVar } from '@/lib/simulator/engine/combatLoop';
+import { classifyHealVar, resolveSelfHeal, simulateCombat } from '@/lib/simulator/engine/combatLoop';
+import { loadServerCatalogs } from '@/lib/validation/serverCatalogs';
+import type { CombatUnit, RawChampion } from '@/types';
+
+const { champions } = loadServerCatalogs();
+function champ(api: string): RawChampion { return champions.find(c => c.apiName === api)!; }
+
+/** resolveSelfHeal 는 unit.champion.ability.variables / starLevel / maxHp / stats.ap 만 read.
+ *  최소 mock 으로 충분 (나머지 필드 미사용). */
+function mockUnit(api: string, opts: { starLevel?: number; maxHp?: number; ap?: number } = {}): CombatUnit {
+  return {
+    champion: champ(api),
+    starLevel: opts.starLevel ?? 1,
+    maxHp: opts.maxHp ?? 1000,
+    stats: { ap: opts.ap ?? 0 },
+  } as unknown as CombatUnit;
+}
 
 describe('classifyHealVar — positive 패턴 + exclusion', () => {
   it('positive heal 변수 → amount', () => {
@@ -29,5 +45,37 @@ describe('classifyHealVar — positive 패턴 + exclusion', () => {
     ]) {
       expect(classifyHealVar(n)).toBeNull();
     }
+  });
+});
+
+describe('resolveSelfHeal — readVarByStar 일괄 인덱싱 합산', () => {
+  it('Reksai ★1 = maxHp×0.065 + APHealing 90 (off-by-one 교정 — 200 아님)', () => {
+    expect(resolveSelfHeal(mockUnit('TFT17_Reksai', { maxHp: 1000, ap: 0 }), 1)).toBe(155);
+  });
+
+  it('IvernMinion ★1 = maxHp×0.08 + HealingAP 80 (edge case readVarByStar)', () => {
+    expect(resolveSelfHeal(mockUnit('TFT17_IvernMinion', { maxHp: 1000, ap: 0 }), 1)).toBe(160);
+  });
+
+  it('Illaoi ★1 = HealthDrain 40 × min(NumEnemies, aliveCount=1) = 40', () => {
+    expect(resolveSelfHeal(mockUnit('TFT17_Illaoi', { maxHp: 1000, ap: 0 }), 1)).toBe(40);
+  });
+
+  it('Morgana ★1 = 0 (현재 raw data: Shield/Tether/OmnivampPercent 만 존재 — heal 변수 없음)', () => {
+    // 플랜 원본: APHealthGain 600 + maxHp×0.15 + APHealing 100 = 850 기대.
+    // node -e 확인 결과 현재 tft_set17_champions.json 에 해당 변수 없음 → 실제 값 0.
+    expect(resolveSelfHeal(mockUnit('TFT17_Morgana', { maxHp: 1000, ap: 0 }), 1)).toBe(0);
+  });
+
+  it('Aatrox ★1 = maxHp×0.10 + HealAP 150 = 250 (신규 반영)', () => {
+    expect(resolveSelfHeal(mockUnit('TFT17_Aatrox', { maxHp: 1000, ap: 0 }), 1)).toBe(250);
+  });
+
+  it('Chogath = 0 (heal 변수 0개 — HealthDamage/HealthOnKill/PerCast 전부 exclusion)', () => {
+    expect(resolveSelfHeal(mockUnit('TFT17_Chogath', { maxHp: 2000, ap: 0 }), 3)).toBe(0);
+  });
+
+  it('AP scaling 적용 — Reksai ap=100 → maxHp×0.065 + 90×2 = 65 + 180 = 245', () => {
+    expect(resolveSelfHeal(mockUnit('TFT17_Reksai', { maxHp: 1000, ap: 100 }), 1)).toBe(245);
   });
 });

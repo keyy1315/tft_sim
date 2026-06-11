@@ -200,6 +200,33 @@ export function classifyHealVar(name: string): 'drain' | 'amount' | null {
   return null;
 }
 
+/**
+ * cast 시 시전자 self-heal 총량 계산 (healAmp 적용 전, maxHp cap 전).
+ * config.heal:true 챔프의 ability 변수를 전수 순회 → classifyHealVar 매칭 변수 합산.
+ * star 인덱싱은 readVarByStar(filler-aware) 일괄. 결정론 — 입력 동일 시 동일 결과.
+ * spec: docs/superpowers/specs/2026-06-11-heal-find-generalization-design.md
+ */
+export function resolveSelfHeal(unit: CombatUnit, aliveTargetCount: number): number {
+  const vars = unit.champion.ability.variables ?? [];
+  let healAmount = 0;
+  for (const v of vars) {
+    const kind = classifyHealVar(v.name);
+    if (!kind) continue;
+    const val = readVarByStar(v.value, unit.starLevel);
+    if (kind === 'drain') {
+      const numEnemiesVar = vars.find(x => x.name === 'NumEnemies');
+      const cap = numEnemiesVar ? (readVarByStar(numEnemiesVar.value, unit.starLevel) || 1) : 1;
+      const numEnemies = Math.min(cap, Math.max(1, aliveTargetCount));
+      healAmount += val * (1 + unit.stats.ap / 100) * numEnemies;
+    } else if (val < 1) {
+      healAmount += unit.maxHp * val;
+    } else {
+      healAmount += val * (1 + unit.stats.ap / 100);
+    }
+  }
+  return Math.round(healAmount);
+}
+
 function createCombatUnit(
   placed: PlacedChampion,
   team: 'player' | 'enemy',
