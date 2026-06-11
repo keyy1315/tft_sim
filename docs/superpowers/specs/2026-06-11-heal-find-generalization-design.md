@@ -31,11 +31,13 @@ if (healVar) {
 | **Aatrox** | `HealHP` 0.10 / `HealAP` [150,300,375,575] | ❌ **0** |
 | **Rhaast** | `HealAmount` [1,500,550,650] | ❌ **0** |
 | **TahmKench** | `HealHP` 0.085 / `HealAP` [0,300,360,1500] / (`PercentHealingToShield` 0.4) | ❌ **0** |
-| **Fiora** | `PercentHealing` 0.15 / (`AuraHealing` [250,200,250,999]) | ❌ **0** |
-| **Morgana** | `APHealthGain` [0,600,700,2500] / `PercentHPHealthGain` [0,0.15,0.15,0.5] / `APHealing` [0,100,150,3000] | ❌ **0** |
+| **Fiora** | `PercentHealing` 0.15 | ❌ **0** |
 | Chogath | `PercentMaximumHealthDamage` 0.08 / `BonusHealthOnKill` / `BonusHealthPerCast` | ➖ 0 (heal 변수 아님 — 전부 damage/HP성장) |
+| Morgana | (heal 변수 0개 — Shield/Tether/Omnivamp) | ➖ 0 (config.heal:true 이나 heal 변수 없음 → 계속 0) |
 
-→ **6챔프(IvernMinion/Aatrox/Rhaast/TahmKench/Fiora/Morgana) heal 완전 미반영**.
+→ **5챔프(IvernMinion/Aatrox/Rhaast/TahmKench/Fiora) heal 완전 미반영**.
+
+> ⚠️ **데이터 소스 정정 (구현 중 발견)**: 위 표는 sim 실제 로드 소스인 **`public/data/tft_set17_champions.json`** 기준. 최초 분석에 쓴 `raw-data/tft_en_us.json` 은 Morgana ability 가 다름(APHealthGain/APHealing 등 — 다른 패치/리워크 버전). **sim ground truth = `public/data`**. Morgana 는 public data 에 heal 변수 0개 → 미반영 대상 아님 (Chogath 동류). Fiora 도 public data 엔 `AuraHealing` 없음 → 보수 제외 우려 moot.
 
 ## 2. 핵심 함정 — "Health" 가 "heal" 을 포함
 
@@ -146,24 +148,24 @@ if (config.heal) {
 
 | 분류 | 챔프 | 변화 | 회귀 가드 |
 |------|------|------|----------|
-| 신규 반영 (0→heal) | IvernMinion / Aatrox / Rhaast / TahmKench / Fiora / Morgana | heal 반영 시작 | 각 챔프 시나리오 heal snapshot 신규 |
+| 신규 반영 (0→heal) | IvernMinion / Aatrox / Rhaast / TahmKench / Fiora (5) | heal 반영 시작 | 각 챔프 시나리오 heal snapshot 신규 |
 | indexing 교정 | Reksai(APHealing ★1 200→90) / Illaoi(HealthDrain ★1 55→40) | ★1 heal 값 변경 | 기존 golden snapshot 갱신 |
-| 불변 (검증됨) | Gragas / Galio / Chogath(heal 변수 0개) | 없음 | 기존 snapshot 불변 확인 |
+| 불변 (검증됨) | Gragas / Galio / Chogath / Morgana (heal 변수 0개) | 없음 | 기존 snapshot 불변 확인 |
 
 회귀 가드 테스트 신규: `heal-resolver-generalization.test.ts` — classifyHealVar 단위 테스트(positive/exclusion 케이스, 특히 Chogath HealthDamage/HealthOnKill 차단) + 6 신규 챔프 heal snapshot + Reksai/Illaoi 교정값 검증.
 
 ## 5. 보수적 제외 — 위키 "🔍 검증 필요" 표기
 
-코드는 보수 처리하되 위키에 미해결 명시:
-- **Fiora `AuraHealing`** — 아군 aura 인지 self-heal 인지 미확정 → 제외 (PercentHealing 만 반영)
-- **TahmKench `PercentHealingToShield`** — heal→shield 변환 비율, heal 금액 아님 → 제외 (shield 메커니즘 별도)
-- **Morgana `APHealthGain` vs `APHealing`** — 두 AP-scaled 변수 이중 계산 가능성 → 매칭 변수 전부 합산(best-effort)하되 flag. 실 게임 단일 heal 인지 검증 필요
+코드는 exclusion 패턴으로 보수 처리. public/data 기준 실제로 매칭되는 모호 변수는 없으나(아래는 raw/타 set 대비 방어), exclusion 토큰이 미래 ingest 시 false-positive 를 막는다:
+- **`AuraHealing`** (raw Fiora) — 아군 aura 가능성 → `Aura` exclusion. (단 public/data Fiora 엔 부재 — PercentHealing 만 반영)
+- **`PercentHealingToShield`** (raw TahmKench) — heal→shield 변환 비율 → `Shield`/`ToShield` exclusion. (public/data TahmKench 매칭 변수는 HealHP/HealAP 뿐)
+- **`HealingReduction`/`AllyHealing`/`HealingIncrease`** — amp/ally/debuff → `Reduction`/`Ally`/`Increase` exclusion (code review Task 1 추가)
 
 ## 6. 비범위 (YAGNI)
 
 - HealDuration over-time heal → 기존대로 cast 순간 lump-sum (Illaoi 주석 정합)
 - set16 챔프 heal 정확도 — 본 resolver 가 set 무관 동작하나 set16 회귀 검증은 비범위 (set17 focus). 단 set16 snapshot 불변 확인은 포함
-- AuraHealing/PercentHealingToShield/Morgana 이중계산 실제 fix — 검증 후 별도 사이클
+- raw-data(타 패치/set) 의 AuraHealing/PercentHealingToShield 실 semantics fix — public/data 도달 시 별도 검증
 
 ## 7. 후속 (구현 후)
 

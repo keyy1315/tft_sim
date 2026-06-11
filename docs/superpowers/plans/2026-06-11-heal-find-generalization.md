@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** `config.heal:true` 인데 sim heal=0 이던 6챔프(IvernMinion/Aatrox/Rhaast/TahmKench/Fiora/Morgana) 회복을 반영하고, Reksai/Illaoi heal star-indexing off-by-one 을 교정한다.
+**Goal:** `config.heal:true` 인데 sim heal=0 이던 5챔프(IvernMinion/Aatrox/Rhaast/TahmKench/Fiora) 회복을 반영하고, Reksai/Illaoi heal star-indexing off-by-one 을 교정한다. (sim 소스 = `public/data/tft_set17_champions.json` — Morgana 는 public data 에 heal 변수 0개라 대상 아님)
 
 **Architecture:** 단일 게이트 변수 find 방식을 폐기하고, ability 변수를 전수 순회하며 `classifyHealVar`(positive 패턴 + exclusion 가드, "Health"⊃"heal" false-positive 회피)로 분류 → `resolveSelfHeal` 순수 helper 가 `readVarByStar`(filler-aware) 일괄 인덱싱으로 합산. cast loop 은 helper 호출 + healAmp/maxHp cap 만.
 
@@ -156,8 +156,8 @@ describe('resolveSelfHeal — readVarByStar 일괄 인덱싱 합산', () => {
     expect(resolveSelfHeal(mockUnit('TFT17_Illaoi', { maxHp: 1000, ap: 0 }), 1)).toBe(40);
   });
 
-  it('Morgana ★1 = APHealthGain 600 + maxHp×0.15 + APHealing 100 = 850', () => {
-    expect(resolveSelfHeal(mockUnit('TFT17_Morgana', { maxHp: 1000, ap: 0 }), 1)).toBe(850);
+  it('Morgana ★1 = 0 (public/data: Shield/Tether/Omnivamp 만 — heal 변수 없음)', () => {
+    expect(resolveSelfHeal(mockUnit('TFT17_Morgana', { maxHp: 1000, ap: 0 }), 1)).toBe(0);
   });
 
   it('Aatrox ★1 = maxHp×0.10 + HealAP 150 = 250 (신규 반영)', () => {
@@ -243,7 +243,7 @@ git commit -m "feat(sim): resolveSelfHeal — ability 변수 전수 순회 heal 
 
 `combatLoop.ts:7056` 의 `if (config.heal) {` 블록 전체(`:7102` `}` 까지)를 read. 현재 healVar find + apHealingVar + pctHealthHealVar + HealthDrain 인라인 로직 ~47줄.
 
-- [ ] **Step 2: 통합 smoke 테스트 작성 (교체 전 — 6챔프 cast 후 heal>0 + crash 없음)**
+- [ ] **Step 2: 통합 smoke 테스트 작성 (교체 전 — 5 신규 챔프 cast 후 crash 없음)**
 
 위 테스트 파일에 describe 추가:
 
@@ -253,7 +253,7 @@ describe('통합 — 6 신규 반영 챔프 cast 후 정상 종료 (heal 배선)
   function placed(api: string, q: number, r: number) {
     return { champion: champ(api), starLevel: 2, position: { q, r }, items: [] };
   }
-  for (const api of ['TFT17_IvernMinion', 'TFT17_Aatrox', 'TFT17_Rhaast', 'TFT17_TahmKench', 'TFT17_Fiora', 'TFT17_Morgana']) {
+  for (const api of ['TFT17_IvernMinion', 'TFT17_Aatrox', 'TFT17_Rhaast', 'TFT17_TahmKench', 'TFT17_Fiora']) {
     it(`${api} cast → 정상 종료 (heal 반영 crash 없음)`, () => {
       const result = simulateCombat([placed(api, 4, 3)], [placed('TFT17_Graves', 4, 4)], {
         seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
@@ -271,8 +271,8 @@ describe('통합 — 6 신규 반영 챔프 cast 후 정상 종료 (heal 배선)
 ```ts
             // === 시전자 체력 회복 ===
             // refactor (heal-find-generalization, spec 2026-06-11): 단일 게이트 변수 find →
-            // resolveSelfHeal 전수 순회 helper. config.heal:true 챔프 6명(IvernMinion/Aatrox/
-            // Rhaast/TahmKench/Fiora/Morgana) 미반영 해소 + Reksai/Illaoi readVarByStar 교정.
+            // resolveSelfHeal 전수 순회 helper. config.heal:true 챔프 5명(IvernMinion/Aatrox/
+            // Rhaast/TahmKench/Fiora) 미반영 해소 + Reksai/Illaoi readVarByStar 교정.
             if (config.heal) {
               const healAmount = resolveSelfHeal(unit, aliveTargets.length);
               if (healAmount > 0) {
@@ -295,7 +295,7 @@ Expected: PASS — `reksai-heal-aphealing` / `gragas-heal` / `heal-amp-integrati
 
 ```bash
 git add src/lib/simulator/engine/combatLoop.ts tests/unit/simulator/heal-resolver-generalization.test.ts
-git commit -m "refactor(sim): config.heal 인라인 블록 → resolveSelfHeal 배선 (6챔프 미반영 해소)"
+git commit -m "refactor(sim): config.heal 인라인 블록 → resolveSelfHeal 배선 (5챔프 미반영 해소)"
 ```
 
 ---
@@ -313,7 +313,7 @@ Expected: golden 외 전부 PASS. golden 에서 Reksai/Illaoi/6신규 챔프가 
 - [ ] **Step 2: golden snapshot diff 검토**
 
 Run: `pnpm test:golden 2>&1 | head -80`
-- mismatch 발생 시나리오의 champion 이 **영향 챔프(Reksai/Illaoi/IvernMinion/Aatrox/Rhaast/TahmKench/Fiora/Morgana) 인지 확인**.
+- mismatch 발생 시나리오의 champion 이 **영향 챔프(Reksai/Illaoi/IvernMinion/Aatrox/Rhaast/TahmKench/Fiora — 7챔프) 인지 확인**.
 - ✅ 영향 챔프만 변경 → 의도된 변경. Step 3 으로.
 - ❌ **무관 챔프(Gragas/Galio/Chogath 등) snapshot 변경 시 → false-positive/회귀 버그**. classifyHealVar exclusion 재점검 (특히 Chogath HealthDamage 차단 확인). 멈추고 디버그.
 
@@ -331,7 +331,7 @@ Expected: 셋 다 PASS. 하나라도 실패 시 커밋 금지 — 수정 후 재
 
 ```bash
 git add -A
-git commit -m "test(sim): heal-find-generalization golden snapshot 갱신 + 회귀 확인 (영향 8챔프 한정)"
+git commit -m "test(sim): heal-find-generalization golden snapshot 갱신 + 회귀 확인 (영향 7챔프 한정)"
 ```
 
 ---
@@ -357,11 +357,11 @@ git commit -m "test(sim): heal-find-generalization golden snapshot 갱신 + 회�
 
 - [ ] **Step 4: 메모리 갱신**
 
-`champion-ingest-status` 메모리의 "heal find 일반화 시스템 과제" → resolved. 영향 8챔프 + classifyHealVar 패턴 기록.
+`champion-ingest-status` 메모리의 "heal find 일반화 시스템 과제" → resolved. 영향 7챔프(신규 5 + 교정 2) + classifyHealVar 패턴 + public/data 소스 교훈 기록.
 
 - [ ] **Step 5: PR 생성**
 
-[[feedback_pr_serial_workflow]] — sim fix PR 1개. 본문에 영향 8챔프 표 + classifyHealVar 패턴 + 보수 제외(Aura/ToShield/Morgana 이중계산) flag 명시.
+[[feedback_pr_serial_workflow]] — sim fix PR 1개. 본문에 영향 7챔프(신규 5 + 교정 2) 표 + classifyHealVar 패턴 + exclusion(Aura/ToShield/Reduction 등) + public/data 소스 교훈 명시.
 
 ---
 
@@ -370,4 +370,4 @@ git commit -m "test(sim): heal-find-generalization golden snapshot 갱신 + 회�
 - **Spec coverage**: §3.1 classifyHealVar→Task1 / §3.2-3.3 resolveSelfHeal→Task2 / §3.3 배선→Task3 / §4 회귀가드→Task4 / §5 보수제외 flag→Task5 위키 / §7 후속→Task5. ✅ 전 섹션 매핑.
 - **Placeholder scan**: 모든 step 에 실제 코드/명령/기대값. golden 변경 챔프는 "영향 챔프 한정 확인" 으로 구체화. Aatrox 기대값은 raw 확인 주석 포함. ✅
 - **Type consistency**: `classifyHealVar(name): 'drain'|'amount'|null` (Task1=Task2 호출 일관) / `resolveSelfHeal(unit, aliveTargetCount): number` (Task2 정의=Task3 호출 `resolveSelfHeal(unit, aliveTargets.length)` 일관). ✅
-- **보류 검증**: AuraHealing/PercentHealingToShield 는 exclusion 으로 코드 제외 + Task5 위키 flag. Morgana 이중계산(APHealthGain+APHealing) 은 합산(best-effort) + flag — spec §5 정합. ✅
+- **보류 검증**: AuraHealing/PercentHealingToShield 는 exclusion 으로 코드 제외 (public/data 엔 부재 — 방어적). Morgana 는 public/data heal 변수 0개라 미반영 대상 아님 (raw-data 와 다름 — 구현 중 발견) — spec §5 정합. ✅
