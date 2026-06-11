@@ -1,8 +1,8 @@
 {
   "gameId": "game-20260424-001",
-  "computedAt": "2026-06-10T01:49:17.355Z",
+  "computedAt": "2026-06-11T01:58:27.137Z",
   "sourceGameMtime": 1779323641263,
-  "engineSha": "c8decdeb8cc07949b6e79996590cc8c8f70959ef",
+  "engineSha": "530595c5aeb8136cc62b0701c0d873b1b388b3f3",
   "nRuns": 10,
   "seedBase": 0,
   "rounds": [
@@ -543,13 +543,13 @@
           },
           "championId": "TFT17_Briar",
           "actual": 943,
-          "simMean": 1031.4155577270124,
+          "simMean": 1030.366333081041,
           "simMedian": 1096.4196487873,
           "simRange": [
             785.7502904672332,
-            1167.3937961918382
+            1166.309491086579
           ],
-          "diffPct": 0.09375987033617429
+          "diffPct": 0.09264722490036152
         },
         {
           "hex": {
@@ -1368,7 +1368,7 @@
       "roundName": "3-6",
       "winner": {
         "actual": "draw",
-        "simPlayerWinRate": 0.9,
+        "simPlayerWinRate": 0.7,
         "matched": false,
         "weakSignal": false
       },
@@ -1391,13 +1391,13 @@
           },
           "championId": "TFT17_Xayah",
           "actual": 6549,
-          "simMean": 4693.670094511877,
+          "simMean": 4741.917709142964,
           "simMedian": 4743.897623878222,
           "simRange": [
             4311.648147383441,
-            4864.698068938191
+            5227.447490057607
           ],
-          "diffPct": -0.28329972598688696
+          "diffPct": -0.27593255319240134
         },
         {
           "hex": {
@@ -1406,13 +1406,13 @@
           },
           "championId": "TFT17_Gnar",
           "actual": 2012,
-          "simMean": 3784.2143155323997,
+          "simMean": 3767.8320014414594,
           "simMedian": 3838.9752504140806,
           "simRange": [
-            3500.644932520084,
+            3336.8217916106796,
             4068.209433670702
           ],
-          "diffPct": 0.8808222244196817
+          "diffPct": 0.8726799211935683
         },
         {
           "hex": {
@@ -1421,13 +1421,13 @@
           },
           "championId": "TFT17_Shen",
           "actual": 949,
-          "simMean": 181.9230760060824,
+          "simMean": 190.2307681997235,
           "simMedian": 169.2307683137747,
           "simRange": [
             153.84615384615384,
-            248.076921242934
+            315.7692287117243
           ],
-          "diffPct": -0.8083002360315253
+          "diffPct": -0.7995460819813239
         },
         {
           "hex": {
@@ -1436,13 +1436,13 @@
           },
           "championId": "TFT17_Rammus",
           "actual": 851,
-          "simMean": 151.91407775524436,
+          "simMean": 162.71407775524435,
           "simMedian": 178.1379301465791,
           "simRange": [
-            67.5,
+            72,
             202.4999983906746
           ],
-          "diffPct": -0.8214875702053533
+          "diffPct": -0.8087966183839667
         },
         {
           "hex": {
@@ -1466,13 +1466,13 @@
           },
           "championId": "TFT17_Rhaast",
           "actual": 654,
-          "simMean": 50.099999725818634,
-          "simMedian": 52.49999910593033,
+          "simMean": 53.77499966323376,
+          "simMedian": 54.249999076128006,
           "simRange": [
             0,
             100
           ],
-          "diffPct": -0.9233944958320816
+          "diffPct": -0.9177752298727313
         }
       ],
       "survivors": [
@@ -1607,13 +1607,13 @@
           },
           "championId": "TFT17_Xayah",
           "actual": 6204,
-          "simMean": 4594.26695160325,
-          "simMedian": 4524.33658700034,
+          "simMean": 4703.313714260826,
+          "simMedian": 4736.220195325241,
           "simRange": [
-            4382.708707204024,
-            4871.245567858938
+            4424.781736866659,
+            4962.744680258056
           ],
-          "diffPct": -0.25946696460295776
+          "diffPct": -0.24189011697923507
         },
         {
           "hex": {
@@ -1622,13 +1622,13 @@
           },
           "championId": "TFT17_Gnar",
           "actual": 2795,
-          "simMean": 3889.7817268608587,
+          "simMean": 3946.716346580923,
           "simMedian": 3917.1226919124865,
           "simRange": [
             3651.615110227157,
-            4311.150271409133
+            4366.165442886023
           ],
-          "diffPct": 0.3916929255316131
+          "diffPct": 0.41206309358888127
         },
         {
           "hex": {
@@ -1637,13 +1637,13 @@
           },
           "championId": "TFT17_Bard",
           "actual": 1046,
-          "simMean": 115.94252821312095,
-          "simMedian": 116.80076575370585,
+          "simMean": 118.01149373036233,
+          "simMedian": 118.4674324203725,
           "simRange": [
-            97.77777724795871,
+            109.57854406130268,
             127.35632077944233
           ],
-          "diffPct": -0.8891562827790431
+          "diffPct": -0.8871783042730762
         },
         {
           "hex": {
@@ -2363,7 +2363,7 @@
       "roundName": "5-1",
       "winner": {
         "actual": "player",
-        "simPlayerWinRate": 1,
+        "simPlayerWinRate": 0.9,
         "matched": true,
         "weakSignal": false
       },
@@ -2375,13 +2375,13 @@
           },
           "championId": "TFT17_Xayah",
           "actual": 8618,
-          "simMean": 6269.001340896645,
-          "simMedian": 6201.000135861235,
+          "simMean": 6679.930036459293,
+          "simMedian": 6590.653440654709,
           "simRange": [
-            5507.803024516668,
-            7299.413043915404
+            6113.784941990833,
+            7576.542542076917
           ],
-          "diffPct": -0.27256888594840506
+          "diffPct": -0.22488628029017257
         },
         {
           "hex": {
@@ -2390,13 +2390,13 @@
           },
           "championId": "TFT17_Gnar",
           "actual": 4851,
-          "simMean": 5591.600872391797,
-          "simMedian": 5554.170971879797,
+          "simMean": 5769.408593501679,
+          "simMedian": 5784.213818536904,
           "simRange": [
             5045.006750665755,
-            5989.234803551164
+            6323.786521991713
           ],
-          "diffPct": 0.15266973250707003
+          "diffPct": 0.18932356081254983
         },
         {
           "hex": {
@@ -2424,10 +2424,10 @@
           "team": "opponent",
           "actualAlive": false,
           "actualHp": 0,
-          "simAliveRate": 0,
-          "simMeanHp": 0,
+          "simAliveRate": 0.1,
+          "simMeanHp": 16.316879389084143,
           "aliveMismatch": false,
-          "hpDiffPoints": 0
+          "hpDiffPoints": 16.316879389084143
         },
         {
           "hex": {
@@ -2452,10 +2452,10 @@
           "team": "opponent",
           "actualAlive": false,
           "actualHp": 0,
-          "simAliveRate": 0,
-          "simMeanHp": 0,
+          "simAliveRate": 0.1,
+          "simMeanHp": 16.32862984404185,
           "aliveMismatch": false,
-          "hpDiffPoints": 0
+          "hpDiffPoints": 16.32862984404185
         },
         {
           "hex": {
@@ -2480,10 +2480,10 @@
           "team": "opponent",
           "actualAlive": false,
           "actualHp": 0,
-          "simAliveRate": 0,
-          "simMeanHp": 0,
+          "simAliveRate": 0.1,
+          "simMeanHp": 1.421064876048731,
           "aliveMismatch": false,
-          "hpDiffPoints": 0
+          "hpDiffPoints": 1.421064876048731
         },
         {
           "hex": {
@@ -2671,13 +2671,13 @@
           },
           "championId": "TFT17_Xayah",
           "actual": 12360,
-          "simMean": 6451.930175704432,
-          "simMedian": 6447.932795545106,
+          "simMean": 6511.954963995209,
+          "simMedian": 6502.618582459184,
           "simRange": [
             6105.98509441083,
             6955.220255081669
           ],
-          "diffPct": -0.4779991767229424
+          "diffPct": -0.4731428022657598
         },
         {
           "hex": {
@@ -2686,13 +2686,13 @@
           },
           "championId": "TFT17_Gnar",
           "actual": 7824,
-          "simMean": 6592.680879191246,
-          "simMedian": 6624.553133709065,
+          "simMean": 6659.091763232691,
+          "simMedian": 6695.014992642255,
           "simRange": [
             6189.351653092457,
             7009.426897269093
           ],
-          "diffPct": -0.15737718824242763
+          "diffPct": -0.14888908956637387
         },
         {
           "hex": {
@@ -2701,13 +2701,13 @@
           },
           "championId": "TFT17_Bard",
           "actual": 2111,
-          "simMean": 95.300137961751,
-          "simMedian": 74.98275835169801,
+          "simMean": 99.7435853587759,
+          "simMedian": 76.28275776459225,
           "simRange": [
-            51.79999965131283,
-            188.5903514324856
+            54.99999947845936,
+            198.36965348222134
           ],
-          "diffPct": -0.9548554533577683
+          "diffPct": -0.9527505517011957
         },
         {
           "hex": {
@@ -2746,13 +2746,13 @@
           },
           "championId": "TFT17_Nunu",
           "actual": 1312,
-          "simMean": 366.4783500518406,
-          "simMedian": 368.53310746446016,
+          "simMean": 366.22318184089454,
+          "simMedian": 373.31751384366873,
           "simRange": [
             244.87804411363737,
             453.03968093023974
           ],
-          "diffPct": -0.7206719892897556
+          "diffPct": -0.7208664772554157
         }
       ],
       "survivors": [
@@ -3240,9 +3240,9 @@
           "actualAlive": false,
           "actualHp": 0,
           "simAliveRate": 1,
-          "simMeanHp": 48.283113625195725,
+          "simMeanHp": 50.82940992149202,
           "aliveMismatch": true,
-          "hpDiffPoints": 48.283113625195725
+          "hpDiffPoints": 50.82940992149202
         },
         {
           "hex": {
@@ -3319,7 +3319,7 @@
     "pvpRoundCount": 21,
     "winnerMatchRate": 0.6666666666666666,
     "weakSignalRoundCount": 0,
-    "avgPlayerDamageErrorPct": -0.33742604233603946,
-    "avgSurvivorHpErrorPts": 0.6971179463904756
+    "avgPlayerDamageErrorPct": -0.33546541244391664,
+    "avgSurvivorHpErrorPts": 1.0519780933610456
   }
 }

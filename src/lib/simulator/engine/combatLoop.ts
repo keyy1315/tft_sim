@@ -181,6 +181,64 @@ function readVarByStar(value: number[] | undefined, starLevel: number, fallback 
   return value[idx] ?? value[isFiller ? 1 : 0] ?? fallback;
 }
 
+/**
+ * ability 변수명이 self-heal 변수인지 분류 (positive 패턴 + exclusion).
+ * 'drain' = HealthDrain (×NumEnemies special) / 'damagePercent' = PercentHealing
+ * (입힌 피해의 %, Fiora — maxHp 가 아닌 cast damage 기준) / 'amount' = 일반 heal 금액
+ * (maxHp% vs AP-scaled 는 resolveSelfHeal 가 값 크기로 결정) / null = heal 아님.
+ *
+ * ⚠️ "Health" 가 "heal" 을 포함하므로 (HealthDamage/HealthOnKill 등) exclusion 을
+ *   positive 매칭보다 먼저 적용 — Chogath PercentMaximumHealthDamage(피해)/
+ *   BonusHealthOnKill(HP성장) 같은 non-heal 변수 false-positive 차단.
+ * ⚠️ `PercentHealing`(Fiora)은 maxHp% 가 아닌 damage% — 'damagePercent' 로 분리 (codex P2 PR #216).
+ *   `PercentMaximumHealthHealing`/`HealingPercentHealth` 는 "Health" 포함이라 미매칭 (maxHp% 'amount').
+ * spec: docs/superpowers/specs/2026-06-11-heal-find-generalization-design.md
+ */
+export function classifyHealVar(name: string): 'drain' | 'damagePercent' | 'amount' | null {
+  if (/Duration|Shield|Shielding|ToShield|PerAstro|Aura|Cooldown|Ratio|Threshold|Damage|OnKill|PerCast|Reduction|Ally|Increase/i.test(name)) {
+    return null;
+  }
+  if (/^HealthDrain$/i.test(name)) return 'drain';
+  if (/^PercentHealing$/i.test(name)) return 'damagePercent';
+  if (/Healing|^(AP)?Heal(HP|AP|Amount)?$|HealthGain|PercentHealing/i.test(name)) return 'amount';
+  return null;
+}
+
+/**
+ * cast 시 시전자 self-heal 총량 계산 (healAmp 적용 전, maxHp cap 전).
+ * config.heal:true 챔프의 ability 변수를 전수 순회 → classifyHealVar 매칭 변수 합산.
+ * star 인덱싱은 readVarByStar(filler-aware) 일괄. 결정론 — 입력 동일 시 동일 결과.
+ * `abilityDamageDealt` = 이번 cast 의 totalAbilityDmg — 'damagePercent'(PercentHealing) 계산용.
+ * spec: docs/superpowers/specs/2026-06-11-heal-find-generalization-design.md
+ */
+export function resolveSelfHeal(
+  unit: CombatUnit,
+  aliveTargetCount: number,
+  abilityDamageDealt = 0,
+): number {
+  const vars = unit.champion.ability.variables ?? [];
+  let healAmount = 0;
+  for (const v of vars) {
+    const kind = classifyHealVar(v.name);
+    if (!kind) continue;
+    const val = readVarByStar(v.value, unit.starLevel);
+    if (kind === 'drain') {
+      const numEnemiesVar = vars.find(x => x.name === 'NumEnemies');
+      const cap = numEnemiesVar ? (readVarByStar(numEnemiesVar.value, unit.starLevel) || 1) : 1;
+      const numEnemies = Math.min(cap, Math.max(1, aliveTargetCount));
+      healAmount += val * (1 + unit.stats.ap / 100) * numEnemies;
+    } else if (kind === 'damagePercent') {
+      // PercentHealing (Fiora) — 입힌 피해의 % 회복 (maxHp 아님). codex P2 PR #216.
+      healAmount += abilityDamageDealt * val;
+    } else if (val < 1) {
+      healAmount += unit.maxHp * val;
+    } else {
+      healAmount += val * (1 + unit.stats.ap / 100);
+    }
+  }
+  return Math.round(healAmount);
+}
+
 function createCombatUnit(
   placed: PlacedChampion,
   team: 'player' | 'enemy',
@@ -7053,51 +7111,16 @@ export function simulateCombat(
             }
 
             // === 시전자 체력 회복 ===
+            // refactor (heal-find-generalization, spec 2026-06-11): 단일 게이트 변수 find →
+            // resolveSelfHeal 전수 순회 helper. config.heal:true 챔프 5명(IvernMinion/Aatrox/
+            // Rhaast/TahmKench/Fiora) 미반영 해소 + Reksai/Illaoi readVarByStar 교정.
             if (config.heal) {
-              // PR98: Illaoi 의 HealthDrain (drain × NumEnemies) 도 self-heal 로 인식.
-              // Illaoi ability '영혼의 시험': 가까운 NumEnemies 명에게서 HealthDrain 흡수.
-              // 단순화 — 실제 메커닉은 3s 동안 drain over time, sim 은 cast 순간 lump-sum heal.
-              const healVar = unit.champion.ability.variables.find(v => v.name === 'Heal' || v.name === 'APHeal' || v.name === 'PercentMaximumHealthHealing' || v.name === 'HealthDrain' || v.name === 'HEALING');
-              if (healVar) {
-                const starIdx = Math.min(unit.starLevel, healVar.value.length - 1);
-                const healVal = healVar.value[starIdx] ?? healVar.value[0] ?? 0;
-                let healAmount = typeof healVal === 'number'
-                  ? (healVal < 1 ? Math.round(unit.maxHp * healVal) : Math.round(healVal * (1 + unit.stats.ap / 100)))
-                  : 0;
-                // HealthDrain 은 NumEnemies 명에게서 흡수 — total = per_enemy × NumEnemies (cap to alive abilityTargets).
-                // codex P2 (PR #98): cast 시점의 alive count (line 5810 의 aliveTargets) 재사용 —
-                // damage resolution 후 abilityTargets.filter 면 cast 로 죽은 적 제외돼 under-heal.
-                if (healVar.name === 'HealthDrain') {
-                  const numEnemiesVar = unit.champion.ability.variables.find(v => v.name === 'NumEnemies');
-                  const numCap = numEnemiesVar
-                    ? (numEnemiesVar.value[Math.min(unit.starLevel, numEnemiesVar.value.length - 1)] ?? 1)
-                    : 1;
-                  const numEnemies = Math.min(numCap, Math.max(1, aliveTargets.length));
-                  healAmount *= numEnemies;
-                }
-                // Reksai (TFT17_Reksai) 'APHealing' scaleAP heal 합산 — desc TotalHealing = scaleHealth + scaleAP.
-                // healVar find 후보에 'APHealing' 없어 (raw 'APHealing' vs find 'APHeal' 미스매치) scaleAP heal 누락되던 것 보강.
-                // APHealing 은 Reksai 전용 변수 (다른 champion 영향 없음). healVar(PercentMaximumHealthHealing maxHp%) 와 합산.
-                const apHealingVar = unit.champion.ability.variables.find(v => v.name === 'APHealing');
-                if (apHealingVar) {
-                  const apSi = Math.min(unit.starLevel, apHealingVar.value.length - 1);
-                  const apHealVal = (apHealingVar.value[apSi] ?? apHealingVar.value[0] ?? 0) as number;
-                  healAmount += Math.round(apHealVal * (1 + unit.stats.ap / 100));
-                }
-                // Gragas (TFT17_Gragas) 'HealingPercentHealth' scaleHealth heal 합산 — desc ModifiedHeal = scaleHealth + scaleAP.
-                // healVar find 후보에 'HealingPercentHealth' 없어 (raw 'HealingPercentHealth' vs find 'PercentMaximumHealthHealing' 이름 미스매치)
-                // maxHp% heal 누락되던 것 보강. HEALING(main flat+scaleAP) 과 합산. Gragas ingest (PR #201) lint P1.
-                const pctHealthHealVar = unit.champion.ability.variables.find(v => v.name === 'HealingPercentHealth');
-                if (pctHealthHealVar) {
-                  const pSi = Math.min(unit.starLevel, pctHealthHealVar.value.length - 1);
-                  const pVal = (pctHealthHealVar.value[pSi] ?? pctHealthHealVar.value[0] ?? 0) as number;
-                  healAmount += Math.round(unit.maxHp * pVal);
-                }
-                if (healAmount > 0) {
-                  // healAmp 곱셈 적용 — ability self-heal 도 회복량 증폭 효과 대상.
-                  const finalHeal = healAmount * (1 + (unit.healAmp ?? 0));
-                  unit.currentHp = Math.min(unit.maxHp, unit.currentHp + finalHeal);
-                }
+              // totalAbilityDmg 전달 — PercentHealing(Fiora) damage% heal 계산용 (codex P2 PR #216).
+              const healAmount = resolveSelfHeal(unit, aliveTargets.length, totalAbilityDmg);
+              if (healAmount > 0) {
+                // healAmp 곱셈 — ability self-heal 도 회복량 증폭 효과 대상.
+                const finalHeal = healAmount * (1 + (unit.healAmp ?? 0));
+                unit.currentHp = Math.min(unit.maxHp, unit.currentHp + finalHeal);
               }
             }
 

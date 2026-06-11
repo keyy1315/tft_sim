@@ -22,11 +22,20 @@ function placed(c: RawChampion, q: number, r: number, starLevel = 2): PlacedCham
   return { champion: c, starLevel, position: { q, r }, items: [] };
 }
 
-function runWith(upgrades: string[], frame?: 'CloseQuarters' | 'SharpshooterModule' | 'DoubleTap') {
+function runWith(
+  upgrades: string[],
+  frame?: 'CloseQuarters' | 'SharpshooterModule' | 'DoubleTap',
+  opts: { seed?: number; enemyApi?: string } = {},
+) {
+  // 기본 dummy 는 Aatrox (대부분 테스트 — kill duration 측정에 사망 필요).
+  // 일부 테스트(attackCount)는 생존 탱커가 필요해 enemyApi 로 override.
+  const enemyChamp = opts.enemyApi
+    ? champions.find(c => c.apiName === opts.enemyApi)!
+    : dummyEnemy;
   const team: PlacedChampion[] = [placed(apGraves, 0, 0)];
-  const enemy: PlacedChampion[] = [placed(dummyEnemy, 6, 3)];
+  const enemy: PlacedChampion[] = [placed(enemyChamp, 6, 3)];
   return simulateCombat(team, enemy, {
-    seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
+    seed: opts.seed ?? 0, allTraits: traits, skipMirror: true, stageNumber: 5,
     playerGravesUpgrades: upgrades,
     playerGravesFrame: frame,
   });
@@ -67,14 +76,21 @@ describe('GravesTrait Phase 3B-1 — TripleTap (18% chance, 추가 2 hit)', () =
   });
 
   it('TripleTap 활성 시 평균 attackCount 증가 (chance proc 시 +2 hit)', () => {
-    // 기준선
-    const baseGrav = gravesOf(runWith([]));
-    // TripleTap 활성 + DoubleTap 둘 다 미사용 (분리된 영향 측정)
-    const tripleGrav = gravesOf(runWith(['TripleTap']));
-    // attackCount = 평타 횟수. TripleTap proc 시 +2 hit per 평타.
-    // PR99 (off-by-one fix): Graves SecondaryDamageAD ★2 정상화로 combat duration / attack
-    // 분배가 미세 변동 가능. >=baseline 만 보장 (regression catch).
-    expect(tripleGrav.attackCount).toBeGreaterThanOrEqual(baseGrav.attackCount);
+    // TripleTap 의 18% roll 이 RNG 스트림을 소비 → 단일 seed 는 비-monotonic(난수 shift).
+    // 본래 의도("평균")대로 다중 seed 평균으로 비교.
+    // dummy 는 생존 탱커 Shen 으로 override: 기본 dummy(Aatrox)는 heal-find-generalization
+    //   (2026-06-11) 으로 신규 self-heal 반영 후 사망하면 TripleTap 이 오히려 빨리 죽여
+    //   attackCount 가 감소(fragile). 생존 dummy 면 TripleTap 이 고정 duration 에 hit 만
+    //   추가 → 평균 attackCount 증가가 robust 하게 성립.
+    const SEEDS = 8;
+    const TANK = 'TFT17_Shen';
+    let baseSum = 0;
+    let tripleSum = 0;
+    for (let seed = 0; seed < SEEDS; seed++) {
+      baseSum += gravesOf(runWith([], undefined, { seed, enemyApi: TANK })).attackCount;
+      tripleSum += gravesOf(runWith(['TripleTap'], undefined, { seed, enemyApi: TANK })).attackCount;
+    }
+    expect(tripleSum).toBeGreaterThan(baseSum);
   });
 });
 
