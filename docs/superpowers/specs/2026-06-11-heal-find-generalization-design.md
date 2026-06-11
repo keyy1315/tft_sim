@@ -93,10 +93,11 @@ function classifyHealVar(name: string): 'drain' | 'amount' | null {
 
 매칭된 변수마다:
 - `drain` (HealthDrain) → `readVarByStar(v.value, star) × (1+ap/100) × min(NumEnemies, aliveTargetCount)` (기존 Illaoi 로직 보존)
+- `damagePercent` (PercentHealing — Fiora) → `abilityDamageDealt × readVarByStar(v.value, star)` (입힌 피해의 %. **codex P2 PR #216 추가** — maxHp% 아님. `resolveSelfHeal` 가 cast 의 `totalAbilityDmg` 를 인자로 받음)
 - 값 `< 1` → maxHp%: `unit.maxHp × readVarByStar(v.value, star)`
 - 값 `≥ 1` → AP-scaled: `readVarByStar(v.value, star) × (1+ap/100)`
 
-> 값 분류용 representative 값 = `readVarByStar(v.value, star)` 결과 (star별 값). `< 1` 판정도 그 값 기준.
+> `damagePercent` 는 `classifyHealVar` 가 `^PercentHealing$` 로 분리 판정 (maxHp% 변수 `PercentMaximumHealthHealing`/`HealingPercentHealth` 는 "Health" 포함이라 미매칭 → `amount`). 나머지 `amount` 의 maxHp% vs AP-scaled 는 `readVarByStar` 결과 값 크기(`< 1`)로 결정.
 
 **star 인덱싱 = `readVarByStar` (filler-aware) 일괄**. 기존 인라인 코드의 `Math.min(star, len-1)` 대체. 이로 인한 변화:
 - Reksai `APHealing` [90,200,220,260]: v0=90<v1=200 non-filler → ★1=idx0=**90** (현재 min→200, off-by-one 교정. reksai.md 위키 의도 ★1=90 과 일치)
