@@ -79,3 +79,18 @@ describe('resolveSelfHeal — readVarByStar 일괄 인덱싱 합산', () => {
     expect(resolveSelfHeal(mockUnit('TFT17_Reksai', { maxHp: 1000, ap: 100 }), 1)).toBe(245);
   });
 });
+
+describe('통합 — 5 신규 반영 챔프 cast 후 정상 종료 (heal 배선 crash 없음)', () => {
+  const { traits } = loadServerCatalogs();
+  function placedU(api: string, q: number, r: number) {
+    return { champion: champ(api), starLevel: 2, position: { q, r }, items: [] };
+  }
+  for (const api of ['TFT17_IvernMinion', 'TFT17_Aatrox', 'TFT17_Rhaast', 'TFT17_TahmKench', 'TFT17_Fiora']) {
+    it(`${api} cast → 정상 종료 (heal 반영 crash 없음)`, () => {
+      const result = simulateCombat([placedU(api, 4, 3)], [placedU('TFT17_Graves', 4, 4)], {
+        seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
+      });
+      expect(result.duration).toBeGreaterThan(0);
+    });
+  }
+});

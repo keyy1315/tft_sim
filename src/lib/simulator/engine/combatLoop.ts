@@ -7099,51 +7099,15 @@ export function simulateCombat(
             }
 
             // === 시전자 체력 회복 ===
+            // refactor (heal-find-generalization, spec 2026-06-11): 단일 게이트 변수 find →
+            // resolveSelfHeal 전수 순회 helper. config.heal:true 챔프 5명(IvernMinion/Aatrox/
+            // Rhaast/TahmKench/Fiora) 미반영 해소 + Reksai/Illaoi readVarByStar 교정.
             if (config.heal) {
-              // PR98: Illaoi 의 HealthDrain (drain × NumEnemies) 도 self-heal 로 인식.
-              // Illaoi ability '영혼의 시험': 가까운 NumEnemies 명에게서 HealthDrain 흡수.
-              // 단순화 — 실제 메커닉은 3s 동안 drain over time, sim 은 cast 순간 lump-sum heal.
-              const healVar = unit.champion.ability.variables.find(v => v.name === 'Heal' || v.name === 'APHeal' || v.name === 'PercentMaximumHealthHealing' || v.name === 'HealthDrain' || v.name === 'HEALING');
-              if (healVar) {
-                const starIdx = Math.min(unit.starLevel, healVar.value.length - 1);
-                const healVal = healVar.value[starIdx] ?? healVar.value[0] ?? 0;
-                let healAmount = typeof healVal === 'number'
-                  ? (healVal < 1 ? Math.round(unit.maxHp * healVal) : Math.round(healVal * (1 + unit.stats.ap / 100)))
-                  : 0;
-                // HealthDrain 은 NumEnemies 명에게서 흡수 — total = per_enemy × NumEnemies (cap to alive abilityTargets).
-                // codex P2 (PR #98): cast 시점의 alive count (line 5810 의 aliveTargets) 재사용 —
-                // damage resolution 후 abilityTargets.filter 면 cast 로 죽은 적 제외돼 under-heal.
-                if (healVar.name === 'HealthDrain') {
-                  const numEnemiesVar = unit.champion.ability.variables.find(v => v.name === 'NumEnemies');
-                  const numCap = numEnemiesVar
-                    ? (numEnemiesVar.value[Math.min(unit.starLevel, numEnemiesVar.value.length - 1)] ?? 1)
-                    : 1;
-                  const numEnemies = Math.min(numCap, Math.max(1, aliveTargets.length));
-                  healAmount *= numEnemies;
-                }
-                // Reksai (TFT17_Reksai) 'APHealing' scaleAP heal 합산 — desc TotalHealing = scaleHealth + scaleAP.
-                // healVar find 후보에 'APHealing' 없어 (raw 'APHealing' vs find 'APHeal' 미스매치) scaleAP heal 누락되던 것 보강.
-                // APHealing 은 Reksai 전용 변수 (다른 champion 영향 없음). healVar(PercentMaximumHealthHealing maxHp%) 와 합산.
-                const apHealingVar = unit.champion.ability.variables.find(v => v.name === 'APHealing');
-                if (apHealingVar) {
-                  const apSi = Math.min(unit.starLevel, apHealingVar.value.length - 1);
-                  const apHealVal = (apHealingVar.value[apSi] ?? apHealingVar.value[0] ?? 0) as number;
-                  healAmount += Math.round(apHealVal * (1 + unit.stats.ap / 100));
-                }
-                // Gragas (TFT17_Gragas) 'HealingPercentHealth' scaleHealth heal 합산 — desc ModifiedHeal = scaleHealth + scaleAP.
-                // healVar find 후보에 'HealingPercentHealth' 없어 (raw 'HealingPercentHealth' vs find 'PercentMaximumHealthHealing' 이름 미스매치)
-                // maxHp% heal 누락되던 것 보강. HEALING(main flat+scaleAP) 과 합산. Gragas ingest (PR #201) lint P1.
-                const pctHealthHealVar = unit.champion.ability.variables.find(v => v.name === 'HealingPercentHealth');
-                if (pctHealthHealVar) {
-                  const pSi = Math.min(unit.starLevel, pctHealthHealVar.value.length - 1);
-                  const pVal = (pctHealthHealVar.value[pSi] ?? pctHealthHealVar.value[0] ?? 0) as number;
-                  healAmount += Math.round(unit.maxHp * pVal);
-                }
-                if (healAmount > 0) {
-                  // healAmp 곱셈 적용 — ability self-heal 도 회복량 증폭 효과 대상.
-                  const finalHeal = healAmount * (1 + (unit.healAmp ?? 0));
-                  unit.currentHp = Math.min(unit.maxHp, unit.currentHp + finalHeal);
-                }
+              const healAmount = resolveSelfHeal(unit, aliveTargets.length);
+              if (healAmount > 0) {
+                // healAmp 곱셈 — ability self-heal 도 회복량 증폭 효과 대상.
+                const finalHeal = healAmount * (1 + (unit.healAmp ?? 0));
+                unit.currentHp = Math.min(unit.maxHp, unit.currentHp + finalHeal);
               }
             }
 
