@@ -183,19 +183,23 @@ function readVarByStar(value: number[] | undefined, starLevel: number, fallback 
 
 /**
  * ability 변수명이 self-heal 변수인지 분류 (positive 패턴 + exclusion).
- * 'drain' = HealthDrain (×NumEnemies special) / 'amount' = 일반 heal 금액
+ * 'drain' = HealthDrain (×NumEnemies special) / 'damagePercent' = PercentHealing
+ * (입힌 피해의 %, Fiora — maxHp 가 아닌 cast damage 기준) / 'amount' = 일반 heal 금액
  * (maxHp% vs AP-scaled 는 resolveSelfHeal 가 값 크기로 결정) / null = heal 아님.
  *
  * ⚠️ "Health" 가 "heal" 을 포함하므로 (HealthDamage/HealthOnKill 등) exclusion 을
  *   positive 매칭보다 먼저 적용 — Chogath PercentMaximumHealthDamage(피해)/
  *   BonusHealthOnKill(HP성장) 같은 non-heal 변수 false-positive 차단.
+ * ⚠️ `PercentHealing`(Fiora)은 maxHp% 가 아닌 damage% — 'damagePercent' 로 분리 (codex P2 PR #216).
+ *   `PercentMaximumHealthHealing`/`HealingPercentHealth` 는 "Health" 포함이라 미매칭 (maxHp% 'amount').
  * spec: docs/superpowers/specs/2026-06-11-heal-find-generalization-design.md
  */
-export function classifyHealVar(name: string): 'drain' | 'amount' | null {
+export function classifyHealVar(name: string): 'drain' | 'damagePercent' | 'amount' | null {
   if (/Duration|Shield|Shielding|ToShield|PerAstro|Aura|Cooldown|Ratio|Threshold|Damage|OnKill|PerCast|Reduction|Ally|Increase/i.test(name)) {
     return null;
   }
   if (/^HealthDrain$/i.test(name)) return 'drain';
+  if (/^PercentHealing$/i.test(name)) return 'damagePercent';
   if (/Healing|^(AP)?Heal(HP|AP|Amount)?$|HealthGain|PercentHealing/i.test(name)) return 'amount';
   return null;
 }
@@ -204,9 +208,14 @@ export function classifyHealVar(name: string): 'drain' | 'amount' | null {
  * cast 시 시전자 self-heal 총량 계산 (healAmp 적용 전, maxHp cap 전).
  * config.heal:true 챔프의 ability 변수를 전수 순회 → classifyHealVar 매칭 변수 합산.
  * star 인덱싱은 readVarByStar(filler-aware) 일괄. 결정론 — 입력 동일 시 동일 결과.
+ * `abilityDamageDealt` = 이번 cast 의 totalAbilityDmg — 'damagePercent'(PercentHealing) 계산용.
  * spec: docs/superpowers/specs/2026-06-11-heal-find-generalization-design.md
  */
-export function resolveSelfHeal(unit: CombatUnit, aliveTargetCount: number): number {
+export function resolveSelfHeal(
+  unit: CombatUnit,
+  aliveTargetCount: number,
+  abilityDamageDealt = 0,
+): number {
   const vars = unit.champion.ability.variables ?? [];
   let healAmount = 0;
   for (const v of vars) {
@@ -218,6 +227,9 @@ export function resolveSelfHeal(unit: CombatUnit, aliveTargetCount: number): num
       const cap = numEnemiesVar ? (readVarByStar(numEnemiesVar.value, unit.starLevel) || 1) : 1;
       const numEnemies = Math.min(cap, Math.max(1, aliveTargetCount));
       healAmount += val * (1 + unit.stats.ap / 100) * numEnemies;
+    } else if (kind === 'damagePercent') {
+      // PercentHealing (Fiora) — 입힌 피해의 % 회복 (maxHp 아님). codex P2 PR #216.
+      healAmount += abilityDamageDealt * val;
     } else if (val < 1) {
       healAmount += unit.maxHp * val;
     } else {
@@ -7103,7 +7115,8 @@ export function simulateCombat(
             // resolveSelfHeal 전수 순회 helper. config.heal:true 챔프 5명(IvernMinion/Aatrox/
             // Rhaast/TahmKench/Fiora) 미반영 해소 + Reksai/Illaoi readVarByStar 교정.
             if (config.heal) {
-              const healAmount = resolveSelfHeal(unit, aliveTargets.length);
+              // totalAbilityDmg 전달 — PercentHealing(Fiora) damage% heal 계산용 (codex P2 PR #216).
+              const healAmount = resolveSelfHeal(unit, aliveTargets.length, totalAbilityDmg);
               if (healAmount > 0) {
                 // healAmp 곱셈 — ability self-heal 도 회복량 증폭 효과 대상.
                 const finalHeal = healAmount * (1 + (unit.healAmp ?? 0));

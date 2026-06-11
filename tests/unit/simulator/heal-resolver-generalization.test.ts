@@ -26,7 +26,7 @@ describe('classifyHealVar — positive 패턴 + exclusion', () => {
     for (const n of [
       'PercentMaximumHealthHealing', 'APHealing', 'HealingPercentHealth', 'HealingAP',
       'HEALING', 'Heal', 'HealHP', 'HealAP', 'HealAmount', 'APHeal',
-      'APHealthGain', 'PercentHPHealthGain', 'PercentHealing',
+      'APHealthGain', 'PercentHPHealthGain',
     ]) {
       expect(classifyHealVar(n)).toBe('amount');
     }
@@ -34,6 +34,13 @@ describe('classifyHealVar — positive 패턴 + exclusion', () => {
 
   it('HealthDrain → drain', () => {
     expect(classifyHealVar('HealthDrain')).toBe('drain');
+  });
+
+  it('PercentHealing → damagePercent (Fiora — 입힌 피해의 %, maxHp% 아님. codex P2)', () => {
+    expect(classifyHealVar('PercentHealing')).toBe('damagePercent');
+    // maxHp% 변수("Health" 포함)는 damagePercent 아님 — 'amount' 유지
+    expect(classifyHealVar('PercentMaximumHealthHealing')).toBe('amount');
+    expect(classifyHealVar('HealingPercentHealth')).toBe('amount');
   });
 
   it('exclusion — "Health" false-positive / amp / shield / duration 차단 → null', () => {
@@ -73,6 +80,13 @@ describe('resolveSelfHeal — readVarByStar 일괄 인덱싱 합산', () => {
 
   it('Chogath = 0 (heal 변수 0개 — HealthDamage/HealthOnKill/PerCast 전부 exclusion)', () => {
     expect(resolveSelfHeal(mockUnit('TFT17_Chogath', { maxHp: 2000, ap: 0 }), 3)).toBe(0);
+  });
+
+  it('Fiora PercentHealing = 입힌 피해의 15% (maxHp 아님 — codex P2 PR #216)', () => {
+    // abilityDamageDealt=1000 → 1000×0.15=150 (maxHp 무관). maxHp 1200 이어도 maxHp×0.15=180 아님.
+    expect(resolveSelfHeal(mockUnit('TFT17_Fiora', { maxHp: 1200, ap: 0 }), 1, 1000)).toBe(150);
+    // damage 0 (또는 미전달) → heal 0 (피해 무관 maxHp% 회복 버그 회귀 가드)
+    expect(resolveSelfHeal(mockUnit('TFT17_Fiora', { maxHp: 1200, ap: 0 }), 1)).toBe(0);
   });
 
   it('AP scaling 적용 — Reksai ap=100 → maxHp×0.065 + 90×2 = 65 + 180 = 245', () => {
