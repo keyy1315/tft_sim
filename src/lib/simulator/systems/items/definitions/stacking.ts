@@ -120,7 +120,9 @@ export const STACKING_ITEMS: Record<string, ItemEffectDescriptor[]> = {
   // AD% 스택은 damageAmp 로 근사 (Titans 패턴 — ChampionStats.damage 는 최종값이라 % 주입 불가).
   // calibration: 미모델 시 AD 캐리 평타 데미지 과소 (project_underdamage_calibration).
   'TFT_Item_RunaansHurricane': [
-    statPatch({ ad: 0.10, as: 10, magicResist: 20 }),
+    // ⚠️ registry(statPatch) 경로는 as 를 fraction 직접 사용 (legacy normalizeLegacyPct 미적용,
+    //    stat.ts:216 baseAs*(1+itemFx.as)). raw effects AS:10(integer pts) → fraction 0.10. codex P1 #217.
+    statPatch({ ad: 0.10, as: 0.10, magicResist: 20 }),
     {
       kind: 'trigger',
       event: 'on_attack',
@@ -153,7 +155,8 @@ export const STACKING_ITEMS: Record<string, ItemEffectDescriptor[]> = {
   // 효과: AD 0.25 / AS 45 base + 평타마다 레이저 3발(NumUwUBlasts) 사거리 내 무작위 대상에
   //   각 장착유닛 AD의 40%(ADDamage) 물리 피해. on_attack proc ×3 randomEnemy.
   'TFT17_AnimaSquadItem_Tier2_UwuBlaster': [
-    statPatch({ ad: 0.25, as: 45 }),
+    // as 는 fraction (registry 경로 미정규화) — raw effects AS:45(integer pts) → 0.45. codex P1 #217.
+    statPatch({ ad: 0.25, as: 0.45 }),
     {
       kind: 'trigger',
       event: 'on_attack',
