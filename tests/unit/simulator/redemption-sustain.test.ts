@@ -41,4 +41,17 @@ describe('정령의 형상 (Redemption) sustain', () => {
     // 생존 HP 가 더 높아야 함 (없을 때보다 회복분만큼 우위).
     expect(survive([redemption])).toBeGreaterThan(survive([]));
   });
+
+  it('중복 Redemption ×2 → 타이머 독립 발동으로 ×1 보다 더 회복 (codex P2 PR #218)', () => {
+    function endHp(eq: RawItem[]): number {
+      const r = simulateCombat([placed(tank, 0, 0, eq)], [placed(attacker, 6, 3)], {
+        seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5,
+      });
+      const t = r.playerUnits.find(u => u.champion.apiName === 'TFT17_Shen')!;
+      return t.state === 'dead' ? 0 : t.currentHp;
+    }
+    // Redemption ×2 는 heal proc 이 매초 2회 독립 발동 → ×1 보다 생존 HP 우위.
+    // (이전엔 timerKey 충돌로 1회만 발동해 ×1 과 동일했음)
+    expect(endHp([redemption, redemption])).toBeGreaterThan(endHp([redemption]));
+  });
 });
