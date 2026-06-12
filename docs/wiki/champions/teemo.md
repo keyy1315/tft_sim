@@ -10,7 +10,7 @@ traits:
 role: Marksman   # raw "APCarry" → mapGameRole() → sim Marksman (types/index.ts:43 includes('Carry')). carry augment 없음
 raw_role: APCarry
 current_patch_status: active
-sim_active: partial   # onAttack passive 추가 마법(hitDamage scaleAP, ★1=30 filler) ✅ + active selfBuff AS + 우주그루브(SpaceGroove) 정합. P1: 독 DOT(MagicDamage/poisonDamage, PoisonDuration 6초) 미반영 — onAttack extraDamage 핸들러는 단일 hit 만 (Teemo 핵심 지속 피해 누락) / P1: active selfBuff attackSpeed 0.5 vs raw AttackSpeed 1.5 (3배 과소, ability.ts:195 하드코딩) / P2: active "ActiveAttacks 3회 평타 동안" vs sim duration 3 (selfBuff.duration read 0 → 영구) 메커니즘 불일치 / P2: SpaceGroove TheGroove(적 GrooveStacks 5 중첩 시) 미반영 grep 0 / P2: 길잡이(SummonTrait) apply 함수 없음
+sim_active: partial   # onAttack passive 추가 마법(hitDamage scaleAP, ★1=30 filler) ✅ + active selfBuff AS + 우주그루브(SpaceGroove) 정합. P1: 독 DOT(MagicDamage/poisonDamage, PoisonDuration 6초) 미반영 — onAttack extraDamage 핸들러는 단일 hit 만 (Teemo 핵심 지속 피해 누락) / P1: active selfBuff attackSpeed 0.5 vs raw AttackSpeed 1.5 (3배 과소, ability.ts:195 하드코딩) / P2: active "ActiveAttacks 3회 평타 동안" vs sim duration 3 (selfBuff.duration read 0 → 영구) 메커니즘 불일치 / P2: SpaceGroove TheGroove(적 GrooveStacks 5 중첩 시) 미반영 grep 0 / P2: 길잡이(SummonTrait) tier buff 미반영 (소환체 유닛 생성은 builder layer useTeamManagement.ts 존재, combat sim applySummonTrait 부재 — codex P2 PR #222)
 last_verified: 2026-06-12
 sources:
   - "public/data/tft_set17_champions.json (TFT17_Teemo entry — cost 1, role APCarry, traits [우주 그루브/길잡이], ability '더블 타임' variables HitDamage/MagicDamage/PoisonDuration/GrooveStacks/AttackSpeed/ActiveAttacks)"
@@ -19,7 +19,7 @@ sources:
   - "src/lib/simulator/engine/combatLoop.ts:6275-6298 (onAttack extraDamage 핸들러 — hitDamage 단일 magic hit 만, poison DOT 분기 없음)"
   - "src/lib/simulator/systems/ability.ts:195 (TFT17_Teemo: { pattern: 'self_buff', selfBuff: { attackSpeed: 0.5, duration: 3 } } — active AS 버프, raw AttackSpeed 1.5 와 불일치)"
   - "public/data/tft_set17_scaling.json (TFT17_Teemo — trigger onAttack, effect extraDamage/magic/ap, hitDamage [100,30,45,100], poisonDamage [60,70,105,190], poisonDuration 6, grooveStacks 5)"
-  - "src/lib/simulator/engine/combatLoop.ts:1791 (applySpaceGrooveBuffs — 우주 그루브 매초 ADAP) / 길잡이 TFT17_SummonTrait apply 함수 grep 0"
+  - "src/lib/simulator/engine/combatLoop.ts:1791 (applySpaceGrooveBuffs — 우주 그루브 매초 ADAP) / 길잡이 TFT17_SummonTrait: combat sim applySummonTrait 부재이나 src/hooks/useTeamManagement.ts:152-180 (syncVoyagerSummonInTeam) + :315-334 (syncTeam) 가 소환체 유닛 생성 (builder layer, partial)"
 related:
   - "[[role-passive]]"
   - "[[ability-targeting]]"
@@ -99,9 +99,9 @@ TFT17_Teemo: { pattern: 'self_buff', selfBuff: { attackSpeed: 0.5, duration: 3 }
 | trait | sim 적용 | 근거 |
 |-------|---------|------|
 | 우주 그루브 (SpaceGroove) | ✅ | `applySpaceGrooveBuffs` (`combatLoop.ts:1791`) — 그루비안 활성 시 매 1초 ADAP +N% (`spaceGrooveAdapPerSec`, `spaceGrooveDurationSec` 동안). Teemo 우주 그루브 멤버 |
-| 길잡이 (Summon / `TFT17_SummonTrait`) | ❌ **미반영** | `applySummonTrait`/`SummonTrait` apply 함수 grep **0 hit** (trait.ts:41 emblem 매핑만). 소환 trait — 소환수 메커니즘 sim 부재. **Lint P2** |
+| 길잡이 (Voyager / `TFT17_SummonTrait`) | ⚠️ **partial** | **소환체 생성은 builder layer 구현** — `syncVoyagerSummonInTeam` (`src/hooks/useTeamManagement.ts:152-180`, 길잡이 count별 star `getVoyagerSummonStarLevel`, `isSummon: true`) + `syncTeam` (`:315-334`) → `TFT17_Summon` 유닛이 보드에 추가되어 전투 참여. 단 **combat sim 의 tier-specific 소환 buff 는 미반영** (`src/lib/simulator/` 에 `applySummonTrait` 부재, emblem 매핑만). **Lint P2** (tier buff 한정) |
 
-> 룰 #16/#19: 우주 그루브는 generic 경로 (`applySpaceGrooveBuffs`) 존재 ✅. 길잡이는 apply 함수 부재 → 미반영 (verify 면제 아님, 매 champion grep 재검증).
+> 룰 #16/#19: 우주 그루브는 generic 경로 (`applySpaceGrooveBuffs`) 존재 ✅. 길잡이는 combat sim `applySummonTrait` 부재이나 **builder layer (`useTeamManagement.ts`) 에서 소환체 유닛 생성** → partial (verify 면제 아님, 매 champion grep 재검증). codex P2 PR #222.
 
 ## Cast path 분석 (PR #129 룰 — 3종 전수)
 
@@ -127,7 +127,7 @@ TFT17_Teemo: { pattern: 'self_buff', selfBuff: { attackSpeed: 0.5, duration: 3 }
 - **P1**: active selfBuff `attackSpeed: 0.5` vs raw `AttackSpeed` 1.5 — 3배 과소 (`ability.ts:195` 하드코딩)
 - **P2**: active "3회 평타 동안" vs sim duration 3 (selfBuff.duration read 0 → 영구) — attack-count 기반 메커니즘 불일치
 - **P2**: SpaceGroove TheGroove (적 GrooveStacks 5 중첩 시 그루브 상태) 미반영 (grep 0)
-- **P2**: 길잡이 (SummonTrait) 미반영 — apply 함수 부재 (소환 trait)
+- **P2**: 길잡이 (SummonTrait) tier-specific buff 미반영 — 소환체 유닛 생성은 builder layer (`useTeamManagement.ts:152-180`) 존재, combat sim `applySummonTrait` 부재
 
 ## Lint 신규 등록 후보
 
@@ -137,21 +137,21 @@ TFT17_Teemo: { pattern: 'self_buff', selfBuff: { attackSpeed: 0.5, duration: 3 }
 | P1 | active AS 0.5 vs raw 1.5 | `ability.ts:195` `selfBuff.attackSpeed: 0.5` 하드코딩 — raw `AttackSpeed` [1.5] (+150%) 의 1/3 | **P1** | (c) cast-time — `selfBuff.attackSpeed` 0.5 → raw `AttackSpeed` read (1.5) 또는 config 1.5 교정 | active AS 버프 3배 과소. sim fix 후보 |
 | P2 | active 3회 평타 vs 영구 | raw "3회 평타 동안" (attack-count), sim duration 3 미반영 → 영구 `*=1.5` | **P2** | (c) cast-time + attack-count 만료 — `ActiveAttacks` 평타 소비 후 AS 복원 (최신상 GravBooster `NumAttacks` 패턴 `:5936/6090` 차용) | AS 버프 영구화 (over-model) |
 | P2 | SpaceGroove TheGroove 미반영 | 적 GrooveStacks(5) 중첩 시 Teemo 그루브 상태 — grep 0. 독 중첩 미모델이라 트리거 부재 | **P2** | (b) per-attack 누적 + 상태 진입 — 독 stack 모델 선행 필요 | 독 DOT(P1) 의존 후속 |
-| P2 | 길잡이 (SummonTrait) 미반영 | `applySummonTrait` 함수 부재 (소환 trait) — emblem 매핑만 | **P2** | trait — 소환수 메커니즘 별도 구현 | 소환 trait 차원 별도 PR |
+| P2 | 길잡이 (SummonTrait) tier buff 미반영 | 소환체 유닛 생성은 builder layer (`useTeamManagement.ts:152-180/315-334`, count별 star) 존재 → 전투 참여. combat sim `applySummonTrait` (tier-specific 소환 buff) 부재 | **P2** | trait — combat sim 에 tier별 소환 buff 추가 (유닛 생성은 이미 builder 처리) | 소환 trait 차원 별도 PR. codex P2 PR #222 |
 
 > 📌 **평타 추가 마법(hitDamage) + active AS 발동 + 우주 그루브 trait 는 sim 정합**(값/메커니즘 정정 필요). `partial` 사유는 **독 DOT 미반영(P1)** + active AS 3배 과소(P1) 등 핵심 누락. 독 DOT 은 Teemo 주력이라 sim fix 우선 후보.
 
 ## Lint 체크리스트
 
 - [x] **set17 entity 소속 0단계** — `node -e` 로 `TFT17_Teemo` apiName 확인 (cost 1, traits [우주 그루브/길잡이], role APCarry)
-- [x] entity-wide grep `Teemo` + `poison`/`Groove` + `SummonTrait` — sim site (onAttack hitDamage / 독 DOT 미반영 / SpaceGroove / 길잡이 grep 0)
+- [x] entity-wide grep `Teemo` + `poison`/`Groove` + `SummonTrait`/`TFT17_Summon` — sim site (onAttack hitDamage / 독 DOT 미반영 / SpaceGroove / 길잡이 소환체 builder layer `useTeamManagement.ts` 존재 + combat sim apply 부재)
 - [x] raw stats 17.4 정합 (hp 450 / armor·MR 15 / AD 15 / AS 0.7 / range 4 / mana 0·50)
 - [x] **raw role `APCarry` → mapGameRole → Marksman** — `includes('Carry')` (`types/index.ts:43`). carry augment 없음
 - [x] **함수 컨텍스트 read (2단계)** — onAttack extraDamage 핸들러 (`:6275-6298`, 단일 hit 만 — poison DOT 분기 없음 확인) + active config (`ability.ts:195` selfBuff 0.5) + selfBuff apply (`:7176`)
 - [x] **변수 인덱싱 판정** — onAttack 핸들러는 `starValue(dmgArr, starLevel)` (`ability.ts:565` `arr[starLevel] ?? arr[1]` 직접 인덱싱 — `readVarByStar` 의 filler-aware 로직 아님, [dummy,★1,★2,★3] placeholder 컨벤션 가정) → HitDamage `[100,30,45,100]` ★1=arr[1]=30/★2=45/★3=100 (idx0=100 dummy) / MagicDamage `[60,65,95]` (★1=60) 는 placeholder 컨벤션 무관, onAttack 미참조 / PoisonDuration·GrooveStacks·AttackSpeed·ActiveAttacks 상수
-- [x] **actual sim integration verify (5단계)** — onAttack hitDamage read 확인 (`:6280`) / **`MagicDamage`/`poisonDamage`/`poisonDuration` DOT read site 0 → 독 미반영 P1** / **active `selfBuff.attackSpeed: 0.5` ≠ raw `AttackSpeed` 1.5 → P1** / **`GrooveStacks`/`TheGroove` grep 0 → P2** / **`SummonTrait` apply 함수 grep 0 → 길잡이 미반영 P2**
+- [x] **actual sim integration verify (5단계)** — onAttack hitDamage read 확인 (`:6280`) / **`MagicDamage`/`poisonDamage`/`poisonDuration` DOT read site 0 → 독 미반영 P1** / **active `selfBuff.attackSpeed: 0.5` ≠ raw `AttackSpeed` 1.5 → P1** / **`GrooveStacks`/`TheGroove` grep 0 → P2** / **`SummonTrait` combat sim apply 부재 but `useTeamManagement.ts:152-180/315-334` 소환체 유닛 생성(builder) → 길잡이 partial, tier buff 만 미반영 P2 (codex catch)**
 - [x] **cast path 3종 (PR #129 룰)** — main (active self_buff ✅) / OOR (self-target ➖) / recast (carry 없음 ➖). 평타 passive·trait 별개 경로
-- [x] **`traits` frontmatter 각 entry trait helper grep 전수 verify (룰 #16/#19)** — 우주 그루브 `TFT17_SpaceGroove` `applySpaceGrooveBuffs` (`:1791`) ✅ / 길잡이 `TFT17_SummonTrait` apply 함수 grep 0 → 미반영 (P2). "verify 면제" 어휘 미사용
+- [x] **`traits` frontmatter 각 entry trait helper grep 전수 verify (룰 #16/#19)** — 우주 그루브 `TFT17_SpaceGroove` `applySpaceGrooveBuffs` (`:1791`) ✅ / 길잡이 `TFT17_SummonTrait` combat sim apply 부재이나 builder layer 소환체 생성 (`useTeamManagement.ts`) → partial (tier buff 만 P2). "verify 면제" 어휘 미사용
 - [x] **본문 Lint P1 2건(독 DOT / active AS) + P2 3건 등록 → 핵심 sim 미반영 존재 → 보수적 `sim_active: partial` 유지** (P0 회귀 case 없음 → 룰 #15 미해당)
 - [ ] (선택) 독 DOT sim fix (P1) / active AS 0.5→1.5 (P1) / TheGroove / 길잡이 (P2)
 
@@ -159,7 +159,7 @@ TFT17_Teemo: { pattern: 'self_buff', selfBuff: { attackSpeed: 0.5, duration: 3 }
 
 - [[role-passive]] — Marksman role 마나 규칙 (공격당 10 / 초당 0 / 피격 ❌)
 - [[ability-targeting]] — `self_buff` (caster self-target). cast path main only
-- [[ivernminion]] — 동일 길잡이 (Summon) trait (양쪽 미반영 가능 — SummonTrait apply 부재)
+- [[ivernminion]] — 동일 길잡이 (Voyager/Summon) trait (소환체 생성은 builder layer, combat sim tier buff 미반영)
 - under-damage calibration (메모리 `project_underdamage_calibration`) — Teemo 독 DOT(P1) + active AS(P1) 미반영 = 1코 AP carry under-damage 사례
 - 코드: `src/lib/simulator/engine/combatLoop.ts:6275/7176/1791`, `src/lib/simulator/systems/ability.ts:195`
 - Raw: `public/data/tft_set17_champions.json` (TFT17_Teemo), `public/data/tft_set17_traits.json` (TFT17_SpaceGroove / TFT17_SummonTrait)
