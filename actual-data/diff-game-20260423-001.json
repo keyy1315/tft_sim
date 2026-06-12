@@ -1,8 +1,8 @@
 {
   "gameId": "game-20260423-001",
-  "computedAt": "2026-06-12T01:33:07.774Z",
+  "computedAt": "2026-06-12T04:08:07.844Z",
   "sourceGameMtime": 1779323641263,
-  "engineSha": "4da16ec1f2b09177752bcf1ef94dc56a13e7c84a",
+  "engineSha": "6e9a6221c34abeec3b6e772f25b3dbd977ebffec",
   "nRuns": 10,
   "seedBase": 0,
   "rounds": [
@@ -1942,13 +1942,13 @@
           },
           "championId": "TFT17_TwistedFate",
           "actual": 6242,
-          "simMean": 4136.383039195522,
-          "simMedian": 3122.3240792199113,
+          "simMean": 4297.882594830345,
+          "simMedian": 3537.152786609046,
           "simRange": [
             749.9581740031014,
             7368.584461988131
           ],
-          "diffPct": -0.3373304967645752
+          "diffPct": -0.3114574503636103
         },
         {
           "hex": {
@@ -1957,13 +1957,13 @@
           },
           "championId": "TFT17_Talon",
           "actual": 2130,
-          "simMean": 748.6815934924482,
+          "simMean": 738.819524526931,
           "simMedian": 687.345800005997,
           "simRange": [
             250.5651340996169,
             1329.862371413946
           ],
-          "diffPct": -0.6485062941350008
+          "diffPct": -0.6531363734615347
         },
         {
           "hex": {
@@ -2022,9 +2022,9 @@
           "actualAlive": false,
           "actualHp": 0,
           "simAliveRate": 0.4,
-          "simMeanHp": 80.77433983120045,
+          "simMeanHp": 80.52126759772466,
           "aliveMismatch": false,
-          "hpDiffPoints": 80.77433983120045
+          "hpDiffPoints": 80.52126759772466
         },
         {
           "hex": {
@@ -2036,9 +2036,9 @@
           "actualAlive": false,
           "actualHp": 0,
           "simAliveRate": 0.4,
-          "simMeanHp": 79.22272443089274,
+          "simMeanHp": 79.12219048547338,
           "aliveMismatch": false,
-          "hpDiffPoints": 79.22272443089274
+          "hpDiffPoints": 79.12219048547338
         },
         {
           "hex": {
@@ -2050,9 +2050,9 @@
           "actualAlive": false,
           "actualHp": 0,
           "simAliveRate": 0.2,
-          "simMeanHp": 69.29784224577472,
+          "simMeanHp": 69.25090868631739,
           "aliveMismatch": false,
-          "hpDiffPoints": 69.29784224577472
+          "hpDiffPoints": 69.25090868631739
         },
         {
           "hex": {
@@ -2120,9 +2120,9 @@
           "actualAlive": false,
           "actualHp": 0,
           "simAliveRate": 0.1,
-          "simMeanHp": 90.30046448324879,
+          "simMeanHp": 48.262071147996416,
           "aliveMismatch": false,
-          "hpDiffPoints": 90.30046448324879
+          "hpDiffPoints": 48.262071147996416
         },
         {
           "hex": {
@@ -2873,9 +2873,9 @@
           "actualAlive": false,
           "actualHp": 0,
           "simAliveRate": 1,
-          "simMeanHp": 90.8149691998144,
+          "simMeanHp": 90.78370734822522,
           "aliveMismatch": true,
-          "hpDiffPoints": 90.8149691998144
+          "hpDiffPoints": 90.78370734822522
         },
         {
           "hex": {
@@ -2887,9 +2887,9 @@
           "actualAlive": false,
           "actualHp": 0,
           "simAliveRate": 1,
-          "simMeanHp": 91.20991658399666,
+          "simMeanHp": 91.14327186943169,
           "aliveMismatch": true,
-          "hpDiffPoints": 91.20991658399666
+          "hpDiffPoints": 91.14327186943169
         },
         {
           "hex": {
@@ -2929,9 +2929,9 @@
           "actualAlive": false,
           "actualHp": 0,
           "simAliveRate": 1,
-          "simMeanHp": 84.50265872461573,
+          "simMeanHp": 84.37793492370142,
           "aliveMismatch": true,
-          "hpDiffPoints": 84.50265872461573
+          "hpDiffPoints": 84.37793492370142
         },
         {
           "hex": {
@@ -5671,7 +5671,7 @@
     "pvpRoundCount": 22,
     "winnerMatchRate": 0.5,
     "weakSignalRoundCount": 1,
-    "avgPlayerDamageErrorPct": -0.39050331443781405,
-    "avgSurvivorHpErrorPts": 10.919148755753476
+    "avgPlayerDamageErrorPct": -0.3903119363560625,
+    "avgSurvivorHpErrorPts": 10.611620255220108
   }
 }
