@@ -82,7 +82,7 @@ TFT17_Gnar: { pattern: 'line', maxTargets: 3, damageDecay: 0.3 }
 | 부메랑 피해 (`DamageAD`, scaleAD) | ✅ (cast damage) | empirical: cast "새총 기동 시전 136 물리" (★2 DamageAD 225 → decay/armor 후) |
 | **발동 빈도 — "평타 5회마다"** | ❌ **매 평타 발동** | **sim 은 mana cast** — mana 0/5 + Specialist 10/공격 → 1 평타마다 cast. empirical: attackCount=14, ability(cast) logs=14 (매 평타). raw 는 5평타당 1회 → **빈도 ~5배 과다**. **Lint P1** |
 | 관통 감소 (`DamageReductionPerHit` 75%) | ⚠️ **값 불일치** | sim `damageDecay: 0.3` (`combatLoop.ts:6722` `dmg *= (1-0.3)^ti`) = 순번당 30% 감소. raw `DamageReductionPerHit` 0.75 (75%). **Lint P2** |
-| 부메랑 scaleAP (`DamageAP`) | ❌ **미반영** | cast `line` pattern 은 `damageVar` 미지정 → default(scaleAD) → `DamageAP` (filler ★1=20) 미참조. **Lint P2** |
+| 부메랑 scaleAP (`DamageAP`) | ❌ **미반영** | raw 는 `<physicalDamage>@ModifiedDamage@(scaleAD scaleAP)` — 부메랑 전체가 **물리**, `DamageAP` 는 그 **물리 피해의 AP 스케일 계수**. cast `line` 은 `damageVar` default(scaleAD) → `DamageAP` (filler ★1=20) 미참조. **Lint P2** (AP 스케일 분이지만 magic 아님 — 물리) |
 
 > ⚠️ **이중 발동 (double-fire)**: 부메랑이 **두 경로 모두 active** — (1) mana cast(line, mana 0/5)로 **매 평타** 발동 + (2) scaling.json **onAttack every:5** 핸들러(`combatLoop.ts:6275-6298`, `attackCount % 5 === 0`)가 **5번째 평타마다 추가** 발동 (단일 타겟, `damageReductionPerHit` 미적용, scaling.json `damageAD` 사용). 즉 5/10/15번째 평타는 **cast + onAttack 이중 타격**. raw 는 "평타 5회마다" 단일 부메랑인데 sim 은 매 평타 cast + 5평타마다 onAttack 추가 → 과다. 또한 onAttack 경로의 scaling.json `damageAD[★4]=525` 는 cast 경로가 쓰는 raw `DamageAD[★4]=560` 과 불일치(★4). **Lint P2** (모델 일원화 — onAttack every:5 채택 + cast(line)/mana 제거 검토).
 
@@ -140,7 +140,7 @@ raw variables: `NumMeepsPerAstro` [1] / `MeepPercentBAD` [0.23] / `MeepASScaling
 | P2 | 부메랑 이중 발동 | cast(line) 매 평타 + onAttack every:5 가 5/10/15번째 평타 추가 발동 (둘 다 active). onAttack 은 단일타겟·`damageReductionPerHit` 미적용·scaling.json damageAD(★4 525≠raw 560) | **P2** | data/cast — 단일 모델 채택 (onAttack every:5 권장 + cast(line)/mana 제거, raw 의도 정합) | 5평타마다 이중 타격 → 추가 over-damage. 모델 일원화 |
 | P2 | damageDecay 0.3 vs raw 0.75 | 관통 적중 순번별 감소: sim 30% vs raw 75% | **P2** | cast config — `damageDecay: 0.3` → 0.75 (raw `DamageReductionPerHit`) | 관통 다중 적중 시 후순 타겟 over-damage |
 | P2 | Meep (정령 추가) 미반영 | desc "정령족 활성 시 정령 매초 MeepDPS(scaleAD scaleAS)". grep 0 | **P2** | (b) tick — 정령족 Gnar 매초 정령 DPS ([[corki]] Meep 동형) | 정령족 시너지 추가 DPS |
-| P2 | DamageAP(scaleAP) 미반영 | cast `line` damageVar default → scaleAD 만, `DamageAP` 미참조 | **P2** | cast-time — 부메랑에 DamageAP magic 분 합산 | scaleAP 누락 (소량, filler ★1=20) |
+| P2 | DamageAP(scaleAP) 미반영 | cast `line` damageVar default → scaleAD 만, `DamageAP` 미참조. raw `<physicalDamage>(scaleAD scaleAP)` — AP 스케일 분도 물리 | **P2** | cast-time — 부메랑 **physical** 피해에 `DamageAP × ap` 분 합산 (⚠️ **magic 아님** — raw `<physicalDamage>`, magic 처리 시 MR 로 경감돼 armor/MR 편향 타겟에서 Gnar 데미지 왜곡, codex P2 PR #223) | scaleAP 누락 (소량, filler ★1=20) |
 
 > 📌 **부메랑 피해(DamageAD) + 정령족/저격수 trait 는 sim 반영**. `partial` 사유는 **부메랑 발동 빈도 P1(매 평타 vs 5평타)** + 이중 정의 + damageDecay/Meep/DamageAP 등 P2. 빈도 P1 은 mana 모델 vs onAttack 모델 선택 문제로 calibration 측정 후 sim fix 후보.
 
