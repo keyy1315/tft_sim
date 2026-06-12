@@ -250,7 +250,7 @@ export const CHAMPION_ABILITY_PATTERNS: Record<string, AbilityConfig> = {
   // === 5코스트 ===
   TFT17_Bard:        { pattern: 'aoe_circle', radius: 1, dot: { duration: 4 } },  // 비행접시 4초 DOT + 주변 분배
   TFT17_Fiora:       { pattern: 'single', dash: 'to_target', heal: true },  // 급소 돌진 + 회복
-  TFT17_Jhin:        { pattern: 'multi', maxTargets: 3, debuff: { armorReduction: 15, duration: 4 }, hitCount: 4, damageVar: 'APDamage' },  // 잔상 손 4개 × 4회 사격 APDamage
+  TFT17_Jhin:        { pattern: 'multi', maxTargets: 3, debuff: { armorReduction: 15, duration: 4 }, hitCount: 4, damageVar: 'ADDamage' },  // 잔상 손 4개 × 4회 사격 — TotalDamage scaleAD = ADDamage (raw <physicalDamage>). APDamage 는 미미한 부차 변수 (ingest #227 P0 fix)
   TFT17_Blitzcrank:  { pattern: 'aoe_circle', radius: 3, stun: 1.5, stunTargets: 1, damageVar: 'ExplosionDamage' },  // 띄움 1명 + 폭발 3칸
   TFT17_Sona:        { pattern: 'multi', maxTargets: 3, secondaryDamageVar: 'SlamDamage' },  // 파편 DebrisDamage + 5회째 SlamDamage 폭발 + 기절
   TFT17_Vex:         { pattern: 'aoe_circle', radius: 1, damageVar: 'ShadowHandMagicDamage', hitCount: 3 },  // 강화 타격 3회
