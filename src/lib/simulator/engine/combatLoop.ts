@@ -6230,14 +6230,16 @@ export function simulateCombat(
           //   그리고 (AttackNumEnemies-1) 가장 가까운 다른 적에 bounce — 각 attackAD × (1-reduction).
           //   bounce 는 평타의 40%(★1-3 reduction 0.6) 고정 (Corki 평타 추가 hit 패턴 동형).
           //   깃털 회수(active)는 별도 cast 분기. damageAmp 적용, mitigation pipeline 통합.
-          if (unit.champion.apiName === 'TFT17_Xayah' && target.state !== 'dead') {
+          // codex P2 (PR #219): bounce 는 다른 적을 치므로 primary 사망(lethal auto) 시에도 발동해야 함
+          //   → outer 가드에서 target.state 검사 제거. PrimaryTargetBonusDamage 만 primary 생존 가드.
+          if (unit.champion.apiName === 'TFT17_Xayah') {
             const vars = unit.champion.ability.variables;
             const numEnemies = readVarByStar(vars?.find(v => v.name === 'AttackNumEnemies')?.value, unit.starLevel, 3);
             const reduction = readVarByStar(vars?.find(v => v.name === 'PassivePercentReducedDamage')?.value, unit.starLevel, 0.6);
             const primaryBonus = readVarByStar(vars?.find(v => v.name === 'PrimaryTargetBonusDamage')?.value, unit.starLevel, 10);
             const xayahArbiterState = unit.team === 'player' ? playerArbiterState : enemyArbiterState;
-            // 1) primary 추가 보너스 (physical flat)
-            if (primaryBonus > 0) {
+            // 1) primary 추가 보너스 (physical flat) — primary 생존 시만
+            if (primaryBonus > 0 && target.state !== 'dead') {
               const bonusDmg = applyAbilityMitigation(unit, target, primaryBonus * (1 + unit.damageAmp), 'physical', eventBus, tick);
               target.currentHp -= bonusDmg;
               target.totalDamageTaken += bonusDmg;
