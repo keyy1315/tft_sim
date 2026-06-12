@@ -10,7 +10,7 @@ traits:
 role: Marksman   # raw "ADCarry" → mapGameRole() → sim Marksman (types/index.ts:43 includes('Carry')). carry augment 없음
 raw_role: ADCarry
 current_patch_status: active
-sim_active: partial   # 평타 깃털 bounce passive 완전 반영 (PrimaryTargetBonusDamage + (AttackNumEnemies-1) bounce, AD×(1-reduction), lethal auto 포함 — PR #219/#220) + active 깃털 회수(multi 3명 ADDamage) + AS 버프(0.75) + 별돌보미/저격수 trait 정합. P2: active 깃털 회수 APDamage(scaleAP) 미반영 (damageVar ADDamage 만) / P2: ActivePercentReducedDamage(0.2) 다중 타겟 감소 미반영 / P2: selfBuff AS 4초 duration 미반영 (cast 시 영구 *=1.75, revert 없음) / P2: 깃털 회수 timing (raw 는 4초 후 recall, sim 은 cast 즉시) / P2: scaling.json onCast(featherDamageAD/attackSpeedBuff)+NumAttacks dead data — sim 은 CHAMPION_ABILITY_PATTERNS read / P2: 저격수 amp bounce/primaryBonus 미적용 (computeSniperDamageAmp 미호출)
+sim_active: partial   # 평타 깃털 bounce passive 완전 반영 (PrimaryTargetBonusDamage + (AttackNumEnemies-1) bounce, AD×(1-reduction), lethal auto 포함 — PR #219/#220) + active 깃털 회수(multi 3명 ADDamage) + AS 버프(0.75) + 별돌보미/저격수 trait 정합. 회수 피해 = @TotalDamage@(scaleAD) 물리 → sim damageVar ADDamage 정합. P2: selfBuff AS 4초 duration 미반영 (cast 시 영구 *=1.75, revert 없음, over-model) / P2: 깃털 회수 timing (raw 는 4초 후 recall, sim 은 cast 즉시) / P2: 저격수 amp bounce/primaryBonus 미적용 (computeSniperDamageAmp 미호출) / dead/unknown: scaling.json onCast(featherDamageAD/attackSpeedBuff)+NumAttacks + APDamage/ActivePercentReducedDamage (active desc 미렌더) — sim 추가 시 오히려 부정확 (codex P2 PR #221)
 last_verified: 2026-06-12
 sources:
   - "public/data/tft_set17_champions.json (TFT17_Xayah entry — cost 4, role ADCarry, traits [별돌보미/저격수], ability '별빛 튕기는 깃털' variables AttackNumEnemies/PassivePercentReducedDamage/ADDamage/APDamage/ActivePercentReducedDamage/RecallFeatherTargets/AttackSpeed/Duration/PrimaryTargetBonusDamage)"
@@ -99,9 +99,9 @@ TFT17_Xayah: { pattern: 'multi', maxTargets: 3, selfBuff: { attackSpeed: 0.75, d
 | 깃털 회수 대상 3명 (`RecallFeatherTargets`) | ✅ `pattern: 'multi', maxTargets: 3` | `ability.ts:313` caster 거리순 sort → `slice(0, 3)`. `findAbilityTargets` (`combatLoop.ts:6594`) |
 | 회수 피해 (`TotalDamage`, scaleAD) | ✅ `damageVar: 'ADDamage'` | no-filler `[40,45,68]` → ★1=40 / ★2=45 / ★3=68. `getAbilityDamage` AD-scaled |
 | 공격 속도 +75% (`AttackSpeed`) | ✅ `selfBuff.attackSpeed: 0.75` | `:7175-7189` `unit.stats.attackSpeed *= (1 + 0.75)` (Xayah 는 carry override 없음 → config 값 0.75) |
-| 회수 피해 scaleAP (`APDamage`) | ❌ **미참조** | config `damageVar` 는 `ADDamage` 만 → `APDamage` [10,6,9,...] (v0>v1 filler → `readVarByStar` 실제 read ★1=6/★2=9/★3=60) 미반영. raw 회수 = scaleAD+scaleAP 인데 sim 은 scaleAD 만. **Lint P2** |
-| 다중 타겟 감소 (`ActivePercentReducedDamage` 0.2) | ❌ **미반영** | generic `multi` 는 각 타겟에 `damageVar` full 적용 (per-target 감소 분기 없음). **Lint P2** |
-| AS 버프 4초 만료 (`Duration`) | ❌ **미반영** | `selfBuff.duration` read site 0 — `:7189` 영구 `*= 1.75`, 4초 후 revert 없음 → 전투 끝까지 지속 (over-model). **Lint P2** |
+| 회수 피해 `APDamage` | ➖ **dead/unknown — sim 정합** | raw active desc 는 회수를 `@TotalDamage@`(%i:scaleAD%) **물리만** 렌더 → `APDamage` [10,6,9,...] 는 spell 구성 요소 아님 (desc 미참조). sim `damageVar: 'ADDamage'` (scaleAD) 가 raw 와 정확히 정합 — APDamage 는 dead-data/unknown variable (codex P2 PR #221, "미반영 gap" 으로 보면 게임에 없는 AP 추가 유도 → 오히려 부정확) |
+| `ActivePercentReducedDamage` (0.2) | ➖ **dead/unknown — sim 정합** | raw active desc: "가장 가까운 적 3명에게 **각각** `@TotalDamage@`" — per-target 감소 미렌더. `ActivePercentReducedDamage` 는 spell 구성 요소 아님 (desc 미참조) → dead-data/unknown. generic `multi` 의 각 타겟 full 적용이 raw 와 정합 (codex P2 PR #221) |
+| AS 버프 4초 만료 (`Duration`) | ❌ **미반영 (over-model)** | `selfBuff.duration` read site 0 — `:7189` 영구 `*= 1.75`, 4초 후 revert 없음 → 전투 끝까지 지속. **Lint P2** |
 | 회수 timing (raw: 4초 후 recall) | ⚠️ 단순화 | sim 은 cast 즉시 multi 피해 + AS 버프 동시 적용 (4초 지연 후 recall 아님). **Lint P2** |
 
 > ⚠️ **scaling.json onCast dead data**: `public/data/tft_set17_scaling.json` 의 `TFT17_Xayah` 엔트리 (`featherDamageAD [40,48,72,900]` / `attackSpeedBuff 0.75` / `featherRecallTargets 3`) 는 **sim 미참조** — `featherDamageAD`/`attackSpeedBuff`/`featherRecallTargets` repo-wide grep **0 hit**. combatLoop 에 `onCast` 트리거 핸들링 없음. sim 은 `CHAMPION_ABILITY_PATTERNS` (`ability.ts:247`) 로 active 처리 → 회수 피해는 raw `ADDamage` read, scaling.json `featherDamageAD` 는 미사용. drift: ★2 48 vs `ADDamage` 45 / ★3 72 vs 68. 또한 raw `NumAttacks`[6] (게임: 6회 공격 후 깃털 회수) 도 sim 미참조 — `Duration`(4초) 기반 cast 로 추상화. **Lint P2** (redundant data, sim 영향 0).
@@ -135,24 +135,20 @@ TFT17_Xayah: { pattern: 'multi', maxTargets: 3, selfBuff: { attackSpeed: 0.75, d
 - **별돌보미 (Stargazer)** constellation + **저격수 (Sniper)** 거리 기반 damage amp
 
 ⚠️ **부정확 / 미반영** (Lint 후보):
-- **P2**: active 깃털 회수 `APDamage`(scaleAP) 미반영 — `damageVar: 'ADDamage'` 만 (회수 피해 = scaleAD+scaleAP 인데 AD 만)
-- **P2**: `ActivePercentReducedDamage`(0.2) 다중 타겟 감소 미반영 — generic multi full 적용
 - **P2**: selfBuff AS `Duration`(4초) 미반영 — cast 시 영구 `*= 1.75` (revert 없음, over-model)
 - **P2**: 회수 timing — raw 는 4초 후 recall, sim 은 cast 즉시 (단순화)
-- **P2**: scaling.json onCast 엔트리 (`featherDamageAD`/`attackSpeedBuff`/`featherRecallTargets`) + raw `NumAttacks`[6] dead data — sim 미참조 (grep 0)
+- **P2**: dead/unknown variables — scaling.json onCast (`featherDamageAD`/`attackSpeedBuff`/`featherRecallTargets`) + raw `NumAttacks`[6] + raw `APDamage`/`ActivePercentReducedDamage` (active desc 미렌더) 모두 sim 미참조 (grep 0). **APDamage/ActivePercentReducedDamage 는 "미반영 gap" 아님** — `@TotalDamage@`(scaleAD) 물리만 렌더되므로 sim 추가 시 오히려 부정확 (codex P2 PR #221)
 - **P2**: 저격수 amp 의 bounce/primaryBonus 적용 비대칭 — bounce(`:6259`)·primaryBonus(`:6243`)은 `unit.damageAmp` 만, `computeSniperDamageAmp` 미호출 (verify 후속)
 
 ## Lint 신규 등록 후보
 
 | # | 항목 | 의미 | Tier | 적용 분기 (룰 #17) | 처리 |
 |---|------|------|------|---------------------|------|
-| P2 | active 회수 APDamage 미반영 | config `damageVar='ADDamage'` 만 → `APDamage`(scaleAP, filler ★1=10) 미참조. raw 회수 = scaleAD+scaleAP | **P2** | cast-time — multi 회수 피해에 `APDamage` magic 분 합산 ([[corki]] 평타 미사일 MissileAD+MissileAP 패턴 차용). damageVar 단일 → 이중 dmg 구조 변경 필요 | scaleAP 누락. AD 주력은 반영. raw 의도 측정 후 |
-| P2 | ActivePercentReducedDamage 미반영 | 회수 다중 타겟 시 `@ActivePercentReducedDamage@`(0.2) 감소. generic multi 는 각 타겟 full | **P2** | (b) per-target loop — multi 타겟 index 별 감소 (2번째+ 20% 감소) | 다중 회수 시 over-damage. 3명 회수 흔함 |
 | P2 | selfBuff AS 4초 duration 미반영 | `selfBuff.duration: 4` config 존재하나 read site 0 → cast 시 영구 `*=1.75`. 4초 후 revert 없음 | **P2** | (c) cast-time 1회 helper + 만료 tick 스케줄 — `selfBuff.duration` 만큼 buff, 만료 시 AS 복원 | AS 버프 영구화 → DPS over-model. recast 시 compound |
 | P2 | scaling.json onCast dead data | `TFT17_Xayah` scaling 엔트리 (featherDamageAD/attackSpeedBuff/featherRecallTargets) grep 0 + raw `NumAttacks`[6] grep 0 — sim 은 CHAMPION_ABILITY_PATTERNS read | **P2** | data — onCast 핸들러 미구현 시 scaling 엔트리 제거 또는 핸들러 추가 | sim 영향 0 (redundant). featherDamageAD drift ★2 48 vs 45 / ★3 72 vs 68 |
 | P2 | 저격수 amp 의 bounce/primaryBonus 적용 비대칭 | bounce(`:6259`)·primaryBonus(`:6243`)은 `unit.damageAmp` 만 사용 — hit site 별 `computeSniperDamageAmp(unit, e)` 미호출. base auto / 다른 hit site 와 달리 저격수 거리 amp 가 bounce/primaryBonus 에 미적용 가능 | **P2** | (b) per-target loop — bounce/primaryBonus `dmgRaw` 에 `computeSniperDamageAmp(unit, e)` 합산 (base auto hit site 패턴 차용) | bounce 가 평타의 일부이므로 저격수 amp 받는 게 자연스러움 — verify 후속 |
 
-> 📌 **평타 bounce passive (lethal 포함) + active multi ADDamage + AS 버프 + 별돌보미/저격수 trait 는 sim 정합**. `partial` 사유는 active 회수의 APDamage/ActivePercentReducedDamage 미반영 + AS duration over-model + scaling.json dead data 등 P2 (P0 회귀 없음 → 룰 #15 미해당). 주력 평타 bounce DPS 는 반영.
+> 📌 **평타 bounce passive (lethal 포함) + active multi ADDamage(=@TotalDamage@ scaleAD) + AS 버프 + 별돌보미/저격수 trait 는 sim 정합**. `partial` 사유는 AS duration over-model + 회수 timing 단순화 + 저격수 amp bounce 미적용 등 P2 (P0 회귀 없음 → 룰 #15 미해당). APDamage/ActivePercentReducedDamage 는 active desc 미렌더 → dead/unknown (미반영 gap 아님). 주력 평타 bounce + 회수 ADDamage DPS 는 반영.
 
 ## Lint 체크리스트
 
@@ -161,19 +157,20 @@ TFT17_Xayah: { pattern: 'multi', maxTargets: 3, selfBuff: { attackSpeed: 0.75, d
 - [x] raw stats 17.4 정합 (hp 850 / armor·MR 30 / AD 50 / AS 0.75 / range 6 / crit 0.25·1.4 / mana 0·50)
 - [x] **raw role `ADCarry` → mapGameRole → Marksman** — `includes('Carry')` (`types/index.ts:43`). carry augment 없음
 - [x] **함수 컨텍스트 read (2단계)** — bounce passive 블록 (`:6235-6271`, primaryBonus 생존 가드 + bounce 거리순 sort + lethal 발동) + active config (`ability.ts:247` multi/maxTargets 3/selfBuff/damageVar ADDamage) + selfBuff apply (`:7175-7189`) + multi case (`ability.ts:313`)
-- [x] **변수 filler 판정** — ADDamage `[40,45,68]` no-filler ★1=40 / APDamage `[10,6,9,60]` v0>v1 filler → `readVarByStar` 실제 read ★1=6/★2=9/★3=60 (단 미참조) / `NumAttacks`[6] sim 미참조 dead var / AttackNumEnemies·PassivePercentReducedDamage·PrimaryTargetBonusDamage·AttackSpeed·Duration·RecallFeatherTargets·ActivePercentReducedDamage 상수/star별
-- [x] **actual sim integration verify (5단계)** — bounce passive read 확인 (`:6235-6271`) / active selfBuff AS read (`:7176`) + multi 회수 ADDamage (`ability.ts:247/313`) / **`APDamage`·`ActivePercentReducedDamage`·`selfBuff.duration` read site 0 → 미반영 P2** / **scaling.json `featherDamageAD`/`attackSpeedBuff`/`featherRecallTargets` grep 0 → dead data P2**
+- [x] **변수 filler 판정** — ADDamage `[40,45,68]` no-filler ★1=40 (회수 = @TotalDamage@ scaleAD 와 정합) / `APDamage`[10,6,9]·`ActivePercentReducedDamage`[0.2]·`NumAttacks`[6] 는 active/passive desc 미렌더 → dead/unknown (sim 미참조 정상) / AttackNumEnemies·PassivePercentReducedDamage·PrimaryTargetBonusDamage·AttackSpeed·Duration·RecallFeatherTargets 상수/star별
+- [x] **actual sim integration verify (5단계)** — bounce passive read 확인 (`:6235-6271`) / active selfBuff AS read (`:7176`) + multi 회수 ADDamage (`ability.ts:247/313`, =@TotalDamage@ scaleAD raw 정합) / **`selfBuff.duration` read site 0 → AS 영구 over-model P2** / **scaling.json `featherDamageAD`/`attackSpeedBuff`/`featherRecallTargets` + `APDamage`/`ActivePercentReducedDamage` grep 0 + desc 미렌더 → dead/unknown (미반영 gap 아님, codex P2 PR #221)**
 - [x] **cast path 3종 (PR #129 룰)** — main (active multi ✅) / OOR (Xayah dash 없음 ➖) / recast (carry 없음 ➖). 평타 bounce passive·trait 별개 경로
 - [x] **`traits` frontmatter 각 entry trait helper grep 전수 verify (룰 #16/#19)** — 별돌보미 `TFT17_Stargazer` constellation resolution (`trait.ts:119-126`) ✅ / 저격수 `TFT17_RangedTrait` `applySniperEffects` (`:1949`) + `computeSniperDamageAmp` (`:1095/:1253`) ✅. "verify 면제" 어휘 미사용 (구현 면제 ≠ verify 면제)
 - [x] **lethal auto bounce 회귀 가드** — `tests/unit/simulator/xayah-bounce-passive.test.ts` (PR #220) "첫 사망 tick bounce 사망 ≥2" red/green 검증
-- [x] **본문 Lint P2 5건 등록 → sim 미반영/over-model 기능 존재 → 보수적 `sim_active: partial` 유지** (P0 case 없음 → 룰 #15 미해당)
-- [ ] (선택) active 회수 APDamage+ActivePercentReducedDamage / AS 4초 duration / scaling.json 정리 (P2)
+- [x] **본문 Lint P2 3건 (AS duration over-model / 회수 timing / 저격수 amp bounce) + dead/unknown 다수 → 보수적 `sim_active: partial` 유지** (P0 case 없음 → 룰 #15 미해당)
+- [x] **codex P2 (PR #221) 반영** — APDamage/ActivePercentReducedDamage 를 "미반영 gap" → "dead/unknown" 재분류 (active desc `@TotalDamage@` scaleAD 물리만 렌더, sim 추가 시 오히려 부정확)
+- [ ] (선택) AS 4초 duration revert / 회수 timing / 저격수 amp bounce 적용 (P2)
 
 ## 관련
 
 - [[role-passive]] — Marksman role 마나 규칙 (공격당 10 / 초당 0 / 피격 ❌)
 - [[ability-targeting]] — `multi` (caster 거리순 maxTargets 3) + selfBuff. cast path main only (dash 없음)
-- [[corki]] — 동형 "평타 추가 hit" (평타 미사일) + active scaleAP 미반영 P2 공통
+- [[corki]] — 동형 "평타 추가 hit" (평타 미사일). 단 corki active 는 MissileAP(scaleAP) 미반영이 실제 gap, Xayah 회수는 raw 가 scaleAD 물리만이라 gap 아님 (차이 주의)
 - [[kindred]] — 동형 `multi` ADDamage 화살 (표식 패시브는 combatLoop)
 - [[stargazer-fountain]] — 별돌보미 (Stargazer) game-level 메커니즘 (제단/우물, 17.4 full active)
 - under-damage calibration (메모리 `project_underdamage_calibration`) — 평타 bounce passive 도입 배경 (Xayah diffPct -2%)
