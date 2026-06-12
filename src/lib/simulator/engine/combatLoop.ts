@@ -6223,6 +6223,53 @@ export function simulateCombat(
             unit.totalDamageDealt += totalMissileDmg;
           }
 
+          // === 자야: 평타 깃털 bounce 패시브 (under-damage calibration) ===
+          // raw "Stellar Ricochet" 패시브: "Attacks bounce to strike AttackNumEnemies times,
+          //   dealing PassivePercentReducedDamage% reduced damage per target + leaving a Feather."
+          // sim 모델 (사용자 결정): primary 적중(기존 평타) 후 +PrimaryTargetBonusDamage(physical flat),
+          //   그리고 (AttackNumEnemies-1) 가장 가까운 다른 적에 bounce — 각 attackAD × (1-reduction).
+          //   bounce 는 평타의 40%(★1-3 reduction 0.6) 고정 (Corki 평타 추가 hit 패턴 동형).
+          //   깃털 회수(active)는 별도 cast 분기. damageAmp 적용, mitigation pipeline 통합.
+          // codex P2 (PR #219): bounce 는 다른 적을 치므로 primary 사망(lethal auto) 시에도 발동해야 함
+          //   → outer 가드에서 target.state 검사 제거. PrimaryTargetBonusDamage 만 primary 생존 가드.
+          if (unit.champion.apiName === 'TFT17_Xayah') {
+            const vars = unit.champion.ability.variables;
+            const numEnemies = readVarByStar(vars?.find(v => v.name === 'AttackNumEnemies')?.value, unit.starLevel, 3);
+            const reduction = readVarByStar(vars?.find(v => v.name === 'PassivePercentReducedDamage')?.value, unit.starLevel, 0.6);
+            const primaryBonus = readVarByStar(vars?.find(v => v.name === 'PrimaryTargetBonusDamage')?.value, unit.starLevel, 10);
+            const xayahArbiterState = unit.team === 'player' ? playerArbiterState : enemyArbiterState;
+            // 1) primary 추가 보너스 (physical flat) — primary 생존 시만
+            if (primaryBonus > 0 && target.state !== 'dead') {
+              const bonusDmg = applyAbilityMitigation(unit, target, primaryBonus * (1 + unit.damageAmp), 'physical', eventBus, tick);
+              target.currentHp -= bonusDmg;
+              target.totalDamageTaken += bonusDmg;
+              unit.totalDamageDealt += bonusDmg;
+              if (target.currentHp <= 0) {
+                logs.push({ tick, time, type: 'death', sourceId: target.id, message: `${target.champion.name} 사망! (${unit.champion.name}의 깃털)` });
+                markTargetDead(unit, target, xayahArbiterState, eventBus, tick);
+              }
+            }
+            // 2) bounce — (AttackNumEnemies-1) 가장 가까운 다른 적, 각 attackAD × (1-reduction)
+            const numBounce = Math.max(0, numEnemies - 1);
+            if (numBounce > 0) {
+              const bounceTargets = (unit.team === 'player' ? enemies : playerUnits)
+                .filter(e => e.state !== 'dead' && e.id !== target.id)
+                .sort((a, b) => hexDistance(target.position, a.position) - hexDistance(target.position, b.position))
+                .slice(0, numBounce);
+              const bounceRaw = unit.stats.damage * (1 - reduction) * (1 + unit.damageAmp);
+              for (const e of bounceTargets) {
+                const bDmg = applyAbilityMitigation(unit, e, bounceRaw, 'physical', eventBus, tick);
+                e.currentHp -= bDmg;
+                e.totalDamageTaken += bDmg;
+                unit.totalDamageDealt += bDmg;
+                if (e.currentHp <= 0) {
+                  logs.push({ tick, time, type: 'death', sourceId: e.id, message: `${e.champion.name} 사망! (${unit.champion.name}의 깃털 bounce)` });
+                  markTargetDead(unit, e, xayahArbiterState, eventBus, tick);
+                }
+              }
+            }
+          }
+
           // === 챔피언 전투 내 스케일링 (onAttack) — JSON 기반 ===
           const atkSc = getChampionScaling(unit.champion.apiName);
           if (atkSc?.trigger === 'onAttack' && target.state !== 'dead') {
