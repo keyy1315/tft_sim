@@ -26,7 +26,7 @@ related:
   - "[[ability-targeting]]"
   - "[[masteryi]]"
   - "[[briar]]"
-  - "[[aatrox]]"
+  - "[[illaoi]]"
 ---
 
 # 피오라 (Fiora)
@@ -38,7 +38,7 @@ related:
 - **role**: `mapGameRole('ADFighter')` → sim **Fighter** ([[role-passive]]). carry augment 없음. mana 0/70.
 - **ability "완벽한 대가의 검술"**: (passive) 기본 공격 `NumAttacks`(2)회마다 급소 드러냄 → 돌진해 급소 공격 `VitalDamage`(scaleAD) **고정(true) 피해** + 입힌 피해의 `PercentHealing`(15%) 회복. (active) 급소 `NumVitals`(6)개 드러내고 모두 공격 → 마지막 급소 타격 시 주변 2칸 오라 `AuraHealing`(scaleAP) 아군 회복.
 
-> 🎯 **Fiora 는 급소 돌진 true-damage brawler** — **passive(급소 돌진 true + 15% damage% 회복)는 sim 정확 반영** (PR #216 heal find 일반화). active 는 single dash + self heal 로 단순화 (6급소/오라 teamwide 힐 미반영). [[masteryi]] 동일 습격자, [[briar]]/[[aatrox]] 동일 동물특공대.
+> 🎯 **Fiora 는 급소 돌진 true-damage brawler** — **passive(급소 돌진 true + 15% damage% 회복)는 sim 정확 반영** (PR #216 heal find 일반화). active 는 single dash + self heal 로 단순화 (6급소/오라 teamwide 힐 미반영). [[masteryi]] 동일 습격자, [[briar]]/[[illaoi]] 동일 동물특공대.
 
 > ⚠️ **set17 entity confirm**: `TFT17_Fiora` apiName 으로 소속 확인 (cost 5, traits 신성결투가/동물특공대/습격자, role ADFighter). 한글명 list 만으로 후보 선정 금지 (룰 #149 P2 학습).
 
@@ -106,7 +106,7 @@ TFT17_Fiora: { pattern: 'single', dash: 'to_target', heal: true }
 | 동물특공대 (`TFT17_AnimaSquad`) | ❌ **미반영** | combatLoop trait apply grep 0 (emblem 매핑 `trait.ts:23` + AnimaSquad **아이템** UwuBlaster `stacking.ts:157` 만 — trait 효과 별개). **Lint P2** |
 | 신성 결투가 (`TFT17_FioraUniqueTrait`) | ❌ **미반영** | repo-wide grep 0 — unique trait (Fiora 단독), combat 효과 sim 부재. **Lint P2** |
 
-> 룰 #16/#19: 습격자만 generic 경로 존재. 동물특공대/신성결투가는 combatLoop apply 부재 (verify 면제 아님 — grep 재검증). 동물특공대는 [[briar]]/[[aatrox]] 등 다른 멤버에서도 trait 효과 미모델 동형 가능 (item 과 별개).
+> 룰 #16/#19: 습격자만 generic 경로 존재. 동물특공대/신성결투가는 combatLoop apply 부재 (verify 면제 아님 — grep 재검증). 동물특공대는 [[briar]]/[[illaoi]] 등 다른 멤버에서도 trait 효과 미모델 동형 가능 (item 과 별개).
 
 ## Cast path 분석 (PR #129 룰 — 3종 전수)
 
@@ -166,7 +166,7 @@ TFT17_Fiora: { pattern: 'single', dash: 'to_target', heal: true }
 - [[ability-targeting]] — `single` + dash(to_target) + heal. cast path main/OOR (dash user)
 - [[masteryi]] — 동일 습격자 (MeleeTrait) 흡혈→보호막
 - [[briar]] — 동일 동물특공대 (AnimaSquad) trait (멤버)
-- [[aatrox]] — 동일 동물특공대 (AnimaSquad) trait (멤버)
+- [[illaoi]] — 동일 동물특공대 (AnimaSquad) trait (멤버)
 - under-damage calibration (메모리 `project_underdamage_calibration`) — Fiora 는 passive 정합이라 영향 적음, active 단순화만 P2
 - 코드: `src/lib/simulator/systems/ability.ts:252`, `src/lib/simulator/engine/combatLoop.ts:6280/7162/528/186`
 - Raw: `public/data/tft_set17_champions.json` (TFT17_Fiora), `public/data/tft_set17_traits.json` (TFT17_FioraUniqueTrait / TFT17_AnimaSquad / TFT17_MeleeTrait)
