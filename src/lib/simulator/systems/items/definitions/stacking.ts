@@ -113,4 +113,61 @@ export const STACKING_ITEMS: Record<string, ItemEffectDescriptor[]> = {
       action: { kind: 'modifyStat', stat: 'as', delta: 0.03 },
     },
   ],
+
+  // 크라켄의 분노 (set17 — apiName TFT_Item_RunaansHurricane 재활용, Runaan's 효과 아님!)
+  // 효과 (tft_set17_items.json): AD 0.10 base / 평타당 +3.5% AD (ADOnAttack, MaxStacks 15)
+  //   / 15스택 후 AS +15% (ASCapstone) / MR 20 / AS 10 base.
+  // AD% 스택은 damageAmp 로 근사 (Titans 패턴 — ChampionStats.damage 는 최종값이라 % 주입 불가).
+  // calibration: 미모델 시 AD 캐리 평타 데미지 과소 (project_underdamage_calibration).
+  'TFT_Item_RunaansHurricane': [
+    // ⚠️ registry(statPatch) 경로는 as 를 fraction 직접 사용 (legacy normalizeLegacyPct 미적용,
+    //    stat.ts:216 baseAs*(1+itemFx.as)). raw effects AS:10(integer pts) → fraction 0.10. codex P1 #217.
+    statPatch({ ad: 0.10, as: 0.10, magicResist: 20 }),
+    {
+      kind: 'trigger',
+      event: 'on_attack',
+      condition: (ctx) => (ctx.state.stacks.get('kraken') ?? 0) < 15,
+      action: {
+        kind: 'chain',
+        actions: [
+          { kind: 'addStack', stack: 'kraken', cap: 15 },
+          { kind: 'modifyStat', stat: 'damageAmp', delta: 0.035 },
+        ],
+      },
+    },
+    {
+      // 15스택 도달 시 1회 AS capstone (kraken_cap 플래그로 단발성)
+      kind: 'trigger',
+      event: 'on_attack',
+      condition: (ctx) =>
+        (ctx.state.stacks.get('kraken') ?? 0) >= 15 && (ctx.state.stacks.get('kraken_cap') ?? 0) === 0,
+      action: {
+        kind: 'chain',
+        actions: [
+          { kind: 'addStack', stack: 'kraken_cap', cap: 1 },
+          { kind: 'modifyStat', stat: 'as', delta: 0.15 },
+        ],
+      },
+    },
+  ],
+
+  // 귀여운 발사기 (UwuBlaster, set17 Anima Squad Tier2)
+  // 효과: AD 0.25 / AS 45 base + 평타마다 레이저 3발(NumUwUBlasts) 사거리 내 무작위 대상에
+  //   각 장착유닛 AD의 40%(ADDamage) 물리 피해. on_attack proc ×3 randomEnemy.
+  'TFT17_AnimaSquadItem_Tier2_UwuBlaster': [
+    // as 는 fraction (registry 경로 미정규화) — raw effects AS:45(integer pts) → 0.45. codex P1 #217.
+    statPatch({ ad: 0.25, as: 0.45 }),
+    {
+      kind: 'trigger',
+      event: 'on_attack',
+      action: {
+        kind: 'chain',
+        actions: [
+          { kind: 'dealDamage', amount: { mode: 'pctAttackDamage', pct: 0.40 }, type: 'physical', target: 'randomEnemy' },
+          { kind: 'dealDamage', amount: { mode: 'pctAttackDamage', pct: 0.40 }, type: 'physical', target: 'randomEnemy' },
+          { kind: 'dealDamage', amount: { mode: 'pctAttackDamage', pct: 0.40 }, type: 'physical', target: 'randomEnemy' },
+        ],
+      },
+    },
+  ],
 };
