@@ -77,4 +77,24 @@ export const COMBINED_ITEMS: Record<string, ItemEffectDescriptor[]> = {
 
   // 찬란 무한의 대검
   'TFT_Item_CorruptedInfinityEdge': [statPatch({ ad: 0.35, critChance: 35 })],
+
+  // 정령의 형상 (Redemption, set17): HP 300 / ManaRegen 2 + 매초 잃은 체력 2% 회복
+  //   (MissingHealthHeal 0.02, HealTickRate 1; MaxHeal 250 cap 은 근사 생략 — 2% missing 은
+  //    maxHp 12500 미만이면 250 미달이라 거의 무영향).
+  // ⚠️ registry 등록 시 legacy(getItemEffects) 경로가 멈추므로 base 스탯(HP/ManaRegen)을
+  //    statPatch 로 명시 필수 (codex P1 #217 — registry vs legacy 경로 교훈).
+  // calibration: 탱커 sustain 미반영 → 적 빨리 죽어 combat 단축 → AD 캐리 누적 데미지 컷
+  //   (project_underdamage_calibration, combat-shortening 커플링 완화 목적).
+  'TFT_Item_Redemption': [
+    statPatch({ hp: 300, manaRegen: 2 }),
+    {
+      kind: 'timer',
+      intervalTicks: 30, // 1초 (HealTickRate 1)
+      action: {
+        kind: 'heal',
+        amount: { mode: 'pctMissingHp', pct: 0.02 },
+        target: 'self',
+      },
+    },
+  ],
 };

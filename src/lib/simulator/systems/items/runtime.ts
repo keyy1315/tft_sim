@@ -28,6 +28,9 @@ interface TimerEntry {
   unitId: string;
   apiName: string;
   timer: IntervalTimer;
+  /** 동일 (unit, apiName, intervalTicks) 의 몇 번째 copy 인지 — 중복 아이템 타이머 독립 발동용
+   *  (codex P2 PR #218). 단일 copy 는 0 → timerKey 동작 불변. */
+  copyIndex: number;
 }
 
 export class ItemEffectRuntime {
@@ -108,7 +111,7 @@ export class ItemEffectRuntime {
       const state = this.states.get(key);
       if (!state) continue;
 
-      const timerKey = `timer::${entry.timer.intervalTicks}`;
+      const timerKey = `timer::${entry.timer.intervalTicks}::${entry.copyIndex}`;
       const lastFire = state.timerLastTick.get(timerKey);
       // 첫 tick (lastFire === undefined) 은 install 시점(=tick 0)을 기준으로 intervalTicks 대기.
       // 최초 발동은 `tick >= intervalTicks` 시점.
@@ -189,7 +192,12 @@ export class ItemEffectRuntime {
   }
 
   private registerTimer(unit: CombatUnit, apiName: string, d: IntervalTimer): void {
-    this.timers.push({ unitId: unit.id, apiName, timer: d });
+    // copyIndex: 같은 (unit, apiName, intervalTicks) 의 기존 타이머 수 = 이 copy 의 순번.
+    // 중복 아이템(예: Redemption ×2) 의 타이머가 timerKey 충돌로 1개만 발동하던 것 해소.
+    const copyIndex = this.timers.filter(
+      t => t.unitId === unit.id && t.apiName === apiName && t.timer.intervalTicks === d.intervalTicks,
+    ).length;
+    this.timers.push({ unitId: unit.id, apiName, timer: d, copyIndex });
   }
 
   private dispatchTrigger(

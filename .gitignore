@@ -29,3 +29,4 @@ scripts/
 actual-data/videos/*
 !actual-data/videos/.gitkeep
 .DS_Store
+.understand-anything/
