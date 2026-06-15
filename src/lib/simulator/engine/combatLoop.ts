@@ -361,6 +361,8 @@ function createCombatUnit(
     aatroxPreviouslyDead: false,
     aatroxNovaStrikeSelector: false,
     astronautMeepsStack: 0,
+    rammusPassiveArmorCoef: 0,
+    rammusHitsTaken: 0,
     attackCount: 0,
     castCount: 0,
     killCount: 0,
@@ -939,6 +941,11 @@ const NON_TARGET_DAMAGE_REDUCTION = 0.15;
 
 /** TFT 공격 속도 하드 캡 (전 세트 공통 5.0). Guinsoo 무한 스택 폭주 방지. */
 const ATTACK_SPEED_CAP = 5.0;
+
+/** 라무스 정령 패시브 — AttacksPerPassiveTrigger (모든 ★ 동일 20). */
+const RAMMUS_PASSIVE_THRESHOLD = 20;
+/** 라무스 정령 패시브 AoE 반경 (반경 2칸). */
+const RAMMUS_PASSIVE_RADIUS = 2;
 
 
 function applyResistance(damage: number, resistance: number, penetration: number = 0): number {
@@ -2054,6 +2061,16 @@ function applyAstronautEffects(activeTraits: ActiveTrait[], units: CombatUnit[])
     // PR7-E: Meeps stack 저장 (뽀삐 carry spiritEffectPerStack 등에 사용)
     if (meeps > 0) {
       u.astronautMeepsStack = meeps;
+    }
+    // 라무스 정령 패시브 — 정령족 active 시 PassivePercentArmor★ 계수 저장 (★2=0.3).
+    // 피격 AttacksPerPassiveTrigger(=20)회 누적 시 반경 2칸 AoE = coef × armor (magic, scaleArmor).
+    // desc: TFT17_Astronaut_IsActive 조건부 → 정령족 비활성 시 미발동 (raw 존재 ≠ 도달 가능).
+    if (u.champion.apiName === 'TFT17_Rammus') {
+      const coef = readVarByStar(
+        u.champion.ability.variables?.find(v => v.name === 'PassivePercentArmor')?.value,
+        u.starLevel, 0,
+      );
+      if (coef > 0) u.rammusPassiveArmorCoef = coef;
     }
   }
 }
@@ -3795,6 +3812,8 @@ function spawnFreljordTurrets(
             aatroxPreviouslyDead: false,
             aatroxNovaStrikeSelector: false,
             astronautMeepsStack: 0,
+            rammusPassiveArmorCoef: 0,
+            rammusHitsTaken: 0,
             attackCount: 0,
             castCount: 0,
             killCount: 0,
@@ -4008,6 +4027,8 @@ function trySpawnGalio(
     aatroxPreviouslyDead: false,
     aatroxNovaStrikeSelector: false,
     astronautMeepsStack: 0,
+    rammusPassiveArmorCoef: 0,
+    rammusHitsTaken: 0,
     attackCount: 0,
     castCount: 0,
     killCount: 0,
@@ -6409,6 +6430,39 @@ export function simulateCombat(
             target.gravesReactiveStackCount++;
           }
 
+          // 라무스 정령 패시브 — 평타 RAMMUS_PASSIVE_THRESHOLD(20)회 피격 후 반경 2칸 적에게
+          // armor 비례 마법 AoE (coef × armor). 정령족 active 시만 (rammusPassiveArmorCoef > 0).
+          // 프론트라인 Rammus 의 실질 주력 데미지원 — under-damage calibration 의 핵심 레버.
+          if (target.rammusPassiveArmorCoef > 0 && target.state !== 'dead') {
+            target.rammusHitsTaken++;
+            if (target.rammusHitsTaken >= RAMMUS_PASSIVE_THRESHOLD) {
+              target.rammusHitsTaken = 0;
+              // damageAmp(아이템/증강/trait 피해증폭) 를 raw 단계에 적용 — main ability path 와 일관
+              // (codex P2 #237: 미적용 시 damageAmp 빌드에서 패시브 데미지 과소집계).
+              const aoeRaw = target.rammusPassiveArmorCoef * target.stats.armor * (1 + target.damageAmp);
+              const rammusArb = target.team === 'player' ? playerArbiterState : enemyArbiterState;
+              const aoeVictims = (target.team === 'player' ? enemies : playerUnits)
+                .filter(e => e.state !== 'dead' && hexDistance(target.position, e.position) <= RAMMUS_PASSIVE_RADIUS);
+              for (const v of aoeVictims) {
+                const dealt = applyAbilityMitigation(target, v, aoeRaw, 'magic', eventBus, tick);
+                v.currentHp -= dealt;
+                v.totalDamageTaken += dealt;
+                target.totalDamageDealt += dealt;
+                const aoeLog: CombatLog = {
+                  tick, time, type: 'ability',
+                  sourceId: target.id, targetId: v.id,
+                  value: Math.round(dealt),
+                  message: `${target.champion.name} 정령 패시브가 ${v.champion.name}에게 ${Math.round(dealt)} 마법 피해`,
+                };
+                logs.push(aoeLog);
+                tickLogs.push(aoeLog);
+                if (v.currentHp <= 0 && v.state !== 'dead') {
+                  markTargetDead(target, v, rammusArb, eventBus, tick);
+                }
+              }
+            }
+          }
+
           const log: CombatLog = {
             tick, time, type: 'attack',
             sourceId: unit.id, targetId: target.id,
@@ -6531,6 +6585,15 @@ export function simulateCombat(
               );
               rawAbilityDmgBase = result.damage;
               dmgType = result.type;
+            }
+            // scaleArmor: caster(자기) 방어력 비례 추가 피해 (Rammus 중력회전 — 사용자 확인 표준 Rammus).
+            // 주 피해(DamageAP scaleAP) + (DamageArmor × caster.armor). 고방어 탱커 carry 의 주력 데미지원.
+            if (config.casterArmorScaleVar) {
+              const armorCoef = readVarByStar(
+                unit.champion.ability.variables?.find(v => v.name === config.casterArmorScaleVar)?.value,
+                unit.starLevel, 0,
+              );
+              rawAbilityDmgBase += armorCoef * unit.stats.armor;
             }
             // codex P1 (PR #98): self_buff pattern 은 caster 가 findAbilityTargets 의 self-target.
             // resolveAbilityDamage 의 damageVar fallback (Poppy ★3 'Shield'=575 등) 으로 인해
@@ -7400,7 +7463,15 @@ export function simulateCombat(
             unit.champion, unit.starLevel, unit.stats.ap, oorCarryForDamage, outOfRangeConfig.damageVar
           );
           // codex P1 (PR #98): self_buff OOR 경로도 self-hit 회귀 방지 — damage 0 강제.
-          const rawOORDmg = outOfRangeConfig.pattern === 'self_buff' ? 0 : rawOORDmgResolved;
+          let rawOORDmg = outOfRangeConfig.pattern === 'self_buff' ? 0 : rawOORDmgResolved;
+          // scaleArmor: caster 방어력 비례 추가 (Rammus) — main path 와 동일 (cast path 3종 일관, PR #129 룰).
+          if (outOfRangeConfig.casterArmorScaleVar && rawOORDmg > 0) {
+            const oorArmorCoef = readVarByStar(
+              unit.champion.ability.variables?.find(v => v.name === outOfRangeConfig.casterArmorScaleVar)?.value,
+              unit.starLevel, 0,
+            );
+            rawOORDmg += oorArmorCoef * unit.stats.armor;
+          }
           const oorHitTotal = outOfRangeConfig.hitCount ? rawOORDmg * outOfRangeConfig.hitCount : rawOORDmg;
           const oorIsSplit = outOfRangeConfig.hitCount && outOfRangeConfig.pattern !== 'single';
           const opposingTeam = unit.team === 'player' ? enemies : playerUnits;

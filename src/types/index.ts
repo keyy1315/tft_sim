@@ -812,6 +812,15 @@ export interface CombatUnit {
    *   - 후속 PR (Meeps 챔프별 메커니즘): Bard MeepsPerMeep 등
    */
   astronautMeepsStack: number;
+  /**
+   * 라무스(Rammus) 정령 패시브 armor 비례 계수 — 정령족(Astronaut) active 시만 > 0.
+   * applyAstronautEffects 가 PassivePercentArmor★ (★2=0.3) 저장.
+   * 0 = 패시브 비활성(정령족 미발동 또는 Rammus 아님).
+   * 사용처: 피격 누적 rammusHitsTaken ≥ 20 시 반경 2칸 AoE = coef × armor (magic).
+   */
+  rammusPassiveArmorCoef: number;
+  /** 라무스 정령 패시브 피격 카운터 — 20회마다 AoE 발동 후 0 reset. */
+  rammusHitsTaken: number;
   /** MF 특성 선택 등으로 치환된 실제 트레이트 목록 */
   resolvedTraits?: string[];
   /** 스킬 치명타 가능 여부. 전투 시작 시 보건/무대 착용 또는 정밀 계열 시너지로 결정. */
