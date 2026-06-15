@@ -10,7 +10,7 @@ traits:
 role: Tank   # raw "APTank" → mapGameRole() → sim Tank (types/index.ts includes('Tank')). carry augment 없음
 raw_role: APTank
 current_patch_status: active
-sim_active: partial   # ability 「재앙」 2칸 AOE InitialDamage(scaleAP) + 띄움(stun). sim aoe_circle r2 + stun 1.75 + damageVar InitialDamage. InitialDamage filler ★1=120/★2=180/★3=2000. 별돌보미(Stargazer)/선봉대(ShieldTank Vanguard) trait 정합. Shield 은 getAbilityShield 로 cast 시 적용(✅). ⚠️ 미반영: FollowupDamage(2번째 타격, ★2=150/★3=2000 — secondaryDamageVar 미설정) / ShieldDuration(4초→sim 30초 고정) / StunDuration ★scaling(hardcoded 1.75 = ★2값). 🔑 **calibration -82% 의 지배 요인은 값 갭 아니라 cast 빈도**: mana 40/**145**(초고비용) → sim 짧은 전투(6~12s, 10s 포위전에서도 cast 0회)서 거의 시전 못 함 → ability 데미지 대부분 미발생 (duration/cast-frequency bound, FollowupDamage fix 도 cast 없어 영향 0 → 미적용)
+sim_active: partial   # ability 「재앙」 2칸 AOE InitialDamage(scaleAP) + 띄움(stun). sim aoe_circle r2 + stun 1.75 + damageVar InitialDamage. InitialDamage filler ★1=120/★2=180/★3=2000. 별돌보미(Stargazer) 정합 / 선봉대(ShieldTank Vanguard) 는 전투 시작 보호막만(Durability+5%/re-shield 미구현). Shield 은 getAbilityShield 로 cast 시 적용(✅). ⚠️ 미반영: FollowupDamage(2번째 타격, ★2=150/★3=2000 — secondaryDamageVar 미설정) / ShieldDuration(4초→sim 30초 고정) / StunDuration ★scaling(hardcoded 1.75 = ★2값). 🔑 **calibration -82% 의 지배 요인은 값 갭 아니라 cast 빈도**: mana 40/**145**(초고비용) → sim 짧은 전투(6~12s, 10s 포위전에서도 cast 0회)서 거의 시전 못 함 → ability 데미지 대부분 미발생 (duration/cast-frequency bound, FollowupDamage fix 도 cast 없어 영향 0 → 미적용)
 last_verified: 2026-06-15
 sources:
   - "public/data/tft_set17_champions.json (TFT17_Nunu entry — cost 4, role APTank, traits [별돌보미/선봉대], hp 1300, armor/MR 60/60, AD 60, AS 0.65, range 1, mana 40/145, ability '재앙' variables Shield/InitialDamage/FollowupDamage/StunDuration/ShieldDuration/LockoutTime)"
@@ -78,7 +78,7 @@ raw desc: "`@ShieldDuration@`(4)초 `@ModifiedShield@`(scaleAP) 보호막. 아�
 ### Trait — 별돌보미 (Stargazer) / 선봉대 (ShieldTank)
 
 - **별돌보미** (`TFT17_Stargazer*`, bp 3/5/7...): `applyStargazerEffects` (`:3283`) — 강화 칸 별자리(constellation) 효과. 상세 [[stargazer]].
-- **선봉대** (`TFT17_ShieldTank`, bp 2/4/6): `applyVanguardEffects` (`:2020`) — 전투 시작 시 maxHp × ShieldPercent 보호막(10초) + 보호막 중 Durability +5%.
+- **선봉대** (`TFT17_ShieldTank`, bp 2/4/6): `applyVanguardEffects` (`:2020`) — 전투 시작 시 maxHp × ShieldPercent 보호막만 적용. ⚠️ **보호막 중 Durability +5%(DamageReductionPct) + HealthThreshold re-shield 미구현** (코드 주석상 별도 PR — spec 만 존재).
 
 ## sim 통합 상태 — `partial`
 
@@ -86,12 +86,13 @@ raw desc: "`@ShieldDuration@`(4)초 `@ModifiedShield@`(scaleAP) 보호막. 아�
 - stats 17.4 정합 (hp 1300, armor/MR 60, AD 60, AS 0.65, mana 40/145)
 - role Tank (`mapGameRole('APTank')`)
 - ability 시전 시: 2칸 AOE InitialDamage(scaleAP) + 띄움(stun 1.75)
-- 별돌보미(Stargazer) / 선봉대(Vanguard) trait
+- 별돌보미(Stargazer) trait / 선봉대(Vanguard) — 전투 시작 보호막만 (Durability/re-shield 미구현)
 
 ⚠️ **미반영** (Lint 후보):
 - **P2**: FollowupDamage (2번째 타격) — secondaryDamageVar 미설정 (Nunu cast 없어 영향 0, 보류)
 - **P2**: ShieldDuration 미반영 (Shield amount 는 `getAbilityShield` 로 반영됨 — duration 4초→30초 고정 부정확)
 - **P2**: StunDuration ★scaling (hardcoded 1.75)
+- **P2**: 선봉대(Vanguard) 보호막 중 Durability +5% + HealthThreshold re-shield 미구현 (전투 시작 보호막만)
 - 🔴 **systemic**: mana 145 초고비용 → sim 짧은 전투서 cast 거의 없음 → calibration -82% (duration/cast-frequency bound, 값 갭 아님)
 
 ## 관련 문서
