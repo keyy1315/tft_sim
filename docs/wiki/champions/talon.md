@@ -78,7 +78,7 @@ TFT17_Talon: { pattern: 'single', dash: 'to_target', dot: { duration: 18 } }
 | 출혈 피해 (`ADBleedDamage`, scaleAD) | ✅ | `:6672` dot 처리 — `abilityDmg`(`ADBleedDamage` filler ★1=430/★2=645/★3=1000) 를 `BleedDuration`(18)초 동안 `burn` statusEffect 로 spread (MR mitigate 후 perTick). desc `<physicalDamage>` → physical |
 | **bleed DOT dealer 귀속** | ✅ **PR #234** | 이전 burn tick(`:3531`)이 target HP 만 차감, dealer `totalDamageDealt` 미집계 → calibration −79% under. **PR #234**: tickStatusEffects burn/poison 통합 per-tick `dotSrc.totalDamageDealt` + `victim.totalDamageTaken` 귀속 + lethal source-aware 사망 |
 | 출혈 scaleAP (`APBleedDamage`) | ❌ **미반영** | dot `abilityDmg` = `getAbilityDamage` default → `ADBleedDamage` 만 (DAMAGE_VAR_PRIORITY 'Damage' 부분매칭). `APBleedDamage` (filler ★1=60) 미참조. raw bleed = scaleAD+scaleAP 인데 sim 은 scaleAD 만. **Lint P2** (raw `<physicalDamage>` → 합산 시 magic 아님, physical) |
-| 도약 (`HexDistance` 3, 최고 체력 적) | ⚠️ **dash 대상 차이** | sim `dash: 'to_target'` = **현재 ability 타겟**으로 dash. raw 는 "공격 후 3칸 내 **체력 비율 최고** 적에게 도약" (재타겟). 대상 선택 로직 차이. **Lint P2** |
+| 도약 (`HexDistance` 3, 최고 체력 적) | ⚠️ **dash 대상 차이 + 데미지 결합** | sim `dash: 'to_target'` = 현재 타겟으로 dash. ⚠️ cast resolution 이 `applyAbilityDash` → `findAbilityTargets` 순서(`:6628-6637`, OOR `:7365-7373`)라 **dash 반환 타겟이 곧 DOT 대상**. raw 는 "**현재 타겟에 bleed 적용 후** 3칸 내 최고 체력 적 도약" → 데미지 타겟(현재)과 post-hit dash 타겟(최고체력)이 **분리**돼야 함. **Lint P2** |
 
 > ⚠️ **잔여 under ~-70%** (PR #234 로 −79%→−70% 개선 후): ① `APBleedDamage`(scaleAP) 누락 ② 18초 bleed 가 전투 duration(보통 <18초) 동안 부분만 전달 (게임도 전투 종료 시 cut 되나 sim survival/duration 차이) ③ dash 재타겟 차이. 추가 모델 후속.
 
@@ -121,7 +121,7 @@ TFT17_Talon: { pattern: 'single', dash: 'to_target', dot: { duration: 18 } }
 |---|------|------|------|---------------------|------|
 | ✅ resolved | bleed DOT dealer 미크레딧 | burn DOT 가 totalDamageDealt 미집계던 −79% 주원인 | **resolved (PR #234)** | tickStatusEffects per-tick dealer/victim 귀속 + lethal 사망 | systemic burn 크레딧 fix (Talon/Bard/Viktor 등). −79→−70% |
 | P2 | APBleedDamage scaleAP 미반영 | dot `abilityDmg` = ADBleedDamage 만, APBleedDamage(scaleAP) 미참조. raw bleed = scaleAD+scaleAP physical | **P2** | cast-time — dot abilityDmg 에 APBleedDamage×ap 합산 (physical, magic 아님) | scaleAP 누락 (소량, filler ★1=60) |
-| P2 | dash 대상 선택 차이 | sim `to_target`(현재 타겟) vs raw "3칸 내 체력 최고 적 도약" | **P2** | dash — `dash` 에 retarget 모드(highest-HP within hex) 추가 | 도약 대상 부정확 (데미지 총량 영향은 적음) |
+| P2 | dash 대상 선택 차이 (+ 데미지 타겟 결합) | sim `to_target`(현재) vs raw "현재 타겟 bleed 후 3칸 내 최고체력 도약". ⚠️ `applyAbilityDash` 가 `findAbilityTargets` 보다 먼저라 dash 타겟=DOT 대상 | **P2** | dash — **데미지 타겟(현재)과 post-hit dash 타겟(highest-HP)을 분리** 필요. dash retarget 모드만 추가하면 bleed 가 점프 타겟으로 이동돼 오류 (codex P2 PR #235) | 도약 대상 부정확. 분리 구현 필요 |
 
 > 📌 **bleed DOT(ADBleedDamage scaleAD) + dealer 크레딧(PR #234) + 별돌보미/불한당 trait 반영**. `partial` 사유는 APBleedDamage scaleAP 미반영 + dash 재타겟 차이 P2 + 잔여 under(bleed 18초 부분전달). burn 크레딧 systemic fix 로 −79→−70% 개선.
 
