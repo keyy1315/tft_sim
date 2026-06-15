@@ -1,8 +1,8 @@
 {
   "gameId": "game-20260424-001",
-  "computedAt": "2026-06-15T04:40:03.099Z",
+  "computedAt": "2026-06-15T05:04:17.626Z",
   "sourceGameMtime": 1779323641263,
-  "engineSha": "470e8fc0cee0c9a24f7efbf6212f152b2c94813b",
+  "engineSha": "26cd77cd447e34d9e24df3aed61ee3767922903d",
   "nRuns": 10,
   "seedBase": 0,
   "rounds": [
@@ -2522,9 +2522,9 @@
           "actualAlive": false,
           "actualHp": 0,
           "simAliveRate": 1,
-          "simMeanHp": 61.50655075771018,
+          "simMeanHp": 61.58817266397663,
           "aliveMismatch": true,
-          "hpDiffPoints": 61.50655075771018
+          "hpDiffPoints": 61.58817266397663
         },
         {
           "hex": {
@@ -2536,9 +2536,9 @@
           "actualAlive": false,
           "actualHp": 0,
           "simAliveRate": 1,
-          "simMeanHp": 42.070351996581635,
+          "simMeanHp": 42.43886265674625,
           "aliveMismatch": true,
-          "hpDiffPoints": 42.070351996581635
+          "hpDiffPoints": 42.43886265674625
         },
         {
           "hex": {
@@ -2550,9 +2550,9 @@
           "actualAlive": false,
           "actualHp": 0,
           "simAliveRate": 1,
-          "simMeanHp": 36.469867268866274,
+          "simMeanHp": 39.75369124912946,
           "aliveMismatch": true,
-          "hpDiffPoints": 36.469867268866274
+          "hpDiffPoints": 39.75369124912946
         },
         {
           "hex": {
@@ -2606,9 +2606,9 @@
           "actualAlive": false,
           "actualHp": 0,
           "simAliveRate": 0.7,
-          "simMeanHp": 23.717022013881017,
+          "simMeanHp": 25.940168543677306,
           "aliveMismatch": true,
-          "hpDiffPoints": 23.717022013881017
+          "hpDiffPoints": 25.940168543677306
         },
         {
           "hex": {
@@ -2620,9 +2620,9 @@
           "actualAlive": false,
           "actualHp": 0,
           "simAliveRate": 0.7,
-          "simMeanHp": 10.568607412949714,
+          "simMeanHp": 11.011003699944894,
           "aliveMismatch": true,
-          "hpDiffPoints": 10.568607412949714
+          "hpDiffPoints": 11.011003699944894
         },
         {
           "hex": {
