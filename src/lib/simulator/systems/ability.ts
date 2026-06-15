@@ -55,6 +55,8 @@ export interface AbilityConfig {
   dot?: { duration: number };
   /** parseAbility 대신 사용할 피해 변수명 오버라이드 */
   damageVar?: string;
+  /** caster(자기) 방어력 비례 추가 피해 변수명 (scaleArmor — Rammus 중력회전 등). 주 피해 + (변수값 × caster.armor) */
+  casterArmorScaleVar?: string;
   /** 2차 피해 변수명 (폭발, 추가 투사체 등) — 주 피해와 합산 */
   secondaryDamageVar?: string;
   /**
@@ -233,7 +235,7 @@ export const CHAMPION_ABILITY_PATTERNS: Record<string, AbilityConfig> = {
   TFT17_Rhaast:      { pattern: 'line', stun: 1.0, heal: true, selfBuff: { durability: 0.3, duration: 4 } },  // 내구력 + 회복 + 직선 베기
 
   // === 4코스트 ===
-  TFT17_Rammus:      { pattern: 'line', maxTargets: 3, selfBuff: { durability: 0.3, duration: 4 } },  // 보호막 + 직선 3칸
+  TFT17_Rammus:      { pattern: 'line', maxTargets: 3, selfBuff: { durability: 0.3, duration: 4 }, damageVar: 'DamageAP', casterArmorScaleVar: 'DamageArmor' },  // 보호막 + 직선 3칸 마법(DamageAP scaleAP + DamageArmor×caster armor)
   TFT17_Corki:       { pattern: 'aoe_circle', radius: 2, dash: 'to_target', hitCount: 21, damageVar: 'MissileAD' },  // 저공비행 + 미사일 21개 AOE
   TFT17_Kindred:     { pattern: 'multi', maxTargets: 3, damageVar: 'ADDamage' },  // 제자리에서 화살 3명 ADDamage. 이동은 기본 공격 AI 의 한 칸 이동에 맡긴다 (표식 패시브는 combatLoop)
   TFT17_Karma:       { pattern: 'multi', maxTargets: 3, secondaryDamageVar: 'SecondaryDamage' },  // 블랙홀 3명 분배 + 대상 추가 SecondaryDamage
