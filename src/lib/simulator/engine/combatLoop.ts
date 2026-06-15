@@ -5692,6 +5692,22 @@ export function simulateCombat(
       }
     }
 
+    // 가고일 돌갑옷 — 동적 armor/MR 사전 재계산 (action loop 前 전용 pass).
+    // 자신을 공격 대상으로 삼은 살아있는 적 수 × ArmorPerEnemy. applied-delta 로 차분만 반영(누적 방지).
+    // codex P2: action loop 내(players-before-enemies) 재계산 시 첫 tick 적 target 이 아직 null 이라
+    // 첫 볼리가 Stoneplate 무시 → 동작 前 전용 pass 로 분리해 모든 wearer 가 공격 처리 前 최신 armor 보유.
+    for (const unit of allUnits) {
+      if (unit.state === 'dead' || unit.gargoyleArmorPerEnemy <= 0) continue;
+      const gargAttackers = (unit.team === 'player' ? enemies : playerUnits)
+        .filter(e => e.state !== 'dead' && e.target === unit.id).length;
+      const desiredArmor = unit.gargoyleArmorPerEnemy * gargAttackers;
+      const desiredMR = unit.gargoyleMRPerEnemy * gargAttackers;
+      unit.stats.armor += desiredArmor - unit.gargoyleAppliedArmor;
+      unit.stats.magicResist += desiredMR - unit.gargoyleAppliedMR;
+      unit.gargoyleAppliedArmor = desiredArmor;
+      unit.gargoyleAppliedMR = desiredMR;
+    }
+
     for (const unit of allUnits) {
       if (unit.state === 'dead') continue;
 
@@ -5700,19 +5716,6 @@ export function simulateCombat(
       // 사망 시 같은 tick 잔여 행동(mana/cooldown/attack/cast) skip (codex P1: dead unit 마지막 행동 방지).
       // (cast: 상단 가드가 unit.state 를 non-dead 로 좁혀 tsc 가 tickStatusEffects 의 mutation 을 모름)
       if ((unit.state as string) === 'dead') continue;
-
-      // 가고일 돌갑옷 — 동적 armor/MR 재계산 (현재 자신을 공격 대상으로 삼은 살아있는 적 수 비례).
-      // 착용 개수 × ArmorPerEnemy × 공격자수. applied-delta 로 공격자 변동 시 차분만 반영(누적 방지).
-      if (unit.gargoyleArmorPerEnemy > 0) {
-        const gargAttackers = (unit.team === 'player' ? enemies : playerUnits)
-          .filter(e => e.state !== 'dead' && e.target === unit.id).length;
-        const desiredArmor = unit.gargoyleArmorPerEnemy * gargAttackers;
-        const desiredMR = unit.gargoyleMRPerEnemy * gargAttackers;
-        unit.stats.armor += desiredArmor - unit.gargoyleAppliedArmor;
-        unit.stats.magicResist += desiredMR - unit.gargoyleAppliedMR;
-        unit.gargoyleAppliedArmor = desiredArmor;
-        unit.gargoyleAppliedMR = desiredMR;
-      }
 
       // Mordekaiser proc 매 tick — 펄스 발동 / 만료 시 HealRefund / 사망 시 cancel.
       // 가드: 0 (비활성) 일 때 호출 skip → 다른 챔프 perf 손실 없음.
