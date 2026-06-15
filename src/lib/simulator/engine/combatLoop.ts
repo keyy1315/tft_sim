@@ -253,6 +253,11 @@ function createCombatUnit(
   const role = mapGameRole(placed.champion.role);
   // PR101: 매드레드의 검 — 탱커 상대 +15% damageAmp. 다중 부착 시 누적.
   const madredsCount = allItems.filter(i => i?.apiName === 'TFT_Item_MadredsBloodrazor').length;
+  // 가고일 돌갑옷 — 동적 per-attacker armor/MR (착용 개수 × ArmorPerEnemy/MRPerEnemy).
+  // static Armor/MR/HP 는 legacy stat 으로 적용됨 — 여기선 동적 성분 계수만 집계.
+  const gargoyles = allItems.filter(i => i?.apiName === 'TFT_Item_GargoyleStoneplate');
+  const gargoyleArmorPerEnemy = gargoyles.reduce((s, g) => s + ((g.effects?.ArmorPerEnemy ?? 0) as number), 0);
+  const gargoyleMRPerEnemy = gargoyles.reduce((s, g) => s + ((g.effects?.MRPerEnemy ?? 0) as number), 0);
   const unit: CombatUnit = {
     id: `${team}-${index}`,
     champion: placed.champion,
@@ -308,6 +313,10 @@ function createCombatUnit(
     gravesShockwaveActive: false,
     gravesReactivePerStack: 0,
     gravesReactiveStackCount: 0,
+    gargoyleArmorPerEnemy: 0,
+    gargoyleMRPerEnemy: 0,
+    gargoyleAppliedArmor: 0,
+    gargoyleAppliedMR: 0,
     gravesTripleAttackChance: 0,
     gravesRevUpPerStack: 0,
     gravesRevUpMaxBonus: 0,
@@ -405,6 +414,10 @@ function createCombatUnit(
       unit.omnivamp += fx['HealPercent'] as number;
     }
   }
+
+  // 가고일 돌갑옷 동적 방어 계수 (착용 시 per-tick 공격자 수 비례 armor/MR).
+  unit.gargoyleArmorPerEnemy = gargoyleArmorPerEnemy;
+  unit.gargoyleMRPerEnemy = gargoyleMRPerEnemy;
 
   return unit;
 }
@@ -923,6 +936,9 @@ function applyIoniaPath(
 
 /** Fighter/Assassin 비타겟 피해 감소 비율 */
 const NON_TARGET_DAMAGE_REDUCTION = 0.15;
+
+/** TFT 공격 속도 하드 캡 (전 세트 공통 5.0). Guinsoo 무한 스택 폭주 방지. */
+const ATTACK_SPEED_CAP = 5.0;
 
 
 function applyResistance(damage: number, resistance: number, penetration: number = 0): number {
@@ -3636,7 +3652,10 @@ function getEffectiveAttackSpeed(unit: CombatUnit): number {
     as *= (1 + unit.challengerBurstPercent);
   }
 
-  return as;
+  // TFT 공격 속도 하드 캡 5.0 — Guinsoo 등 무한 스택으로 폭주(AS 325 등) 방지.
+  // 캡 부재 시 캐리가 매 틱 공격(틱당 1회=30/s)해 적을 비현실적으로 빨리 처치 →
+  // 전투가 2~6s 로 단축되어 누적 데미지가 실전(20~30s) 대비 과소집계되던 systemic 원인.
+  return Math.min(as, ATTACK_SPEED_CAP);
 }
 
 /** Create Freljord turret units if trait is active */
@@ -3728,6 +3747,10 @@ function spawnFreljordTurrets(
             gravesShockwaveActive: false,
             gravesReactivePerStack: 0,
             gravesReactiveStackCount: 0,
+            gargoyleArmorPerEnemy: 0,
+            gargoyleMRPerEnemy: 0,
+            gargoyleAppliedArmor: 0,
+            gargoyleAppliedMR: 0,
             gravesTripleAttackChance: 0,
             gravesRevUpPerStack: 0,
             gravesRevUpMaxBonus: 0,
@@ -3937,6 +3960,10 @@ function trySpawnGalio(
     gravesShockwaveActive: false,
     gravesReactivePerStack: 0,
     gravesReactiveStackCount: 0,
+    gargoyleArmorPerEnemy: 0,
+    gargoyleMRPerEnemy: 0,
+    gargoyleAppliedArmor: 0,
+    gargoyleAppliedMR: 0,
     gravesTripleAttackChance: 0,
     gravesRevUpPerStack: 0,
     gravesRevUpMaxBonus: 0,
@@ -5673,6 +5700,19 @@ export function simulateCombat(
       // 사망 시 같은 tick 잔여 행동(mana/cooldown/attack/cast) skip (codex P1: dead unit 마지막 행동 방지).
       // (cast: 상단 가드가 unit.state 를 non-dead 로 좁혀 tsc 가 tickStatusEffects 의 mutation 을 모름)
       if ((unit.state as string) === 'dead') continue;
+
+      // 가고일 돌갑옷 — 동적 armor/MR 재계산 (현재 자신을 공격 대상으로 삼은 살아있는 적 수 비례).
+      // 착용 개수 × ArmorPerEnemy × 공격자수. applied-delta 로 공격자 변동 시 차분만 반영(누적 방지).
+      if (unit.gargoyleArmorPerEnemy > 0) {
+        const gargAttackers = (unit.team === 'player' ? enemies : playerUnits)
+          .filter(e => e.state !== 'dead' && e.target === unit.id).length;
+        const desiredArmor = unit.gargoyleArmorPerEnemy * gargAttackers;
+        const desiredMR = unit.gargoyleMRPerEnemy * gargAttackers;
+        unit.stats.armor += desiredArmor - unit.gargoyleAppliedArmor;
+        unit.stats.magicResist += desiredMR - unit.gargoyleAppliedMR;
+        unit.gargoyleAppliedArmor = desiredArmor;
+        unit.gargoyleAppliedMR = desiredMR;
+      }
 
       // Mordekaiser proc 매 tick — 펄스 발동 / 만료 시 HealRefund / 사망 시 cancel.
       // 가드: 0 (비활성) 일 때 호출 skip → 다른 챔프 perf 손실 없음.
