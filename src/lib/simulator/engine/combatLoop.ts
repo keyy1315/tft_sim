@@ -3522,6 +3522,10 @@ function tickStatusEffects(
   time: number,
   logs: CombatLog[],
   tickLogs: CombatLog[],
+  allUnits: CombatUnit[],
+  playerArbiterState: { enemyDeathCount: number },
+  enemyArbiterState: { enemyDeathCount: number },
+  eventBus: EventBus,
 ): void {
   for (const effect of unit.statusEffects) {
     effect.remainingTicks--;
@@ -3529,7 +3533,19 @@ function tickStatusEffects(
       unit.currentHp -= effect.value;
     }
     if (effect.type === 'poison' && effect.value) {
+      // poison DOT — per-tick 으로 victim/dealer 피해 귀속 + lethal 시 source-aware 사망 처리
+      // (codex P1 PR #231: upfront 크레딧 시 만료 전 사망분 over-credit + 사망 미처리 → unit 계속 행동).
       unit.currentHp -= effect.value;
+      unit.totalDamageTaken += effect.value;
+      const poisonSrc = allUnits.find(u => u.id === effect.sourceId);
+      if (poisonSrc) {
+        poisonSrc.totalDamageDealt += effect.value;
+        if (unit.currentHp <= 0 && unit.state !== 'dead') {
+          const srcArb = poisonSrc.team === 'player' ? playerArbiterState : enemyArbiterState;
+          logs.push({ tick, time, type: 'death', sourceId: unit.id, message: `${unit.champion.name} 사망! (${poisonSrc.champion.name}의 중독)` });
+          markTargetDead(poisonSrc, unit, srcArb, eventBus, tick);
+        }
+      }
     }
   }
 
@@ -5652,7 +5668,7 @@ export function simulateCombat(
     for (const unit of allUnits) {
       if (unit.state === 'dead') continue;
 
-      tickStatusEffects(unit, tick, time, logs, tickLogs);
+      tickStatusEffects(unit, tick, time, logs, tickLogs, allUnits, playerArbiterState, enemyArbiterState, eventBus);
 
       // Mordekaiser proc 매 tick — 펄스 발동 / 만료 시 HealRefund / 사망 시 cancel.
       // 가드: 0 (비활성) 일 때 호출 skip → 다른 챔프 perf 손실 없음.
@@ -6313,7 +6329,8 @@ export function simulateCombat(
                   } else {
                     target.statusEffects.push({ type: 'poison', sourceId: unit.id, remainingTicks: pTicks, value: poisonTotal / pTicks });
                   }
-                  unit.totalDamageDealt += poisonTotal; // 즉시 직격(:6289)과 동일하게 dealer 에 귀속
+                  // dealer/victim 피해 귀속은 poison tick(tickStatusEffects)에서 per-tick 처리 (codex P1 PR #231 —
+                  // upfront 크레딧 제거: 만료 전 사망 시 미전달분 over-credit 방지).
                 }
               }
             }
