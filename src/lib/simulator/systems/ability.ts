@@ -51,6 +51,13 @@ export interface AbilityConfig {
   };
   /** 다회 타격 횟수 — 총 피해 = base × hitCount (벨베스 12, 아칼리 5 등) */
   hitCount?: number;
+  /**
+   * 타격당 확률 proc — 기대값 배수로 근사 (결정론, N-run 평균 정합).
+   * 각 타격이 procChance 확률로 procDamageMult 배 피해 → 기대 배수 (1 − procChance + procChance × procDamageMult).
+   * 예: Corki 미사일 ProcChance 0.2 / ProcDamageMult 3.5 → ×1.5.
+   */
+  procChance?: number;
+  procDamageMult?: number;
   /** DOT 지속 피해 — 스킬 피해를 duration초에 걸쳐 매초 적용 */
   dot?: { duration: number };
   /** parseAbility 대신 사용할 피해 변수명 오버라이드 */
@@ -236,7 +243,7 @@ export const CHAMPION_ABILITY_PATTERNS: Record<string, AbilityConfig> = {
 
   // === 4코스트 ===
   TFT17_Rammus:      { pattern: 'line', maxTargets: 3, selfBuff: { durability: 0.3, duration: 4 }, damageVar: 'DamageAP', casterArmorScaleVar: 'DamageArmor' },  // 보호막 + 직선 3칸 마법(DamageAP scaleAP + DamageArmor×caster armor)
-  TFT17_Corki:       { pattern: 'aoe_circle', radius: 2, dash: 'to_target', hitCount: 21, damageVar: 'MissileAD' },  // 저공비행 + 미사일 21개 AOE
+  TFT17_Corki:       { pattern: 'aoe_circle', radius: 2, dash: 'to_target', hitCount: 21, damageVar: 'MissileAD', procChance: 0.20, procDamageMult: 3.5 },  // 저공비행 + 미사일 21개 AOE (MissileAD scaleAD, 미사일당 20% proc ×3.5 기대값). MissileAP 부차/Meep 미모델
   TFT17_Kindred:     { pattern: 'multi', maxTargets: 3, damageVar: 'ADDamage' },  // 제자리에서 화살 3명 ADDamage. 이동은 기본 공격 AI 의 한 칸 이동에 맡긴다 (표식 패시브는 combatLoop)
   TFT17_Karma:       { pattern: 'multi', maxTargets: 3, secondaryDamageVar: 'SecondaryDamage' },  // 블랙홀 3명 분배 + 대상 추가 SecondaryDamage
   TFT17_AurelionSol: { pattern: 'line', damageDecay: 0.15, dot: { duration: 3 } },  // 직선 광선 3초 DOT + 관통 감소

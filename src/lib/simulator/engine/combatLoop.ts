@@ -6740,7 +6740,11 @@ export function simulateCombat(
             }
 
             // hitCount: single은 곱연산, AOE/multi는 총 피해를 타겟 수로 분배 (후술)
-            const hitCountTotal = config.hitCount ? rawAbilityDmg * config.hitCount : rawAbilityDmg;
+            // 타격당 확률 proc — 기대값 배수 근사 (Corki 미사일 20% ×3.5 → ×1.5). 결정론(N-run 평균 정합).
+            const procExpectedMult = config.procChance && config.procDamageMult
+              ? 1 - config.procChance + config.procChance * config.procDamageMult
+              : 1;
+            const hitCountTotal = (config.hitCount ? rawAbilityDmg * config.hitCount : rawAbilityDmg) * procExpectedMult;
             const isSplitDamage = config.hitCount && config.pattern !== 'single';
             const opposingTeam = unit.team === 'player' ? enemies : playerUnits;
 
@@ -7486,7 +7490,11 @@ export function simulateCombat(
             );
             rawOORDmg += oorArmorCoef * unit.stats.armor;
           }
-          const oorHitTotal = outOfRangeConfig.hitCount ? rawOORDmg * outOfRangeConfig.hitCount : rawOORDmg;
+          // 타격당 확률 proc 기대값 배수 (main path 와 일관 — Corki dash OOR).
+          const oorProcMult = outOfRangeConfig.procChance && outOfRangeConfig.procDamageMult
+            ? 1 - outOfRangeConfig.procChance + outOfRangeConfig.procChance * outOfRangeConfig.procDamageMult
+            : 1;
+          const oorHitTotal = (outOfRangeConfig.hitCount ? rawOORDmg * outOfRangeConfig.hitCount : rawOORDmg) * oorProcMult;
           const oorIsSplit = outOfRangeConfig.hitCount && outOfRangeConfig.pattern !== 'single';
           const opposingTeam = unit.team === 'player' ? enemies : playerUnits;
 
