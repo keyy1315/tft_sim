@@ -598,6 +598,17 @@ export interface CombatUnit {
   /** ReactiveArmor 누적 stack 수. 0..50 사이 제한. */
   gravesReactiveStackCount: number;
   /**
+   * 가고일 돌갑옷(GargoyleStoneplate) 동적 방어 — 자신을 공격 대상으로 삼은 적 1명당
+   * armor/MR 증가 (착용 개수 × ArmorPerEnemy/MRPerEnemy, raw 각 10). static Armor/MR/HP 는
+   * legacy stat 으로 이미 적용 — 본 필드는 **동적 per-attacker 성분만**. 0 = 미착용.
+   * per-tick 재계산 (현재 공격자 수 변동 반영, applied-delta 로 누적 방지).
+   */
+  gargoyleArmorPerEnemy: number;
+  gargoyleMRPerEnemy: number;
+  /** 현재 stats 에 반영된 동적 armor/MR (delta 계산용 — 공격자 수 변동 시 차분 적용). */
+  gargoyleAppliedArmor: number;
+  gargoyleAppliedMR: number;
+  /**
    * TripleTap (한 발에 세 놈) 업그레이드 — N% 확률 추가 2 hit (총 3회).
    * 0 = 미활성 / 0.18 = 활성. DoubleTap Frame / DoubleTap2 와 별개 roll —
    * TripleTap 발동 시 DoubleTap path skip (중복 방지).

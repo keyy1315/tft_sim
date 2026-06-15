@@ -253,6 +253,11 @@ function createCombatUnit(
   const role = mapGameRole(placed.champion.role);
   // PR101: 매드레드의 검 — 탱커 상대 +15% damageAmp. 다중 부착 시 누적.
   const madredsCount = allItems.filter(i => i?.apiName === 'TFT_Item_MadredsBloodrazor').length;
+  // 가고일 돌갑옷 — 동적 per-attacker armor/MR (착용 개수 × ArmorPerEnemy/MRPerEnemy).
+  // static Armor/MR/HP 는 legacy stat 으로 적용됨 — 여기선 동적 성분 계수만 집계.
+  const gargoyles = allItems.filter(i => i?.apiName === 'TFT_Item_GargoyleStoneplate');
+  const gargoyleArmorPerEnemy = gargoyles.reduce((s, g) => s + ((g.effects?.ArmorPerEnemy ?? 0) as number), 0);
+  const gargoyleMRPerEnemy = gargoyles.reduce((s, g) => s + ((g.effects?.MRPerEnemy ?? 0) as number), 0);
   const unit: CombatUnit = {
     id: `${team}-${index}`,
     champion: placed.champion,
@@ -308,6 +313,10 @@ function createCombatUnit(
     gravesShockwaveActive: false,
     gravesReactivePerStack: 0,
     gravesReactiveStackCount: 0,
+    gargoyleArmorPerEnemy: 0,
+    gargoyleMRPerEnemy: 0,
+    gargoyleAppliedArmor: 0,
+    gargoyleAppliedMR: 0,
     gravesTripleAttackChance: 0,
     gravesRevUpPerStack: 0,
     gravesRevUpMaxBonus: 0,
@@ -405,6 +414,10 @@ function createCombatUnit(
       unit.omnivamp += fx['HealPercent'] as number;
     }
   }
+
+  // 가고일 돌갑옷 동적 방어 계수 (착용 시 per-tick 공격자 수 비례 armor/MR).
+  unit.gargoyleArmorPerEnemy = gargoyleArmorPerEnemy;
+  unit.gargoyleMRPerEnemy = gargoyleMRPerEnemy;
 
   return unit;
 }
@@ -923,6 +936,9 @@ function applyIoniaPath(
 
 /** Fighter/Assassin 비타겟 피해 감소 비율 */
 const NON_TARGET_DAMAGE_REDUCTION = 0.15;
+
+/** TFT 공격 속도 하드 캡 (전 세트 공통 5.0). Guinsoo 무한 스택 폭주 방지. */
+const ATTACK_SPEED_CAP = 5.0;
 
 
 function applyResistance(damage: number, resistance: number, penetration: number = 0): number {
@@ -3636,7 +3652,10 @@ function getEffectiveAttackSpeed(unit: CombatUnit): number {
     as *= (1 + unit.challengerBurstPercent);
   }
 
-  return as;
+  // TFT 공격 속도 하드 캡 5.0 — Guinsoo 등 무한 스택으로 폭주(AS 325 등) 방지.
+  // 캡 부재 시 캐리가 매 틱 공격(틱당 1회=30/s)해 적을 비현실적으로 빨리 처치 →
+  // 전투가 2~6s 로 단축되어 누적 데미지가 실전(20~30s) 대비 과소집계되던 systemic 원인.
+  return Math.min(as, ATTACK_SPEED_CAP);
 }
 
 /** Create Freljord turret units if trait is active */
@@ -3728,6 +3747,10 @@ function spawnFreljordTurrets(
             gravesShockwaveActive: false,
             gravesReactivePerStack: 0,
             gravesReactiveStackCount: 0,
+            gargoyleArmorPerEnemy: 0,
+            gargoyleMRPerEnemy: 0,
+            gargoyleAppliedArmor: 0,
+            gargoyleAppliedMR: 0,
             gravesTripleAttackChance: 0,
             gravesRevUpPerStack: 0,
             gravesRevUpMaxBonus: 0,
@@ -3937,6 +3960,10 @@ function trySpawnGalio(
     gravesShockwaveActive: false,
     gravesReactivePerStack: 0,
     gravesReactiveStackCount: 0,
+    gargoyleArmorPerEnemy: 0,
+    gargoyleMRPerEnemy: 0,
+    gargoyleAppliedArmor: 0,
+    gargoyleAppliedMR: 0,
     gravesTripleAttackChance: 0,
     gravesRevUpPerStack: 0,
     gravesRevUpMaxBonus: 0,
@@ -5663,6 +5690,22 @@ export function simulateCombat(
       for (const u of enemies) {
         if (unitHasTrait(u, '도전자')) challengerIds.add(u.id);
       }
+    }
+
+    // 가고일 돌갑옷 — 동적 armor/MR 사전 재계산 (action loop 前 전용 pass).
+    // 자신을 공격 대상으로 삼은 살아있는 적 수 × ArmorPerEnemy. applied-delta 로 차분만 반영(누적 방지).
+    // codex P2: action loop 내(players-before-enemies) 재계산 시 첫 tick 적 target 이 아직 null 이라
+    // 첫 볼리가 Stoneplate 무시 → 동작 前 전용 pass 로 분리해 모든 wearer 가 공격 처리 前 최신 armor 보유.
+    for (const unit of allUnits) {
+      if (unit.state === 'dead' || unit.gargoyleArmorPerEnemy <= 0) continue;
+      const gargAttackers = (unit.team === 'player' ? enemies : playerUnits)
+        .filter(e => e.state !== 'dead' && e.target === unit.id).length;
+      const desiredArmor = unit.gargoyleArmorPerEnemy * gargAttackers;
+      const desiredMR = unit.gargoyleMRPerEnemy * gargAttackers;
+      unit.stats.armor += desiredArmor - unit.gargoyleAppliedArmor;
+      unit.stats.magicResist += desiredMR - unit.gargoyleAppliedMR;
+      unit.gargoyleAppliedArmor = desiredArmor;
+      unit.gargoyleAppliedMR = desiredMR;
     }
 
     for (const unit of allUnits) {
