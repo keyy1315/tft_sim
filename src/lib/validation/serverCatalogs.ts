@@ -10,6 +10,7 @@ import type {
   RawAugmentsData,
 } from '@/types';
 import { isDisabledAugment, isDisabledItem } from '@/data/disabledContent';
+import { setScalingData, type ScalingData } from '@/lib/simulator/systems/ability';
 
 const PUBLIC_DATA = path.join(process.cwd(), 'public', 'data');
 
@@ -47,6 +48,10 @@ export function loadServerCatalogs(): ServerCatalogs {
   const augments = augmentsRaw.filter(a =>
     a.disable !== true && !isDisabledAugment(a.apiName),
   );
+  // scaling.json 로드 — champion onAttack/onKill/passive 스케일링 + trait synergy.
+  // 기존엔 production(useGameData fetch)만 로드, 서버/calibration 경로(loadServerCatalogs)는 미로드라
+  // getChampionScaling/getSynergyScaling 가 null → 시너지·passive 전부 OFF 로 sim 계산되던 갭 해소.
+  setScalingData(readJson<ScalingData>('tft_set17_scaling.json'));
   cached = { champions, traits, items, augments };
   return cached;
 }
