@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Suspense } from 'react';
 import NavHeader from '@/components/ui/NavHeader';
 import '@/styles/globals.css';
@@ -10,6 +10,10 @@ export const metadata: Metadata = {
   verification: {
     google: 'NPET5rApTEI6h8DEKsJSMMYm4CDmUMV-LrINNcEqmxs',
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#0a0e1a',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
