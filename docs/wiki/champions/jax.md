@@ -15,7 +15,8 @@ last_verified: 2026-05-29 (17.4 patch fact 추가, sim 미반영 명시; 이전:
 sources:
   - "public/data/tft_set17_champions.json (TFT17_Jax entry)"
   - "src/types/index.ts:39 (mapGameRole: 'Tank' 포함 → 'Tank')"
-  - "src/lib/simulator/systems/ability.ts:206 (abilityOverride aoe_circle r=1 + stun 1.5 + selfBuff durability 0.3 for 3s)"
+  - "src/lib/simulator/systems/ability.ts:224 (TFT17_Jax: aoe_circle r=1 + stun 1.5 + selfBuff durability 0.3 for 3s + casterArmorScaleVar/casterMrScaleVar 'ArmorMRScale')"
+  - "src/lib/simulator/engine/combatLoop.ts:6603-6622 (damageVar 없는 순수 armor/MR 스케일 → base 0 magic + ArmorMRScale×armor + ArmorMRScale×MR, main path) / :7494-7515 (OOR 동일)"
   - "src/lib/simulator/engine/combatLoop.ts:2258-2296 (applyHeroCarryTransforms — JaxCarry 활성 시 role=Fighter + selectedCarryAugment set)"
   - "src/lib/simulator/engine/combatLoop.ts:4643 (carry 변환 시 Fighter AS bonus 자동 수령)"
   - "src/lib/simulator/engine/combatLoop.ts:6193-6195 (self_buff pattern self-hit 회피 comment — Jax/Zed carry 사례)"
@@ -61,28 +62,28 @@ raw 명세 (`public/data/tft_set17_champions.json` desc): "`@Duration@`초 동�
 
 → **3단계 효과**: (1) `Duration`초 자기 buff (DR + shield), (2) duration 만료 시 주변 AOE damage, (3) AOE 적에 stun.
 
-**sim 적용** (`ability.ts:206`):
+**sim 적용** (`ability.ts:224`):
 ```ts
-TFT17_Jax: { pattern: 'aoe_circle', radius: 1, stun: 1.5, selfBuff: { durability: 0.3, duration: 3 } }
+TFT17_Jax: { pattern: 'aoe_circle', radius: 1, stun: 1.5, selfBuff: { durability: 0.3, duration: 3 }, casterArmorScaleVar: 'ArmorMRScale', casterMrScaleVar: 'ArmorMRScale' }
 ```
 
-→ cast 시점 즉시 모두 적용: aoe_circle r=1 damage + stun 1.5초 + selfBuff durability 0.3 (3초). **3초 지연 AOE 미모델링** (raw spec 의 "방어 태세가 끝나면" delay 가 sim 에 instant 로 처리됨).
+→ cast 시점 즉시 모두 적용: aoe_circle r=1 magic damage = `ArmorMRScale★ × (armor + MR)` (damageVar 없음 → base 0, magic) + stun 1.5초 + selfBuff durability 0.3 (3초). **3초 지연 AOE 미모델링** (raw spec 의 "방어 태세가 끝나면" delay 가 sim 에 instant 로 처리됨).
 
 ### raw ability variables (★1~★4 인덱스 — 첫 값 sentinel filler)
 
 | 변수 | raw 값 | sim 적용 | 비고 |
 |------|--------|---------|------|
 | `Duration` | `[3,3,3,3,3,3,3]` (전부 3초) | ✅ selfBuff.duration 3 (정합) | 단 sim 은 cast 시점 즉시 AOE → "방어 태세 끝나면" delay 누락 |
-| `FlatDR` | `[0, 15, 20, 25, 30, 0, 0]` ★1=15, ★2=20, ★3=25, ★4=30 | ❌ **미반영 (semantic 불일치)** | raw 는 **flat damage reduction 수치 + AP 스케일**. sim 은 `selfBuff.durability 0.3` (30% **percentage** reduction) — 단위/스케일 양쪽 다름 |
+| `FlatDR` | `[0, 20, 25, 30, 30, 0, 0]` (17.4 raw) filler → ★1=20, ★2=25, ★3=30, ★4=30 | ❌ **미반영 (semantic 불일치)** | raw 는 **flat damage reduction 수치 + AP 스케일**. sim 은 `selfBuff.durability 0.3` (30% **percentage** reduction) — 단위/스케일 양쪽 다름 |
 | `ShieldAP` | `[0, 400, 450, 500, 600, 0, 0]` ★1=400, ★2=450, ★3=500, ★4=600 | ❌ **미반영** | base ability 가 shield 부여 — sim 의 selfBuff 분기에 shield 적용 없음. `getAbilityShield` 헬퍼는 별도 경로 (PR #105 등 carry 한정) |
 | `StunDuration` | `[1.5, 1, 1.25, 1.5, 1.75, 1.5, 1.5]` ★1=1.0, ★2=1.25, ★3=1.5, ★4=1.75 (index 0 sentinel 1.5) | ❌ **미반영 (starLevel별)** | sim 은 `stun: 1.5` 하드코딩 — ★2 실제 1.25초, ★3 1.5초, ★4 1.75초 starLevel 스케일 미반영. [[ability-targeting]] cast path 3종 (main + OOR + recast) 모두 영향 |
-| `ArmorMRScale` | `[50, 0.75, 1.15, 1.7, 2.9, 500, 500]` ★1=0.75, ★2=1.15, ★3=1.7, ★4=2.9 (base 50 + sentinel) | 🔍 **미verify** | raw 명세 `@ModifiedDamage@(scaleArmor scaleMR)` 는 `base + armor*scale + MR*scale` 추정. sim 의 aoe_circle damage 가 어떤 base 값을 read 하는지 추가 verify 필요 (`Damage` 필드 없음 — `readVarByStar` fallback 동작?) |
+| `ArmorMRScale` | `[50, 0.75, 1.15, 1.7, 2.9, 500, 500]` filler(v0>v1) → idx=star → ★1=0.75, ★2=1.15, ★3=1.7, ★4=2.9 | ✅ **반영** | `@ModifiedDamage@(scaleArmor scaleMR)` = `ArmorMRScale★ × armor`(casterArmorScaleVar) + `ArmorMRScale★ × MR`(casterMrScaleVar) magic. damageVar 없어 base 0 (auto-detect garbage 제거). main + OOR cast path 일관 |
 | `AttackRadius` | `[1,1,1,1,1,1,1]` (전부 1) | ✅ aoe_circle r=1 (정합) | — |
 
 ### Trait — 별돌보미(Stargazer) + 요새(Bastion)
 
-- **별돌보미**: 강화 칸의 별돌보미 유닛에 별자리 효과 추가 적용 — [[stargazer]] 참조. Jax 는 1코 별돌보미 4명 (나서스/뽀삐/렉사이/리산드라/등) 그룹과 별개 2코.
-- **요새**: Bastion — `applyBastionEffects` (`combatLoop.ts:1817` 함수 정의 + `:4580-4581` combat-start 호출) 통합. Tank role 보강 효과 (armor/MR 가산 + `bastionDoubleEndTick` Duration doubled 만료 처리). PR #162 subagent P2-4 정정 (이전 `traitModules.ts` 잘못 인용).
+- **별돌보미**: Stargazer — `applyStargazerEffects` (`combatLoop.ts:3283` 함수 정의 + `:4774-4775` combat-start 호출) 통합. 강화 칸 별자리 효과 (constellation variant) — 상세는 [[stargazer]] 참조.
+- **요새**: Bastion — `applyBastionEffects` (`combatLoop.ts:1926` 함수 정의 + `:4780-4781` combat-start 호출) 통합. Tank role 보강 효과 (armor/MR 가산 + `bastionDoubleEndTick` Duration doubled 만료 처리). PR #162 subagent P2-4 정정 (이전 `traitModules.ts` 잘못 인용).
 
 ## JaxCarry 변환 시 (참조)
 
@@ -99,7 +100,7 @@ JaxCarry augment 활성 시:
 | 패치 | 변경 | sim 적용 |
 |------|------|---------|
 | [[patch-17-2b]] (2026-04-29) | `ShieldAmount` (=`ShieldAP`): `400/500/625 → 400/470/550` — base ability shield 너프 | ❌ sim 미반영 (ShieldAP 자체 미적용) |
-| [[patch-17-3]] (2026-05-13) | `FlatDR` (AP): `15/25/35/45 → 15/20/25/30` + `ShieldAP`: `400/470/550 → 400/450/500` — base ability 너프 2건 | ❌ sim 미반영 (양쪽 변수 모두 dead in sim) |
+| [[patch-17-3]] (2026-05-13) | `FlatDR` (AP): `15/25/35/45 → 20/25/30/30` (17.3 이전값 raw diff 미확인 — 이전 스냅샷 부재) + `ShieldAP`: `400/470/550 → 400/450/500` — base ability 너프 2건 | ❌ sim 미반영 (양쪽 변수 모두 dead in sim) |
 | [[patch-17-4]] (2026-05-27) | **조정 (Adjustment)**: `FlatDR` **AP 스케일링 제거** — `15/20/25 AP` (★1~★3) → **`20/25/30`** (평탄 수치, AP scaling 제거). raw desc 의 `(scaleAP)` 제거 | ❌ sim 미반영 + **분기 구조 영향**: AP scaling 자체 제거라 단순 수치 변경 아니라 변수 type 변경 (AP 의존 → flat). [[patch-17-4]] sequence B/C 대기 |
 
 ⚠️ **17.4 sim 영향 평가**:
@@ -119,12 +120,13 @@ JaxCarry augment 활성 시:
 ❌ **미반영**:
 - **3초 지연 AOE** — raw 는 "방어 태세 만료 시 주변 AOE" 시퀀스. sim 은 cast 즉시 selfBuff + damage + stun 동시 적용
 - **`ShieldAP` (보호막)** — base ability 의 AP 스케일 shield 없음 (sim selfBuff 분기에 shield 추가 안 함)
-- **`FlatDR` raw 수치** — 30% durability 하드코딩 (raw `15~30 + AP scale flat reduction` 의미 미반영)
+- **`FlatDR` raw 수치** — 30% durability 하드코딩 (raw `20~30 + AP scale flat reduction` (17.4) 의미 미반영)
 - **`StunDuration` starLevel별** — 1.5초 하드코딩 (★1=1.0, ★2=1.25, ★3=1.5, ★4=1.75 raw 스케일 미반영)
 - 17.2b/17.3 두 차례 patch 변경 (`FlatDR`, `ShieldAP`) — sim 미반영 (변수 자체 dead)
 
+✅ **해소**: `ArmorMRScale` damage formula — `@ModifiedDamage@(scaleArmor scaleMR)` = `ArmorMRScale★ × armor`(casterArmorScaleVar) + `ArmorMRScale★ × MR`(casterMrScaleVar) magic 으로 모델 (damageVar 없어 base 0, under-damage fix). calibration Jax -57%→-49%.
+
 🔍 **검증 필요**:
-- `ArmorMRScale` 기반 damage formula (`@ModifiedDamage@(scaleArmor scaleMR)`) — raw 명세는 `base + armor*scale + MR*scale` 추정. sim aoe_circle damage 가 어떤 값을 read 하는지 (`damageVar` 미지정 → `'Damage'` fallback? raw 에 `Damage` 변수 없음) 추가 verify 필요
 - `Duration` 의 3초 selfBuff vs raw "방어 태세 만료 후 AOE" 의도 차이 — gameplay 시뮬 정확도 평가 필요 (boss 가 3초 후 죽으면 sim 은 다시 시전 가능 vs raw 는 만료 후 AOE 가 나옴)
 
 ## Lint 신규 등록 후보 (champion ingest 발견)
@@ -137,7 +139,7 @@ JaxCarry augment 활성 시:
 | L2 | `FlatDR` flat 수치 + AP 스케일 | sim 30% percent durability 와 다른 의미 |
 | L3 | `StunDuration` starLevel별 (1.0/1.25/1.5/1.75) | hardcoded 1.5 — ★1/★2 부족, ★4 부족 |
 | L4 | 3초 지연 AOE 시퀀스 | "방어 태세 만료 후 AOE" 모델링 부재 |
-| L5 | `ArmorMRScale` damage formula | sim aoe_circle damage source 미verify |
+| ~~L5~~ | ~~`ArmorMRScale` damage formula~~ | ✅ **해소** — casterArmorScaleVar+casterMrScaleVar 로 armor+MR 비례 magic 모델 (under-damage fix) |
 
 ⚠️ **우선순위 평가**: Jax 는 carry augment 활성 시점 (`Stargazer JaxCarry`) 이 주된 사용 컨텍스트. base raw 사용 빈도가 낮으면 위 lint 5건은 후순위. 단 carry 미활성 시 sim 결과 신뢰도 낮음 (특히 starLevel별 stun 차이 ★2/★4 0.5초+).
 
@@ -149,7 +151,7 @@ JaxCarry augment 활성 시:
 - [x] **raw role `APTank` → mapGameRole → sim Tank** (`src/types/index.ts:39` 'Tank' substring match 우선)
 - [x] JaxCarry 변환 시 role overwrite `Fighter` (`combatLoop.ts:2265`)
 - [x] cast path 3종 (main + OOR + recast) — base ability self_buff/aoe_circle 의 OOR 동작은 [[jax-carry]] 페이지에서 다룸 (base raw 는 단순 in-range aoe)
-- [ ] (사용자 verify) ArmorMRScale damage formula sim read site 추적
+- [x] ArmorMRScale damage formula sim read site ✅ casterArmorScaleVar+casterMrScaleVar (combatLoop.ts:6604-6621 main + 7496-7511 OOR)
 - [ ] (사용자 verify) 3초 지연 AOE 의도 vs sim instant 차이 — gameplay impact 평가
 - [ ] (선택) Lint L1~L5 정식 등록 (#17+) — 우선순위 평가 후
 
@@ -162,5 +164,5 @@ JaxCarry augment 활성 시:
 - [[stargazer]] — 별돌보미 trait + 강화 칸
 - [[patch-17-3]] — Jax FlatDR + ShieldAP 너프 (sim dead)
 - [[shen]] — 다른 raw role 변형 사례 (APFighter → Fighter)
-- 코드: `src/lib/simulator/systems/ability.ts:206`, `src/lib/simulator/engine/combatLoop.ts:2258`
+- 코드: `src/lib/simulator/systems/ability.ts:224`, `src/lib/simulator/engine/combatLoop.ts:2258`
 - 테스트: `tests/unit/simulator/hero-carry-augments.test.ts:223+` / `tests/unit/simulator/stargazer-huntress-serpent.test.ts`
