@@ -25,7 +25,6 @@ const get = (api: string) => champions.find(c => c.apiName === api)!;
 const rammus = get('TFT17_Rammus');
 const gnar = get('TFT17_Gnar');
 const bard = get('TFT17_Bard');
-const jinx = get('TFT17_Jinx');
 const cho = get('TFT17_Chogath');
 
 beforeAll(() => {
@@ -38,9 +37,10 @@ function placed(c: RawChampion, q: number, r: number, star: 1 | 2 | 3 = 2): Plac
 
 describe('라무스 액티브 caster 방어력 비례 (armor-scaling 회귀 가드)', () => {
   it('적 다수에 둘러싸여 cast 시 armor 비례 성분 반영 — DamageAP 단독 대비 대폭 증가', () => {
+    // Chogath 다수로 포위 — Rammus 가 피격 마나로 cast 하도록 (탱키 적이라 Rammus 생존).
     const r = simulateCombat(
       [placed(rammus, 5, 3, 2)],
-      [placed(jinx, 6, 3, 2), placed(jinx, 6, 2, 2), placed(jinx, 6, 4, 2)],
+      [placed(cho, 6, 3, 3), placed(cho, 4, 3, 3), placed(cho, 5, 2, 3), placed(cho, 5, 4, 3)],
       { seed: 0, allTraits: traits, skipMirror: true, stageNumber: 5 },
     );
     const t = r.playerUnits.find(u => u.champion.apiName === 'TFT17_Rammus')!;
