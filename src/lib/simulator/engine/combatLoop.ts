@@ -7429,7 +7429,9 @@ export function simulateCombat(
             // rawValue = totalRawAbilityDmg (per-target modifier 적용 후, resistance 미적용 누적).
             // value = totalAbilityDmg (실제 적용 mitigated total).
             // dot path 면 totalRawAbilityDmg 누적 안 됨 → hitCountTotal 폴백 (DOT total raw).
-            const rawForCast = totalRawAbilityDmg > 0 ? totalRawAbilityDmg : hitCountTotal;
+            // perSecond DOT 은 총량 = hitCountTotal × duration (codex P2 #241 — raw 소비자 일관).
+            const dotRawMult = config.dot?.perSecond ? config.dot.duration : 1;
+            const rawForCast = totalRawAbilityDmg > 0 ? totalRawAbilityDmg : hitCountTotal * dotRawMult;
             eventBus.emit('on_cast', { sourceId: unit.id, targetId: target.id, value: totalAbilityDmg, rawValue: rawForCast, tick });
           }
 
@@ -7787,8 +7789,9 @@ export function simulateCombat(
           triggerFountainHeal(unit, totalAbilityDmg, tick, time, tickLogs);
 
           // rawValue = totalRawAbilityDmg (per-target modifier 적용 후, resistance 미적용 누적).
-          // dot path 면 raw 누적 안 됨 → oorHitTotal 폴백.
-          const oorRawForCast = totalRawAbilityDmg > 0 ? totalRawAbilityDmg : oorHitTotal;
+          // dot path 면 raw 누적 안 됨 → oorHitTotal 폴백. perSecond DOT 은 × duration (codex P2 #241).
+          const oorDotRawMult = outOfRangeConfig.dot?.perSecond ? outOfRangeConfig.dot.duration : 1;
+          const oorRawForCast = totalRawAbilityDmg > 0 ? totalRawAbilityDmg : oorHitTotal * oorDotRawMult;
           eventBus.emit('on_cast', { sourceId: unit.id, targetId: target.id, value: totalAbilityDmg, rawValue: oorRawForCast, tick });
         } else {
           // 일반 이동
