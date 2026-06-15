@@ -737,12 +737,24 @@ function getAbilityConfigForUnit(unit: CombatUnit, augmentApiNames: string[]): A
  *   2. abilityData.damageType (fallback)
  *   3. raw getAbilityDamage 결과 (carry abilityData 자체 없을 때)
  */
+/**
+ * 유닛의 보너스 AD 비율 (= 아이템/trait/augment AD% 합).
+ * AD-scaling 어빌리티(scaleAD)의 `baseValue × (1 + bonusAdPercent)` 용.
+ * total AD = baseAd × STAR_SCALING × (1 + AD%) (stat.ts:197) → bonusAdPercent = total/(baseAd×star) − 1.
+ */
+function bonusAdPercentOf(unit: CombatUnit): number {
+  const baseStarAd = unit.champion.stats.damage * (STAR_SCALING[unit.starLevel] ?? 1);
+  if (baseStarAd <= 0) return 0;
+  return Math.max(0, unit.stats.damage / baseStarAd - 1);
+}
+
 function resolveAbilityDamage(
   champion: RawChampion,
   starLevel: number,
   ap: number,
   carryCfg: CarryAugmentConfig | null | undefined,
   damageVar?: string,
+  bonusAdPercent: number = 0,
 ): { damage: number; type: DamageType } {
   if (carryCfg?.abilityData?.damage) {
     const damageArr = carryCfg.abilityData.damage;
@@ -758,7 +770,7 @@ function resolveAbilityDamage(
     // true: scaling 없음.
     return { damage, type: dmgType };
   }
-  return getAbilityDamage(champion, starLevel, ap, 0, damageVar);
+  return getAbilityDamage(champion, starLevel, ap, bonusAdPercent, damageVar);
 }
 
 /** 대쉬 대상 헬퍼: 가장 먼 적 */
@@ -6581,7 +6593,8 @@ export function simulateCombat(
               dmgType = cycleType;
             } else {
               const result = resolveAbilityDamage(
-                unit.champion, unit.starLevel, unit.stats.ap, carryForDamage, config.damageVar
+                unit.champion, unit.starLevel, unit.stats.ap, carryForDamage, config.damageVar,
+                bonusAdPercentOf(unit),
               );
               rawAbilityDmgBase = result.damage;
               dmgType = result.type;
@@ -7460,7 +7473,8 @@ export function simulateCombat(
           const oorCarryCfg = findSelectedCarryAugment(unit, augNames);
           const oorCarryForDamage = outOfRangeConfig.pattern !== 'self_buff' ? oorCarryCfg : null;
           const { damage: rawOORDmgResolved, type: dmgType } = resolveAbilityDamage(
-            unit.champion, unit.starLevel, unit.stats.ap, oorCarryForDamage, outOfRangeConfig.damageVar
+            unit.champion, unit.starLevel, unit.stats.ap, oorCarryForDamage, outOfRangeConfig.damageVar,
+            bonusAdPercentOf(unit),
           );
           // codex P1 (PR #98): self_buff OOR 경로도 self-hit 회귀 방지 — damage 0 강제.
           let rawOORDmg = outOfRangeConfig.pattern === 'self_buff' ? 0 : rawOORDmgResolved;
