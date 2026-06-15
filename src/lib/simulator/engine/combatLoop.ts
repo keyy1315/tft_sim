@@ -6599,14 +6599,25 @@ export function simulateCombat(
               rawAbilityDmgBase = result.damage;
               dmgType = result.type;
             }
-            // scaleArmor: caster(자기) 방어력 비례 추가 피해 (Rammus 중력회전 — 사용자 확인 표준 Rammus).
-            // 주 피해(DamageAP scaleAP) + (DamageArmor × caster.armor). 고방어 탱커 carry 의 주력 데미지원.
+            // scaleArmor/scaleMR: caster(자기) 방어 스탯 비례 추가 피해 (Rammus 중력회전 armor / Jax 별의반격 armor+MR).
+            // damageVar 없는 순수 스케일 어빌리티(Jax)는 base 0 (auto-detect garbage 제거) + magic.
+            if ((config.casterArmorScaleVar || config.casterMrScaleVar) && !config.damageVar) {
+              rawAbilityDmgBase = 0;
+              dmgType = 'magic';
+            }
             if (config.casterArmorScaleVar) {
               const armorCoef = readVarByStar(
                 unit.champion.ability.variables?.find(v => v.name === config.casterArmorScaleVar)?.value,
                 unit.starLevel, 0,
               );
               rawAbilityDmgBase += armorCoef * unit.stats.armor;
+            }
+            if (config.casterMrScaleVar) {
+              const mrCoef = readVarByStar(
+                unit.champion.ability.variables?.find(v => v.name === config.casterMrScaleVar)?.value,
+                unit.starLevel, 0,
+              );
+              rawAbilityDmgBase += mrCoef * unit.stats.magicResist;
             }
             // codex P1 (PR #98): self_buff pattern 은 caster 가 findAbilityTargets 의 self-target.
             // resolveAbilityDamage 의 damageVar fallback (Poppy ★3 'Shield'=575 등) 으로 인해
@@ -7481,14 +7492,23 @@ export function simulateCombat(
             bonusAdPercentOf(unit),
           );
           // codex P1 (PR #98): self_buff OOR 경로도 self-hit 회귀 방지 — damage 0 강제.
-          let rawOORDmg = outOfRangeConfig.pattern === 'self_buff' ? 0 : rawOORDmgResolved;
-          // scaleArmor: caster 방어력 비례 추가 (Rammus) — main path 와 동일 (cast path 3종 일관, PR #129 룰).
-          if (outOfRangeConfig.casterArmorScaleVar && rawOORDmg > 0) {
+          // damageVar 없는 순수 armor/MR 스케일(Jax) 도 base 0 (auto-detect garbage 제거).
+          const oorPureScale = (outOfRangeConfig.casterArmorScaleVar || outOfRangeConfig.casterMrScaleVar) && !outOfRangeConfig.damageVar;
+          let rawOORDmg = (outOfRangeConfig.pattern === 'self_buff' || oorPureScale) ? 0 : rawOORDmgResolved;
+          // scaleArmor/scaleMR: caster 방어 스탯 비례 추가 (Rammus armor / Jax armor+MR) — main path 와 일관 (PR #129 룰).
+          if (outOfRangeConfig.casterArmorScaleVar) {
             const oorArmorCoef = readVarByStar(
               unit.champion.ability.variables?.find(v => v.name === outOfRangeConfig.casterArmorScaleVar)?.value,
               unit.starLevel, 0,
             );
             rawOORDmg += oorArmorCoef * unit.stats.armor;
+          }
+          if (outOfRangeConfig.casterMrScaleVar) {
+            const oorMrCoef = readVarByStar(
+              unit.champion.ability.variables?.find(v => v.name === outOfRangeConfig.casterMrScaleVar)?.value,
+              unit.starLevel, 0,
+            );
+            rawOORDmg += oorMrCoef * unit.stats.magicResist;
           }
           // 타격당 확률 proc 기대값 배수 (main path 와 일관 — Corki dash OOR).
           const oorProcMult = outOfRangeConfig.procChance && outOfRangeConfig.procDamageMult

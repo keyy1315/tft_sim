@@ -49,6 +49,8 @@ export interface AbilityConfig {
     mrReduction?: number;
     duration?: number;
   };
+  /** aoe_circle 을 caster 중심으로 (기본 target 중심). Jax 별의반격 "주변 적" 등. */
+  selfCentered?: boolean;
   /** 다회 타격 횟수 — 총 피해 = base × hitCount (벨베스 12, 아칼리 5 등) */
   hitCount?: number;
   /**
@@ -64,6 +66,8 @@ export interface AbilityConfig {
   damageVar?: string;
   /** caster(자기) 방어력 비례 추가 피해 변수명 (scaleArmor — Rammus 중력회전 등). 주 피해 + (변수값 × caster.armor) */
   casterArmorScaleVar?: string;
+  /** caster(자기) 마법 저항 비례 추가 피해 변수명 (scaleMR — Jax 별의 반격). 주 피해 + (변수값 × caster.magicResist). damageVar 없으면 armor/MR 스케일이 전체 피해(base 0). */
+  casterMrScaleVar?: string;
   /** 2차 피해 변수명 (폭발, 추가 투사체 등) — 주 피해와 합산 */
   secondaryDamageVar?: string;
   /**
@@ -219,7 +223,7 @@ export const CHAMPION_ABILITY_PATTERNS: Record<string, AbilityConfig> = {
   TFT17_Pyke:        { pattern: 'aoe_circle', radius: 1, dash: 'to_target', damageVar: 'TargetDamage', secondaryDamageVar: 'AoEDamage' },  // 작살+순간이동 TargetDamage + 주변 AoEDamage
   TFT17_Gragas:      { pattern: 'aoe_circle', radius: 1, heal: true, stun: 0.5 },  // 회복 + 인접 피해 + 냉각 2초 (stun 0.5초로 근사)
   TFT17_Gwen:        { pattern: 'cone', radius: 2, dash: 'to_lowest_hp', secondaryDamageVar: 'AreaDamage' },  // 대상 Damage + 원뿔 AreaDamage
-  TFT17_Jax:         { pattern: 'aoe_circle', radius: 1, stun: 1.5, selfBuff: { durability: 0.3, duration: 3 } },  // 방어 태세 + 기절
+  TFT17_Jax:         { pattern: 'aoe_circle', radius: 1, selfCentered: true, stun: 1.5, selfBuff: { durability: 0.3, duration: 3 }, casterArmorScaleVar: 'ArmorMRScale', casterMrScaleVar: 'ArmorMRScale' },  // 방어 태세 + 종료 시 주변(caster 중심) ArmorMRScale×(armor+MR) 마법 AOE + 기절 (damageVar 없음 → base 0)
   TFT17_Milio:       { pattern: 'bounce', maxTargets: 4 },  // 공 튕기기
   TFT17_Zoe:         { pattern: 'line', maxTargets: 4 },  // 통통별 관통 + 방향전환
   TFT17_IvernMinion: { pattern: 'aoe_circle', radius: 1, stun: 1.0, heal: true },  // 회복 + 강타 + 열 피해
@@ -307,7 +311,9 @@ export function findAbilityTargets(
 
     case 'aoe_circle': {
       const radius = config.radius ?? 1;
-      const aoeHexes = getHexesInRadius(primaryTarget.position, radius);
+      // selfCentered: caster 중심 AOE (Jax 별의반격 "주변 적"). 기본은 target 중심.
+      const center = config.selfCentered ? caster.position : primaryTarget.position;
+      const aoeHexes = getHexesInRadius(center, radius);
       const aoeSet = new Set(aoeHexes.map(h => `${h.q},${h.r}`));
       return alive.filter(u => aoeSet.has(`${u.position.q},${u.position.r}`));
     }
