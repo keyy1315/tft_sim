@@ -219,7 +219,7 @@ export const CHAMPION_ABILITY_PATTERNS: Record<string, AbilityConfig> = {
   // === 2코스트 ===
   TFT17_Belveth:     { pattern: 'single', hitCount: 12 },  // 연속 12회 베기
   TFT17_Akali:       { pattern: 'line', maxTargets: 3, dash: 'to_target', debuff: { armorReduction: 15, duration: 4 }, hitCount: 5 },  // 단검 5개 관통 + 방어력 감소
-  TFT17_Jinx:        { pattern: 'cone', radius: 2 },  // 원뿔 로켓
+  TFT17_Jinx:        { pattern: 'cone', radius: 2, hitCount: 16, damageVar: 'ADDamage' },  // 원뿔 로켓 BaseBullets(16) × ADDamage(scaleAD) split (ASPerBullet AS-스케일 추가 로켓 P2)
   TFT17_Gnar:        { pattern: 'line', maxTargets: 3, damageDecay: 0.3 },  // 부메랑 관통 + 감소
   TFT17_Pyke:        { pattern: 'aoe_circle', radius: 1, dash: 'to_target', damageVar: 'TargetDamage', secondaryDamageVar: 'AoEDamage' },  // 작살+순간이동 TargetDamage + 주변 AoEDamage
   TFT17_Gragas:      { pattern: 'aoe_circle', radius: 1, heal: true, stun: 0.5 },  // 회복 + 인접 피해 + 냉각 2초 (stun 0.5초로 근사)
