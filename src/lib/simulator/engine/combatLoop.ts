@@ -6294,6 +6294,28 @@ export function simulateCombat(
                   unit.currentHp = Math.min(unit.maxHp, unit.currentHp + healAmount);
                 }
               }
+              // === 티모: 독 DOT — poisonDamage(scaleAP magic) PoisonDuration 초 동안 중첩 (ingest #222 P1 fix) ===
+              const poisonArr = atkSc.poisonDamage as number[] | undefined;
+              const poisonDur = atkSc.poisonDuration as number | undefined;
+              if (poisonArr && poisonDur && poisonDur > 0) {
+                const poisonApMul = 1 + unit.stats.ap / 100; // scaleAP
+                const poisonRaw = starValue(poisonArr, unit.starLevel) * poisonApMul * (1 + unit.damageAmp);
+                // poison tick(:3531)은 currentHp -= value 로 mitigation 미적용 → 적용 시점에 MR mitigate 후 spread.
+                const poisonTotal = applyResistance(poisonRaw, target.stats.magicResist, unit.stats.magicPen);
+                const pTicks = Math.round(poisonDur * TICKS_PER_SECOND);
+                if (poisonTotal > 0 && pTicks > 0) {
+                  // 중첩: 같은 caster 기존 poison 잔여 합산 + duration refresh (Serpent poison 패턴 차용).
+                  const existingPoison = target.statusEffects.find(e => e.type === 'poison' && e.sourceId === unit.id);
+                  if (existingPoison) {
+                    const residualTotal = (existingPoison.value ?? 0) * existingPoison.remainingTicks;
+                    existingPoison.value = (residualTotal + poisonTotal) / pTicks;
+                    existingPoison.remainingTicks = pTicks;
+                  } else {
+                    target.statusEffects.push({ type: 'poison', sourceId: unit.id, remainingTicks: pTicks, value: poisonTotal / pTicks });
+                  }
+                  unit.totalDamageDealt += poisonTotal; // 즉시 직격(:6289)과 동일하게 dealer 에 귀속
+                }
+              }
             }
           }
 
