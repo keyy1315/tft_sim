@@ -1245,7 +1245,7 @@ exports[`golden — psyops (counter + timer) > Viktor(PsyOps)+DroneRadiant vs Ra
       "maxHp": 1170,
       "starLevel": 2,
       "team": "player",
-      "totalDamageDealt": 651.8,
+      "totalDamageDealt": 875.23,
       "totalDamageTaken": 1235.04,
     },
     {
@@ -1260,7 +1260,7 @@ exports[`golden — psyops (counter + timer) > Viktor(PsyOps)+DroneRadiant vs Ra
       "starLevel": 2,
       "team": "enemy",
       "totalDamageDealt": 1235.04,
-      "totalDamageTaken": 651.8,
+      "totalDamageTaken": 875.23,
     },
   ],
   "winner": "enemy",

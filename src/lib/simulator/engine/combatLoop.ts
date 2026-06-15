@@ -3529,21 +3529,21 @@ function tickStatusEffects(
 ): void {
   for (const effect of unit.statusEffects) {
     effect.remainingTicks--;
-    if (effect.type === 'burn' && effect.value) {
-      unit.currentHp -= effect.value;
-    }
-    if (effect.type === 'poison' && effect.value) {
-      // poison DOT — per-tick 으로 victim/dealer 피해 귀속 + lethal 시 source-aware 사망 처리
-      // (codex P1 PR #231: upfront 크레딧 시 만료 전 사망분 over-credit + 사망 미처리 → unit 계속 행동).
+    if ((effect.type === 'burn' || effect.type === 'poison') && effect.value) {
+      // DOT (burn/poison) — HP 차감 + per-tick 으로 victim/dealer 피해 귀속 + lethal 시 source-aware 사망 처리.
+      // (PR #231 poison codex P1 + PR #234 burn: DOT 데미지가 dealer totalDamageDealt 에 미집계되어
+      //  burn-DOT 챔프(Talon/Bard/Viktor/Nasus/Pantheon/AurelionSol/Morgana/Diana)가 calibration
+      //  under-damage 주원인이던 갭 해소. HP 차감은 무조건 — source 없는 burn(트레잇/아이템) 회귀 방지.)
       unit.currentHp -= effect.value;
       unit.totalDamageTaken += effect.value;
-      const poisonSrc = allUnits.find(u => u.id === effect.sourceId);
-      if (poisonSrc) {
-        poisonSrc.totalDamageDealt += effect.value;
+      const dotSrc = allUnits.find(u => u.id === effect.sourceId);
+      if (dotSrc) {
+        dotSrc.totalDamageDealt += effect.value;
         if (unit.currentHp <= 0 && unit.state !== 'dead') {
-          const srcArb = poisonSrc.team === 'player' ? playerArbiterState : enemyArbiterState;
-          logs.push({ tick, time, type: 'death', sourceId: unit.id, message: `${unit.champion.name} 사망! (${poisonSrc.champion.name}의 중독)` });
-          markTargetDead(poisonSrc, unit, srcArb, eventBus, tick);
+          const srcArb = dotSrc.team === 'player' ? playerArbiterState : enemyArbiterState;
+          const dotLabel = effect.type === 'poison' ? '중독' : '출혈';
+          logs.push({ tick, time, type: 'death', sourceId: unit.id, message: `${unit.champion.name} 사망! (${dotSrc.champion.name}의 ${dotLabel})` });
+          markTargetDead(dotSrc, unit, srcArb, eventBus, tick);
         }
       }
     }
@@ -5669,6 +5669,10 @@ export function simulateCombat(
       if (unit.state === 'dead') continue;
 
       tickStatusEffects(unit, tick, time, logs, tickLogs, allUnits, playerArbiterState, enemyArbiterState, eventBus);
+      // DOT(burn/poison) lethal 처리가 tickStatusEffects 에서 unit 을 죽일 수 있음 (PR #234) →
+      // 사망 시 같은 tick 잔여 행동(mana/cooldown/attack/cast) skip (codex P1: dead unit 마지막 행동 방지).
+      // (cast: 상단 가드가 unit.state 를 non-dead 로 좁혀 tsc 가 tickStatusEffects 의 mutation 을 모름)
+      if ((unit.state as string) === 'dead') continue;
 
       // Mordekaiser proc 매 tick — 펄스 발동 / 만료 시 HealRefund / 사망 시 cancel.
       // 가드: 0 (비활성) 일 때 호출 skip → 다른 챔프 perf 손실 없음.
