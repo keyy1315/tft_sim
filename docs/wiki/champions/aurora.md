@@ -10,7 +10,7 @@ traits:
 role: Caster   # raw "APCaster" → mapGameRole() → sim Caster (types/index.ts includes('Caster')). carry augment 없음
 raw_role: APCaster
 current_patch_status: active
-sim_active: partial   # ability 「고양된 해킹」 2칸 균열 — Damage(scaleAP) per-target. sim aoe_circle r2, auto-detect damageVar 'Damage'. Damage filler ★1=80/★2=120/★3=190. 여행자(FlexTrait) trait 정합 / 동물특공대(AnimaSquad)=전투 외 shop 시스템(sim 비해당). ⚠️ 미반영: SplitDamage(★1=370/★2=555 — "나누어 입힘"=분배 total, secondaryDamageVar full-per-target 적용 시 +96% overshoot 확인 → divided 시맨틱 별도 helper 필요, 보류) / HexPercent 저장 피해(받는 피해 10% 저장 → 해킹 종료 시 고정피해, 미모델) / HexDuration. calibration -48% — SplitDamage(주 성분) + Hex 누락
+sim_active: partial   # ability 「고양된 해킹」 2칸 균열 — Damage(scaleAP) per-target. sim aoe_circle r2, auto-detect damageVar 'Damage'. Damage filler ★1=80/★2=120/★3=190. 여행자(FlexTrait) trait 정합 / 동물특공대(AnimaSquad)=전투 외 shop 시스템(sim 비해당). ⚠️ 미반영: SplitDamage(raw ★1=370/★2=555 [17.4 버프 400/600/960 patch-pending] — "나누어 입힘"=분배 total, secondaryDamageVar full-per-target 적용 시 +96% overshoot 확인 → divided 시맨틱 별도 helper 필요, 보류) / HexPercent 저장 피해(받는 피해 10% 저장 → 해킹 종료 시 고정피해, 미모델) / HexDuration. calibration -48% — SplitDamage(주 성분) + Hex 누락
 last_verified: 2026-06-15
 sources:
   - "public/data/tft_set17_champions.json (TFT17_Aurora entry — cost 3, role APCaster, traits [동물특공대/여행자], hp 700, armor/MR 25/25, AD 30, AS 0.8, range 4, mana 20/80, ability '고양된 해킹' variables Damage/SplitDamage/HexPercent/HexDuration/SpellHexRadius)"
@@ -22,6 +22,7 @@ related:
   - "[[ability-targeting]]"
   - "[[jinx]]"
   - "[[twistedfate]]"
+  - "[[patch-17-4]]"
 ---
 
 # 오로라 (Aurora)
@@ -62,7 +63,7 @@ related:
 | 변수 | raw value | sim 적용 |
 |------|-----------|---------|
 | Damage | [2.5, 80, 120, 190, ...] | ✅ auto-detect `damageVar 'Damage'` filler(sentinel) → ★1=80/★2=120/★3=190 (scaleAP) |
-| SplitDamage | [3, 370, 555, 890, ...] | ⚠️ **미반영** filler → ★1=370/★2=555/★3=890 (scaleAP). "나누어 입힘"=분배 total |
+| SplitDamage | [3, 370, 555, 890, ...] | ⚠️ **미반영** filler → ★1=370/★2=555/★3=890 (scaleAP). "나누어 입힘"=분배 total. ⏳ raw 는 pre-17.4 값 — [[patch-17-4]] 가 400/600/960 으로 버프했으나 raw 데이터 patch-pending(미갱신, sim ground truth = 370/555/890) |
 | HexPercent | [0.1, ...] | ⚠️ **미반영** — 받는 피해 10% 저장 → 해킹 종료 시 고정 피해 |
 | HexDuration | [4, ...] | ⚠️ 해킹 지속 4초 (저장 메커니즘 미모델) |
 | SpellHexRadius | [2, ...] | ✅ aoe_circle radius 2 |
