@@ -6437,7 +6437,9 @@ export function simulateCombat(
             target.rammusHitsTaken++;
             if (target.rammusHitsTaken >= RAMMUS_PASSIVE_THRESHOLD) {
               target.rammusHitsTaken = 0;
-              const aoeRaw = target.rammusPassiveArmorCoef * target.stats.armor;
+              // damageAmp(아이템/증강/trait 피해증폭) 를 raw 단계에 적용 — main ability path 와 일관
+              // (codex P2 #237: 미적용 시 damageAmp 빌드에서 패시브 데미지 과소집계).
+              const aoeRaw = target.rammusPassiveArmorCoef * target.stats.armor * (1 + target.damageAmp);
               const rammusArb = target.team === 'player' ? playerArbiterState : enemyArbiterState;
               const aoeVictims = (target.team === 'player' ? enemies : playerUnits)
                 .filter(e => e.state !== 'dead' && hexDistance(target.position, e.position) <= RAMMUS_PASSIVE_RADIUS);
