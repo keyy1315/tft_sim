@@ -60,8 +60,9 @@ export interface AbilityConfig {
    */
   procChance?: number;
   procDamageMult?: number;
-  /** DOT 지속 피해 — 스킬 피해를 duration초에 걸쳐 매초 적용 */
-  dot?: { duration: number };
+  /** DOT 지속 피해 — 스킬 피해를 duration초에 걸쳐 매초 적용.
+   * perSecond: damageVar 가 "초당" 값이면 총량 = damageVar × duration (Bard 비행접시 DamagePerSecond). */
+  dot?: { duration: number; perSecond?: boolean };
   /** parseAbility 대신 사용할 피해 변수명 오버라이드 */
   damageVar?: string;
   /** caster(자기) 방어력 비례 추가 피해 변수명 (scaleArmor — Rammus 중력회전 등). 주 피해 + (변수값 × caster.armor) */
@@ -261,7 +262,7 @@ export const CHAMPION_ABILITY_PATTERNS: Record<string, AbilityConfig> = {
   TFT17_TahmKench:   { pattern: 'aoe_circle', radius: 2, heal: true },  // 회복 + 2칸 혀 채찍
 
   // === 5코스트 ===
-  TFT17_Bard:        { pattern: 'aoe_circle', radius: 1, dot: { duration: 4 } },  // 비행접시 4초 DOT + 주변 분배
+  TFT17_Bard:        { pattern: 'aoe_circle', radius: 1, dot: { duration: 4, perSecond: true } },  // 비행접시 4초 DOT — DamagePerSecond(초당) × 4 + 주변 분배
   TFT17_Fiora:       { pattern: 'single', dash: 'to_target', heal: true },  // 급소 돌진 + 회복
   TFT17_Jhin:        { pattern: 'multi', maxTargets: 3, debuff: { armorReduction: 15, duration: 4 }, hitCount: 4, damageVar: 'ADDamage' },  // 잔상 손 4개 × 4회 사격 — TotalDamage scaleAD = ADDamage (raw <physicalDamage>). APDamage 는 미미한 부차 변수 (ingest #227 P0 fix)
   TFT17_Blitzcrank:  { pattern: 'aoe_circle', radius: 3, stun: 1.5, stunTargets: 1, damageVar: 'ExplosionDamage' },  // 띄움 1명 + 폭발 3칸

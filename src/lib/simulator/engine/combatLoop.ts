@@ -6809,13 +6809,15 @@ export function simulateCombat(
             // DOT 스킬: 즉발 대신 burn statusEffect로 지속 피해 적용
             if (config.dot) {
               const dotTicks = Math.round(config.dot.duration * TICKS_PER_SECOND);
+              // perSecond: damageVar 가 초당 값이면 총량 = abilityDmg × duration (Bard DamagePerSecond).
+              const dotTotal = config.dot.perSecond ? abilityDmg * config.dot.duration : abilityDmg;
               for (const t of aliveTargets) {
                 // DOT도 방어력/피해감소 적용
                 const resistance = dmgType === 'magic' ? t.stats.magicResist : dmgType === 'physical' ? t.stats.armor : 0;
                 const pen = dmgType === 'magic' ? unit.stats.magicPen : dmgType === 'physical' ? unit.stats.armorPen : 0;
                 // 저격수 (Sniper) — DOT 도 거리 기반 추가 amp 포함 (codex P2 회귀 가드).
                 const dotDamageAmp = unit.damageAmp + computeSniperDamageAmp(unit, t);
-                const mitigated = dmgType === 'true' ? abilityDmg * (1 + dotDamageAmp) : applyResistance(abilityDmg * (1 + dotDamageAmp), resistance, pen);
+                const mitigated = dmgType === 'true' ? dotTotal * (1 + dotDamageAmp) : applyResistance(dotTotal * (1 + dotDamageAmp), resistance, pen);
                 const perTickDmg = mitigated / config.dot.duration * TICK_DURATION;
                 t.statusEffects.push({
                   type: 'burn', sourceId: unit.id,
@@ -6825,8 +6827,8 @@ export function simulateCombat(
               const dotLog: CombatLog = {
                 tick, time, type: 'ability',
                 sourceId: unit.id, targetId: abilityTarget.id,
-                value: Math.round(abilityDmg),
-                message: `${unit.champion.name}이(가) ${unit.champion.ability.name} 시전! ${config.dot.duration}초 동안 ${Math.round(abilityDmg)} ${dmgType === 'magic' ? '마법' : '물리'} 지속 피해`,
+                value: Math.round(dotTotal),
+                message: `${unit.champion.name}이(가) ${unit.champion.ability.name} 시전! ${config.dot.duration}초 동안 ${Math.round(dotTotal)} ${dmgType === 'magic' ? '마법' : '물리'} 지속 피해`,
               };
               logs.push(dotLog);
               tickLogs.push(dotLog);
@@ -7660,12 +7662,14 @@ export function simulateCombat(
 
           if (outOfRangeConfig.dot) {
             const dotTicks = Math.round(outOfRangeConfig.dot.duration * TICKS_PER_SECOND);
+            // perSecond: damageVar 가 초당 값이면 총량 = abilityDmg × duration (main path 와 일관).
+            const oorDotTotal = outOfRangeConfig.dot.perSecond ? abilityDmg * outOfRangeConfig.dot.duration : abilityDmg;
             for (const t of oorAlive) {
               const resistance = dmgType === 'magic' ? t.stats.magicResist : dmgType === 'physical' ? t.stats.armor : 0;
               const pen = dmgType === 'magic' ? unit.stats.magicPen : dmgType === 'physical' ? unit.stats.armorPen : 0;
               // 저격수 (Sniper) — OOR DOT 도 거리 기반 추가 amp 포함 (codex P2 회귀 가드).
               const oorDotDamageAmp = unit.damageAmp + computeSniperDamageAmp(unit, t);
-              const mitigated = dmgType === 'true' ? abilityDmg * (1 + oorDotDamageAmp) : applyResistance(abilityDmg * (1 + oorDotDamageAmp), resistance, pen);
+              const mitigated = dmgType === 'true' ? oorDotTotal * (1 + oorDotDamageAmp) : applyResistance(oorDotTotal * (1 + oorDotDamageAmp), resistance, pen);
               const perTickDmg = mitigated / outOfRangeConfig.dot.duration * TICK_DURATION;
               t.statusEffects.push({
                 type: 'burn', sourceId: unit.id,
