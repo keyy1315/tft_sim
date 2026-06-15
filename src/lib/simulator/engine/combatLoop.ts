@@ -3522,6 +3522,10 @@ function tickStatusEffects(
   time: number,
   logs: CombatLog[],
   tickLogs: CombatLog[],
+  allUnits: CombatUnit[],
+  playerArbiterState: { enemyDeathCount: number },
+  enemyArbiterState: { enemyDeathCount: number },
+  eventBus: EventBus,
 ): void {
   for (const effect of unit.statusEffects) {
     effect.remainingTicks--;
@@ -3529,7 +3533,19 @@ function tickStatusEffects(
       unit.currentHp -= effect.value;
     }
     if (effect.type === 'poison' && effect.value) {
+      // poison DOT — per-tick 으로 victim/dealer 피해 귀속 + lethal 시 source-aware 사망 처리
+      // (codex P1 PR #231: upfront 크레딧 시 만료 전 사망분 over-credit + 사망 미처리 → unit 계속 행동).
       unit.currentHp -= effect.value;
+      unit.totalDamageTaken += effect.value;
+      const poisonSrc = allUnits.find(u => u.id === effect.sourceId);
+      if (poisonSrc) {
+        poisonSrc.totalDamageDealt += effect.value;
+        if (unit.currentHp <= 0 && unit.state !== 'dead') {
+          const srcArb = poisonSrc.team === 'player' ? playerArbiterState : enemyArbiterState;
+          logs.push({ tick, time, type: 'death', sourceId: unit.id, message: `${unit.champion.name} 사망! (${poisonSrc.champion.name}의 중독)` });
+          markTargetDead(poisonSrc, unit, srcArb, eventBus, tick);
+        }
+      }
     }
   }
 
@@ -5652,7 +5668,7 @@ export function simulateCombat(
     for (const unit of allUnits) {
       if (unit.state === 'dead') continue;
 
-      tickStatusEffects(unit, tick, time, logs, tickLogs);
+      tickStatusEffects(unit, tick, time, logs, tickLogs, allUnits, playerArbiterState, enemyArbiterState, eventBus);
 
       // Mordekaiser proc 매 tick — 펄스 발동 / 만료 시 HealRefund / 사망 시 cancel.
       // 가드: 0 (비활성) 일 때 호출 skip → 다른 챔프 perf 손실 없음.
@@ -6292,6 +6308,29 @@ export function simulateCombat(
                 if (healPct && sDmg > 0) {
                   const healAmount = sDmg * healPct * (1 + (unit.healAmp ?? 0));
                   unit.currentHp = Math.min(unit.maxHp, unit.currentHp + healAmount);
+                }
+              }
+              // === 티모: 독 DOT — poisonDamage(scaleAP magic) PoisonDuration 초 동안 중첩 (ingest #222 P1 fix) ===
+              const poisonArr = atkSc.poisonDamage as number[] | undefined;
+              const poisonDur = atkSc.poisonDuration as number | undefined;
+              if (poisonArr && poisonDur && poisonDur > 0) {
+                const poisonApMul = 1 + unit.stats.ap / 100; // scaleAP
+                const poisonRaw = starValue(poisonArr, unit.starLevel) * poisonApMul * (1 + unit.damageAmp);
+                // poison tick(:3531)은 currentHp -= value 로 mitigation 미적용 → 적용 시점에 MR mitigate 후 spread.
+                const poisonTotal = applyResistance(poisonRaw, target.stats.magicResist, unit.stats.magicPen);
+                const pTicks = Math.round(poisonDur * TICKS_PER_SECOND);
+                if (poisonTotal > 0 && pTicks > 0) {
+                  // 중첩: 같은 caster 기존 poison 잔여 합산 + duration refresh (Serpent poison 패턴 차용).
+                  const existingPoison = target.statusEffects.find(e => e.type === 'poison' && e.sourceId === unit.id);
+                  if (existingPoison) {
+                    const residualTotal = (existingPoison.value ?? 0) * existingPoison.remainingTicks;
+                    existingPoison.value = (residualTotal + poisonTotal) / pTicks;
+                    existingPoison.remainingTicks = pTicks;
+                  } else {
+                    target.statusEffects.push({ type: 'poison', sourceId: unit.id, remainingTicks: pTicks, value: poisonTotal / pTicks });
+                  }
+                  // dealer/victim 피해 귀속은 poison tick(tickStatusEffects)에서 per-tick 처리 (codex P1 PR #231 —
+                  // upfront 크레딧 제거: 만료 전 사망 시 미전달분 over-credit 방지).
                 }
               }
             }
