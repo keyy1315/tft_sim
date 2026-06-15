@@ -5669,6 +5669,10 @@ export function simulateCombat(
       if (unit.state === 'dead') continue;
 
       tickStatusEffects(unit, tick, time, logs, tickLogs, allUnits, playerArbiterState, enemyArbiterState, eventBus);
+      // DOT(burn/poison) lethal 처리가 tickStatusEffects 에서 unit 을 죽일 수 있음 (PR #234) →
+      // 사망 시 같은 tick 잔여 행동(mana/cooldown/attack/cast) skip (codex P1: dead unit 마지막 행동 방지).
+      // (cast: 상단 가드가 unit.state 를 non-dead 로 좁혀 tsc 가 tickStatusEffects 의 mutation 을 모름)
+      if ((unit.state as string) === 'dead') continue;
 
       // Mordekaiser proc 매 tick — 펄스 발동 / 만료 시 HealRefund / 사망 시 cancel.
       // 가드: 0 (비활성) 일 때 호출 skip → 다른 챔프 perf 손실 없음.
