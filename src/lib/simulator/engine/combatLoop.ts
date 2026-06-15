@@ -3529,21 +3529,21 @@ function tickStatusEffects(
 ): void {
   for (const effect of unit.statusEffects) {
     effect.remainingTicks--;
-    if (effect.type === 'burn' && effect.value) {
-      unit.currentHp -= effect.value;
-    }
-    if (effect.type === 'poison' && effect.value) {
-      // poison DOT — per-tick 으로 victim/dealer 피해 귀속 + lethal 시 source-aware 사망 처리
-      // (codex P1 PR #231: upfront 크레딧 시 만료 전 사망분 over-credit + 사망 미처리 → unit 계속 행동).
+    if ((effect.type === 'burn' || effect.type === 'poison') && effect.value) {
+      // DOT (burn/poison) — HP 차감 + per-tick 으로 victim/dealer 피해 귀속 + lethal 시 source-aware 사망 처리.
+      // (PR #231 poison codex P1 + PR #234 burn: DOT 데미지가 dealer totalDamageDealt 에 미집계되어
+      //  burn-DOT 챔프(Talon/Bard/Viktor/Nasus/Pantheon/AurelionSol/Morgana/Diana)가 calibration
+      //  under-damage 주원인이던 갭 해소. HP 차감은 무조건 — source 없는 burn(트레잇/아이템) 회귀 방지.)
       unit.currentHp -= effect.value;
       unit.totalDamageTaken += effect.value;
-      const poisonSrc = allUnits.find(u => u.id === effect.sourceId);
-      if (poisonSrc) {
-        poisonSrc.totalDamageDealt += effect.value;
+      const dotSrc = allUnits.find(u => u.id === effect.sourceId);
+      if (dotSrc) {
+        dotSrc.totalDamageDealt += effect.value;
         if (unit.currentHp <= 0 && unit.state !== 'dead') {
-          const srcArb = poisonSrc.team === 'player' ? playerArbiterState : enemyArbiterState;
-          logs.push({ tick, time, type: 'death', sourceId: unit.id, message: `${unit.champion.name} 사망! (${poisonSrc.champion.name}의 중독)` });
-          markTargetDead(poisonSrc, unit, srcArb, eventBus, tick);
+          const srcArb = dotSrc.team === 'player' ? playerArbiterState : enemyArbiterState;
+          const dotLabel = effect.type === 'poison' ? '중독' : '출혈';
+          logs.push({ tick, time, type: 'death', sourceId: unit.id, message: `${unit.champion.name} 사망! (${dotSrc.champion.name}의 ${dotLabel})` });
+          markTargetDead(dotSrc, unit, srcArb, eventBus, tick);
         }
       }
     }
