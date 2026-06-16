@@ -154,3 +154,21 @@ baseline (2026-04-27 trait 4개 모두 미구현):
 **재고 트리거:**
 - v1 리포트를 3~5판 돌려봤는데 **"오차는 보이는데 어디를 고쳐야 할지 감이 안 옴"** 상태 도달 시
 - 또는 단일 원인이 명확 (예: "모든 라운드에서 일관되게 내 팀 딜이 50% 낮음" → 데미지 공식 한 곳만 파면 됨) → 귀속 툴 없이 수동 처리 가능
+
+---
+
+## 📊 현재 진척 — under-damage calibration (2026-06-16 update)
+
+> baseline(2026-04-27) avgPlayerDamageErrorPct **-44.8%** → 이후 누적 fix.
+
+- **game-424 avgPlayerDamageErrorPct: -30.3% → -10.2%** (이번 세션 누적). winnerMatch ~76%.
+- **지배 단일 레버 = 공격 속도 하드캡 5.0 부재** (#236): Guinsoo 폭주로 전투 2~6s 조기종결 → 누적 데미지 과소. `getEffectiveAttackSpeed` 에 `Math.min(as, 5.0)` 추가가 최대 단일 개선.
+- **broad correctness**: raw AD-scaling 어빌리티가 bonus AD 반영(#238) / scaling.json calibration 경로 로드(#232).
+- 🆕 **perSecond 버그 클래스 5종 완결**: damageVar 가 `*PerSecond`(초당값)인데 `dot:{duration:N}` 가 perSecond 플래그 없이 총량 처리 → N배 under. `dot.perSecond:true` fix. Bard#241 / Viktor#252 / AurelionSol#253 / Pantheon#254 / Morgana#255.
+- **잔여 = duration 다요인**: 탱커 1~4s 조기사망(실전은 길게). 측정 챔프 Lissandra(-88%)/Veigar(-64%)도 probe 결과 per-cast 정상인데 빨리 죽어 캐스트 부족 → 모델링 아닌 survivability 레버(deferred). clean value-bug 는 소진됨.
+
+### ⚠️ 패치 컨텍스트 (raw data 갱신 신중)
+- raw data = **17.4 partial**, live = **17.5b** (2026-06-10). 위키 [[patch-17-5]] 에 delta 기록.
+- calibration 게임 = **17.1/17.3** (`game-20260423/424` 17.1, `game-20260519` 17.3). 따라서 17.4 도 이미 게임보다 앞섬 → **17.5b raw 갱신은 calibration 정렬을 악화** → 하지 말 것. live 17.5b 신규 게임 분석이 필요할 때만 별도 의사결정.
+
+> 상세 진단/히스토리: 로컬 메모리 `project_underdamage_calibration.md` (지속 갱신). 챔프 ingest 진행: `project_champion_ingest_status.md`.
