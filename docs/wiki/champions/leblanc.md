@@ -9,7 +9,7 @@ traits:
   - 길잡이
 role: Marksman   # raw "APCarry" → mapGameRole() → sim Marksman (types/index.ts includes('Carry')). carry augment 없음
 raw_role: APCarry
-current_patch_status: active (17.4 변경 없음 — 17.5 patch pending: Sigil/Bolt Damage 80/120→85/130 (buff, BoltDamage ★1/★2 추정 — 패치노트 'Sigil' 표기). 데이터/sim 미반영, [[patch-17-5]] 참조)
+current_patch_status: "active (17.4 변경 없음 — 17.5 patch pending: Sigil/Bolt Damage 80/120→85/130 (buff, BoltDamage ★1/★2 추정 — 패치노트 'Sigil' 표기). 데이터/sim 미반영, [[patch-17-5]] 참조)"
 last_verified: 2026-06-16
 sim_active: partial   # ability 「현실 분열」 passive 평타 → BasicAttackDamage(scaleAP) 마법 + 사용 시 분신 NumClones(5) 소환해 NumAttacks(5)회 CloneDamageMultiplier% 공격 + 마지막 투사체 BoltDamage(scaleAP) 마법. sim multi maxTargets:3 + damageVar 'BoltDamage' + hitCount 5 → BoltDamage × 5 (3타겟 분배). filler → BoltDamage ★1=80/★2=120/★3=750. 중재자(ADMIN=Arbiter law 시스템 :112)/길잡이(SummonTrait 소환물 materialize) trait. ⚠️ 미반영: passive 평타 마법(BasicAttackDamage — AD=0 라 sim 평타 ~0) / 분신 NumClones×NumAttacks×CloneDamageMultiplier 공격 / 길잡이 tier 버프. calibration: game-423/424 부재(미측정)
 sources:

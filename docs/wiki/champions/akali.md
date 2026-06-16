@@ -9,7 +9,7 @@ traits:
   - 습격자
 role: Fighter   # raw "ADFighter" → mapGameRole() → sim Fighter (types/index.ts:46 includes('Fighter')). carry augment 없음 → role 변환 분기 없음
 raw_role: ADFighter
-current_patch_status: active (17.4 데이터 기준 — 17.5/17.5b patch pending: Spell Damage AD ★2~ 37/56/84→39/59/88 (★1=27 불변, buff). 데이터/sim 미반영, [[patch-17-5]] 참조)
+current_patch_status: "active (17.4 데이터 기준 — 17.5/17.5b patch pending: Spell Damage AD ★2~ 37/56/84→39/59/88 (★1=27 불변, buff). 데이터/sim 미반영, [[patch-17-5]] 참조)"
 sim_active: partial   # active line dash 단검 5개(hitCount 5 split, DamageAD scaleAD) + armorReduction debuff + N.O.V.A.(DRX) surge Precision(팀 spellCanCrit)/selector burn[12,18,24]/단검 burn ×1.10 + 습격자(MeleeTrait) 정합. P2 armorReduction sim 15 flat vs raw ArmorShred 1/ArmorShredCrit 2 불일치 (단위 미확인) / P2 secondaryDamage SecondaryDamageModifier 0.4 (2차 적중 40%) 미반영 (grep 0) / P2 DamageAP(scaleAP) 미사용 (auto-detect DamageAD 우선)
 last_verified: 2026-06-04
 sources:

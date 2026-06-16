@@ -9,7 +9,7 @@ traits:
   - 운명술사
 role: Specialist   # raw "ADSpecialist" → mapGameRole() → sim Specialist (types/index.ts includes('Specialist')). carry augment 없음. mana 0/0 → active cast 없음 (passive only)
 raw_role: ADSpecialist
-current_patch_status: active (17.4 데이터 기준 — 17.5/17.5b patch pending: Headshot AD ★2~ 170/255/510/875→190/285/540/925 (★1=145 불변, buff). 데이터/sim 미반영, [[patch-17-5]] 참조)
+current_patch_status: "active (17.4 데이터 기준 — 17.5/17.5b patch pending: Headshot AD ★2~ 170/255/510/875→190/285/540/925 (★1=145 불변, buff). 데이터/sim 미반영, [[patch-17-5]] 참조)"
 sim_active: partial   # passive 평타 헤드샷(ProcChance 15% + Damage ★1=145/170/255) + N.O.V.A.(DRX) surge AS 20%/selector mark +10% incoming/selector 헤드샷[76,114,222] + 운명술사(Fateweaver) Precision+crit stat 정합. P2 평타 헤드샷 Damage flat (desc scaleAD+scaleAP, BonusDamage(scaleAP) 미사용) / P2 운명술사 Lucky(행운, 확률 두 번 굴림) 미구현 (:1775 후속 PR — Caitlyn ProcChance 단일 roll) / info selector 헤드샷 [76,114,222] 하드코딩 (=(Damage+BonusDamage)[★+1]×0.4, scaleAD/AP 없는 flat) / info 운명술사 Precision(spellCanCrit) Caitlyn ability 없어(mana 0) 실효 제한
 last_verified: 2026-06-05
 sources:

@@ -9,7 +9,7 @@ traits:
   - 불한당
 role: Assassin   # raw "APReaper" → mapGameRole() → sim Assassin (types/index.ts includes('Reaper')). carry augment 없음
 raw_role: APReaper
-current_patch_status: active (⚠️ 17.3 데이터 기준 — raw 17.4 partial dataset(Zed/Shen/Jax 만 갱신)이 Gwen 미갱신. 17.4 pending: armor 45→50, Damage ★3/★4 380/650→410/700 ([[patch-17-4]]:84) / 17.5 pending: AreaDamage ★3 190→215, AS 0.85→0.8 ([[patch-17-5]]). 모두 데이터/sim 미반영)
+current_patch_status: "active (⚠️ 17.3 데이터 기준 — raw 17.4 partial dataset(Zed/Shen/Jax 만 갱신)이 Gwen 미갱신. 17.4 pending: armor 45→50, Damage ★3/★4 380/650→410/700 ([[patch-17-4]]:84) / 17.5 pending: AreaDamage ★3 190→215, AS 0.85→0.8 ([[patch-17-5]]). 모두 데이터/sim 미반영)"
 last_verified: 2026-06-16
 sim_active: partial   # ability 「춤추고 토막내기」 체력 최저 적에 돌진 → 대상 Damage(scaleAP) + 원뿔 AreaDamage(scaleAP) 마법. sim cone r2 + dash to_lowest_hp + secondaryDamageVar 'AreaDamage'. auto-detect 주 damageVar 'Damage' filler(v0>v1) → ★1=145/★2=220/★3=380. AreaDamage filler → ★1=75/★2=110/★3=190. 우주 그루브(SpaceGroove applySpaceGrooveBuffs:1826)/불한당(AssassinTrait AD/AP :579) trait 반영. role Assassin(APReaper). ⚠️ raw 17.3(17.4 partial dataset 미갱신 — armor/Damage 17.4 변경 미반영). 불한당 stealth(HealthThreshold/Duration) 미반영(AD/AP 만). ⚠️ 미반영: 처치 시 recast(ResetDamage 65%, onKillRecast config 없음) / Groove 상태(GrooveThreshold 0.4 자가 트리거) / passive 평타 마법 전환(평타는 sim 물리 유지). ⚠️ cone+secondaryDamageVar over-application(주 대상 포함 전 cone 타겟이 Damage+AreaDamage, combatLoop:6895-6898 공통). calibration: game-423/424 부재(미측정)
 sources:

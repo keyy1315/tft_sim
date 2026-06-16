@@ -9,7 +9,7 @@ traits:
   - 길잡이
 role: Marksman   # raw "APCarry" → mapGameRole() → sim Marksman (types/index.ts:43 includes('Carry')). carry augment 없음
 raw_role: APCarry
-current_patch_status: active (17.4 데이터 기준 — 17.5/17.5b patch pending: Spell Damage(MagicDamage) ★2~ 65/95/170/300→70/105/190/325 (★1=60 불변, buff). 데이터/sim 미반영, [[patch-17-5]] 참조)
+current_patch_status: "active (17.4 데이터 기준 — 17.5/17.5b patch pending: Spell Damage(MagicDamage) ★2~ 65/95/170/300→70/105/190/325 (★1=60 불변, buff). 데이터/sim 미반영, [[patch-17-5]] 참조)"
 sim_active: partial   # onAttack passive 추가 마법(hitDamage scaleAP, ★1=30 filler) ✅ + active selfBuff AS + 우주그루브(SpaceGroove) 정합. P1: 독 DOT(MagicDamage/poisonDamage, PoisonDuration 6초) 미반영 — onAttack extraDamage 핸들러는 단일 hit 만 (Teemo 핵심 지속 피해 누락) / P1: active selfBuff attackSpeed 0.5 vs raw AttackSpeed 1.5 (3배 과소, ability.ts:195 하드코딩) / P2: active "ActiveAttacks 3회 평타 동안" vs sim duration 3 (selfBuff.duration read 0 → 영구) 메커니즘 불일치 / P2: SpaceGroove TheGroove(적 GrooveStacks 5 중첩 시) 미반영 grep 0 / P2: 길잡이(SummonTrait) tier buff 미반영 (소환체 유닛 생성은 builder layer useTeamManagement.ts 존재, combat sim applySummonTrait 부재 — codex P2 PR #222)
 last_verified: 2026-06-12
 sources:
