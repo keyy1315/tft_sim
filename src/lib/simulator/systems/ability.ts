@@ -69,8 +69,14 @@ export interface AbilityConfig {
   casterArmorScaleVar?: string;
   /** caster(자기) 마법 저항 비례 추가 피해 변수명 (scaleMR — Jax 별의 반격). 주 피해 + (변수값 × caster.magicResist). damageVar 없으면 armor/MR 스케일이 전체 피해(base 0). */
   casterMrScaleVar?: string;
-  /** 2차 피해 변수명 (폭발, 추가 투사체 등) — 주 피해와 합산 */
+  /** 2차 피해 변수명 (폭발, 추가 투사체 등) — 주 피해와 합산 (타겟당 full) */
   secondaryDamageVar?: string;
+  /**
+   * 분배 피해 변수명 ("나누어 입힘" — total 을 적중 타겟 수로 나눠 각 타겟에 가산).
+   * scaleAP 가정 (Aurora SplitDamage / Bard SplitDamagePerSecond). secondaryDamageVar(타겟당 full)
+   * 와 달리 ÷aliveTargets → 다수 타겟 시 overshoot 방지.
+   */
+  splitDamageVar?: string;
   /**
    * 자기 자신에게 데미지 적용 (적군 데미지 없음). 자폭(GragasCarry) 전용.
    * 데미지 값은 일반 ability "damage" 변수에서 그대로 가져옴.
@@ -234,7 +240,7 @@ export const CHAMPION_ABILITY_PATTERNS: Record<string, AbilityConfig> = {
   // === 3코스트 ===
   TFT17_MissFortune: { pattern: 'multi', maxTargets: 3 },  // 모드에 따라 다름 (기본)
   TFT17_Illaoi:      { pattern: 'self_buff' },  // Shield (generic getAbilityShield) + NumEnemies(3) true drain + 3초 후 magic AOE — combatLoop applyIllaoiCast/tickIllaoiAfterShock 헬퍼
-  TFT17_Aurora:      { pattern: 'aoe_circle', radius: 2 },  // 균열 해킹 + 저장 피해
+  TFT17_Aurora:      { pattern: 'aoe_circle', radius: 2, damageVar: 'Damage', splitDamageVar: 'SplitDamage' },  // 균열 해킹 Damage + SplitDamage(분배) — Hex 저장피해 미모델
   TFT17_Fizz:        { pattern: 'line', dash: 'to_target', secondaryDamageVar: 'BiteDamageAP' },  // 관통 돌진 DashDamage + 3회째 정령 BiteDamageAP
   TFT17_Maokai:      { pattern: 'aoe_circle', radius: 2, stun: 1.5 },  // X자 덩굴 + 기절
   TFT17_Kaisa:       { pattern: 'aoe_circle', radius: 2, hitCount: 16 },  // 미사일 16개 반경 2칸 나누어 발사

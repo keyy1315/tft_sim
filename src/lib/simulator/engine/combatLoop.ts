@@ -6897,6 +6897,14 @@ export function simulateCombat(
                   const secVal = readVarByStar(secVar?.value, unit.starLevel, 0);
                   baseDmg += secVal;
                 }
+                // splitDamageVar: "나누어 입힘" — total(scaleAP) 을 적중 타겟 수로 나눠 가산
+                // (Aurora SplitDamage / Bard SplitDamagePerSecond). secondaryDamageVar(타겟당 full)
+                // 와 달리 ÷aliveTargets → 다수 타겟 overshoot 방지.
+                if (config.splitDamageVar && aliveTargets.length > 0) {
+                  const splitVar = unit.champion.ability.variables?.find(v => v.name === config.splitDamageVar);
+                  const splitTotal = readVarByStar(splitVar?.value, unit.starLevel, 0) * (1 + unit.stats.ap / 100);
+                  baseDmg += splitTotal / aliveTargets.length;
+                }
                 let dmg = baseDmg * (1 + abilityDamageAmp);
                 if (config.damageDecay && ti > 0) {
                   dmg *= Math.pow(1 - config.damageDecay, ti);
