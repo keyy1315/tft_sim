@@ -10,12 +10,13 @@ traits:
 role: Caster   # raw "APCaster" → mapGameRole() → sim Caster (types/index.ts includes('Caster')). carry augment 없음
 raw_role: APCaster
 current_patch_status: active
-sim_active: partial   # ability 「고양된 해킹」 2칸 균열 — Damage(scaleAP) per-target. sim aoe_circle r2, auto-detect damageVar 'Damage'. Damage filler ★1=80/★2=120/★3=190. 여행자(FlexTrait) trait 정합 / 동물특공대(AnimaSquad)=전투 외 shop 시스템(sim 비해당). ⚠️ 미반영: SplitDamage(raw ★1=370/★2=555 [17.4 버프 400/600/960 patch-pending] — "나누어 입힘"=분배 total, secondaryDamageVar full-per-target 적용 시 +96% overshoot 확인 → divided 시맨틱 별도 helper 필요, 보류) / HexPercent 저장 피해(받는 피해 10% 저장 → 해킹 종료 시 고정피해, 미모델) / HexDuration. calibration -48% — SplitDamage(주 성분) + Hex 누락
+sim_active: partial   # ability 「고양된 해킹」 2칸 균열 — Damage(scaleAP) per-target + SplitDamage(scaleAP, 분배) ✅. sim aoe_circle r2, damageVar 'Damage' + splitDamageVar 'SplitDamage'(÷aliveTargets). Damage filler ★1=80/★2=120/★3=190 / SplitDamage ★1=370/★2=555/★3=890 (raw pre-17.4, 17.4 버프 400/600/960 patch-pending). 여행자(FlexTrait) trait 정합 / 동물특공대(AnimaSquad)=전투 외 shop 시스템(sim 비해당). ✅ **SplitDamage divided-split helper 반영(2026-06-16)**: Aurora -48%→-2%, game-424 -17→-10%. ⚠️ 미반영: HexPercent 저장 피해(받는 피해 10% 저장 → 해킹 종료 시 고정피해, 미모델) / HexDuration
 last_verified: 2026-06-15
 sources:
   - "public/data/tft_set17_champions.json (TFT17_Aurora entry — cost 3, role APCaster, traits [동물특공대/여행자], hp 700, armor/MR 25/25, AD 30, AS 0.8, range 4, mana 20/80, ability '고양된 해킹' variables Damage/SplitDamage/HexPercent/HexDuration/SpellHexRadius)"
   - "public/data/tft_set17_traits.json (TFT17_AnimaSquad = 동물특공대 bp 3/6 / TFT17_FlexTrait = 여행자 bp 2/3/4/5/6)"
-  - "src/lib/simulator/systems/ability.ts:237 (TFT17_Aurora: { pattern: 'aoe_circle', radius: 2 } — auto-detect damageVar 'Damage')"
+  - "src/lib/simulator/systems/ability.ts:243 (TFT17_Aurora: { pattern: 'aoe_circle', radius: 2, damageVar: 'Damage', splitDamageVar: 'SplitDamage' })"
+  - "src/lib/simulator/engine/combatLoop.ts (splitDamageVar — readVarByStar × (1+ap/100) ÷ aliveTargets, per-target loop)"
   - "src/lib/simulator/engine/combatLoop.ts:1780 applyFlexTraitBuffs 여행자 (AnimaSquad 은 applyAnimaSquadEffects 없음 — 전투 외 shop/tech, sim 비해당)"
 related:
   - "[[role-passive]]"
@@ -34,7 +35,7 @@ related:
 - **role**: `mapGameRole('APCaster')` → sim **Caster** ([[role-passive]] — 공격당 7 / 초당 2 / 피격 ❌).
 - **ability "고양된 해킹"**: 대상 포함 `SpellHexRadius`(2)칸 균열 → 범위 내 적을 `HexDuration`(4)초 해킹 + 각 `Damage`(scaleAP) 마법 + 적중 적 전체에 `SplitDamage`(scaleAP) **나누어**(분배). 해킹된 적은 받는 피해의 `HexPercent`(10%)를 저장 → 해킹 종료 시 저장량만큼 고정 피해(대상 처치 시 조기 종료).
 
-> 🎯 **Aurora 는 균열 해킹 캐스터** — 주 데미지는 SplitDamage(★2=555 ≫ Damage 120)와 Hex 저장 피해. **단 둘 다 미모델** (SplitDamage 분배 시맨틱 + Hex 지연 true) → calibration -48%. sim 은 per-target Damage 만 반영.
+> 🎯 **Aurora 는 균열 해킹 캐스터** — 주 데미지 SplitDamage(★2=555 ≫ Damage 120)는 divided-split helper 로 반영(✅, ÷aliveTargets). Hex 저장 피해만 미모델 → calibration -48%→-2%.
 
 > ⚠️ **set17 entity confirm**: `TFT17_Aurora` apiName 으로 소속 확인 (cost 3, traits 동물특공대/여행자, role APCaster). 한글명 list 만으로 후보 선정 금지.
 
@@ -63,13 +64,13 @@ related:
 | 변수 | raw value | sim 적용 |
 |------|-----------|---------|
 | Damage | [2.5, 80, 120, 190, ...] | ✅ auto-detect `damageVar 'Damage'` filler(sentinel) → ★1=80/★2=120/★3=190 (scaleAP) |
-| SplitDamage | [3, 370, 555, 890, ...] | ⚠️ **미반영** filler → ★1=370/★2=555/★3=890 (scaleAP). "나누어 입힘"=분배 total. ⏳ raw 는 pre-17.4 값 — [[patch-17-4]] 가 400/600/960 으로 버프했으나 raw 데이터 patch-pending(미갱신, sim ground truth = 370/555/890) |
+| SplitDamage | [3, 370, 555, 890, ...] | ✅ **반영** `splitDamageVar: 'SplitDamage'` (÷aliveTargets, scaleAP) filler → ★1=370/★2=555/★3=890. ⏳ raw pre-17.4 — [[patch-17-4]] 400/600/960 버프 patch-pending (sim ground truth = raw 370/555/890) |
 | HexPercent | [0.1, ...] | ⚠️ **미반영** — 받는 피해 10% 저장 → 해킹 종료 시 고정 피해 |
 | HexDuration | [4, ...] | ⚠️ 해킹 지속 4초 (저장 메커니즘 미모델) |
 | SpellHexRadius | [2, ...] | ✅ aoe_circle radius 2 |
 
-- sim: `pattern: 'aoe_circle', radius: 2` (damageVar 미지정 → auto-detect `Damage`). 2칸 AOE 각 적에 Damage(scaleAP).
-- ⚠️ **SplitDamage 미반영 (주 데미지원)**: ★2=555 로 Damage(120)보다 큼. **"나누어 입힘"=적중 적 전체에 분배(total split)** 인데, `secondaryDamageVar: 'SplitDamage'` 적용 시 per-target loop 에서 **full(분배 안 함)** 합산 → 측정 결과 Aurora **+96% overshoot** (game-424 -17→+1.6%). divided 시맨틱은 별도 helper 필요 → **보류**.
+- sim: `pattern: 'aoe_circle', radius: 2, damageVar: 'Damage', splitDamageVar: 'SplitDamage'`. 2칸 AOE 각 적에 Damage(scaleAP) + SplitDamage(분배 ÷aliveTargets).
+- ✅ **SplitDamage 반영 (divided-split helper)**: ★2=555(Damage 120보다 큼). **"나누어 입힘"=분배 total ÷aliveTargets** 를 `splitDamageVar` helper 로 모델 (scaleAP). secondaryDamageVar(타겟당 full)는 +96% overshoot 였으나 ÷aliveTargets 로 정합 → Aurora -48%→**-2%**.
 - ⚠️ **HexPercent 저장 피해 미반영**: 해킹된 적이 4초간 받는 모든 피해의 10% 저장 → 종료 시 고정(true) 피해. 지연 + 누적 메커니즘 미모델.
 
 ### Trait — 동물특공대 (AnimaSquad) / 여행자 (FlexTrait)
@@ -82,14 +83,13 @@ related:
 ✅ **활성**:
 - stats 17.4 정합 (hp 700, armor/MR 25, AD 30, AS 0.8, range 4, mana 20/80)
 - role Caster (`mapGameRole('APCaster')`)
-- 2칸 AOE Damage(scaleAP) per-target
+- 2칸 AOE Damage(scaleAP) per-target + SplitDamage(scaleAP, divided-split ÷aliveTargets)
 - 여행자(FlexTrait) trait
 
 ⚠️ **미반영** (Lint 후보):
-- **P2**: SplitDamage (주 데미지원, ★2=555) — "나누어 입힘"=분배 total, secondaryDamageVar full 적용 시 +96% overshoot → divided helper 필요, 보류
 - **P2**: HexPercent 저장 피해 (받는 피해 10% → 해킹 종료 시 고정) 미모델
 - **➖**: 동물특공대 = 전투 외 shop 시스템 (sim 비해당)
-- calibration -48%: SplitDamage + Hex 누락이 주 원인 (둘 다 특수 메커니즘 — 단순 fix 불가).
+- calibration -48%→**-2%** (SplitDamage divided-split 반영). 잔여 = HexPercent 저장 피해 미모델.
 
 ## 관련 문서
 
