@@ -12,12 +12,12 @@ role: Caster   # raw "APCaster" → mapGameRole() → sim Caster (types/index.ts
 raw_role: APCaster
 current_patch_status: active   # 17.4 LIVE 데이터 기준 (raw json meta 17.4 partial). 17.5 raw 미취득 — 외부 17.5/17.5b 패치노트 champion list 에 Lissandra 미포함(보조 확인, raw diff 아님)
 last_verified: 2026-06-16
-sim_active: partial   # ability 「암흑 물질」 처음 적중 대상 Damage(scaleAP) 마법 + 폭발 시 주변 SecondaryDamage(scaleAP). sim aoe_circle r1 + secondaryDamageVar 'SecondaryDamage'. auto-detect 주 damageVar 'Damage' no-filler → ★1=200/★2=250/★3=375. SecondaryDamage filler(v0>v1) → ★1=50/★2=75/★3=115. 암흑의 별(DarkStar applyDarkStarEffects)/복제자(APTrait) trait 반영. ⚠️ 길잡이(SummonTrait) 미반영(별도 helper 없음 — 소환물 메커니즘 미모델). ⚠️ aoe_circle+secondaryDamageVar over-application (combatLoop:6895-6898 — 주 대상 포함 전 타겟에 Damage+SecondaryDamage, Veigar/Pyke/Gwen/Nami/Riven 공통). calibration: game-424 -88% — per-cast 정상(★2 232/cast)이나 cost1 hp450 squishy 조기사망(3캐스트 후 사망, duration-bound 모델링 아님)
+sim_active: partial   # ability 「암흑 물질」 처음 적중 대상 Damage(scaleAP) 마법 + 폭발 시 주변 SecondaryDamage(scaleAP). sim aoe_circle r1 + secondaryDamageVar 'SecondaryDamage'. auto-detect 주 damageVar 'Damage' no-filler → ★1=200/★2=250/★3=375. SecondaryDamage filler(v0>v1) → ★1=50/★2=75/★3=115. 암흑의 별(DarkStar applyDarkStarEffects)/복제자(APTrait) trait 반영. ⚠️ 길잡이(SummonTrait) 부분 반영 — 소환물(TFT17_Summon)은 useTeamManagement.syncVoyagerSummonInTeam 로 전투 전 materialize(count별 star)되어 전투 참여, 미반영 = 길잡이 tier별 전투 버프(sim helper 없음). ⚠️ aoe_circle+secondaryDamageVar over-application (combatLoop:6895-6898 — 주 대상 포함 전 타겟에 Damage+SecondaryDamage, Veigar/Pyke/Gwen/Nami/Riven 공통). calibration: game-424 -88% — per-cast 정상(★2 232/cast)이나 cost1 hp450 squishy 조기사망(3캐스트 후 사망, duration-bound 모델링 아님)
 sources:
   - "public/data/tft_set17_champions.json (TFT17_Lissandra entry — cost 1, role APCaster, traits [암흑의 별/길잡이/복제자], hp 450, armor/MR 15/15, AD 30, AS 0.7, range 4, mana 0/30, ability '암흑 물질' variables Damage/SecondaryDamage)"
   - "public/data/tft_set17_traits.json (TFT17_DarkStar = 암흑의 별 bp 2/4/6/9 / TFT17_SummonTrait = 길잡이 bp 3/5/7 / TFT17_APTrait = 복제자 bp 2/4)"
   - "src/lib/simulator/systems/ability.ts:222 (TFT17_Lissandra: { pattern: 'aoe_circle', radius: 1, secondaryDamageVar: 'SecondaryDamage' } — auto-detect 주 damageVar 'Damage')"
-  - "src/lib/simulator/engine/combatLoop.ts:6895-6898 secondaryDamageVar 가산 / :2186 applyDarkStarEffects 암흑의 별(:2196 darkStarUnits unitHasTrait) / :1855 applyReplicatorTrait 복제자(:1850 Lissandra 포함). 길잡이=TFT17_SummonTrait sim helper 없음(trait.ts:41 emblem 매핑만)"
+  - "src/lib/simulator/engine/combatLoop.ts:6895-6898 secondaryDamageVar 가산 / :2186 applyDarkStarEffects 암흑의 별(:2196 darkStarUnits unitHasTrait) / :1855 applyReplicatorTrait 복제자(:1850 Lissandra 포함). 길잡이=TFT17_SummonTrait 소환물 materialize src/hooks/useTeamManagement.ts:152-180(syncVoyagerSummonInTeam)/:315-334(syncTeam) — sim trait 버프 helper 는 없음(trait.ts:41 emblem 매핑만)"
 related:
   - "[[role-passive]]"
   - "[[ability-targeting]]"
@@ -71,7 +71,7 @@ related:
 ### Trait — 암흑의 별 / 길잡이 / 복제자
 
 - **암흑의 별** (`TFT17_DarkStar`, bp 2/4/6/9): `applyDarkStarEffects` (`:2186`) — darkStar unit(`unitHasTrait('암흑의 별')` `:2196`)에 ADAP/supermassive 보너스 + (6)+ 소형 블랙홀. Lissandra 도 darkStar unit 으로 수혜.
-- **길잡이** (`TFT17_SummonTrait`, bp 3/5/7): ⚠️ **sim 미반영** — 별도 trait helper 함수 없음(`trait.ts:41` 은 emblem 아이템 이름 매핑만). 소환물 기반 메커니즘 미모델.
+- **길잡이** (`TFT17_SummonTrait`, bp 3/5/7): ⚠️ **부분 반영**. 소환물 자체는 전투 전 team 에 **materialize 됨** — `syncVoyagerSummonInTeam` (`src/hooks/useTeamManagement.ts:152-180`, `syncTeam` `:315-334` 가 resolved 길잡이 count 로 호출)이 `TFT17_Summon`(`VOYAGER_SUMMON_CHAMPION`, `isSummon:true`)를 count별 star(`getVoyagerSummonStarLevel`)로 추가 → 소환물이 일반 unit 으로 전투 참여. ⚠️ **미반영 = 길잡이 tier별 전투 버프** (`src/lib/simulator/` 에 `apply<Summon>` helper 없음, `trait.ts:41` 은 emblem 이름 매핑만).
 - **복제자** (`TFT17_APTrait`, bp 2/4): `applyReplicatorTrait` (`:1855`) — 복제자 보유 unit `mfReplicatorEffectiveness` (Lissandra 포함 `:1850`).
 
 ## sim 통합 상태 — `partial`
@@ -83,7 +83,7 @@ related:
 - 암흑의 별(DarkStar) / 복제자 trait
 
 ⚠️ **미반영 / mis-model** (Lint 후보):
-- **P2**: 길잡이(SummonTrait) 미반영 — 별도 helper 없음, 소환물 메커니즘 미모델
+- **P2**: 길잡이(SummonTrait) **부분 반영** — 소환물(TFT17_Summon)은 useTeamManagement.syncVoyagerSummonInTeam 로 전투 전 materialize(count별 star)되어 전투 참여. 미반영 = **길잡이 tier별 전투 버프**(sim trait helper 없음)
 - **P2**: aoe_circle+secondaryDamageVar over-application — 주 대상에도 SecondaryDamage, 주변에도 Damage (combatLoop:6895-6898 공통 구조, [[veigar]] 동일)
 - calibration: game-424 **-88%** — per-cast 정상(★2 232/cast)이나 cost1 hp450 squishy 3캐스트 후 사망 → **조기사망(duration-bound, 모델링 아님)**. [[veigar]] 와 동일 패턴 — survivability systemic 레버 영역(clean fix 아님).
 
