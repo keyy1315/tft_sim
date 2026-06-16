@@ -20,6 +20,11 @@ related:
   - "[[rammus]]"
   - "[[mordekaiser]]"
   - "[[samira]]"
+  - "[[nasus]]"
+  - "[[teemo]]"
+  - "[[akali]]"
+  - "[[kindred]]"
+  - "[[vex]]"
 ---
 
 # Patch 17.5 + 17.5b (2026-06-10 LIVE)
@@ -47,16 +52,16 @@ related:
 ### Tier 1
 | 챔프 | 항목 | 17.4(데이터) → 17.5 |
 |------|------|---------------------|
-| [[caitlyn]] | Headshot AD | 170/255/510/875 → **190/285/540/925** (buff) |
+| [[caitlyn]] | Headshot AD (★2~, ★1=145 불변) | 170/255/510/875 → **190/285/540/925** (buff) |
 | [[ezreal]] | Ability AD | 160/240/365/620 → **170/255/380/650** (buff) |
-| Nasus | Flat Health gained | 250/350/550/750 → **300/400/600/800** (buff) |
-| [[teemo]] | Spell Damage | 65/95/170/300 → **70/105/190/325** (buff) |
-| Veigar | Spell Damage AP | 310/465/700/1190 → **330/495/750/1200** (buff) |
+| [[nasus]] | Flat Health gained | 250/350/550/750 → **300/400/600/800** (buff) |
+| [[teemo]] | Spell Damage (★2~, ★1=60 불변) | 65/95/170/300 → **70/105/190/325** (buff) |
+| [[veigar]] | Spell Damage AP | 310/465/700/1190 → **330/495/750/1200** (buff) |
 
 ### Tier 2
 | 챔프 | 항목 | 17.4 → 17.5 |
 |------|------|-------------|
-| [[akali]] | Spell Damage AD | 37/56/84 → **39/59/88** (buff) |
+| [[akali]] | Spell Damage AD (★2~, ★1=27 불변) | 37/56/84 → **39/59/88** (buff) |
 | Bel'Veth | Spell Damage AD | 20/30/45 → **22/33/50** (buff) |
 | Gwen | Attack Speed / AoE AP | 0.85→**0.8** / 75/110/190 → **75/110/215** (★3 buff) |
 | [[mordekaiser]] | Initial Shield | 300/375/500 → **350/425/550** (buff) |

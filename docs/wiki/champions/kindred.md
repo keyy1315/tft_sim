@@ -9,7 +9,7 @@ traits:
   - 도전자
 role: Marksman   # raw "ADCarry" → mapGameRole() → sim Marksman (types/index.ts:43 includes('Carry')). carry augment 없음 → role 변환 분기 없음
 raw_role: ADCarry
-current_patch_status: active
+current_patch_status: active (17.4 데이터 기준 — 17.5/17.5b patch pending: Base AD 55→58 (buff). 데이터/sim 미반영, [[patch-17-5]] 참조)
 sim_active: partial   # active multi 화살(ADDamage scaleAD ★1=115/175/900) + 3표식 passive(SpellDamage) + N.O.V.A.(DRX) surge/Tank shield 800/selector +10% damageAmp/4.5초 주기 mark + 도전자(ASTrait) AS+Burst 정합 (AS off-by-one 은 PR #186 수정 완료 — scaling.json leading-0 제거). P2 passive 표식 평타만(desc "기본공격+스킬" 중 스킬 표식 미반영) / P2 passive mark 피해 SpellDamage flat (desc TotalDamage scaleAD+scaleAP — ad/ap scaling 미적용) / P2 active HexDistance(1) 도약 미구현 (기본 공격 AI 이동 위임) / info raw NovaDamageAmp 0.05·NovaRepeatTimer 5 미사용 (sim 17.4 하드코딩 0.10·4.5초, PR #166) / info NumTargets ★4=5 미반영 (★1-3=3, 4코 ★3까지)
 last_verified: 2026-06-04
 sources:
@@ -26,6 +26,7 @@ sources:
   - "src/lib/simulator/engine/combatLoop.ts:458-466 (도전자 TFT17_ASTrait AS — applySet17SynergyBuffs sc.teamwideAS[ti] 모든 아군 + sc.championAS[ti] 도전자 추가, scaling.json 수치 teamwideAS[0,0.1,0.15,0.2,0.3]/championAS[0,0.2,0.35,0.55,0.9])"
   - "src/lib/simulator/engine/combatLoop.ts:517/3529/5541/5613 (도전자 Burst — :517 combat-start challengerBurstPercent(0.5) set / :5541 challengerIds Burst 트리거 id 집합 / :5613 새 대상 dash 시 challengerBurstEndTick=tick+2.5초 [scaling.json burstDuration:3 은 dead config] / :3529 AS read as×(1+burstPercent))"
 related:
+  - "[[patch-17-5]]"
   - "[[role-passive]]"
   - "[[ability-targeting]]"
   - "[[aatrox]]"

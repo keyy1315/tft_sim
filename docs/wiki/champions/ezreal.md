@@ -9,7 +9,7 @@ traits:
   - 저격수
 role: Caster   # raw "ADCaster" → mapGameRole() → sim Caster (types/index.ts includes('Caster')). carry augment 없음
 raw_role: ADCaster
-current_patch_status: active
+current_patch_status: active (17.4 데이터 기준 — 17.5/17.5b patch pending: Ability AD 160/240/365/620→170/255/380/650 (buff). 데이터/sim 미반영, [[patch-17-5]] 참조)
 sim_active: partial   # ability 「시간의 일격」 단일 파동 TotalDamage(scaleAD scaleAP) 물리. sim single, auto-detect damageVar 'ADDamage'(scaleAD, bonusAD #238). ADDamage filler ★1=160/★2=240/★3=365. 시간 균열자(Timebreaker)/저격수(Sniper RangedTrait) trait 정합. 드론 ✅ 반영 (permanentStacks ezreal_drones → cast 시 DroneDamage, combatLoop :7423-7434 main / :7755-7766 OOR — 단 전투 중 실시간 takedown 누적은 미추적, UI 사전설정 스택 의존). ⚠️ 미반영: APDamage(auto-detect 가 ADDamage 우선 pick) / 전투 중 실시간 takedown 누적 / TakedownsToForm3(60) 변신. calibration -25%(moderate)
 last_verified: 2026-06-16
 sources:
@@ -18,6 +18,7 @@ sources:
   - "src/lib/simulator/systems/ability.ts:219 (TFT17_Ezreal: { pattern: 'single' } — auto-detect damageVar 'ADDamage')"
   - "src/lib/simulator/engine/combatLoop.ts:1984 applySniperEffects 저격수 (base+per-hex amp) / :2100 applyTimebreakerEffects 시간 균열자"
 related:
+  - "[[patch-17-5]]"
   - "[[role-passive]]"
   - "[[ability-targeting]]"
   - "[[milio]]"
