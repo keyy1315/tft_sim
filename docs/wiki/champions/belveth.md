@@ -10,7 +10,7 @@ traits:
   - 습격자
 role: Fighter   # raw "ADFighter" → mapGameRole() → sim Fighter (types/index.ts). carry augment 없음
 raw_role: ADFighter
-current_patch_status: active (⚠️ 17.3 데이터 기준 — raw 17.4 partial dataset 이 Bel'Veth 미갱신. 17.4 pending: ADDamage 18/27/41/69→20/30/45/77 (17.3 너프 revert, [[patch-17-4]]) / 17.5 pending: ADDamage 20/30/45→22/33/50 (buff, [[patch-17-5]]). 모두 데이터/sim 미반영)
+current_patch_status: "active (⚠️ 17.3 데이터 기준 — raw 17.4 partial dataset 이 Bel'Veth 미갱신. 17.4 pending: ADDamage 18/27/41/69→20/30/45/77 (17.3 너프 revert, [[patch-17-4]]) / 17.5 pending: ADDamage 20/30/45→22/33/50 (buff, [[patch-17-5]]). 모두 데이터/sim 미반영)"
 last_verified: 2026-06-16
 sim_active: partial   # ability 「파도 가르기」 SlashDuration(2초) 동안 TotalNumSlashes(scaleAS)회 베기, 각 TotalDamage(=ADDamage scaleAD + APDamage scaleAP) 물리. sim single + hitCount 12(BaseNumSlashes, 곱연산 :6753). auto-detect 주 damageVar 'ADDamage' filler(v0>v1) → ★1=18/★2=27/★3=41. 태고족(Primordian :2275)/도전자(ASTrait :592)/습격자(MeleeTrait :610) trait 반영. ⚠️ slash 수 AS 스케일(TotalNumSlashes scaleAS) 미반영 — sim hitCount 12 고정(도전자 ASTrait+아이템 로 고AS 시 under, 습격자는 AS 부여 아님). APDamage 부차 scaleAP 미반영(auto-detect ADDamage 우선). calibration: game-423/424 부재(미측정)
 sources:

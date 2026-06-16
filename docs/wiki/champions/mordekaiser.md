@@ -10,7 +10,7 @@ traits:
   - 선봉대
 role: Tank   # raw "APTank" → mapGameRole() → sim Tank. ⚠️ MordekaiserCarry augment 활성 시 Fighter 로 변환 (applyHeroCarryTransforms) — base 의 helper 메커니즘은 carry 활성 여부와 무관 동작 (mordekaiserCarryShield 만 InitialShield override)
 raw_role: APTank
-current_patch_status: active (17.4 데이터 기준 — 17.5/17.5b patch pending: Initial Shield 300/375/500→350/425/550 (buff). 데이터/sim 미반영, [[patch-17-5]] 참조)
+current_patch_status: "active (17.4 데이터 기준 — 17.5/17.5b patch pending: Initial Shield 300/375/500→350/425/550 (buff). 데이터/sim 미반영, [[patch-17-5]] 참조)"
 sim_active: active   # base raw 메커니즘 거의 완성 (helper 2개 + 별도 shield pool + healRefund + main/OOR cast parity)
 last_verified: 2026-05-26
 sources:

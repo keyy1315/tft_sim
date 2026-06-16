@@ -9,7 +9,7 @@ traits:
   - 전달자
 role: Caster   # raw "APCaster" → mapGameRole() → sim Caster (types/index.ts includes('Caster')). carry augment 없음
 raw_role: APCaster
-current_patch_status: active (17.4 데이터 기준 — 17.5/17.5b patch pending: Spell Damage 220/330→240/360 (buff). 데이터/sim 미반영, [[patch-17-5]] 참조)
+current_patch_status: "active (17.4 데이터 기준 — 17.5/17.5b patch pending: Spell Damage 220/330→240/360 (buff). 데이터/sim 미반영, [[patch-17-5]] 참조)"
 sim_active: partial   # ability 「미확인 친절 물체」 비행접시 4초 DOT — DamagePerSecond(초당값)×Duration(4) 을 dot.perSecond 로 모델(#241), aoe_circle radius 1 (SecondaryHexRange). ★ filler ★1=220/★2=330/★3=3000. 정령족(Astronaut)/전달자(ManaTrait) trait 정합. ⚠️ 미반영: SplitDamagePerSecond(주변 적은 DamagePerSecond 가 아닌 split 값이어야 하나 sim 은 aoe 전체에 DamagePerSecond 동일 적용 → 주변 과다) / TankDamageIncrease(탱커 상대 +30%) / AbductChance(납치 — economy, sim 무관) / 정령 추가효과(전투시작 정령족 아군 추가 meep) / cast 빈도·DOT 4초 vs 짧은 전투(duration-bound, 잔여 -84%)
 last_verified: 2026-06-15
 sources:

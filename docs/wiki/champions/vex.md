@@ -8,7 +8,7 @@ traits:
   - 파멸자
 role: Marksman   # raw "APCarry" → mapGameRole() → sim Marksman (types/index.ts:43 includes('Carry')). ⚠️ 실제 AP 메이지지만 mapGameRole string-match 가 Carry → Marksman 으로 분류 (Caster 아님). carry augment 없음 → role 변환 분기 없음
 raw_role: APCarry
-current_patch_status: active (17.4 데이터 기준 — 17.5/17.5b patch pending: Spell Damage AP 130/195→140/210 (buff). 데이터/sim 미반영, [[patch-17-5]] 참조)
+current_patch_status: "active (17.4 데이터 기준 — 17.5/17.5b patch pending: Spell Damage AP 130/195→140/210 (buff). 데이터/sim 미반영, [[patch-17-5]] 참조)"
 sim_active: partial   # passive 그림자(ShadowHandDamage scaleAP + spread + amp + lethal) / active 강화타격(ShadowHandMagicDamage scaleAP hitCount 3 split, spell crit 가능) / 파멸자(VexUniqueTrait ADAP 12% 강탈 양팀 snapshot) 핵심 정합. P2 passive NumStrikesForPassive=5 그림자 재타격 미반영 (grep 0 read) / P2 파멸자 표식 트리거 단순화 (combat-start 즉시 일괄 강탈, "적 첫 피해 시" 표식 소모 생략) / P2 active "강화 타격 3회" desc vs sim aoe_circle split (총피해 base×3 / aliveTargets 분배) + NumActiveStrikes raw var 직접 read 아님 (hardcoded 3) / P2 passive "주변 적" spread = 최근접 1명 보수 해석 (raw 반경 변수 없음) / P2 passive 그림자 spell crit 미지원 (평타 hook crit 분기 부재, active cast :6581 만 crit, codex PR #183)
 last_verified: 2026-06-02
 sources:

@@ -200,6 +200,7 @@ read 위치 없으면 → 본문에 "🔍 sim 효과 검증 필요" 표기 또�
 | **신규 carry augment 도입 시 관련 mechanic page (spell-crit / mana / cast path / role-passive) 의 cast roll / trigger / 호출처 리스트 stale 검증 + last_verified 갱신** (룰 #14, PR #155 도입) | 신규 carry / cast path 변경 시 | Jax carry hero augment (PR #135/#147) 가 5번째/6번째 spellCanCrit cast roll 추가 → spell-crit.md last_verified 갱신 누락 (#154 P1-1) |
 | **본문에 P0 lint case (sim 미반영) 등록 시 frontmatter `sim_active: active` 유지 → page-internal contradiction P1 raise + `partial` 강등 권장** (룰 #15, PR #155 도입, 룰 #8 의 carry-augment / champion 일반화) | P0 lint case 등록 시 | leona-carry frontmatter active ↔ 본문 Lint #10/#11 등록 모순 (#154 codex P2) |
 | **sim fix guidance 작성 시 적용 분기 명시 필수** (룰 #17, PR #160 도입, 룰 #11/#12 보강) | Lint 후보 fix 항목 작성 시 | Blitzcrank B1 "UppercutDamage `secondaryDamageVar` 추가" guidance 잘못 — per-target loop 적용 (PR #158 Codex P2 catch). fix guidance 는 적용 분기 (primary single / per-target / cast-time 1회 helper / combat-start helper) 명시 필수 |
+| **frontmatter scalar 값에 `: `(콜론+공백) 포함 시 quote 필수 — YAML 유효성** (룰 #21, PR #262 도입, codex P2 학습) | frontmatter 필드 값(특히 `current_patch_status`/`sim_active` 가 아닌 quote 안 쓰는 필드)에 콜론 포함 시 | `current_patch_status: active (... patch pending: armor 45→50 ...)` 처럼 unquoted 값에 `pending: ` 콜론이 있으면 YAML 파서가 `mapping values are not allowed in this context` 로 거부 → 16개 champion 페이지 무효 (PR #262 codex P2). 값을 `"..."` 로 quote. 검출: frontmatter 각 라인 `key: value` 의 value 가 unquoted 인데 `: ` 포함하면 P1 (lint/indexing tooling 파싱 실패) |
 
 ## Page-internal Cross-check (PR #152 retro pilot 도입)
 

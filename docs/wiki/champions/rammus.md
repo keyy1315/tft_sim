@@ -9,7 +9,7 @@ traits:
   - 요새
 role: Tank   # raw "APTank" → mapGameRole() → sim Tank (types/index.ts includes('Tank')). carry augment 없음
 raw_role: APTank
-current_patch_status: active (17.4 데이터 기준 — 17.5/17.5b patch pending: Meeple bonus DR per Meep 4→3 (nerf) / Mana 20/90→20/80 (buff). 데이터/sim 미반영, [[patch-17-5]] 참조)
+current_patch_status: "active (17.4 데이터 기준 — 17.5/17.5b patch pending: Meeple bonus DR per Meep 4→3 (nerf) / Mana 20/90→20/80 (buff). 데이터/sim 미반영, [[patch-17-5]] 참조)"
 sim_active: partial   # 액티브 「중력 회전」: 보호막(ShieldAP) + 일직선 3칸 마법(DamageAP scaleAP + DamageArmor scaleArmor). scaleArmor 성분은 casterArmorScaleVar 로 main+OOR cast path 에서 caster armor 비례 가산(ability.ts:238 / combatLoop.ts:6589,7466). selfBuff durability 0.3 근사. 정령 패시브(정령족 active 게이트): 20회 피격 후 반경 2칸 magic AoE = PassivePercentArmor★ × armor (applyAstronautEffects precompute :2068 + defender 평타훅 :6436). 정령족 BonusHealth/Meeps applyAstronautEffects 적용 / 요새(ResistTank) teamwide armor/MR 정합. ⚠️ 미구현: 패시브 FlatDR(받는 공격 피해 감소, FlatDRPerMeep) / 패시브 AoE 는 sim 전투 단축(6~12s)으로 20회 threshold 실전만큼 미충족 → calibration 잔여 -74~98% (systemic duration, AS캡 #236 후에도)
 last_verified: 2026-06-15
 sources:

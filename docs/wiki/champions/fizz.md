@@ -9,7 +9,7 @@ traits:
   - 불한당
 role: Assassin   # raw "APReaper" → mapGameRole() → sim Assassin (types/index.ts includes('Reaper')). carry augment 없음
 raw_role: APReaper
-current_patch_status: active (17.4 변경 없음 — 17.5 patch pending: DashDamage ★2~ 120/180/290→140/210/310 (★1=80 불변, buff). 데이터/sim 미반영, [[patch-17-5]] 참조)
+current_patch_status: "active (17.4 변경 없음 — 17.5 patch pending: DashDamage ★2~ 120/180/290→140/210/310 (★1=80 불변, buff). 데이터/sim 미반영, [[patch-17-5]] 참조)"
 last_verified: 2026-06-16
 sim_active: partial   # ability 「정령 미끼」 관통 돌진 DashDamage(scaleAP) 마법 + 3회 사용마다 MegaMeep(ChompDamage=BiteDamageAP + 공중부양 stun 1.25 + 인접 SecondaryDamage 50%). sim line + dash to_target + secondaryDamageVar 'BiteDamageAP'. auto-detect 주 damageVar = DashDamage(fuzzy, no-filler) → ★1=80/★2=120/★3=180. 정령족(Astronaut)/불한당(AssassinTrait AD/AP) trait. ⚠️ **over-model**: secondaryDamageVar BiteDamageAP 가 3회째 MegaMeep nuke 를 매 캐스트·전 라인타겟에 적용(3-cast cadence 없음, line over-application). ⚠️ 미반영: MegaMeep stun(MegaMeepStunDuration 1.25) / 정령족 추가(MeepsPerAstro/BiteDamageMeep, desc computed MeepBonusDamage) / 인접 SecondaryDamage 별도 / 불한당 stealth(HealthThreshold/Duration). calibration: game-423/424 부재(미측정)
 sources:

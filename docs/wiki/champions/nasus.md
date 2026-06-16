@@ -9,7 +9,7 @@ traits:
   - 선봉대
 role: Tank   # raw "APTank" → mapGameRole() → sim Tank. ⚠️ NasusCarry augment 활성 시 Fighter 로 변환 (applyHeroCarryTransforms)
 raw_role: APTank
-current_patch_status: active (17.4 데이터 기준 — 17.5/17.5b patch pending: Flat Health gained 250/350/550/750→300/400/600/800 (buff). 데이터/sim 미반영, [[patch-17-5]] 참조)
+current_patch_status: "active (17.4 데이터 기준 — 17.5/17.5b patch pending: Flat Health gained 250/350/550/750→300/400/600/800 (buff). 데이터/sim 미반영, [[patch-17-5]] 참조)"
 sim_active: partial
 last_verified: 2026-05-21
 sources:

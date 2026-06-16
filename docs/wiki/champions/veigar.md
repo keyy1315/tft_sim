@@ -9,7 +9,7 @@ traits:
   - 복제자
 role: Caster   # raw "APCaster" → mapGameRole() → sim Caster (types/index.ts includes('Caster')). carry augment 없음
 raw_role: APCaster
-current_patch_status: active (17.4 데이터 기준 — 17.5/17.5b patch pending: Spell Damage(Damage) ★2~ 310/465/700/1190→330/495/750/1200 (★1=250 불변, buff). 데이터/sim 미반영, [[patch-17-5]] 참조)
+current_patch_status: "active (17.4 데이터 기준 — 17.5/17.5b patch pending: Spell Damage(Damage) ★2~ 310/465/700/1190→330/495/750/1200 (★1=250 불변, buff). 데이터/sim 미반영, [[patch-17-5]] 참조)"
 last_verified: 2026-06-16
 sim_active: partial   # ability 「정령유성우」 대상 Damage(scaleAP) 마법 + 정령족 추가효과 미니유성 MiniMeepsPerAstro(2)개 각 MiniDamage(scaleAP). sim aoe_circle r1 + secondaryDamageVar 'MiniDamage'(주변 타겟당 1회 full). auto-detect 주 damageVar 'Damage' no-filler → ★1=250/★2=310/★3=465. MiniDamage filler(v0>v1) → ★1=31/★2=47/★3=70. 정령족(Astronaut)/복제자(APTrait) trait 정합. ⚠️ 미니유성 mis-model 3중: (a) MiniMeepsPerAstro(×2) 미반영(under) + (b) 정령족 active 게이팅 없이 무조건 적용(over) + (c) secondaryDamageVar 가 aoe_circle 전 타겟(주 대상 포함)에 MiniDamage 가산(over, combatLoop:6895-6898 공통 구조) → 부분 상쇄. calibration: game-424 -64% — per-cast 정상(★2 255/cast)이나 cost1 squishy 2캐스트 후 사망(조기사망 duration-bound, 모델링 아님)
 sources:
