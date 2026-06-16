@@ -12,7 +12,7 @@ role: Fighter   # raw "ADFighter" → mapGameRole() → sim Fighter (types/index
 raw_role: ADFighter
 current_patch_status: active (⚠️ 17.3 데이터 기준 — raw 17.4 partial dataset 이 Bel'Veth 미갱신. 17.4 pending: ADDamage 18/27/41/69→20/30/45/77 (17.3 너프 revert, [[patch-17-4]]) / 17.5 pending: ADDamage 20/30/45→22/33/50 (buff, [[patch-17-5]]). 모두 데이터/sim 미반영)
 last_verified: 2026-06-16
-sim_active: partial   # ability 「파도 가르기」 SlashDuration(2초) 동안 TotalNumSlashes(scaleAS)회 베기, 각 TotalDamage(=ADDamage scaleAD + APDamage scaleAP) 물리. sim single + hitCount 12(BaseNumSlashes, 곱연산 :6753). auto-detect 주 damageVar 'ADDamage' filler(v0>v1) → ★1=18/★2=27/★3=41. 태고족(Primordian :2275)/도전자(ASTrait :592)/습격자(MeleeTrait :610) trait 반영. ⚠️ slash 수 AS 스케일(TotalNumSlashes scaleAS) 미반영 — sim hitCount 12 고정(AS 스택 캐릭인데 고AS 시 under). APDamage 부차 scaleAP 미반영(auto-detect ADDamage 우선). calibration: game-423/424 부재(미측정)
+sim_active: partial   # ability 「파도 가르기」 SlashDuration(2초) 동안 TotalNumSlashes(scaleAS)회 베기, 각 TotalDamage(=ADDamage scaleAD + APDamage scaleAP) 물리. sim single + hitCount 12(BaseNumSlashes, 곱연산 :6753). auto-detect 주 damageVar 'ADDamage' filler(v0>v1) → ★1=18/★2=27/★3=41. 태고족(Primordian :2275)/도전자(ASTrait :592)/습격자(MeleeTrait :610) trait 반영. ⚠️ slash 수 AS 스케일(TotalNumSlashes scaleAS) 미반영 — sim hitCount 12 고정(도전자 ASTrait+아이템 로 고AS 시 under, 습격자는 AS 부여 아님). APDamage 부차 scaleAP 미반영(auto-detect ADDamage 우선). calibration: game-423/424 부재(미측정)
 sources:
   - "public/data/tft_set17_champions.json (TFT17_Belveth entry — cost 2, role ADFighter, traits [태고족/도전자/습격자], hp 750, armor/MR 45/45, AD 47, AS 0.75, range 2, mana 0/50, ability '파도 가르기' variables ADDamage/APDamage/BaseNumSlashes/BonusASBreakpoint/SlashDuration/NumProcsPerSimulatedAttack)"
   - "public/data/tft_set17_traits.json (TFT17_Primordian = 태고족 bp 2/3 / TFT17_ASTrait = 도전자 bp 2/3/4/5 / TFT17_MeleeTrait = 습격자 bp 2/4/6)"
@@ -35,7 +35,7 @@ related:
 - **role**: `mapGameRole('ADFighter')` → sim **Fighter** ([[role-passive]] — 공격당 10 / 초당 0 / 피격 ❌). hp 750, armor/MR 45, range 2, mana 0/50.
 - **ability "파도 가르기"**: 현재 대상을 `SlashDuration`(2초) 동안 연속 `TotalNumSlashes`(scaleAS)회 베어 각각 `TotalDamage`(=`ADDamage` scaleAD + `APDamage` scaleAP) 물리.
 
-> 🎯 **Bel'Veth 는 연속 베기 AS 파이터** — `TotalNumSlashes` 가 **공격속도 비례**(scaleAS)라 AS 스택 시 베기 수 증가. ⚠️ sim 은 `hitCount: 12`(BaseNumSlashes) **고정** → AS 스케일 미반영(고AS 시 under). 도전자/습격자로 AS 쌓는 캐릭이라 갭 존재.
+> 🎯 **Bel'Veth 는 연속 베기 AS 파이터** — `TotalNumSlashes` 가 **공격속도 비례**(scaleAS)라 AS 스택 시 베기 수 증가. ⚠️ sim 은 `hitCount: 12`(BaseNumSlashes) **고정** → AS 스케일 미반영(고AS 시 under). 도전자(ASTrait Burst AS) + 아이템/role 로 AS 쌓는 캐릭이라 갭 존재 (습격자는 AS 부여 아님 — 흡혈/AD/실드).
 
 > ⚠️ **set17 entity confirm**: `TFT17_Belveth` apiName 으로 소속 확인 (cost 2, traits 태고족/도전자/습격자, role ADFighter). 한글명 list 만으로 후보 선정 금지.
 
@@ -75,7 +75,7 @@ related:
 | NumProcsPerSimulatedAttack | [4, ...] | ⚠️ **미반영** — 시뮬 공격당 proc 수 |
 
 - sim: `pattern: 'single', hitCount: 12`. 단일 대상 `ADDamage × 12` (`combatLoop:6753` single hitCount 곱연산).
-- ⚠️ **slash 수 AS 스케일 미반영**: 실제 `TotalNumSlashes` 는 `BaseNumSlashes`(12) + AS 비례 추가(`BonusASBreakpoint` 25 기준). sim 은 12 고정 → 도전자/습격자로 고AS 달성 시 베기 수 under.
+- ⚠️ **slash 수 AS 스케일 미반영**: 실제 `TotalNumSlashes` 는 `BaseNumSlashes`(12) + AS 비례 추가(`BonusASBreakpoint` 25 기준). sim 은 12 고정 → 도전자(ASTrait Burst AS) + 아이템/role 로 고AS 달성 시 베기 수 under. (습격자 MeleeTrait 는 AS 부여 아님 — 흡혈/AD/실드 `:543-555`/`:608-617`)
 - ⚠️ **APDamage 부차 미반영**: TotalDamage = ADDamage + APDamage 인데 auto-detect 가 ADDamage 만 pick(★2=27 대비 APDamage ★2=5 작음).
 
 ### Trait — 태고족 / 도전자 / 습격자
@@ -93,7 +93,7 @@ related:
 - 태고족(damageAmp) / 도전자(Burst AS) / 습격자(shield) trait
 
 ⚠️ **미반영 / mis-model** (Lint 후보):
-- **P2**: slash 수 AS 스케일(`TotalNumSlashes` scaleAS / `BonusASBreakpoint`) 미반영 — sim hitCount 12 고정, AS 스택 캐릭이라 고AS 시 under
+- **P2**: slash 수 AS 스케일(`TotalNumSlashes` scaleAS / `BonusASBreakpoint`) 미반영 — sim hitCount 12 고정, 도전자 ASTrait + 아이템 로 AS 스택 시 under(습격자는 AS 부여 아님)
 - **P2**: APDamage 부차 scaleAP 미반영 (auto-detect ADDamage 우선)
 - **P2**: raw 데이터 17.3 — ADDamage 17.4 revert(18/27/41→20/30/45) + 17.5 buff(→22/33/50) 데이터/sim 미반영([[patch-17-4]]/[[patch-17-5]])
 - calibration: game-423/424 **부재(미측정)**.
