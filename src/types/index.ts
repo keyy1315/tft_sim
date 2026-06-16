@@ -320,7 +320,8 @@ export const PERMANENT_STACK_CONFIG: Record<string, PermanentStackConfig> = {
     max: 30,
     preview: (value, starLevel) => {
       const drones = Math.floor(value / 8);
-      const droneDmg = [0, 25, 38, 60][starLevel] ?? 25;
+      // raw DroneDamage [0,8,12,18,30] base (sim 은 readVarByStar 로 정확 계산; preview 는 base 표시)
+      const droneDmg = [0, 8, 12, 18, 30][starLevel] ?? 8;
       return drones > 0 ? `드론 ${drones}개 (개당 ${droneDmg} 추가 피해)` : '드론 없음';
     },
   },
