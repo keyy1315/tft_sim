@@ -245,7 +245,7 @@ export const CHAMPION_ABILITY_PATTERNS: Record<string, AbilityConfig> = {
   TFT17_Maokai:      { pattern: 'aoe_circle', radius: 2, stun: 1.5 },  // X자 덩굴 + 기절
   TFT17_Kaisa:       { pattern: 'aoe_circle', radius: 2, hitCount: 16 },  // 미사일 16개 반경 2칸 나누어 발사
   TFT17_Urgot:       { pattern: 'cone', radius: 2, selfBuff: { durability: 0.2, duration: 3 }, damageVar: 'ShotgunDamage' },  // 보호막 + 원뿔 폭발 탄환
-  TFT17_Viktor:      { pattern: 'aoe_circle', radius: 1, dot: { duration: 4 } },  // 초능력 폭풍 4초 DOT (커지는 AOE)
+  TFT17_Viktor:      { pattern: 'aoe_circle', radius: 1, dot: { duration: 4, perSecond: true } },  // 초능력 폭풍 4초 DOT — Damage(매초) × 4 (Bard 동형 perSecond)
   TFT17_Samira:      { pattern: 'single', stun: 1.0 },  // 탄환 + 공중띄움
   TFT17_Ornn:        { pattern: 'cone', radius: 2 },  // 보호막 + 원뿔 화염
   TFT17_Lulu:        { pattern: 'multi', maxTargets: 4 },  // 하늘에서 떨어뜨려 주변 적 타격
