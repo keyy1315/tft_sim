@@ -9,7 +9,7 @@ traits:
   - 저격수
 role: Caster   # raw "ADCaster" → mapGameRole() → sim Caster (types/index.ts includes('Caster')). carry augment 없음
 raw_role: ADCaster
-current_patch_status: active
+current_patch_status: active (17.4 데이터 기준 — 17.5/17.5b patch pending: (17.5b) Mana 0/60→0/65 + Ability CC 1.25s→1s (nerf). 데이터/sim 미반영, [[patch-17-5]] 참조)
 sim_active: partial   # active 단일 탄환(Damage scaleAD physical) + stun(공중 띄움) + 우주그루브(SpaceGroove)/저격수(Sniper) trait 정합. P1: passive(onEnemyAirborne 시 PassiveDamage scaleAD scaleAP physical + GrooveDuration TheGroove) 미반영 — onEnemyAirborne 트리거 핸들러 부재(grep 0, onAttack/onKill 만 존재) / P2: active stun 1.0 vs raw StunDuration 1.25 (sim 0.25s 적음) / P2: TheGroove 상태(passive 발동 시 3초) 미반영 (passive 자체 미모델) / P2: passive PassiveAP(scaleAP) — passive 미모델로 무의미
 last_verified: 2026-06-12
 sources:
@@ -22,6 +22,7 @@ sources:
   - "src/lib/simulator/engine/combatLoop.ts:1791 (applySpaceGrooveBuffs 우주 그루브) + :1949 (applySniperEffects 저격수)"
   - "src/lib/simulator/engine/combatLoop.ts:6275/6302 (scaling 핸들러 — onAttack/onKill 만, onEnemyAirborne 분기 없음)"
 related:
+  - "[[patch-17-5]]"
   - "[[role-passive]]"
   - "[[ability-targeting]]"
   - "[[teemo]]"

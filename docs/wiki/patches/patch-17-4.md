@@ -12,6 +12,7 @@ sources:
   - public/data/tft_set17_traits.json (17.3 기준 — 17.4 갱신 대기)
   - public/data/tft_set17_augments.json (17.3 기준 — 17.4 갱신 대기)
 related:
+  - "[[patch-17-5]]"
   - "[[patch-17-3]]"
   - "[[patch-17-2b]]"
   - "[[zed]]"

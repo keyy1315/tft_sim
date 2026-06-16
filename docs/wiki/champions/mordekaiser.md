@@ -10,7 +10,7 @@ traits:
   - 선봉대
 role: Tank   # raw "APTank" → mapGameRole() → sim Tank. ⚠️ MordekaiserCarry augment 활성 시 Fighter 로 변환 (applyHeroCarryTransforms) — base 의 helper 메커니즘은 carry 활성 여부와 무관 동작 (mordekaiserCarryShield 만 InitialShield override)
 raw_role: APTank
-current_patch_status: active
+current_patch_status: active (17.4 데이터 기준 — 17.5/17.5b patch pending: Initial Shield 300/375/500→350/425/550 (buff). 데이터/sim 미반영, [[patch-17-5]] 참조)
 sim_active: active   # base raw 메커니즘 거의 완성 (helper 2개 + 별도 shield pool + healRefund + main/OOR cast parity)
 last_verified: 2026-05-26
 sources:
@@ -31,6 +31,7 @@ sources:
   - "tests/unit/mordekaiser-proc.test.ts (applyMordekaiserProcCast + tickMordekaiserProc 전용 test)"
   - "tests/unit/simulator/darkstar-execute-supermassive.test.ts:27+ (apMordekaiser 암흑의 별 fixture)"
 related:
+  - "[[patch-17-5]]"
   - "[[role-passive]]"
   - "[[ability-targeting]]"
   - "[[hero-augment-carry]]"
@@ -52,7 +53,7 @@ related:
 
 ## 메커니즘 (base raw, helper 통합 sim)
 
-### Stats (raw, 17.3 LIVE)
+### Stats (raw, 17.4 LIVE — 17.3 이후 변경 없음)
 
 | Stat | 값 |
 |------|---|
@@ -126,7 +127,7 @@ MordekaiserCarry augment 활성 시:
 ## sim 적용 상태 — `active`
 
 ✅ **활성** (base raw helper 통합):
-- stats 17.3 정합 (hp 950, armor/MR 45, AS 0.6, mana 40/100, range 1)
+- stats 17.3/17.4 정합 (hp 950, armor/MR 45, AS 0.6, mana 40/100, range 1)
 - ability override `pattern: 'self_buff'` + helper 통합 (applyMordekaiserProcCast + tickMordekaiserProc)
 - InitialShield × AP → 별도 shield pool (`mordekaiserShieldRemaining`)
 - 4초 동안 매초 펄스 (4 펄스): ShieldPerProc 본인 + DamagePerProc 1칸 적 magic
@@ -160,7 +161,7 @@ MordekaiserCarry augment 활성 시:
 
 - [x] **set17 entity 소속 0단계** — `public/data/tft_set17_champions.json` `TFT17_Mordekaiser` apiName grep 확인 (한글 매칭 금지)
 - [x] entity-wide grep `Mordekaiser` + `mordekaiser` — sim 23+ site + test 2 file 전수 식별 (helper 2개 + state 3 field + shield pool + carry data field + dark star group + per-tick 호출)
-- [x] raw stats 17.3 정합
+- [x] raw stats 17.3/17.4 정합
 - [x] **raw role `APTank` → mapGameRole → sim Tank** ([[jax]] / [[nasus]] 와 동일 매핑 — 3번째 base APTank champion)
 - [x] MordekaiserCarry 변환 시 role overwrite `Fighter` + `mordekaiserCarryShield` carry data 저장 (lint #7 해소)
 - [x] **cast path 3종** — main (`combatLoop.ts:7037`) + OOR (`:7185`) 양쪽 `applyMordekaiserProcCast` 호출 parity verify. recast 무관 (self_buff 패턴 + onKillRecast 없음)

@@ -9,7 +9,7 @@ traits:
   - 선봉대
 role: Tank   # raw "APTank" → mapGameRole() → sim Tank. ⚠️ NasusCarry augment 활성 시 Fighter 로 변환 (applyHeroCarryTransforms)
 raw_role: APTank
-current_patch_status: active
+current_patch_status: active (17.4 데이터 기준 — 17.5/17.5b patch pending: Flat Health gained 250/350/550/750→300/400/600/800 (buff). 데이터/sim 미반영, [[patch-17-5]] 참조)
 sim_active: partial
 last_verified: 2026-05-21
 sources:
@@ -24,6 +24,7 @@ sources:
   - "tests/unit/simulator/hero-carry-augments.test.ts:151+ (nasusBonkStack 초기값 + cast kill 누적 회귀 가드)"
   - "tests/unit/simulator/vanguard-trait.test.ts:21 (apNasus 선봉대 시너지 fixture)"
 related:
+  - "[[patch-17-5]]"
   - "[[role-passive]]"
   - "[[ability-targeting]]"
   - "[[hero-augment-carry]]"
@@ -44,7 +45,7 @@ related:
 
 ## 메커니즘 (base raw, carry 미활성)
 
-### Stats (raw, 17.3 LIVE)
+### Stats (raw, 17.4 LIVE — 17.3 이후 변경 없음)
 
 | Stat | 값 |
 |------|---|
@@ -107,7 +108,7 @@ NasusCarry augment 활성 시:
 ## sim 적용 상태 — `partial`
 
 ✅ **활성**:
-- stats 17.3 정합 (hp 700, armor/MR 45, AS 0.65, mana 60/120, range 1, dmg 40)
+- stats 17.3/17.4 정합 (hp 700, armor/MR 45, AS 0.65, mana 60/120, range 1, dmg 40)
 - ability pattern `aoe_circle r=1` + `dot 6s` + `selfBuff durability 0.2 for 6s`
 - carry 미활성 시 raw role `APTank` → mapGameRole → **Tank** 자동 분기 (mana on-hit 수령 / weight 3 / damage reduction ×1.0)
 - 선봉대 (Vanguard) `applyVanguardEffects` 보호막 (tick=0)
@@ -141,7 +142,7 @@ NasusCarry augment 활성 시:
 
 - [x] **set17 entity 소속 0단계** — `public/data/tft_set17_champions.json` `TFT17_Nasus` apiName grep 확인 (한글 이름 매칭 금지 — codex PR #149 P2 sub-rule)
 - [x] entity-wide grep `Nasus` + `nasus` — sim 4 site (ability override + applyCarryDamageModifiers #6 + cast loop markTargetDead 직후 + nasusBonkStack field) + test 2 file
-- [x] raw stats 17.3 정합 (`public/data/tft_set17_champions.json` 확인)
+- [x] raw stats 17.3/17.4 정합 (`public/data/tft_set17_champions.json` 확인)
 - [x] **raw role `APTank` → mapGameRole → sim Tank** ([[jax]] 와 동일 매핑)
 - [x] NasusCarry 변환 시 role overwrite `Fighter` (`combatLoop.ts:2265`) + selectedCarryAugment set
 - [x] cast path 3종 — NasusCarry single 패턴 → main pipeline only (OOR/recast 진입 불가, `combatLoop.ts:6594` comment 확인)
