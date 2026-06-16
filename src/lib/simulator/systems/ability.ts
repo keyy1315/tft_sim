@@ -277,7 +277,7 @@ export const CHAMPION_ABILITY_PATTERNS: Record<string, AbilityConfig> = {
   TFT17_Shen:        { pattern: 'aoe_circle', radius: 2, selfBuff: { attackSpeed: 0.3, duration: 999 } },  // 보호막 + 균열 AOE + AS둔화
   TFT17_Zed:         { pattern: 'self_buff' },  // 분신 소환 (복제)
   TFT17_Graves:      { pattern: 'cone', radius: 2, secondaryDamageVar: 'SecondaryDamageAD' },  // 원뿔 스킬 Damage + 인접 SecondaryDamageAD
-  TFT17_Morgana:     { pattern: 'multi', maxTargets: 3, heal: true, dot: { duration: 5 } },  // 변신 + 사슬 3명 5초 DOT + 최종 폭발
+  TFT17_Morgana:     { pattern: 'multi', maxTargets: 3, heal: true, dot: { duration: 5, perSecond: true } },  // 변신 + 사슬 3명 매초 TetherDamagePerSecond(scaleAP) × 5 (Bard/Viktor/AurelionSol/Pantheon 동형 perSecond) + 최종 폭발(FinalDamage 미반영)
 
   // === 미등록 챔피언 추가 (2차 — audit 검출분) ===
   TFT16_Blitzcrank:  { pattern: 'aoe_circle', radius: 2 },               // 보호막 + 주변 적 데미지
