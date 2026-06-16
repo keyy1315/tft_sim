@@ -11,7 +11,7 @@ role: Tank   # raw "APTank" → mapGameRole() → sim Tank (types/index.ts inclu
 raw_role: APTank
 current_patch_status: active   # 17.4/17.5 변경 없음 (patch-17-4/17-5 champion list 미포함)
 last_verified: 2026-06-16
-sim_active: partial   # ability 「혀 채찍」 passive 전투당 1회 체력 HPThreshold(35%) 아래 시 받은 힐의 PercentHealingToShield(40%) 보호막(ShieldDuration 4) + 사용 시 Heal(scaleHealth HealHP 8.5%maxHp + scaleAP HealAP) 회복 + 2칸 내 모든 적 Damage(scaleAP DamageAP + scaleHealth DamageHP) 마법. sim aoe_circle r2 + heal:true. auto-detect 주 damageVar 'DamageAP' filler(v0>v1) → ★1=45/★2=60/★3=1500. heal resolveSelfHeal(HealAP filler ★1=300/★2=360/★3=1500 + HealHP 8.5%maxHp). 싸움꾼(HPTank applyBrawlerEffects:2130) trait. ⚠️ 미반영: 예언자(TahmKenchUniqueTrait) sim helper 없음(grep 0건) / passive 힐→보호막(PercentHealingToShield) / Damage scaleHealth 성분(DamageHP 2%maxHp — main DamageAP 만). calibration: game-423/424 부재(미측정)
+sim_active: partial   # ability 「혀 채찍」 passive 전투당 1회 체력 HPThreshold(35%) 아래 시 받은 힐의 PercentHealingToShield(40%) 보호막(ShieldDuration 4) + 사용 시 Heal(scaleHealth HealHP 8.5%maxHp + scaleAP HealAP) 회복 + 2칸 내 모든 적 Damage(scaleAP DamageAP + scaleHealth DamageHP) 마법. sim aoe_circle r2 + heal:true. auto-detect 주 damageVar 'DamageAP' filler(v0>v1) → ★1=45/★2=60/★3=1500. heal resolveSelfHeal(HealAP filler ★1=300/★2=360/★3=1500 + HealHP 8.5%maxHp). 싸움꾼(HPTank applyBrawlerEffects:2130) trait. ⚠️ 미반영: 예언자(TahmKenchUniqueTrait) sim helper 없음(grep 0건) / passive 힐→보호막(PercentHealingToShield) / Damage scaleHealth 성분(DamageHP 2%maxHp — main DamageAP 만) / AOE 중심 mismatch(desc self-centered 인데 config selfCentered 미설정 → primaryTarget 중심). calibration: game-423/424 부재(미측정)
 sources:
   - "public/data/tft_set17_champions.json (TFT17_TahmKench entry — cost 4, role APTank, traits [예언자/싸움꾼], hp 1300, armor/MR 60/60, AD 75, AS 0.5, range 1, mana 50/110, ability '혀 채찍' variables PercentHealingToShield/HealHP/HealAP/DamageHP/DamageAP/HPThreshold/ShieldDuration)"
   - "public/data/tft_set17_traits.json (TFT17_TahmKenchUniqueTrait = 예언자 bp 1 / TFT17_HPTank = 싸움꾼 bp 2/4/6)"
@@ -72,6 +72,7 @@ related:
 - sim: `pattern: 'aoe_circle', radius: 2, heal: true`. 자가힐(HealAP + HealHP maxHp%) + 2칸 `DamageAP`(scaleAP) 광역.
 - ⚠️ **Damage scaleHealth 미반영**: `DamageHP`(2% maxHp) 성분이 main 데미지에 미가산 (auto-detect DamageAP 만). 탱커 maxHp 비례 피해 누락.
 - ⚠️ **passive 힐→보호막 미반영**: 체력 35% 아래 시 받은 힐 40% 보호막(`PercentHealingToShield`) sim 미모델 (전용 핸들러 없음).
+- ⚠️ **AOE 중심 mismatch**: desc 「**Tahm 2칸 내** 모든 적」 = self-centered 이나, config 에 `selfCentered` 없어 `aoe_circle` 가 `primaryTarget.position` 중심(ability.ts findAbilityTargets)으로 적용 → 타겟이 한쪽에 치우치면 Tahm 2칸 밖 적 타격 + 반대편 적 누락. fix 방향: config `selfCentered: true` (Jax 동형).
 
 ### Trait — 예언자 (TahmKenchUniqueTrait) / 싸움꾼 (HPTank)
 
@@ -90,6 +91,7 @@ related:
 - **P2**: Damage scaleHealth 성분(`DamageHP` 2%maxHp) 미반영 — main DamageAP 만
 - **P2**: passive 힐→보호막(`PercentHealingToShield` 40%, `HPThreshold` 35%) 미반영 — 전용 핸들러 없음
 - **P2**: 예언자(TahmKenchUniqueTrait) sim 미반영 — trait helper 없음(grep 0건)
+- **P2 (AOE 중심)**: desc self-centered(Tahm 2칸 내)인데 config selfCentered 미설정 → aoe_circle primaryTarget 중심 적용(반대편 적 누락 가능). fix: selfCentered:true
 - **P2(informational)**: heal:true OOR cast path 미적용 — main(:7351)만 resolveSelfHeal, OOR loop 미호출(heal:true 구조적, range 1 melee 라 실질 영향 최소)
 - calibration: game-423/424 **부재(미측정)**.
 
