@@ -12,7 +12,7 @@ role: Caster   # raw "APCaster" → mapGameRole() → sim Caster (types/index.ts
 raw_role: APCaster
 current_patch_status: active   # 17.4/17.5 변경 없음 (patch-17-4/17-5 champion list 미포함)
 last_verified: 2026-06-16
-sim_active: partial   # ability 「초능력 분쇄」 자성 파편 가장 가까운 단일 대상에 DebrisDamage(scaleAP) 부착 + 사망 시 파편 이전 + NumCasts(5)회마다 모든 파편 뜯어내 DebrisRipDamage + 내리꽂아 SlamDamage(scaleAP) + 기절(StunDuration 1). sim multi maxTargets:3 + secondaryDamageVar 'SlamDamage'. auto-detect 주 damageVar 'DebrisDamage'(fuzzy) no-filler(v0=v1) → ★1=300/★2=300/★3=450. SlamDamage sentinel filler(v0=2.5 ratio>5) → ★1=720/★2=1100/★3=9999(게임 scaleAP, sim raw 가산). 초능력(PsyOps Radiant swap :2325/:2344)/길잡이(SummonTrait 소환물 materialize) trait. 지휘관(SonaUniqueTrait)=지휘 모드 아이템(item.ts:114) 경로. ⚠️ over-model: DebrisDamage 단일 대상인데 multi 3 over-target + SlamDamage 5회 cadence 무시(매 캐스트) + DebrisRipDamage/stun/파편 이전 미반영. calibration: game-423/424 부재(미측정)
+sim_active: partial   # ability 「초능력 분쇄」 자성 파편 가장 가까운 단일 대상에 DebrisDamage(scaleAP) 부착 + 사망 시 파편 이전 + NumCasts(5)회마다 모든 파편 뜯어내 DebrisRipDamage + 내리꽂아 SlamDamage(scaleAP) + 기절(StunDuration 1). sim multi maxTargets:3 + secondaryDamageVar 'SlamDamage'. auto-detect 주 damageVar 'DebrisDamage'(fuzzy) no-filler(v0=v1) → ★1=300/★2=300/★3=450. SlamDamage sentinel filler(v0=2.5 ratio>5) → ★1=720/★2=1100/★3=9999(게임 scaleAP, sim raw 가산). 초능력(PsyOps Radiant swap :2325/:2344)/길잡이(SummonTrait 소환물 materialize) trait. 지휘관(SonaUniqueTrait) 지휘 모드 ⚠️ sim 미반영(item.ts:114 isSystemItem 분류만, 효과 핸들러 0건). ⚠️ over-model: DebrisDamage 단일 대상인데 multi 3 over-target + SlamDamage 5회 cadence 무시(매 캐스트) + DebrisRipDamage/stun/파편 이전 미반영. calibration: game-423/424 부재(미측정)
 sources:
   - "public/data/tft_set17_champions.json (TFT17_Sona entry — cost 5, role APCaster, traits [지휘관/초능력/길잡이], hp 900, armor/MR 40/40, AD 35, AS 0.9, range 4, mana 0/25, ability '초능력 분쇄' variables DebrisDamage/SlamDamage/NumCasts/DebrisRipDamage/StunDuration)"
   - "public/data/tft_set17_traits.json (TFT17_SonaUniqueTrait = 지휘관 bp 1 / TFT17_PsyOps = 초능력 bp 2/4 / TFT17_SummonTrait = 길잡이 bp 3/5/7)"
@@ -75,7 +75,7 @@ related:
 
 ### Trait — 지휘관 (SonaUniqueTrait) / 초능력 (PsyOps) / 길잡이 (SummonTrait)
 
-- **지휘관** (`TFT17_SonaUniqueTrait`, bp 1): unique trait. sim 효과는 **지휘 모드 아이템**(`TFT17_SonaUnique_*`) 경로(`item.ts:114`)로 처리 — 별도 combatLoop trait helper 없음(grep 전수 확인).
+- **지휘관** (`TFT17_SonaUniqueTrait`, bp 1): unique trait. ⚠️ **sim 미반영** — `item.ts:114` 는 `isSystemItem` 에서 `TFT17_SonaUnique_*`(지휘 모드 아이템)를 **시스템 토큰으로 분류만** 할 뿐, 모드 효과(ReduceMana/Doublestrike/Freeze 등) 적용 핸들러는 combatLoop/item-effect 어디에도 없음(grep 전수 0건). 지휘 모드 전체 미구현.
 - **초능력** (`TFT17_PsyOps`, bp 2/4): (4) tier 활성(`isPsyOpsTier4Active` `:2325`) 시 `applyPsyOpsRadiantSwap`(`:2344`) — 초능력 unit 의 PsyOps 아이템 → Radiant 변종 swap.
 - **길잡이** (`TFT17_SummonTrait`, bp 3/5/7): 소환물(`TFT17_Summon`)은 `useTeamManagement.syncVoyagerSummonInTeam` 로 전투 전 materialize. ⚠️ 길잡이 tier별 전투 버프는 sim helper 없음 미반영 ([[lissandra]] 동일).
 
@@ -85,11 +85,12 @@ related:
 - stats 17.4 정합 (hp 900, armor/MR 40, AD 35, AS 0.9, range 4, mana 0/25)
 - role Caster (`mapGameRole('APCaster')`)
 - 주 `DebrisDamage`(scaleAP) + `SlamDamage`(secondaryDamageVar)
-- 초능력(PsyOps Radiant swap) trait / 길잡이 소환물 materialize / 지휘관(지휘 모드 아이템 경로)
+- 초능력(PsyOps Radiant swap) trait / 길잡이 소환물 materialize
 
 ⚠️ **미반영 / over-model** (Lint 후보):
 - **P2 (over-target)**: DebrisDamage 단일 대상인데 multi maxTargets 3 으로 3명 적용 — 파편 스택/이전 메커니즘 미모델
 - **P2 (cadence)**: SlamDamage 5회마다(`NumCasts`)인데 secondaryDamageVar 로 매 캐스트 적용([[fizz]] 동형) + DebrisRipDamage·stun(`StunDuration`)·파편 이전 미반영
+- **P2**: 지휘관(SonaUniqueTrait) 지휘 모드 전체 미반영 — item.ts:114 isSystemItem 분류만, ReduceMana/Doublestrike/Freeze 등 효과 핸들러 없음
 - **P2**: 길잡이 tier별 전투 버프 미반영 (소환물 materialize 는 됨, [[lissandra]] 동일)
 - calibration: game-423/424 **부재(미측정)**.
 
