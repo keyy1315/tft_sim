@@ -61,12 +61,12 @@ related:
 
 | 변수 | raw value | sim 적용 |
 |------|-----------|---------|
-| Damage | [180, 90, 135, 1000, 1250, ...] | ✅ auto-detect 주 `damageVar 'Damage'` filler(v0>v1) → ★1=90/★2=135/★3=1000 (hybrid AP/AD) |
+| Damage | [180, 90, 135, 1000, 1250, ...] | ⚠️ auto-detect 주 `damageVar 'Damage'` filler(v0>v1) → ★1=90/★2=135/★3=1000. **스케일 안 됨**: `detectScaling`(ability.ts:406)이 desc scaleAD 먼저 매칭→'ad', `bonusAdPercentOf`(combatLoop:745)는 raw AD=0 이라 0 반환 → 아이템/불한당 AP·AD 가 cast Damage 미증가 (raw 값 그대로) |
 | WaveDamage | [300, 160, 240, 2000, 1350, ...] | ⚠️ **over-model** — `secondaryDamageVar 'WaveDamage'` filler → ★1=160/★2=240/★3=2000. 3회째 전용인데 매 캐스트·전 aoe 타겟에 가산(아래) |
 | Shield | [160, 100, 150, 1200, 900, ...] | ✅ `getAbilityShield` filler(v0>v1) → ★1=100/★2=150/★3=1200. ⚠️ Shield 자체는 고정값(scaleAP 없음)이나 `getAbilityShield`(ability.ts:543) 가 desc 전체 `scaleAP` 검사로 `× (1+ap/100)` 적용 → AP 빌드 시 Shield 과대(systemic, Riven 고유 아님) |
 | PassiveDamage | [50, 75, 115, 300, 400, ...] | ⚠️ **미반영** — passive 평타 추가 피해(AP/AD). AD=0 라 sim 평타 기여 작음. no-filler → ★1=50/★2=75/★3=115 |
 | SpecialCastCount | [3, ...] | ⚠️ **미반영** — 3회마다 파동 발동 cadence (secondaryDamageVar 는 매 캐스트) |
-| ShieldDuration | [2, ...] | (보호막 지속) |
+| ShieldDuration | [2, ...] | ⚠️ **미반영** — generic ability shield 는 `remainingTicks: 300`(10초, combatLoop:6783/7553) 고정으로 raw `ShieldDuration`(2초) 무시 → 보호막이 5× 길게 유지 (systemic, Riven 고유 아님) |
 | ThirdCastConeHexRange | [3, ...] | ⚠️ **미반영** — 파동 직선 사거리 (sim aoe_circle r1 로 근사) |
 
 - sim: `pattern: 'aoe_circle', radius: 1, dash: 'to_target', secondaryDamageVar: 'WaveDamage'`. 돌진 → 주 `Damage` + `WaveDamage`(secondaryDamageVar) + 보호막(getAbilityShield).
@@ -89,6 +89,8 @@ related:
 
 ⚠️ **미반영 / over-model** (Lint 후보):
 - **P2**: WaveDamage over-model — 3회 cadence(`SpecialCastCount`) 무시(매 캐스트) + aoe 전 타겟 over-application ([[fizz]] 동형)
+- **P2**: 주 `Damage` 아이템/trait 스케일 안 됨 — detectScaling→'ad'(desc scaleAD) + bonusAdPercentOf raw AD=0 이라 0 → AP·AD 아이템/불한당 cast Damage 미증가 (itemized Riven under)
+- **P2**: ShieldDuration(2초) 미반영 — generic shield `remainingTicks 300`(10초) 고정 → 5× 길게 (systemic)
 - **P2**: passive 평타(`PassiveDamage` AP/AD) 미반영 (AD=0 hybrid)
 - **P2**: hybrid AP/AD 단일 타입 처리 / ThirdCastConeHexRange(파동 직선 3칸) aoe_circle r1 근사
 - **P2**: 불한당 stealth/retarget(HealthThreshold/Duration) 미반영 ([[fizz]]/[[gwen]] 동일)
