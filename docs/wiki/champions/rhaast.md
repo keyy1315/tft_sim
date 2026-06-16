@@ -9,7 +9,7 @@ traits:
 role: Tank   # raw "ADTank" → mapGameRole() → sim Tank (types/index.ts includes('Tank')). carry augment 없음
 raw_role: ADTank
 current_patch_status: active
-sim_active: partial   # ability 「신성한 낫」 내구력 + 회복 후 일직선 베기 Damage(scaleAD) + 띄움. sim line + stun 1.0 + heal:true + selfBuff durability. Damage filler ★1=120/★2=180/★3=300 (auto-detect, scaleAD 반영). 구원자(RhaastUniqueTrait) trait 정합. ⚠️ selfBuff durability 0.3 영구 적용 (selfBuff.duration combatLoop 미read → raw Duration 2초 시간제한 무시, 방어 과대) / HealAmount heal:true(resolveSelfHeal). 🔑 calibration -79% = cast-빈도/duration bound: mana 30/90 → sim 짧은 전투(4~8s)서 0~1회만 시전 → 베기 데미지 대부분 미발생 (값 갭 아님, Damage 자체는 모델됨)
+sim_active: partial   # ability 「신성한 낫」 내구력 + 회복 후 일직선 베기 Damage(scaleAD) + 띄움. sim line + stun 1.0 + heal:true + selfBuff durability. Damage filler ★1=120/★2=180/★3=300 (auto-detect, scaleAD 반영). 구원자(RhaastUniqueTrait) trait — ⚠️ activeTraitCount 가 unique trait 자신 포함 → +1 과다(:569). ⚠️ selfBuff durability 0.3 영구 적용 (selfBuff.duration combatLoop 미read → raw Duration 2초 시간제한 무시, 방어 과대) / HealAmount heal:true(resolveSelfHeal). 🔑 calibration -79% = cast-빈도/duration bound: mana 30/90 → sim 짧은 전투(4~8s)서 0~1회만 시전 → 베기 데미지 대부분 미발생 (값 갭 아님, Damage 자체는 모델됨)
 last_verified: 2026-06-15
 sources:
   - "public/data/tft_set17_champions.json (TFT17_Rhaast entry — cost 3, role ADTank, traits [구원자], hp 1200, armor/MR 60/60, AD 60, AS 0.65, range 1, mana 30/90, ability '신성한 낫' variables Duration/Durability/HealAmount/KnockupDuration/Damage)"
@@ -73,7 +73,7 @@ related:
 
 ### Trait — 구원자 (Redeemer / RhaastUniqueTrait)
 
-- **구원자** (`TFT17_RhaastUniqueTrait`, bp 1): `applySet17SynergyBuffs` (`:567`) — 활성 특성당 AS/방어력/마법저항 부여 (유니크 trait, Rhaast 단독).
+- **구원자** (`TFT17_RhaastUniqueTrait`, bp 1): `applySet17SynergyBuffs` (`:567`) — 활성 특성당 AS/방어력/마법저항 부여 (유니크 trait, Rhaast 단독). ⚠️ **+1 과다 카운트**: raw 는 "활성 **비유니크** 특성당" 인데 sim 은 `traits.filter(t => t.style > 0).length` (`:569`) 로 `RhaastUniqueTrait` **자신도 포함** → 모든 Rhaast 보드에서 AS/armor/MR 1스택 과다.
 
 ## sim 통합 상태 — `partial`
 
@@ -81,10 +81,11 @@ related:
 - stats 17.4 정합 (hp 1200, armor/MR 60, AD 60, AS 0.65, mana 30/90)
 - role Tank (`mapGameRole('ADTank')`)
 - 일직선 베기 Damage(scaleAD) + 띄움(stun 1.0) + 자가 회복(heal:true) + 내구력(selfBuff)
-- 구원자(RhaastUniqueTrait) trait
+- 구원자(RhaastUniqueTrait) trait — ⚠️ +1 과다 카운트 (자신 포함)
 
 ⚠️ **부정확 / 미반영** (Lint 후보):
 - **P2**: selfBuff `durability: 0.3` (raw 0.2 대비 과다) 가 **영구 적용** — `selfBuff.duration` 은 combatLoop 가 read 안 함 (raw 2초/config 4초 둘 다 무시, 시간제한 미구현 → 방어 과대)
+- **P2**: 구원자 activeTraitCount(`:569`)가 `RhaastUniqueTrait` 자신 포함 → AS/armor/MR +1 스택 과다 (raw "비유니크 특성당"). sim fix 시 모든 unique-trait 챔프 영향 → 별도 검토
 - 🔴 **systemic**: mana 90 → sim 짧은 전투서 cast 0~1회 → calibration -79% (duration/cast-frequency bound, 값 갭 아님)
 
 ## 관련 문서
