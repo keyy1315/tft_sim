@@ -28,3 +28,6 @@ scripts/
 actual-data/videos/*
 !actual-data/videos/.gitkeep
 .DS_Store
+
+# tool artifacts (로컬 전용)
+.understand-anything/
