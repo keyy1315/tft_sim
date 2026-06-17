@@ -4,6 +4,21 @@
 - **대상 레포**: `keyy1315/tft_sim`
 - **이미지 경로**: `ghcr.io/keyy1315/tft_sim`
 - **현 상태**: Vercel Git 연동 배포 → AWS Lightsail VPS(자체 호스팅)로 이전
+- **목적**: 배포 학습 (실무에서 차장님이 "프론트 서버도 GitHub Actions로 도커 이미지 말아서 올려라" 지시)
+
+---
+
+## 0. 학습 맥락 / 실무 정렬
+
+- **왜 하는가**: 프로덕션이 아니라 **배포 파이프라인 학습**이 1차 목적.
+- **실무 환경**: API 서버가 이미 GitHub Actions + Docker + **EC2**로 운영 중.
+  프론트(Next.js)도 동일 패턴으로 컨테이너화하는 것이 차장님의 요구.
+- **연습 환경 전이성**: Lightsail은 EC2 위의 추상화 → **SSH + docker pull/run 패턴이
+  실무 EC2에 거의 그대로 전이**된다. 라이트세일로 익힌 워크플로우를 실무에 이식 가능.
+- **단계적 학습 경로**:
+  - **1단계 (이번 구현 범위)**: ghcr.io로 전체 파이프라인 완성 → 도커·액션 흐름 자체를 이해
+  - **2단계 (후속)**: 레지스트리를 ECR로 전환 → AWS IAM/OIDC 자격증명 학습, 실무 EC2 환경과 동일 패턴 재현
+  > 자세한 전환 포인트는 §9 참조.
 
 ---
 
@@ -13,6 +28,7 @@
 `main` 브랜치 푸시 시, GitHub Actions가 품질 게이트를 통과한 뒤 Docker 이미지를 빌드해
 GitHub Container Registry(`ghcr.io`)에 푸시하고, SSH로 Lightsail 인스턴스에 접속해
 새 이미지를 pull·재시작하는 **완전 자동 배포 파이프라인**을 구축한다.
+(1단계 = ghcr 기반. ECR 전환은 2단계 후속 — §9)
 
 ### 결정 사항 (브레인스토밍 합의)
 | 항목 | 결정 |
@@ -20,11 +36,12 @@ GitHub Container Registry(`ghcr.io`)에 푸시하고, SSH로 Lightsail 인스턴
 | 배포 타겟 | AWS Lightsail VPS (x86/amd64, 이미 인스턴스 생성됨) |
 | 공개 방식 | 내부 IP:포트(`3000`)만. 도메인·HTTPS·reverse proxy 없음 |
 | 배포 트리거 | 방식 A: ghcr 푸시 + SSH pull (`docker compose pull && up -d`) |
-| 레지스트리 | `ghcr.io` (private, 워크플로우 `GITHUB_TOKEN`으로 푸시) |
+| 레지스트리 | **1단계 `ghcr.io`** (private, 워크플로우 `GITHUB_TOKEN`으로 푸시) → 2단계 ECR 전환 (§9) |
 | 품질 게이트 | 배포 전 `pnpm lint && typecheck && test` 강제 (실패 시 배포 중단) |
 | 베이스 이미지 | `node:24-alpine` (로컬 Node 24와 통일) |
 
-### 범위 밖 (YAGNI)
+### 범위 밖 (YAGNI / 후속)
+- **ECR 전환** → 2단계 후속 (§9). 1단계는 ghcr로 완성
 - 도메인 연결, HTTPS/TLS, reverse proxy(Nginx/Caddy/Traefik)
 - 무중단 블루-그린/카나리 배포 (단일 컨테이너 `up -d` 재시작으로 충분)
 - 멀티 아키텍처 빌드 (Lightsail amd64 단일 타겟)
@@ -186,3 +203,24 @@ services:
 - **포트 방화벽**: Lightsail 방화벽(콘솔)과 OS 방화벽(ufw) 둘 다 확인 필요.
 - **아키텍처**: Lightsail amd64 가정. 혹시 ARM 인스턴스라면 build-push에 `platforms: linux/arm64` 필요(현재 범위 밖).
 - **Vercel 중복 배포**: 이전 완료 전까지 Vercel 연동을 끄지 않으면 양쪽 배포. 검증 후 Vercel 측 정리.
+
+---
+
+## 9. 학습 로드맵 — 2단계 ECR 전환 (후속)
+
+1단계(ghcr)로 도커·액션 흐름을 이해한 뒤, 실무 EC2 환경과 동일하게 ECR로 전환한다.
+**1단계와 달라지는 부분만** 정리(Dockerfile·compose·앱 코드는 그대로 재사용):
+
+| 구성요소 | 1단계 (ghcr) | 2단계 (ECR) |
+|----------|-------------|-------------|
+| 레지스트리 | `ghcr.io/keyy1315/tft_sim` | `<acct>.dkr.ecr.<region>.amazonaws.com/tft_sim` |
+| Actions 인증 | `docker/login-action` + `GITHUB_TOKEN` | `aws-actions/configure-aws-credentials` (**OIDC** 권장) + `amazon-ecr-login` |
+| 서버 pull 인증 | `read:packages` PAT 로그인 | 인스턴스 IAM Role(ECR read) → `aws ecr get-login-password` |
+| 레포지토리 생성 | 자동(첫 푸시) | ECR 레포 사전 생성 필요 |
+
+**학습 포인트**:
+- GitHub OIDC ↔ AWS IAM Role 신뢰관계(정적 키 없는 단기 자격증명)
+- 인스턴스 프로파일(IAM Role)로 서버에서 PAT 없이 pull
+- 실무 백엔드 워크플로우와 비교하며 차이 학습 (가능하면 사내 yml 참고)
+
+> 2단계는 **별도 스펙 → 플랜 사이클**로 진행한다. 본 문서는 1단계에 집중.
