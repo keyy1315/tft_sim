@@ -1,6 +1,6 @@
 /**
  * 회귀 가드 — 일반화 self-heal resolver (heal find generalization).
- * spec: docs/superpowers/specs/2026-06-11-heal-find-generalization-design.md
+ * spec: heal-find-generalization
  */
 import { describe, it, expect } from 'vitest';
 import { classifyHealVar, resolveSelfHeal, simulateCombat } from '@/lib/simulator/engine/combatLoop';

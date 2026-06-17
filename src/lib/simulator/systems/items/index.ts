@@ -1,8 +1,7 @@
 /**
  * Item Effect Engine — public barrel.
  *
- * 설계 문서: docs/02-design/features/item-effect-engine.design.md
- * Plan: docs/01-plan/features/item-effect-engine.plan.md
+ * 설계: item-effect-engine
  */
 
 export { ItemEffectRuntime } from './runtime';

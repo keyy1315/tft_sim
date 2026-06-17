@@ -7,7 +7,7 @@
  * - Counter: everyN 카운터 (반도체 등)
  * - Timer: interval (드론 업링크 등)
  *
- * 설계 문서: docs/02-design/features/item-effect-engine.design.md
+ * 설계: item-effect-engine
  */
 
 import type { ItemEffect, CombatUnit } from '@/types';

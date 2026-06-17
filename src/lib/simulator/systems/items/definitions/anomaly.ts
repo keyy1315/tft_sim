@@ -5,7 +5,7 @@
  * `on_combat_start` trigger + condition 으로 role 분기 구현.
  *
  * 데이터 출처: TFT17_EkkoOffering_AnomalyItem (public/data/tft_set17_items.json)
- * 설계 문서: docs/02-design/features/item-effect-engine.design.md §6.5
+ * 설계: item-effect-engine §6.5
  */
 
 import type { ItemEffectDescriptor } from '../primitives/types';

@@ -14,7 +14,7 @@
  *   `rawDamage * (1 + damageAmp)` 로 소모
  * - modifyStat 'ap': stats.ap 에 덧셈
  *
- * 설계 문서: docs/02-design/features/item-effect-engine.design.md §6
+ * 설계: item-effect-engine §6
  */
 
 import type { ItemEffectDescriptor, Action } from '../primitives/types';
