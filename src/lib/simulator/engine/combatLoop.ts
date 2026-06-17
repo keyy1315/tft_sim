@@ -192,7 +192,7 @@ function readVarByStar(value: number[] | undefined, starLevel: number, fallback 
  *   BonusHealthOnKill(HP성장) 같은 non-heal 변수 false-positive 차단.
  * ⚠️ `PercentHealing`(Fiora)은 maxHp% 가 아닌 damage% — 'damagePercent' 로 분리 (codex P2 PR #216).
  *   `PercentMaximumHealthHealing`/`HealingPercentHealth` 는 "Health" 포함이라 미매칭 (maxHp% 'amount').
- * spec: docs/superpowers/specs/2026-06-11-heal-find-generalization-design.md
+ * spec: heal-find-generalization
  */
 export function classifyHealVar(name: string): 'drain' | 'damagePercent' | 'amount' | null {
   if (/Duration|Shield|Shielding|ToShield|PerAstro|Aura|Cooldown|Ratio|Threshold|Damage|OnKill|PerCast|Reduction|Ally|Increase/i.test(name)) {
@@ -209,7 +209,7 @@ export function classifyHealVar(name: string): 'drain' | 'damagePercent' | 'amou
  * config.heal:true 챔프의 ability 변수를 전수 순회 → classifyHealVar 매칭 변수 합산.
  * star 인덱싱은 readVarByStar(filler-aware) 일괄. 결정론 — 입력 동일 시 동일 결과.
  * `abilityDamageDealt` = 이번 cast 의 totalAbilityDmg — 'damagePercent'(PercentHealing) 계산용.
- * spec: docs/superpowers/specs/2026-06-11-heal-find-generalization-design.md
+ * spec: heal-find-generalization
  */
 export function resolveSelfHeal(
   unit: CombatUnit,

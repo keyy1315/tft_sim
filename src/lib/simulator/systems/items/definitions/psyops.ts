@@ -6,7 +6,7 @@
  * Phase 4 Part 2 (예정): 악성코드(Debuff+ICD), 표적 고정(on_windup_start per-target),
  *                        유기물 보존기, TrueDamageConversion 등
  *
- * 설계 문서: docs/02-design/features/item-effect-engine.design.md §6.3
+ * 설계: item-effect-engine §6.3
  */
 
 import type { ItemEffect } from '@/types';

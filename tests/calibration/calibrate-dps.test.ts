@@ -1,7 +1,7 @@
 /**
  * DPS Calibration Script (Phase 6-B Part 2)
  *
- * Plan: docs/01-plan/features/estimateDps-magic-numbers.plan.md
+ * 기능: estimateDps-magic-numbers
  *
  * 목적: itemOptimizer.ts 의 DPS_CALIBRATION 6개 매직 넘버를 시뮬 기반 실측치로 역산.
  *
@@ -19,7 +19,7 @@
  *   pnpm exec vitest run scripts/calibrate-dps.ts
  *   (vitest config include 패턴이 tests/만 잡으므로 명시 경로로 실행)
  *
- * 결과: docs/03-analysis/calibration-dps-results.json 으로 저장
+ * 결과: calibration-dps-results.json 으로 저장
  */
 
 import fs from 'node:fs';

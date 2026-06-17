@@ -4,7 +4,7 @@
  * Trigger/Counter/Timer에서 발동된 Action primitive를 실제 실행한다.
  * 결정론 보장: rng는 주입된 SeededRNG만 사용, Math.random() 직접 호출 금지.
  *
- * 설계 문서: docs/02-design/features/item-effect-engine.design.md §4.5
+ * 설계: item-effect-engine §4.5
  */
 
 import type { CombatUnit, StatusEffect } from '@/types';

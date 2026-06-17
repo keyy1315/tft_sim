@@ -1,8 +1,7 @@
 /**
  * 전투 초기 스냅샷 보존 — tick 0 이전 배치 상태를 snapshots[0] 에 기록하는지 검증.
  *
- * Plan: docs/01-plan/features/initial-snapshot-fix.plan.md
- * Design: docs/02-design/features/initial-snapshot-fix.design.md
+ * 기능: initial-snapshot-fix
  *
  * 핵심 보증:
  * - snapshots[0].tick === -1 (pre-combat 표식)
