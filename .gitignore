@@ -15,10 +15,7 @@ next-env.d.ts
 
 # docs
 /docs/*
-!/docs/01-plan/
-!/docs/02-design/
 !/docs/meta/
-!/docs/superpowers/
 !/docs/wiki/
 /scripts/*.playwright-mcp/
 raw-data/
