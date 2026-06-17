@@ -4,7 +4,7 @@
  * apiName → ItemEffectDescriptor[] 매핑.
  * definitions/ 아래 카테고리별 파일을 병합하여 최종 registry 생성.
  *
- * 설계 문서: docs/02-design/features/item-effect-engine.design.md §4
+ * 설계: item-effect-engine §4
  */
 
 import type { ItemEffectDescriptor } from './primitives/types';

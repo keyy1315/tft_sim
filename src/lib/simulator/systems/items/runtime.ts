@@ -4,7 +4,7 @@
  * 전투 중 아이템의 trigger/counter/timer를 관리하는 런타임.
  * combatLoop.ts 최소 침투 원칙: install / onTick / dispose 3개 훅만 노출.
  *
- * 설계 문서: docs/02-design/features/item-effect-engine.design.md §7
+ * 설계: item-effect-engine §7
  */
 
 import type { CombatUnit } from '@/types';

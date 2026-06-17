@@ -14,7 +14,7 @@ export type CombatEventType =
   | 'on_damage'
   | 'on_heal'
   | 'on_shield_break'
-  // v2 — item-effect-engine (설계: docs/02-design/features/item-effect-engine.design.md §5.2)
+  // v2 — item-effect-engine (설계 §5.2)
   /** 매 tick. IntervalTimer dispatch 용. */
   | 'on_tick'
   /** 스킬 마나 소모 시점 (on_cast 이전). PsyOps 공감 임플란트 등. */

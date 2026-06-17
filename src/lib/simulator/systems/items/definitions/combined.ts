@@ -7,7 +7,7 @@
  *   Phase 3 이후 Trigger/Counter/Timer descriptor 로 별도 추가 (여기서는 의도적 제외)
  *
  * 데이터 출처: public/data/tft_set17_items.json (CDragon, 2026-04-18 patch)
- * 설계 문서: docs/02-design/features/item-effect-engine.design.md §8
+ * 설계: item-effect-engine §8
  */
 
 import type { ItemEffectDescriptor } from '../primitives/types';
