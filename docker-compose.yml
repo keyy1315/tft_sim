@@ -1,0 +1,10 @@
+services:
+  app:
+    image: ghcr.io/keyy1315/tft_sim:latest
+    container_name: tft_sim
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - RIOT_API_KEY=${RIOT_API_KEY}
+    restart: unless-stopped
