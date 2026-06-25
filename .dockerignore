@@ -1,0 +1,31 @@
+# deps & build artifacts
+node_modules
+.next
+*.tsbuildinfo
+
+# vcs & ci
+.git
+.github
+.githooks
+
+# env / secrets
+.env
+.env.*
+!.env.example
+
+# docs & data & tests (런타임 불필요)
+docs
+tests
+raw-data
+actual-data
+scripts
+
+# tooling caches
+.bkit
+.claude
+.superpowers
+.understand-anything
+.playwright-mcp
+
+# os
+.DS_Store

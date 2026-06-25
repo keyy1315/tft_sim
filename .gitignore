@@ -21,6 +21,7 @@ next-env.d.ts
 !/docs/meta/
 !/docs/superpowers/
 !/docs/wiki/
+!/docs/deploy/
 /scripts/*.playwright-mcp/
 raw-data/
 scripts/

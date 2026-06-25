@@ -166,6 +166,24 @@ src/
 - **React Compiler 준수** — `useEffect` 내 `setState` 금지, 의존성 배열 누락 금지. `eslint-disable` 로 우회하지 않고 코드 수정으로 해결.
 - **좌표계 규약** — `useTeamManagement.playerTeam` 은 row 0-3, `combatLoop` 입력은 row 4-7 (전투 시 `toEightRowCoords(+4)` 매핑). 경계 레이어에서만 변환.
 
+## 배포 (Docker + GitHub Actions)
+
+`main` 푸시 시 GitHub Actions가 `lint·typecheck·test` → 이미지 빌드(ghcr) →
+Lightsail SSH 배포를 자동 수행한다.
+
+- 설계: `docs/superpowers/specs/2026-06-17-docker-github-actions-deploy-design.md`
+- 셋업/Secrets: `docs/deploy/lightsail-setup.md`
+
+로컬 컨테이너 실행:
+
+```bash
+docker build \
+  --build-arg NEXT_PUBLIC_SUPABASE_URL="..." \
+  --build-arg NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY="..." \
+  -t tft_sim:local .
+docker run --rm -p 3000:3000 -e RIOT_API_KEY="..." tft_sim:local
+```
+
 ## 라이선스
 
 이 프로젝트는 [Riot Games](https://www.riotgames.com/)의 공식 프로젝트가 아닙니다.
