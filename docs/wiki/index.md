@@ -22,6 +22,7 @@ updated: 2026-05-21 (PR #151 mordekaiser.md)
 
 ## Patches
 
+- [[patch-17-6]] — 2026-06-24 LIVE. 소규모 패치 + **대규모 augment 패스**(lobby shape 의존도 완화). 저활용 챔프 버프(TwistedFate/Viktor/Mordekaiser/Karma/LeBlanc/Morgana/Shen) + Gnar AD·Meeple(7) 너프(리롤 견제) + Blood Offering AP 일반화/Expedition·Birthday Reunion·Self-Destruct 너프. 3주 패치(17.7=07-15). ⚠️ **raw data/sim = 17.4 partial 미반영** — 17.6 raw 갱신 작업 예정, calibration(17.1/17.3) 재기준 필요
 - [[patch-17-5]] — 2026-06-10 LIVE (+ 17.5b mid-patch). econ augment 너프 + 저활용 챔프 버프(Bard/Veigar/Fizz/Caitlyn/Mordekaiser) + Meeple/Rammus 너프. ⚠️ **raw data/sim = 17.4 partial 미반영**, calibration 게임(17.1/17.3) 정렬상 17.5b raw 갱신 신중. 이번 세션 sim-fix 챔프(Bard/Ezreal/Rammus 등) 수치 delta source
 - [[patch-17-4]] — 2026-05-27 LIVE. Bel'Veth 너프 revert + Arbiter 대규모 개편 + Sniper/Psionic 일관성. raw data 는 sequence B(Zed/Shen/Jax) 1차만 17.4, 나머지 17.3 기준
 - [[patch-17-3]] — 2026-05-13 LIVE. **공식 패치노트 정상화 후 종합 ingest** (System/Traits/27 챔프/5 신규 aug/15+ 조정 aug/items/bug fixes). Morgana 4코 리워크, Stargazer Fountain 재활성화 + (3)/(5) 4%/7% 확정, carry augment sim drift 5건
